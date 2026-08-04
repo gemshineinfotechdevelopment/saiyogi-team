@@ -1,350 +1,285 @@
 import { Link } from "react-router-dom";
-import { Award, ShieldCheck, Tag, ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Play } from "lucide-react";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
-import tomJerry from "@/assets/tom-jerry.jpeg";
 import narendira1 from "@/assets/narendira1.png";
 import narendira2 from "@/assets/narendira2.png";
 import { useState, useEffect } from "react";
-import { getCategories, getProducts } from "@/lib/api";
-import { Category } from "@/data/products";
+import { getProducts } from "@/lib/api";
+import { Product } from "@/data/products";
+
+// Static Data based on the design
+const staticBestSellers = [
+  { id: 1, name: "Whistling Birds", price: 240, image: "/sky_rocket_box.png" },
+  { id: 2, name: "Flower Pots Big", price: 450, image: "/flower_pots.png" },
+  { id: 3, name: "1000 Wala", price: 1200, image: "/sky_rocket_box.png" },
+  { id: 4, name: "King Of Kings", price: 350, image: "/flower_pots.png" },
+  { id: 5, name: "Twinkling Star", price: 150, image: "/sky_rocket_box.png" },
+  { id: 6, name: "Chakkra Special", price: 280, image: "/flower_pots.png" },
+];
+
+const staticFamilyPacks = [
+  { id: 7, name: "Mega Family Pack", oldPrice: 4500, price: 3200, image: "/sky_rocket_box.png" },
+  { id: 8, name: "Grand Celebration Combo", oldPrice: 6000, price: 4500, image: "/flower_pots.png" },
+  { id: 9, name: "Sky Show Magic", oldPrice: 7500, price: 5500, image: "/sky_rocket_box.png" },
+  { id: 10, name: "Classic Family Pack", oldPrice: 3000, price: 2100, image: "/flower_pots.png" },
+  { id: 11, name: "Royal Festival Pack", oldPrice: 10000, price: 7200, image: "/sky_rocket_box.png" },
+  { id: 12, name: "Kids Joy Cracker", oldPrice: 2000, price: 1500, image: "/flower_pots.png" },
+];
+
+const premiumCategories = [
+  { name: "Gift Boxes", image: "/sky_rocket_box.png" },
+  { name: "Sparklers", image: "/flower_pots.png" },
+  { name: "Flower Pots", image: "/sky_rocket_box.png" },
+  { name: "Ground Chakkars", image: "/flower_pots.png" },
+  { name: "Sky Shots", image: "/sky_rocket_box.png" },
+  { name: "Novelty Crackers", image: "/flower_pots.png" },
+];
+
+const manufacturers = [
+  { name: "STANDARD", logo: "S" },
+  { name: "AJANTA", logo: "A" },
+  { name: "CORONATION", logo: "C" },
+  { name: "VADIVEL", logo: "V" },
+];
 
 const Index = () => {
   const { settings } = useSiteSettings();
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [products, setProducts] = useState<Product[]>([]);
 
   // Hero image slideshow (right-to-left slide)
   const heroImages = [narendira1, narendira2];
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [prevSlide, setPrevSlide] = useState<number | null>(null);
-  const [slideKey, setSlideKey] = useState(0); // force re-mount to retrigger animation
+  const [slideKey, setSlideKey] = useState(0);
+
+  // Time remaining states
+  const [timeLeft, setTimeLeft] = useState({
+    days: 284,
+    hours: 14,
+    minutes: 45,
+    seconds: 12
+  });
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((cur) => {
         const next = (cur + 1) % heroImages.length;
-        setPrevSlide(cur);
         setSlideKey((k) => k + 1);
         return next;
       });
     }, 4000);
     return () => clearInterval(timer);
-  }, []);
+  }, [heroImages.length]);
 
   useEffect(() => {
-    Promise.all([getCategories(), getProducts()])
-      .then(([cats, prods]) => {
-        const updatedCats = cats.map(cat => {
-          const count = prods.filter(p => {
-            const productCat = p.category as any;
-            const productCatId = typeof productCat === 'object' && productCat !== null ? (productCat._id || productCat.id || productCat) : productCat;
-            return productCatId === (cat._id || cat.id);
-          }).length;
-          return {
-            ...cat,
-            productCount: count
-          };
-        });
-        setCategories(updatedCats);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Error loading categories or products:", err);
-        setLoading(false);
-      });
+    // We could fetch dynamic data here, but we will use the static data to match the UI precisely for now.
+    getProducts().then((prods) => {
+      setProducts(prods);
+    });
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white relative">
+    <div className="min-h-screen flex flex-col bg-white relative font-sans">
       <UserHeader />
 
-      {/* Floating Discount Badge */}
-      {settings.discountPercent > 0 && (
-        <div className="fixed left-0 top-1/3 z-50 pointer-events-none select-none">
-          <Link
-            to="/catalog"
-            className="bg-gradient-to-r from-[#ED1C24] to-red-700 text-white font-display px-3 py-4 rounded-r-2xl shadow-[0_8px_30px_rgba(237,28,36,0.3)] border-y border-r border-yellow-400/40 flex flex-col items-center gap-1 origin-left animate-blink pointer-events-auto transition-transform hover:scale-105 duration-200"
-          >
-            <span className="text-[9px] md:text-[11px] text-yellow-300 uppercase tracking-widest font-black">Diwali</span>
-            <span className="text-base md:text-2xl text-white font-black leading-none drop-shadow-sm">{settings.discountPercent}%</span>
-            <span className="text-[9px] md:text-[11px] text-yellow-300 uppercase font-black tracking-widest leading-none">OFF</span>
-          </Link>
-        </div>
-      )}
-
       {/* Hero Section */}
-      <section className="relative w-full h-[280px] md:h-[900px] flex items-center justify-center overflow-hidden">
-        {/* Hero image slideshow — above background, below dark overlay */}
-        <div className="absolute inset-0 overflow-hidden">
-          {/* Exiting slide */}
-          {prevSlide !== null && (
-            <img
-              key={`exit-${slideKey}`}
-              src={heroImages[prevSlide]}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover object-top hero-slide-exit"
-              aria-hidden="true"
-            />
-          )}
-          {/* Entering slide */}
+      <section className="relative w-full h-[300px] md:h-[500px] flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden bg-black">
           <img
             key={`enter-${slideKey}`}
             src={heroImages[currentSlide]}
-            alt="Narendiraa Enterprises"
-            className="absolute inset-0 w-full h-full object-cover object-top hero-slide-enter"
+            alt="Sai Yogi Crackers"
+            className="absolute inset-0 w-full h-full object-cover object-center hero-slide-enter opacity-80"
           />
+          <div className="absolute inset-0 bg-black/40"></div>
         </div>
-
-        {/* Floating WhatsApp */}
-        <a href="https://wa.me/919585975756" target="_blank" rel="noopener noreferrer" className="absolute bottom-6 right-6 bg-[#25D366] text-white p-3 rounded-full shadow-2xl hover:scale-110 transition-transform">
-          <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z" /></svg>
-        </a>
-      </section>
-
-      {/* News Marquee */}
-      {settings.news && (
-        <div className="bg-[#ED1C24] text-white py-1.5 md:py-2 overflow-hidden flex items-center font-bold text-[10px] md:text-sm tracking-wide shadow-md z-20 relative">
-          <div className="whitespace-nowrap animate-marquee flex items-center">
-            <span className="mx-4">🔔</span>
-            {settings.news}
-            <span className="mx-4">🔔</span>
-            {settings.news}
-            <span className="mx-4">🔔</span>
-            {settings.news}
-          </div>
-        </div>
-      )}
-
-      <section className="w-full bg-white py-6 px-4 text-center">
-        <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-black text-gray-900 leading-tight tracking-wider uppercase mb-1">
-          Narendiraa
-        </h1>
-        <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-black text-[#FFD700] leading-tight tracking-wide md:tracking-widest uppercase mb-4" style={{WebkitTextStroke: '1px #b8960c'}}>
-          Enterprises
-        </h1>
-        <p className="text-gray-600 text-xs sm:text-sm md:text-base mb-6 max-w-xs sm:max-w-lg mx-auto font-medium tracking-wide">
-          Premium fireworks handcrafted in Sivakasi, designed to turn every moment into a golden memory.
-        </p>
-        <Button asChild className="bg-[#ED1C24] hover:bg-red-800 text-white font-bold h-12 px-10 rounded-full text-xs tracking-wider transition-all shadow-lg hover:shadow-xl uppercase">
-          <Link to="/catalog">Shop Now</Link>
-        </Button>
-      </section>
-
-
-      {/* The Legacy Section */}
-      <section className="relative w-full overflow-hidden bg-[#fafafa]">
-        <div className="absolute inset-0 z-0">
-          <img src="/fireworks_bg.png" alt="Fireworks" className="w-full h-full object-cover opacity-60 mix-blend-multiply" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-        </div>
-
-        <div className="container relative z-10 py-16 md:py-24">
-          <div className="flex flex-col lg:flex-row gap-12 items-center">
-            {/* Left text */}
-            <div className="lg:w-1/3 bg-white/95 backdrop-blur p-6 sm:p-8 rounded-xl shadow-2xl border border-gold/20">
-              <h2 className="font-display text-sm sm:text-2xl font-bold text-gray-800 uppercase tracking-wider sm:tracking-widest mb-1">The Legacy Of</h2>
-              <h2 className="font-display text-base sm:text-2xl font-black text-[#FFD700] uppercase tracking-wider sm:tracking-widest mb-6">Narendraa Enterprises</h2>
-
-              <p className="text-gray-600 text-sm leading-relaxed mb-4 font-medium">
-                With 20+ years of excellence in Sivakasi, Narendiraa Enterprises brings the prestige of Narendraa Enterprises to your door step. We are the leading supplier of fancy crackers, committed to unmatched quality and safety.
-              </p>
-            </div>
-
-            {/* Right Images */}
-            <div className="lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-8 relative">
-              <div className="relative group rounded-2xl overflow-hidden shadow-2xl transform transition-transform hover:-translate-y-2">
-                <img src="/sky_rocket_box.png" alt="Aerial Sky Shots" className="w-full aspect-square object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
-                <div className="absolute bottom-6 left-6 right-6 text-left">
-                  <h3 className="font-display text-white font-bold text-xl uppercase tracking-wider mb-1">Aerial Sky Shots</h3>
-                  <p className="text-gray-300 text-xs mb-4">Multi-color bursts illuminating the night sky with grandeur.</p>
-                  <Button variant="outline" className="bg-transparent text-white border-white hover:bg-white hover:text-black font-bold text-[10px] px-6 h-8 rounded-full uppercase tracking-wider">
-                    <Link to="/catalog">Explore Range</Link>
-                  </Button>
-                </div>
-              </div>
-
-              <div className="relative group rounded-2xl overflow-hidden shadow-2xl transform transition-transform hover:-translate-y-2 mt-0 md:mt-12">
-                <img src="/flower_pots.png" alt="Golden Flower Pots" className="w-full aspect-square object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
-                <div className="absolute bottom-6 left-6 right-6 text-left">
-                  <h3 className="font-display text-white font-bold text-xl uppercase tracking-wider mb-1">Golden Flower Pots</h3>
-                  <p className="text-gray-300 text-xs mb-4">Traditional brilliant spark fountains that last longer and burn brighter.</p>
-                  <Button variant="outline" className="bg-transparent text-white border-white hover:bg-white hover:text-black font-bold text-[10px] px-6 h-8 rounded-full uppercase tracking-wider">
-                    <Link to="/catalog">Explore Range</Link>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="relative z-10 flex flex-col items-center justify-center mt-8">
+            <h1 className="text-5xl md:text-8xl font-black text-[#FFD700] drop-shadow-lg tracking-wider" style={{ fontFamily: 'serif' }}>Sai Yogi</h1>
+            <p className="text-xl md:text-3xl text-white tracking-[0.3em] font-light mt-2 uppercase">Crackers</p>
         </div>
       </section>
 
-      {/* Shop By Category */}
-      <section className="py-16 bg-gray-50/50 border-y border-gray-100">
-        <div className="text-center mb-10">
-          <h2 className="font-display text-2xl md:text-3xl font-black text-slate-800 uppercase tracking-widest">
-            Shop By Category
+      {/* Best Sellers */}
+      <section className="py-12 container mx-auto px-4 max-w-6xl">
+        <div className="flex justify-between items-end mb-8 border-b border-gray-200 pb-2">
+          <h2 className="text-xl md:text-2xl font-black text-gray-800 uppercase tracking-widest relative">
+            Best Sellers
+            <div className="absolute -bottom-2.5 left-0 w-1/2 h-0.5 bg-[#7A1416]"></div>
           </h2>
-          <div className="h-1 w-12 bg-red-600 mx-auto mt-3 rounded-full"></div>
+          <Link to="/catalog" className="text-red-600 font-bold text-xs hover:underline uppercase">View All &gt;</Link>
         </div>
-
-        <div className="container px-4">
-          {loading ? (
-            <div className="flex justify-center items-center py-10">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {staticBestSellers.map((item) => (
+            <div key={item.id} className="bg-white border border-gray-200 p-3 flex flex-col items-center text-center shadow-sm">
+              <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3">
+                <img src={item.image} alt={item.name} className="max-w-full max-h-full object-contain" />
+              </div>
+              <h3 className="font-bold text-xs text-gray-800 uppercase mb-1 min-h-[32px] line-clamp-2">{item.name}</h3>
+              <div className="flex gap-1 mb-2 text-yellow-400">
+                {'★★★★★'.split('').map((star, i) => <span key={i} className="text-[10px]">{star}</span>)}
+              </div>
+              <p className="text-red-600 font-bold text-sm mb-3">₹ {item.price}</p>
+              
+              <div className="flex items-center gap-2 mt-auto w-full">
+                <div className="flex items-center border border-gray-300 rounded text-xs flex-1">
+                  <button className="px-2 py-1 text-gray-600 hover:bg-gray-100">-</button>
+                  <input type="text" value="1" readOnly className="w-6 text-center outline-none bg-transparent" />
+                  <button className="px-2 py-1 text-gray-600 hover:bg-gray-100">+</button>
+                </div>
+                <button className="bg-[#7A1416] text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-red-800">ADD</button>
+              </div>
             </div>
-          ) : (
-            <>
-              {/* Mobile View: Auto-sliding Carousel */}
-              <div className="block md:hidden overflow-hidden w-full">
-                <div className="flex gap-4 py-2 w-max animate-category-slide">
-                  {[...categories, ...categories].map((cat, index) => (
-                    <Link
-                      key={`${cat._id || cat.id}-slide-${index}`}
-                      to={`/catalog?category=${cat._id || cat.id}`}
-                      className="flex-none w-[140px] bg-white rounded-2xl p-4 border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.01)] flex flex-col items-center text-center"
-                    >
-                      {/* Image Container */}
-                      <div className="w-20 h-20 flex items-center justify-center mb-3 bg-slate-50/50 rounded-xl overflow-hidden p-1.5">
-                        {cat.image ? (
-                          <img
-                            src={cat.image}
-                            alt={cat.name}
-                            className="max-w-full max-h-full object-contain"
-                          />
-                        ) : (
-                          <div className="text-gray-300 font-bold text-[10px] uppercase">No Image</div>
-                        )}
-                      </div>
+          ))}
+        </div>
+      </section>
 
-                      {/* Text Container */}
-                      <h3 className="font-display font-bold text-slate-800 text-[10px] uppercase tracking-wider mb-0.5 line-clamp-1">
-                        {cat.name}
-                      </h3>
-                      <p className="text-[9px] text-gray-400 font-medium">
-                        {cat.productCount} {cat.productCount === 1 ? "item" : "items"}
-                      </p>
-                    </Link>
-                  ))}
+      {/* Videos Section */}
+      <section className="py-8 bg-gradient-to-b from-white to-[#FDF5E6]">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="relative rounded-2xl overflow-hidden aspect-video bg-gray-800 group cursor-pointer shadow-lg">
+                <img src="/fireworks_bg.png" alt="Video thumbnail" className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-12 h-12 bg-white/30 backdrop-blur-sm rounded flex items-center justify-center group-hover:bg-white/50 transition-colors">
+                    <Play className="text-white fill-white w-6 h-6" />
+                  </div>
                 </div>
               </div>
-
-              {/* Desktop View: Static Flex Layout */}
-              <div className="hidden md:flex flex-wrap justify-center gap-6 py-2">
-                {categories.map((cat) => (
-                  <Link
-                    key={cat._id || cat.id}
-                    to={`/catalog?category=${cat._id || cat.id}`}
-                    className="w-[180px] bg-white rounded-2xl p-5 border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.01)] hover:shadow-[0_10px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group"
-                  >
-                    {/* Image Container */}
-                    <div className="w-28 h-28 flex items-center justify-center mb-4 bg-slate-50/50 rounded-xl overflow-hidden p-2 group-hover:scale-105 transition-transform duration-300">
-                      {cat.image ? (
-                        <img
-                          src={cat.image}
-                          alt={cat.name}
-                          className="max-w-full max-h-full object-contain"
-                        />
-                      ) : (
-                        <div className="text-gray-300 font-bold text-xs uppercase">No Image</div>
-                      )}
-                    </div>
-
-                    {/* Text Container */}
-                    <h3 className="font-display font-bold text-slate-800 text-xs uppercase tracking-wider mb-1 line-clamp-1 group-hover:text-red-600 transition-colors">
-                      {cat.name}
-                    </h3>
-                    <p className="text-[10px] text-gray-400 font-medium">
-                      {cat.productCount} {cat.productCount === 1 ? "item" : "items"}
-                    </p>
-                  </Link>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      </section>
-
-      {/* Our Speciality */}
-      <section className="py-10 md:py-20 bg-[#fafafa]">
-        <div className="container px-4">
-          <div className="text-center mb-6 md:mb-12">
-            <h2 className="font-display text-2xl md:text-3xl font-black text-slate-800 uppercase tracking-wider md:tracking-widest">Our Speciality</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 max-w-5xl mx-auto">
-            {/* Speciality 1 */}
-            <div className="bg-white p-6 md:p-10 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col items-center text-center hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
-              <div className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 text-slate-800 rounded-full flex items-center justify-center mb-4 md:mb-6">
-                <Award className="w-5 h-5 md:w-6 md:h-6" />
-              </div>
-              <h3 className="font-display font-bold text-slate-800 text-base md:text-lg uppercase tracking-wider mb-2 md:mb-4">Unmatched<br />Quality</h3>
-              <p className="text-xs text-gray-500 leading-relaxed max-w-[200px]">
-                We use premium ingredients and strict quality control, ensuring vibrant colors and a spectacular display every time you light our crackers.
-              </p>
-            </div>
-
-            {/* Speciality 2 */}
-            <div className="bg-white p-6 md:p-10 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col items-center text-center hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
-              <div className="w-12 h-12 md:w-14 md:h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4 md:mb-6">
-                <Tag className="w-5 h-5 md:w-6 md:h-6" />
-              </div>
-              <h3 className="font-display font-bold text-slate-800 text-base md:text-lg uppercase tracking-wider mb-2 md:mb-4">Genuine Pricing</h3>
-              <p className="text-xs text-gray-500 leading-relaxed max-w-[200px]">
-                Our products offer unmatched value without compromising on quality, providing you with incredible savings that make your celebrations affordable.
-              </p>
-            </div>
-
-            {/* Speciality 3 */}
-            <div className="bg-white p-6 md:p-10 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col items-center text-center hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
-              <div className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 text-slate-800 rounded-full flex items-center justify-center mb-4 md:mb-6">
-                <ShieldCheck className="w-5 h-5 md:w-6 md:h-6" />
-              </div>
-              <h3 className="font-display font-bold text-slate-800 text-base md:text-lg uppercase tracking-wider mb-2 md:mb-4">Safe To Use</h3>
-              <p className="text-xs text-gray-500 leading-relaxed max-w-[200px]">
-                Crafted meticulously by experts, our fireworks guarantee a 100% safe, worry-free, and joyous display every time you light them.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Tom and Jerry Banner */}
-      <section className="w-full py-6 bg-slate-50/50">
-        <div className="container px-4">
-          <div className="max-w-5xl mx-auto rounded-2xl md:rounded-3xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 bg-white">
-            <img
-              src={tomJerry}
-              alt="Celebration Banner"
-              className="w-full h-auto object-cover hover:scale-[1.01] transition-transform duration-500"
-            />
+      {/* Premium Categories */}
+      <section className="py-16 bg-[#FDF5E6]">
+        <div className="text-center mb-10">
+          <h2 className="font-black text-[#7A1416] text-2xl uppercase tracking-widest mb-2">Premium Categories</h2>
+          <p className="text-black font-bold uppercase text-sm">Shop By Category</p>
+          <p className="text-gray-500 text-xs mt-2 max-w-md mx-auto">Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.</p>
+        </div>
+        
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {premiumCategories.map((cat, i) => (
+              <div key={i} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col items-center p-4">
+                <div className="w-full aspect-square flex items-center justify-center bg-gray-50 rounded-lg p-2 mb-3">
+                  <img src={cat.image} alt={cat.name} className="max-w-full max-h-full object-contain" />
+                </div>
+                <h3 className="font-bold text-xs text-gray-800 uppercase">{cat.name}</h3>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Pre-Footer CTA */}
-      <section className="py-12 md:py-20 bg-[#f8fafc]">
-        <div className="container px-4 text-center">
-          <div className="max-w-3xl mx-auto bg-white rounded-3xl md:rounded-[4rem] px-6 py-10 md:px-12 md:py-16 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col items-center relative overflow-hidden">
-            {/* Decorative faint circle behind */}
-            <div className="absolute top-1/2 left-12 -translate-y-1/2 w-24 h-24 rounded-full border border-gray-100 hidden md:block"></div>
-            <div className="absolute top-1/2 right-12 -translate-y-1/2 w-24 h-24 rounded-full border border-gray-100 hidden md:block"></div>
+      {/* Trusted Manufacturers */}
+      <section className="py-12 bg-white border-b border-gray-100">
+        <div className="text-center mb-8">
+          <h2 className="font-black text-[#7A1416] text-xl uppercase tracking-widest mb-2">Trusted Manufacturers</h2>
+          <p className="text-gray-500 text-xs">We are supplying high quality fireworks from top brands in Sivakasi.</p>
+        </div>
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="flex flex-wrap justify-center gap-4 md:gap-8">
+            {manufacturers.map((brand, i) => (
+              <div key={i} className="bg-[#F8F8F8] border border-gray-200 px-8 py-4 flex items-center justify-center min-w-[120px] shadow-sm">
+                <span className="font-bold text-gray-600 tracking-wider text-sm">{brand.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <h2 className="font-display text-xl md:text-3xl font-black text-slate-800 uppercase tracking-wider md:tracking-widest mb-4 z-10">
-              Ready to Sparkle This Diwali?
-            </h2>
-            <p className="text-gray-500 text-xs md:text-sm leading-relaxed mb-8 max-w-xs md:max-w-xl z-10 px-2">
-              Get exclusive wholesale rates and bulk discounts on our premium range. Our Diwali sale is now open for pre-bookings. Order now and guarantee a majestic celebration for your loved ones.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center gap-4 z-10">
-              <Button asChild className="bg-[#002366] hover:bg-[#001844] text-white font-bold h-12 px-8 rounded-full text-xs tracking-wider uppercase transition-all shadow-md">
-                <Link to="/catalog">View Brochure</Link>
-              </Button>
+      {/* Family Packs */}
+      <section className="py-16 bg-[#F4E3BA]">
+        <div className="text-center mb-10">
+          <h2 className="font-black text-[#7A1416] text-2xl uppercase tracking-widest mb-2">Family Packs</h2>
+          <p className="text-gray-700 text-xs font-bold uppercase">Our Special combo packages for you and your whole family</p>
+        </div>
+        
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {staticFamilyPacks.map((item) => (
+              <div key={item.id} className="bg-white p-5 border border-white shadow-sm flex flex-col items-center text-center">
+                <div className="w-full aspect-[4/3] bg-gray-50 flex items-center justify-center p-2 mb-4">
+                  <img src={item.image} alt={item.name} className="max-w-full max-h-full object-cover" />
+                </div>
+                <h3 className="font-bold text-sm text-gray-900 uppercase mb-2">{item.name}</h3>
+                <div className="flex gap-2 items-center mb-4">
+                  <span className="text-gray-400 line-through text-xs font-bold">₹{item.oldPrice}</span>
+                  <span className="text-[#7A1416] font-black text-lg">₹{item.price}</span>
+                </div>
+                <button className="w-full bg-[#7A1416] text-white py-3 font-bold text-xs tracking-wider hover:bg-red-900 uppercase">
+                  Add To Cart
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Premium Quality Standards */}
+      <section className="py-20 relative bg-gradient-to-r from-[#5a0f10] to-[#8f191b] overflow-hidden">
+        <div className="container mx-auto px-4 max-w-6xl relative z-10">
+          <div className="flex flex-col md:flex-row items-center gap-10">
+            <div className="md:w-1/2 text-left">
+              <span className="bg-[#DDAA55] text-black text-[10px] font-bold px-2 py-1 uppercase tracking-widest mb-4 inline-block">Made In Sivakasi</span>
+              <h2 className="font-black text-white text-3xl md:text-5xl uppercase leading-tight mb-4 tracking-wide font-display">
+                Premium<br/>
+                Sivakasi<br/>
+                <span className="text-transparent font-outline-2" style={{ WebkitTextStroke: '1px #FFD700' }}>Quality Standards</span>
+              </h2>
+              <p className="text-gray-300 text-sm mb-8 max-w-md leading-relaxed">
+                Premium fireworks handcrafted in Sivakasi, designed to turn every moment into a golden memory. Celebrate with safety and unmatched quality.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <button className="bg-[#F9EAB8] text-black px-6 py-3 font-bold text-xs uppercase tracking-wider hover:bg-white transition-colors">
+                  View Our New<br/>Collection
+                </button>
+                <button className="border border-white text-white px-6 py-3 font-bold text-xs uppercase tracking-wider hover:bg-white hover:text-[#7A1416] transition-colors">
+                  View<br/>More
+                </button>
+              </div>
             </div>
+            <div className="md:w-1/2">
+              <img src="/sky_rocket_box.png" alt="Premium Quality" className="w-full max-w-lg rounded-lg shadow-2xl" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Diwali Celebration 2026 */}
+      <section className="py-16 bg-white border-b border-gray-100">
+        <div className="text-center mb-10">
+          <h2 className="font-black text-[#7A1416] text-2xl uppercase tracking-widest mb-2">Diwali Celebration 2026</h2>
+          <p className="text-gray-500 text-xs">Celebrate the festival of lights with joy.</p>
+        </div>
+        
+        <div className="flex justify-center gap-4 md:gap-8">
+          <div className="flex flex-col items-center">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-[#7A1416] flex items-center justify-center mb-2 shadow-sm">
+              <span className="font-black text-[#7A1416] text-xl md:text-2xl">{timeLeft.days}</span>
+            </div>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Days</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-[#7A1416] flex items-center justify-center mb-2 shadow-sm">
+              <span className="font-black text-[#7A1416] text-xl md:text-2xl">{timeLeft.hours}</span>
+            </div>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Hrs</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-[#7A1416] flex items-center justify-center mb-2 shadow-sm">
+              <span className="font-black text-[#7A1416] text-xl md:text-2xl">{timeLeft.minutes}</span>
+            </div>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Min</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-[#7A1416] flex items-center justify-center mb-2 shadow-sm">
+              <span className="font-black text-[#7A1416] text-xl md:text-2xl">{timeLeft.seconds}</span>
+            </div>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Sec</span>
           </div>
         </div>
       </section>
