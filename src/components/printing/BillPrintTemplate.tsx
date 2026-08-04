@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import companyLogo from "@/assets/1.png";
+import companyLogo from "@/assets/saiyogi-logo-1.png";
 import { Settings } from "@/context/SettingsContext";
 
 interface BillItem {

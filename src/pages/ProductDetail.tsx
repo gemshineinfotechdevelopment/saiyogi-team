@@ -46,7 +46,19 @@ const ProductDetail = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (!loading && !product) {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #FEF3C7 0%, #FFE4E6 50%, #FEF3C7 100%)' }}>
+        <UserHeader />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+        </div>
+        <UserFooter />
+      </div>
+    );
+  }
+
+  if (!product) {
     return (
       <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #FEF3C7 0%, #FFE4E6 50%, #FEF3C7 100%)' }}>
         <UserHeader />

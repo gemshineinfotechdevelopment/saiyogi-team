@@ -11,8 +11,7 @@ import authRouter from './routes/auth.js';
 import cartRouter from './routes/cart.js';
 import inventoryRouter from './routes/inventory.js';
 import settingsRouter from './routes/settings.js';
-import billsRouter from './routes/bills.js';
-import reportsRouter from './routes/reports.js';
+
 import { errorHandler } from './middleware/errorHandler.js';
 import logger from './utils/logger.js';
 import { assignRequestId, requestLogger } from './middleware/requestLogger.js';
@@ -93,8 +92,7 @@ app.use('/api/customers', customersRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/settings', settingsRouter);
-app.use('/api/bills', billsRouter);
-app.use('/api/reports', reportsRouter);
+
 
 // 404 Handler for API routes
 app.use('/api', (req, res) => {
