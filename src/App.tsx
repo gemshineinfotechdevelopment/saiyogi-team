@@ -13,6 +13,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import SafetyTips from "./pages/SafetyTips";
 import Contact from "./pages/Contact";
+import QuickEnquiry from "./pages/QuickEnquiry";
 import AdminLogin from "./pages/admin/AdminLogin";
 import Dashboard from "./pages/admin/Dashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
@@ -49,6 +50,7 @@ const App = () => (
                   <Route path="/cart" element={<Cart />} />
                   <Route path="/safety-tips" element={<SafetyTips />} />
                   <Route path="/contact" element={<Contact />} />
+                  <Route path="/quick-enquiry" element={<QuickEnquiry />} />
                   <Route path="/admin/login" element={<AdminLogin />} />
                   <Route
                     path="/admin"
