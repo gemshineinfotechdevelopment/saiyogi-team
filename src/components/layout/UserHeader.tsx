@@ -13,6 +13,39 @@ const UserHeader = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const isActive = (path: string) => {
+    const currentPath = location.pathname;
+    const currentSearch = location.search;
+
+    if (path === '/') {
+      return currentPath === '/';
+    }
+    if (path === '/about-us') {
+      return currentPath === '/about-us' || currentPath === '/about';
+    }
+    if (path === '/catalog') {
+      return (currentPath === '/catalog' && !currentSearch.includes('category=combo-packs')) || currentPath.startsWith('/product/');
+    }
+    if (path === '/catalog?category=combo-packs') {
+      return currentPath === '/catalog' && currentSearch.includes('category=combo-packs');
+    }
+    return currentPath === path;
+  };
+
+  const getLinkClass = (path: string) => {
+    const active = isActive(path);
+    return active
+      ? "text-[#7A1416] border-b-2 border-[#7A1416] pb-1 transition-colors font-extrabold"
+      : "text-gray-700 hover:text-[#7A1416] pb-1 transition-colors font-bold";
+  };
+
+  const getMobileLinkClass = (path: string) => {
+    const active = isActive(path);
+    return active
+      ? "text-[#7A1416] font-extrabold border-l-4 border-[#7A1416] pl-2"
+      : "text-gray-700 hover:text-[#7A1416] font-bold";
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100 transition-all duration-500 ease-in-out hover:shadow-md animate-fade-in w-full">
       {/* Top Bar */}
@@ -81,30 +114,30 @@ const UserHeader = () => {
       {/* Navigation Bar */}
       <div className="hidden md:block border-t border-gray-100">
         <div className="container mx-auto px-4 py-3 flex justify-center">
-          <nav className="flex items-center gap-6 lg:gap-8 text-[12px] lg:text-[13px] font-bold text-gray-700 uppercase tracking-wide">
-            <Link to="/" className={`${location.pathname === '/' ? 'text-[#7A1416] border-b-2 border-[#7A1416]' : 'hover:text-[#7A1416]'} pb-1 transition-colors`}>
+          <nav className="flex items-center gap-6 lg:gap-8 text-[12px] lg:text-[13px] uppercase tracking-wide">
+            <Link to="/" className={getLinkClass('/')}>
               HOME
             </Link>
-            <Link to="/about-us" className="hover:text-[#7A1416] pb-1 transition-colors">
-              ABOUT US
-            </Link>
-            <Link to="/catalog" className={`${location.pathname === '/catalog' ? 'text-[#7A1416] border-b-2 border-[#7A1416]' : 'hover:text-[#7A1416]'} pb-1 transition-colors`}>
-              ALL PRODUCTS
-            </Link>
-            <Link to="/quick-enquiry" className="relative hover:text-[#7A1416] pb-1 transition-colors flex items-center gap-1">
+            <Link to="/quick-enquiry" className={`relative ${getLinkClass('/quick-enquiry')} flex items-center gap-1`}>
               QUICK ENQUIRY
               <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded animate-pulse absolute -right-6 -top-2">NEW</span>
             </Link>
-            <Link to="/catalog?category=combo-packs" className="hover:text-[#7A1416] pb-1 transition-colors flex items-center gap-1">
-              COMBO PACKS <ChevronDown className="h-3 w-3" />
-            </Link>
-            <Link to="/chit-scheme" className="hover:text-[#7A1416] pb-1 transition-colors">
-              CHIT SCHEME
-            </Link>
-            <Link to="/safety-tips" className={`${location.pathname === '/safety-tips' ? 'text-[#7A1416] border-b-2 border-[#7A1416]' : 'hover:text-[#7A1416]'} pb-1 transition-colors`}>
+            <Link to="/safety-tips" className={getLinkClass('/safety-tips')}>
               SAFETY TIPS
             </Link>
-            <Link to="/contact" className="hover:text-[#7A1416] pb-1 transition-colors">
+            <Link to="/catalog?category=combo-packs" className={`${getLinkClass('/catalog?category=combo-packs')} flex items-center gap-1`}>
+              COMBO PACKS <ChevronDown className="h-3 w-3" />
+            </Link>
+            <Link to="/chit-scheme" className={getLinkClass('/chit-scheme')}>
+              CHIT SCHEME
+            </Link>
+            <Link to="/catalog" className={getLinkClass('/catalog')}>
+              ALL PRODUCTS
+            </Link>
+            <Link to="/about-us" className={getLinkClass('/about-us')}>
+              ABOUT US
+            </Link>
+            <Link to="/contact" className={getLinkClass('/contact')}>
               CONTACT US
             </Link>
           </nav>
@@ -125,15 +158,15 @@ const UserHeader = () => {
               <Search className="h-4 w-4" />
             </button>
           </div>
-          <nav className="flex flex-col gap-4 text-sm font-bold text-gray-700 uppercase">
-            <Link to="/" onClick={() => setMenuOpen(false)} className={location.pathname === '/' ? 'text-[#7A1416]' : ''}>HOME</Link>
-            <Link to="/quick-enquiry" onClick={() => setMenuOpen(false)} className="flex items-center gap-2">QUICK ENQUIRY <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded">NEW</span></Link>
-            <Link to="/safety-tips" onClick={() => setMenuOpen(false)} className={location.pathname === '/safety-tips' ? 'text-[#7A1416]' : ''}>SAFETY TIPS</Link>
-            <Link to="/combo-packs" onClick={() => setMenuOpen(false)} className={location.pathname === '/combo-packs' ? 'text-[#7A1416]' : ''}>COMBO PACKS</Link>
-            <Link to="/chit-scheme" onClick={() => setMenuOpen(false)}>CHIT SCHEME</Link>
-            <Link to="/catalog" onClick={() => setMenuOpen(false)} className={location.pathname === '/catalog' ? 'text-[#7A1416]' : ''}>ALL PRODUCTS</Link>
-            <Link to="/about-us" onClick={() => setMenuOpen(false)}>ABOUT US</Link>
-            <Link to="/contact" onClick={() => setMenuOpen(false)}>CONTACT US</Link>
+          <nav className="flex flex-col gap-4 text-sm uppercase">
+            <Link to="/" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/')}>HOME</Link>
+            <Link to="/quick-enquiry" onClick={() => setMenuOpen(false)} className={`${getMobileLinkClass('/quick-enquiry')} flex items-center gap-2`}>QUICK ENQUIRY <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded">NEW</span></Link>
+            <Link to="/safety-tips" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/safety-tips')}>SAFETY TIPS</Link>
+            <Link to="/catalog?category=combo-packs" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/catalog?category=combo-packs')}>COMBO PACKS</Link>
+            <Link to="/chit-scheme" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/chit-scheme')}>CHIT SCHEME</Link>
+            <Link to="/catalog" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/catalog')}>ALL PRODUCTS</Link>
+            <Link to="/about-us" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/about-us')}>ABOUT US</Link>
+            <Link to="/contact" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/contact')}>CONTACT US</Link>
           </nav>
         </div>
       )}
