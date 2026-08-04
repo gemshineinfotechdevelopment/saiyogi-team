@@ -1,5 +1,5 @@
 import companyLogo from "@/assets/1.png";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { ShoppingCart, Menu, X, Search, ChevronDown } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
@@ -11,6 +11,7 @@ const UserHeader = () => {
   const { settings } = useSiteSettings();
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100 transition-all duration-500 ease-in-out hover:shadow-md animate-fade-in w-full">
@@ -80,18 +81,25 @@ const UserHeader = () => {
       {/* Navigation Bar */}
       <div className="hidden md:block border-t border-gray-100">
         <div className="container mx-auto px-4 py-3 flex justify-center">
-          <nav className="flex items-center gap-8 text-[13px] font-bold text-gray-700 uppercase tracking-wide">
-            <Link to="/" className="text-[#7A1416] border-b-2 border-[#7A1416] pb-1">
+          <nav className="flex items-center gap-6 lg:gap-8 text-[12px] lg:text-[13px] font-bold text-gray-700 uppercase tracking-wide">
+            <Link to="/" className={`${location.pathname === '/' ? 'text-[#7A1416] border-b-2 border-[#7A1416]' : 'hover:text-[#7A1416]'} pb-1 transition-colors`}>
               HOME
             </Link>
-            <Link to="/catalog" className="hover:text-[#7A1416] pb-1 transition-colors">
-              SHOP BY CATEGORY
+            <Link to="/quick-enquiry" className="relative hover:text-[#7A1416] pb-1 transition-colors flex items-center gap-1">
+              QUICK ENQUIRY
+              <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded animate-pulse absolute -right-6 -top-2">NEW</span>
             </Link>
-            <Link to="/catalog?sort=newest" className="hover:text-[#7A1416] pb-1 transition-colors">
-              NEW ARRIVALS
+            <Link to="/safety-tips" className={`${location.pathname === '/safety-tips' ? 'text-[#7A1416] border-b-2 border-[#7A1416]' : 'hover:text-[#7A1416]'} pb-1 transition-colors`}>
+              SAFETY TIPS
             </Link>
-            <Link to="/price-list" className="hover:text-[#7A1416] pb-1 transition-colors">
-              PRICE LIST
+            <Link to="/catalog?category=combo-packs" className="hover:text-[#7A1416] pb-1 transition-colors flex items-center gap-1">
+              COMBO PACKS <ChevronDown className="h-3 w-3" />
+            </Link>
+            <Link to="/chit-scheme" className="hover:text-[#7A1416] pb-1 transition-colors">
+              CHIT SCHEME
+            </Link>
+            <Link to="/catalog" className={`${location.pathname === '/catalog' ? 'text-[#7A1416] border-b-2 border-[#7A1416]' : 'hover:text-[#7A1416]'} pb-1 transition-colors`}>
+              ALL PRODUCTS
             </Link>
             <Link to="/about-us" className="hover:text-[#7A1416] pb-1 transition-colors">
               ABOUT US
@@ -118,10 +126,12 @@ const UserHeader = () => {
             </button>
           </div>
           <nav className="flex flex-col gap-4 text-sm font-bold text-gray-700 uppercase">
-            <Link to="/" onClick={() => setMenuOpen(false)} className="text-[#7A1416]">HOME</Link>
-            <Link to="/catalog" onClick={() => setMenuOpen(false)}>SHOP BY CATEGORY</Link>
-            <Link to="/catalog?sort=newest" onClick={() => setMenuOpen(false)}>NEW ARRIVALS</Link>
-            <Link to="/price-list" onClick={() => setMenuOpen(false)}>PRICE LIST</Link>
+            <Link to="/" onClick={() => setMenuOpen(false)} className={location.pathname === '/' ? 'text-[#7A1416]' : ''}>HOME</Link>
+            <Link to="/quick-enquiry" onClick={() => setMenuOpen(false)} className="flex items-center gap-2">QUICK ENQUIRY <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded">NEW</span></Link>
+            <Link to="/safety-tips" onClick={() => setMenuOpen(false)} className={location.pathname === '/safety-tips' ? 'text-[#7A1416]' : ''}>SAFETY TIPS</Link>
+            <Link to="/catalog?category=combo-packs" onClick={() => setMenuOpen(false)}>COMBO PACKS</Link>
+            <Link to="/chit-scheme" onClick={() => setMenuOpen(false)}>CHIT SCHEME</Link>
+            <Link to="/catalog" onClick={() => setMenuOpen(false)} className={location.pathname === '/catalog' ? 'text-[#7A1416]' : ''}>ALL PRODUCTS</Link>
             <Link to="/about-us" onClick={() => setMenuOpen(false)}>ABOUT US</Link>
             <Link to="/contact" onClick={() => setMenuOpen(false)}>CONTACT US</Link>
           </nav>

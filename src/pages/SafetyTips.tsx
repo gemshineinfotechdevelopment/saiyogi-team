@@ -1,145 +1,61 @@
-import { Check, X, AlertCircle, Shield } from "lucide-react";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { CheckCircle2, Ban, Bell } from "lucide-react";
 
 const SafetyTips = () => {
-  const dos = [
-    "Use crackers in open, well-ventilated areas away from buildings",
-    "Wear protective gear including safety glasses and gloves",
-    "Keep a fire extinguisher and water bucket nearby",
-    "Light crackers from a safe distance using long sticks",
-    "Keep children and pets at least 30 feet away",
-    "Wait for crackers to cool before disposing",
-    "Store crackers in a cool, dry place away from moisture",
-    "Have a first aid kit available",
-    "Use crackers during designated festival hours only",
-  ];
-
-  const donts = [
-    "Never light crackers in crowded areas or indoors",
-    "Never hold crackers in your hand while lighting",
-    "Don't run after lit crackers",
-    "Never pick up a cracker that didn't ignite",
-    "Never allow children to handle crackers unsupervised",
-    "Don't store crackers near heat sources or open flames",
-    "Never mix different types of crackers or chemicals",
-    "Never point crackers at people or animals",
-    "Don't use crackers near hospitals, schools, or religious places",
-  ];
-
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#FEF2F2' }}>
+    <div className="min-h-screen flex flex-col bg-white font-sans text-[#7A1416]">
       <UserHeader />
 
-      {/* Header Section */}
-      <section className="bg-gradient-to-r from-red-600 to-orange-600 text-white py-12">
-        <div className="container">
-          <div className="flex items-center gap-4 mb-4">
-            <Shield className="h-10 w-10" />
-            <h1 className="font-display text-4xl font-bold">Safety Tips & Guidelines</h1>
-          </div>
-          <p className="text-yellow-100 text-lg">Celebrate safely with our comprehensive cracker safety instructions</p>
-        </div>
-      </section>
-
-      {/* Main Content */}
-      <main className="container py-12 flex-1">
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* DO's Section */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="bg-green-600 rounded-full p-3">
-                <Check className="h-6 w-6 text-white" />
-              </div>
-              <h2 className="font-display text-3xl font-bold text-green-700">DO's</h2>
-            </div>
-
-            <div className="space-y-4">
-              {dos.map((item, index) => (
-                <div
-                  key={index}
-                  className="animate-fade-in group"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <div className="flex gap-4 p-4 rounded-lg bg-white border-2 border-green-300 hover:border-green-600 hover:shadow-lg transition-all duration-300 hover:translate-x-2 cursor-pointer">
-                    <div className="flex-shrink-0 pt-1">
-                      <div className="flex items-center justify-center h-6 w-6 rounded-full bg-green-600 text-white">
-                        <Check className="h-4 w-4" />
-                      </div>
-                    </div>
-                    <div className="flex-1 group-hover:text-green-700 transition-colors">
-                      <p className="font-medium text-green-900">{item}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* DON'Ts Section */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="bg-red-600 rounded-full p-3">
-                <X className="h-6 w-6 text-white" />
-              </div>
-              <h2 className="font-display text-3xl font-bold text-red-700">DON'Ts</h2>
-            </div>
-
-            <div className="space-y-4">
-              {donts.map((item, index) => (
-                <div
-                  key={index}
-                  className="animate-fade-in group"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <div className="flex gap-4 p-4 rounded-lg bg-white border-2 border-red-300 hover:border-red-600 hover:shadow-lg transition-all duration-300 hover:translate-x-2 cursor-pointer">
-                    <div className="flex-shrink-0 pt-1">
-                      <div className="flex items-center justify-center h-6 w-6 rounded-full bg-red-600 text-white">
-                        <X className="h-4 w-4" />
-                      </div>
-                    </div>
-                    <div className="flex-1 group-hover:text-red-700 transition-colors">
-                      <p className="font-medium text-red-900">{item}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+      <main className="container mx-auto px-4 py-12 md:py-16 max-w-4xl flex-1">
+        <div className="text-center mb-16">
+          <h1 className="text-3xl md:text-4xl font-black mb-6 uppercase tracking-wide">Safety Tips</h1>
+          <p className="text-lg md:text-xl font-semibold">Celebrate Responsibly: Important Firework Safety Tips for a Safe and Memorable Festival</p>
         </div>
 
-        {/* Emergency Info Section */}
-        <div className="mt-16 p-6 rounded-lg bg-gradient-to-r from-orange-100 to-red-100 border-2 border-orange-300">
-          <div className="flex gap-4 items-start">
-            <AlertCircle className="h-8 w-8 text-red-600 flex-shrink-0 mt-1" />
-            <div>
-              <h3 className="font-display text-xl font-bold text-red-900 mb-2">In Case of Emergency</h3>
-              <ul className="space-y-2 text-red-800">
-                <li>
-                  <strong>For burns:</strong> Immerse in cool water for 10-20 minutes and seek medical attention
-                </li>
-                <li>
-                  <strong>For eye injuries:</strong> Flush with clean water for at least 15 minutes and visit a doctor immediately
-                </li>
-                <li>
-                  <strong>For severe injuries:</strong> Call emergency services (911 or local emergency number) immediately
-                </li>
-                <li>
-                  <strong>For allergic reactions:</strong> Seek immediate medical help
-                </li>
-              </ul>
+        <div className="space-y-12 pl-4 md:pl-8">
+          {/* Things to Do */}
+          <div>
+            <div className="flex items-center gap-4 mb-6 -ml-8">
+              <CheckCircle2 className="h-6 w-6 text-black" strokeWidth={3} />
+              <h2 className="text-xl font-black uppercase">Things to Do</h2>
+            </div>
+            <div className="space-y-6 text-base md:text-lg font-bold tracking-wide">
+              <p>1. Carefully read and follow the instructions printed on every firework before use.</p>
+              <p>2. Use fireworks only in an open outdoor space, away from homes, trees, vehicles, and other combustible materials.</p>
+              <p>3. Keep a bucket of water, sand, or a garden hose nearby in case of emergencies.</p>
+              <p>4. Ignite one firework at a time and maintain a safe distance immediately after lighting it.</p>
+              <p>5. Ensure fireworks are directed away from people, pets, buildings, and parked vehicles.</p>
+              <p>6. After use, soak spent fireworks in water before disposing of them to prevent accidental fires.</p>
             </div>
           </div>
-        </div>
 
-        {/* Call to Action */}
-        <div className="mt-12 text-center space-y-4">
-          <p className="text-primary font-semibold text-lg">Ready to celebrate safely?</p>
-          <Button asChild size="lg" className="bg-red-600 hover:bg-red-700 text-white">
-            <Link to="/catalog">Browse Our Products</Link>
-          </Button>
+          {/* Things to Avoid */}
+          <div>
+            <div className="flex items-center gap-4 mb-6 -ml-8">
+              <Ban className="h-6 w-6 text-black" strokeWidth={3} />
+              <h2 className="text-xl font-black uppercase">Things to Avoid</h2>
+            </div>
+            <div className="space-y-6 text-base md:text-lg font-bold tracking-wide">
+              <p>1. Never allow children to light or handle fireworks without close adult supervision.</p>
+              <p>2. Do not try to relight fireworks that fail to ignite or appear defective.</p>
+              <p>3. Avoid aiming or throwing fireworks toward people, animals, or property.</p>
+              <p>4. Never use fireworks while under the influence of alcohol, drugs, or any substance that affects judgment.</p>
+              <p>5. Do not alter, dismantle, or attempt to create homemade fireworks.</p>
+              <p>6. Avoid carrying fireworks in your pockets or igniting them inside metal, glass, or other enclosed containers.</p>
+            </div>
+          </div>
+
+          {/* Important Reminder */}
+          <div>
+            <div className="flex items-center gap-4 mb-6 -ml-8 pt-4">
+              <Bell className="h-6 w-6 fill-black text-black" strokeWidth={3} />
+              <h2 className="text-xl font-black uppercase">Important Reminder</h2>
+            </div>
+            <div className="text-base md:text-lg font-bold leading-relaxed tracking-wide">
+              <p>Fireworks can bring joy when used responsibly. Always make safety your top priority, follow the manufacturer's instructions, and comply with your local firework laws and regulations. A little caution ensures a brighter, safer celebration for everyone.</p>
+            </div>
+          </div>
         </div>
       </main>
 
