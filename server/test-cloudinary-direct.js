@@ -9,6 +9,11 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 
 console.log('Env present:', !!process.env.CLOUDINARY_CLOUD_NAME, !!process.env.CLOUDINARY_API_KEY);
 
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+  console.log('Cloudinary credentials missing in .env, skipping direct upload test.');
+  process.exit(0);
+}
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
