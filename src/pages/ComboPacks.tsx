@@ -53,7 +53,6 @@ const comboPacks = [
     id: "combo-4",
     name: "Royal Celebration",
     title: "Royal Celebration",
-    subtitle: "Royal Celebration",
     badge: "Wholesale",
     badgeColor: "bg-[#333333] text-white",
     image: "/royal_celebration.png",
@@ -266,12 +265,6 @@ const ComboPacks = () => {
                   <h3 className="font-extrabold text-sm text-gray-900 leading-snug">
                     {pack.title}
                   </h3>
-
-                  {pack.subtitle && (
-                    <h4 className="font-extrabold text-sm text-gray-900 leading-snug">
-                      {pack.subtitle}
-                    </h4>
-                  )}
 
                   <p className="text-[11px] text-gray-500 leading-relaxed line-clamp-2 mt-1.5 mb-3">
                     {pack.description}

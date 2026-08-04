@@ -51,7 +51,9 @@ const Catalog = () => {
       result = result.filter((p) => {
         const cat = p.category as any;
         const catId = typeof cat === 'object' && cat !== null ? (cat._id || cat.id || cat) : cat;
-        return catId === activeCategory;
+        const catName = typeof cat === 'object' && cat !== null ? cat.name : (categories.find(c => (c._id || c.id) === catId)?.name || String(catId || ''));
+        const slug = catName ? catName.toLowerCase().replace(/\s+/g, '-') : '';
+        return catId === activeCategory || slug === activeCategory.toLowerCase() || String(catId).toLowerCase() === activeCategory.toLowerCase();
       });
     }
     if (searchQuery) {
