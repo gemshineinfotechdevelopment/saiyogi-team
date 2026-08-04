@@ -8,6 +8,7 @@ import { SiteSettingsProvider } from "@/context/SiteSettingsContext";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
+import ComboPacks from "./pages/ComboPacks";
 import Catalog from "./pages/Catalog";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
@@ -50,6 +51,7 @@ const App = () => (
                 <ScrollToTop />
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/combo-packs" element={<ComboPacks />} />
                   <Route path="/catalog" element={<Catalog />} />
                   <Route path="/product/:id" element={<ProductDetail />} />
                   <Route path="/cart" element={<Cart />} />

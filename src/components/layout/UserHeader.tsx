@@ -92,7 +92,7 @@ const UserHeader = () => {
             <Link to="/safety-tips" className={`${location.pathname === '/safety-tips' ? 'text-[#7A1416] border-b-2 border-[#7A1416]' : 'hover:text-[#7A1416]'} pb-1 transition-colors`}>
               SAFETY TIPS
             </Link>
-            <Link to="/catalog?category=combo-packs" className="hover:text-[#7A1416] pb-1 transition-colors flex items-center gap-1">
+            <Link to="/combo-packs" className={`${location.pathname === '/combo-packs' ? 'text-[#7A1416] border-b-2 border-[#7A1416]' : 'hover:text-[#7A1416]'} pb-1 transition-colors flex items-center gap-1`}>
               COMBO PACKS <ChevronDown className="h-3 w-3" />
             </Link>
             <Link to="/chit-scheme" className="hover:text-[#7A1416] pb-1 transition-colors">
@@ -129,7 +129,7 @@ const UserHeader = () => {
             <Link to="/" onClick={() => setMenuOpen(false)} className={location.pathname === '/' ? 'text-[#7A1416]' : ''}>HOME</Link>
             <Link to="/quick-enquiry" onClick={() => setMenuOpen(false)} className="flex items-center gap-2">QUICK ENQUIRY <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded">NEW</span></Link>
             <Link to="/safety-tips" onClick={() => setMenuOpen(false)} className={location.pathname === '/safety-tips' ? 'text-[#7A1416]' : ''}>SAFETY TIPS</Link>
-            <Link to="/catalog?category=combo-packs" onClick={() => setMenuOpen(false)}>COMBO PACKS</Link>
+            <Link to="/combo-packs" onClick={() => setMenuOpen(false)} className={location.pathname === '/combo-packs' ? 'text-[#7A1416]' : ''}>COMBO PACKS</Link>
             <Link to="/chit-scheme" onClick={() => setMenuOpen(false)}>CHIT SCHEME</Link>
             <Link to="/catalog" onClick={() => setMenuOpen(false)} className={location.pathname === '/catalog' ? 'text-[#7A1416]' : ''}>ALL PRODUCTS</Link>
             <Link to="/about-us" onClick={() => setMenuOpen(false)}>ABOUT US</Link>
