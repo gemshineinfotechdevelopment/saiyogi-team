@@ -95,7 +95,7 @@ const UserHeader = () => {
               QUICK ENQUIRY
               <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded animate-pulse absolute -right-6 -top-2">NEW</span>
             </Link>
-            <Link to="/catalog?category=combo-packs" className="hover:text-[#7A1416] pb-1 transition-colors flex items-center gap-1">
+            <Link to="/combo-packs" className={`${location.pathname === '/combo-packs' ? 'text-[#7A1416] border-b-2 border-[#7A1416]' : 'hover:text-[#7A1416]'} pb-1 transition-colors flex items-center gap-1`}>
               COMBO PACKS <ChevronDown className="h-3 w-3" />
             </Link>
             <Link to="/chit-scheme" className="hover:text-[#7A1416] pb-1 transition-colors">
