@@ -1,0 +1,182 @@
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { CartProvider } from "@/context/CartContext";
+import { SiteSettingsProvider } from "@/context/SiteSettingsContext";
+import { AuthProvider } from "@/context/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import Index from "./pages/Index";
+import Catalog from "./pages/Catalog";
+import ProductDetail from "./pages/ProductDetail";
+import Cart from "./pages/Cart";
+import SafetyTips from "./pages/SafetyTips";
+import Contact from "./pages/Contact";
+import AdminLogin from "./pages/admin/AdminLogin";
+import Dashboard from "./pages/admin/Dashboard";
+import AdminProducts from "./pages/admin/AdminProducts";
+import AdminOrders from "./pages/admin/AdminOrders";
+import AdminCategories from "./pages/admin/AdminCategories";
+import AdminCustomers from "./pages/admin/AdminCustomers";
+import InventoryManagement from "./pages/admin/inventory/InventoryManagement";
+import StockTransfer from "./pages/admin/inventory/StockTransfer";
+import TransferHistory from "./pages/admin/inventory/TransferHistory";
+import AdminContent from "./pages/admin/AdminContent";
+import AdminBillSettings from "./pages/admin/AdminBillSettings";
+import RetailEstimate from "./pages/admin/billing/RetailEstimate";
+import WholesaleEstimate from "./pages/admin/billing/WholesaleEstimate";
+import NetRateEstimate from "./pages/admin/billing/NetRateEstimate";
+import TransportBill from "./pages/admin/billing/TransportBill";
+import Invoices from "./pages/admin/billing/Invoices";
+import Reports from "./pages/admin/billing/Reports";
+import NotFound from "./pages/NotFound";
+
+import { SettingsProvider } from "@/context/SettingsContext";
+import ScrollToTop from "@/components/ScrollToTop";
+
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <SiteSettingsProvider>
+        <AuthProvider>
+          <SettingsProvider>
+            <CartProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <ScrollToTop />
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/catalog" element={<Catalog />} />
+                  <Route path="/product/:id" element={<ProductDetail />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/safety-tips" element={<SafetyTips />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/admin/login" element={<AdminLogin />} />
+                  <Route
+                    path="/admin"
+                    element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/products"
+                    element={
+                      <ProtectedRoute>
+                        <AdminProducts />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/orders"
+                    element={
+                      <ProtectedRoute>
+                        <AdminOrders />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/categories"
+                    element={
+                      <ProtectedRoute>
+                        <AdminCategories />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/customers"
+                    element={
+                      <ProtectedRoute>
+                        <AdminCustomers />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/content"
+                    element={
+                      <ProtectedRoute>
+                        <AdminContent />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/bill-settings"
+                    element={
+                      <ProtectedRoute>
+                        <AdminBillSettings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/inventory"
+                    element={
+                      <ProtectedRoute>
+                        <InventoryManagement />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/billing/retail"
+                    element={
+                      <ProtectedRoute>
+                        <RetailEstimate />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/billing/wholesale"
+                    element={
+                      <ProtectedRoute>
+                        <WholesaleEstimate />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/billing/netrate"
+                    element={
+                      <ProtectedRoute>
+                        <NetRateEstimate />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/billing/transport"
+                    element={
+                      <ProtectedRoute>
+                        <TransportBill />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/billing/invoice"
+                    element={
+                      <ProtectedRoute>
+                        <Invoices />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/billing/reports"
+                    element={
+                      <ProtectedRoute>
+                        <Reports />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </CartProvider>
+          </SettingsProvider>
+        </AuthProvider>
+      </SiteSettingsProvider>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
+
+export default App;
