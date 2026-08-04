@@ -8,12 +8,14 @@ import { SiteSettingsProvider } from "@/context/SiteSettingsContext";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
+import ComboPacks from "./pages/ComboPacks";
 import Catalog from "./pages/Catalog";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import SafetyTips from "./pages/SafetyTips";
 import Contact from "./pages/Contact";
 import QuickEnquiry from "./pages/QuickEnquiry";
+import AboutUs from "./pages/AboutUs";
 import AdminLogin from "./pages/admin/AdminLogin";
 import Dashboard from "./pages/admin/Dashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
@@ -45,12 +47,15 @@ const App = () => (
                 <ScrollToTop />
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/combo-packs" element={<ComboPacks />} />
                   <Route path="/catalog" element={<Catalog />} />
                   <Route path="/product/:id" element={<ProductDetail />} />
                   <Route path="/cart" element={<Cart />} />
                   <Route path="/safety-tips" element={<SafetyTips />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/quick-enquiry" element={<QuickEnquiry />} />
+                  <Route path="/about" element={<AboutUs />} />
+                  <Route path="/about-us" element={<AboutUs />} />
                   <Route path="/admin/login" element={<AdminLogin />} />
                   <Route
                     path="/admin"
