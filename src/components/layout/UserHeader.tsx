@@ -1,4 +1,4 @@
-import companyLogo from "@/assets/1.png";
+import companyLogo from "@/assets/saiyogi-logo-1.png";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { ShoppingCart, Menu, X, Search, ChevronDown } from "lucide-react";
 import { useCart } from "@/context/CartContext";
@@ -38,9 +38,9 @@ const UserHeader = () => {
 
         {/* Search Bar (Hidden on small mobile, visible on md and up) */}
         <div className="hidden md:flex flex-1 max-w-xl items-center mx-4 border border-gray-300 rounded-md overflow-hidden bg-white">
-          <input 
-            type="text" 
-            placeholder="Search products..." 
+          <input
+            type="text"
+            placeholder="Search products..."
             className="flex-1 px-4 py-2 text-sm outline-none text-gray-700 bg-transparent"
           />
           <button className="bg-[#7A1416] text-white px-5 py-2.5 hover:bg-red-800 transition-colors flex items-center justify-center">
@@ -50,9 +50,9 @@ const UserHeader = () => {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-3">
-          <a 
-            href="https://wa.me/919488073004" 
-            target="_blank" 
+          <a
+            href="https://wa.me/919488073004"
+            target="_blank"
             rel="noopener noreferrer"
             className="hidden sm:flex items-center gap-2 border-2 border-[#25D366] text-[#25D366] bg-white px-4 py-1.5 rounded-md hover:bg-[#25D366] hover:text-white transition-colors font-semibold text-sm"
           >
@@ -85,12 +85,15 @@ const UserHeader = () => {
             <Link to="/" className={`${location.pathname === '/' ? 'text-[#7A1416] border-b-2 border-[#7A1416]' : 'hover:text-[#7A1416]'} pb-1 transition-colors`}>
               HOME
             </Link>
+            <Link to="/about-us" className="hover:text-[#7A1416] pb-1 transition-colors">
+              ABOUT US
+            </Link>
+            <Link to="/catalog" className={`${location.pathname === '/catalog' ? 'text-[#7A1416] border-b-2 border-[#7A1416]' : 'hover:text-[#7A1416]'} pb-1 transition-colors`}>
+              ALL PRODUCTS
+            </Link>
             <Link to="/quick-enquiry" className="relative hover:text-[#7A1416] pb-1 transition-colors flex items-center gap-1">
               QUICK ENQUIRY
               <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded animate-pulse absolute -right-6 -top-2">NEW</span>
-            </Link>
-            <Link to="/safety-tips" className={`${location.pathname === '/safety-tips' ? 'text-[#7A1416] border-b-2 border-[#7A1416]' : 'hover:text-[#7A1416]'} pb-1 transition-colors`}>
-              SAFETY TIPS
             </Link>
             <Link to="/catalog?category=combo-packs" className="hover:text-[#7A1416] pb-1 transition-colors flex items-center gap-1">
               COMBO PACKS <ChevronDown className="h-3 w-3" />
@@ -98,11 +101,8 @@ const UserHeader = () => {
             <Link to="/chit-scheme" className="hover:text-[#7A1416] pb-1 transition-colors">
               CHIT SCHEME
             </Link>
-            <Link to="/catalog" className={`${location.pathname === '/catalog' ? 'text-[#7A1416] border-b-2 border-[#7A1416]' : 'hover:text-[#7A1416]'} pb-1 transition-colors`}>
-              ALL PRODUCTS
-            </Link>
-            <Link to="/about-us" className="hover:text-[#7A1416] pb-1 transition-colors">
-              ABOUT US
+            <Link to="/safety-tips" className={`${location.pathname === '/safety-tips' ? 'text-[#7A1416] border-b-2 border-[#7A1416]' : 'hover:text-[#7A1416]'} pb-1 transition-colors`}>
+              SAFETY TIPS
             </Link>
             <Link to="/contact" className="hover:text-[#7A1416] pb-1 transition-colors">
               CONTACT US
@@ -116,9 +116,9 @@ const UserHeader = () => {
         <div className="md:hidden border-t border-gray-100 bg-white p-4 shadow-md absolute w-full left-0">
           {/* Mobile Search */}
           <div className="flex flex-1 items-center mb-4 border border-gray-300 rounded-md overflow-hidden bg-white">
-            <input 
-              type="text" 
-              placeholder="Search products..." 
+            <input
+              type="text"
+              placeholder="Search products..."
               className="flex-1 px-4 py-2 text-sm outline-none text-gray-700 bg-transparent"
             />
             <button className="bg-[#7A1416] text-white px-4 py-2 hover:bg-red-800 transition-colors">

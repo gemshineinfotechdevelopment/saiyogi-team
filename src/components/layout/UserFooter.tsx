@@ -1,4 +1,4 @@
-import companyLogo from "@/assets/1.png";
+import companyLogo from "@/assets/saiyogi-logo-1.png";
 import { Link } from "react-router-dom";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { Facebook, Twitter, Instagram, Youtube, ShieldCheck, Tag, Truck, CreditCard, HeadphonesIcon } from "lucide-react";
