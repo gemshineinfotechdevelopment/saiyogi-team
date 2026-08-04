@@ -4,7 +4,7 @@ import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { MapPin, MessageSquare } from "lucide-react";
 
-import contactHeroFireworks from "@/assets/contact-hero-fireworks.png";
+import contactImg from "@/assets/contact.png";
 
 const Contact = () => {
   const { settings } = useSiteSettings();
@@ -35,7 +35,7 @@ const Contact = () => {
       {/* ──────────────── Hero Banner ──────────────── */}
       <section className="relative w-full h-[280px] sm:h-[380px] md:h-[440px] lg:h-[480px] overflow-hidden bg-white">
         <img
-          src={contactHeroFireworks}
+          src={contactImg}
           alt="Fireworks celebration"
           className="w-full h-full object-cover object-center"
         />

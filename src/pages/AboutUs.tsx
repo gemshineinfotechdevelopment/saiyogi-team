@@ -2,6 +2,7 @@ import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { Link } from "react-router-dom";
 import { Award, ShieldCheck, Sparkles, Truck, Medal, Tag, Leaf, Check } from "lucide-react";
+import aboutImg from "@/assets/about.png";
 
 const AboutUs = () => {
   return (
@@ -14,7 +15,7 @@ const AboutUs = () => {
           {/* Background image with overlay */}
           <div 
             className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 mix-blend-luminosity"
-            style={{ backgroundImage: `url('/fireworks_bg.png')` }}
+            style={{ backgroundImage: `url(${aboutImg})` }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/80" />
 

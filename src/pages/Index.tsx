@@ -8,6 +8,7 @@ import narendira2 from "@/assets/narendira2.png";
 import { useState, useEffect } from "react";
 import { getProducts } from "@/lib/api";
 import { Product } from "@/data/products";
+import { getUpcomingDiwaliInfo, calculateTimeLeft, UpcomingDiwaliInfo } from "@/lib/diwaliCountdown";
 
 // Static Data based on the design
 const staticBestSellers = [
@@ -53,13 +54,9 @@ const Index = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideKey, setSlideKey] = useState(0);
 
-  // Time remaining states
-  const [timeLeft, setTimeLeft] = useState({
-    days: 284,
-    hours: 14,
-    minutes: 45,
-    seconds: 12
-  });
+  // Dynamic Diwali date & Live countdown
+  const [diwaliInfo, setDiwaliInfo] = useState<UpcomingDiwaliInfo>(() => getUpcomingDiwaliInfo());
+  const [timeLeft, setTimeLeft] = useState(() => calculateTimeLeft(diwaliInfo.targetDate));
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -71,6 +68,18 @@ const Index = () => {
     }, 4000);
     return () => clearInterval(timer);
   }, [heroImages.length]);
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      const info = getUpcomingDiwaliInfo();
+      setDiwaliInfo(info);
+      setTimeLeft(calculateTimeLeft(info.targetDate));
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     // We could fetch dynamic data here, but we will use the static data to match the UI precisely for now.
@@ -249,35 +258,39 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Diwali Celebration 2026 */}
+      {/* Dynamic Diwali Celebration Countdown */}
       <section className="py-16 bg-white border-b border-gray-100">
         <div className="text-center mb-10">
-          <h2 className="font-black text-[#7A1416] text-2xl uppercase tracking-widest mb-2">Diwali Celebration 2026</h2>
-          <p className="text-gray-500 text-xs">Celebrate the festival of lights with joy.</p>
+          <h2 className="font-black text-[#7A1416] text-2xl uppercase tracking-widest mb-2">
+            Diwali Celebration {diwaliInfo.year}
+          </h2>
+          <p className="text-gray-600 text-xs font-semibold">
+            Celebrate the festival of lights on {diwaliInfo.formattedDate}
+          </p>
         </div>
-        
+
         <div className="flex justify-center gap-4 md:gap-8">
           <div className="flex flex-col items-center">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-[#7A1416] flex items-center justify-center mb-2 shadow-sm">
-              <span className="font-black text-[#7A1416] text-xl md:text-2xl">{timeLeft.days}</span>
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-[#7A1416] flex items-center justify-center mb-2 shadow-sm bg-red-50/20">
+              <span className="font-black text-[#7A1416] text-xl md:text-2xl">{String(timeLeft.days).padStart(2, '0')}</span>
             </div>
             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Days</span>
           </div>
           <div className="flex flex-col items-center">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-[#7A1416] flex items-center justify-center mb-2 shadow-sm">
-              <span className="font-black text-[#7A1416] text-xl md:text-2xl">{timeLeft.hours}</span>
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-[#7A1416] flex items-center justify-center mb-2 shadow-sm bg-red-50/20">
+              <span className="font-black text-[#7A1416] text-xl md:text-2xl">{String(timeLeft.hours).padStart(2, '0')}</span>
             </div>
             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Hrs</span>
           </div>
           <div className="flex flex-col items-center">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-[#7A1416] flex items-center justify-center mb-2 shadow-sm">
-              <span className="font-black text-[#7A1416] text-xl md:text-2xl">{timeLeft.minutes}</span>
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-[#7A1416] flex items-center justify-center mb-2 shadow-sm bg-red-50/20">
+              <span className="font-black text-[#7A1416] text-xl md:text-2xl">{String(timeLeft.minutes).padStart(2, '0')}</span>
             </div>
             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Min</span>
           </div>
           <div className="flex flex-col items-center">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-[#7A1416] flex items-center justify-center mb-2 shadow-sm">
-              <span className="font-black text-[#7A1416] text-xl md:text-2xl">{timeLeft.seconds}</span>
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-[#7A1416] flex items-center justify-center mb-2 shadow-sm bg-red-50/20">
+              <span className="font-black text-[#7A1416] text-xl md:text-2xl">{String(timeLeft.seconds).padStart(2, '0')}</span>
             </div>
             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Sec</span>
           </div>
