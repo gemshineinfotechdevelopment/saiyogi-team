@@ -1,4 +1,4 @@
-import companyLogo from "@/assets/1.png";
+import companyLogo from "@/assets/saiyogi-logo-1.png";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Package, FolderTree, ShoppingBag, Users, Settings, ArrowLeft, LogOut, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -14,13 +14,6 @@ const navItems = [
   { label: "Customers", icon: Users, href: "/admin/customers" },
   { label: "Inventory Management", icon: Package, href: "/admin/inventory" },
   { label: "Content", icon: Settings, href: "/admin/content" },
-  { label: "Bill Settings", icon: Settings, href: "/admin/bill-settings" },
-  { label: "Retail Bill", icon: ShoppingBag, href: "/admin/billing/retail" },
-  { label: "Wholesale Bill", icon: ShoppingBag, href: "/admin/billing/wholesale" },
-  { label: "Net Rate Bill", icon: ShoppingBag, href: "/admin/billing/netrate" },
-  { label: "Transport Bill", icon: ShoppingBag, href: "/admin/billing/transport" },
-  { label: "Invoice", icon: ShoppingBag, href: "/admin/billing/invoice" },
-  { label: "Reports", icon: LayoutDashboard, href: "/admin/billing/reports" },
 ];
 
 const AdminSidebar = () => {
