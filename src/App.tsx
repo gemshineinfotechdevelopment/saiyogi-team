@@ -14,6 +14,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import SafetyTips from "./pages/SafetyTips";
 import Contact from "./pages/Contact";
+import AboutUs from "./pages/AboutUs";
 import AdminLogin from "./pages/admin/AdminLogin";
 import Dashboard from "./pages/admin/Dashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
@@ -24,13 +25,7 @@ import InventoryManagement from "./pages/admin/inventory/InventoryManagement";
 import StockTransfer from "./pages/admin/inventory/StockTransfer";
 import TransferHistory from "./pages/admin/inventory/TransferHistory";
 import AdminContent from "./pages/admin/AdminContent";
-import AdminBillSettings from "./pages/admin/AdminBillSettings";
-import RetailEstimate from "./pages/admin/billing/RetailEstimate";
-import WholesaleEstimate from "./pages/admin/billing/WholesaleEstimate";
-import NetRateEstimate from "./pages/admin/billing/NetRateEstimate";
-import TransportBill from "./pages/admin/billing/TransportBill";
-import Invoices from "./pages/admin/billing/Invoices";
-import Reports from "./pages/admin/billing/Reports";
+
 import NotFound from "./pages/NotFound";
 
 import { SettingsProvider } from "@/context/SettingsContext";
@@ -57,6 +52,8 @@ const App = () => (
                   <Route path="/cart" element={<Cart />} />
                   <Route path="/safety-tips" element={<SafetyTips />} />
                   <Route path="/contact" element={<Contact />} />
+                  <Route path="/about" element={<AboutUs />} />
+                  <Route path="/about-us" element={<AboutUs />} />
                   <Route path="/admin/login" element={<AdminLogin />} />
                   <Route
                     path="/admin"
@@ -107,66 +104,10 @@ const App = () => (
                     }
                   />
                   <Route
-                    path="/admin/bill-settings"
-                    element={
-                      <ProtectedRoute>
-                        <AdminBillSettings />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
                     path="/admin/inventory"
                     element={
                       <ProtectedRoute>
                         <InventoryManagement />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/billing/retail"
-                    element={
-                      <ProtectedRoute>
-                        <RetailEstimate />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/billing/wholesale"
-                    element={
-                      <ProtectedRoute>
-                        <WholesaleEstimate />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/billing/netrate"
-                    element={
-                      <ProtectedRoute>
-                        <NetRateEstimate />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/billing/transport"
-                    element={
-                      <ProtectedRoute>
-                        <TransportBill />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/billing/invoice"
-                    element={
-                      <ProtectedRoute>
-                        <Invoices />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/billing/reports"
-                    element={
-                      <ProtectedRoute>
-                        <Reports />
                       </ProtectedRoute>
                     }
                   />

@@ -12,6 +12,11 @@ console.log('Env has CLOUDINARY_CLOUD_NAME:', !!process.env.CLOUDINARY_CLOUD_NAM
 console.log('Env has CLOUDINARY_API_KEY:', !!process.env.CLOUDINARY_API_KEY);
 console.log('Env has CLOUDINARY_API_SECRET:', !!process.env.CLOUDINARY_API_SECRET);
 
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+  console.log('Cloudinary credentials missing in .env, skipping test.');
+  process.exit(0);
+}
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
