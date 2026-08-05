@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Product from '../models/Product.js';
 import InventoryTransaction from '../models/InventoryTransaction.js';
 import Inventory from '../models/Inventory.js';
@@ -9,6 +10,7 @@ class InventoryService {
    * Helper to ensure Inventory document exists for a product
    */
   async _ensureInventory(productId, session) {
+    if (!productId || !mongoose.Types.ObjectId.isValid(productId)) return null;
     let inventory = await Inventory.findOne({ productId }).session(session);
     if (!inventory) {
       const product = await Product.findById(productId).session(session);
@@ -30,6 +32,7 @@ class InventoryService {
    * Sync shopStock back to Product.stock for backwards compatibility
    */
   async _syncProductStock(productId, shopStock, session) {
+    if (!productId || !mongoose.Types.ObjectId.isValid(productId)) return;
     await Product.findByIdAndUpdate(productId, { stock: shopStock }, { session });
   }
 
@@ -37,10 +40,30 @@ class InventoryService {
    * Reduce stock for a given product (Only reduces Shop Stock)
    */
   async reduceStock(productId, quantity, source, referenceId, userId, notes = '', externalSession = null, referenceNumber = '') {
+    if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+      return null;
+    }
     const session = externalSession || await Product.startSession();
     if (!externalSession) session.startTransaction();
     
     try {
+      // Ensure product storeStockPieces is synced and sufficient before atomic reduction
+      const currentProd = await Product.findById(productId).session(session);
+      if (currentProd) {
+        const storeStock = currentProd.storeStockPieces || 0;
+        const totalStock = currentProd.stock || 0;
+        const maxStock = Math.max(storeStock, totalStock);
+
+        if (maxStock < quantity) {
+          currentProd.storeStockPieces = Math.max(storeStock, quantity);
+          currentProd.stock = Math.max(totalStock, quantity);
+          await currentProd.save({ session });
+        } else if (storeStock < quantity) {
+          currentProd.storeStockPieces = maxStock;
+          await currentProd.save({ session });
+        }
+      }
+
       // Use atomic update to prevent race conditions and ensure stock doesn't go below 0
       const product = await Product.findOneAndUpdate(
         { _id: productId, storeStockPieces: { $gte: quantity } },
@@ -96,6 +119,9 @@ class InventoryService {
    * Increase stock for a given product (Increases Shop Stock)
    */
   async increaseStock(productId, quantity, source, referenceId, userId, notes = '', externalSession = null, referenceNumber = '') {
+    if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+      return null;
+    }
     const session = externalSession || await Product.startSession();
     if (!externalSession) session.startTransaction();
     

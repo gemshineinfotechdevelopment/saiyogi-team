@@ -120,7 +120,7 @@ export const createProduct = async (req, res, next) => {
       hasDiscount: (displayNetRate === 'true' || displayNetRate === true) ? false : (hasDiscount === 'true' || hasDiscount === true),
       displayNetRate: displayNetRate === 'true' || displayNetRate === true,
       stock: stock ? parseInt(stock) : 0,
-      storeStockPieces: storeStockPieces ? parseInt(storeStockPieces) : 0,
+      storeStockPieces: storeStockPieces && parseInt(storeStockPieces) > 0 ? parseInt(storeStockPieces) : (stock ? parseInt(stock) : 0),
       godownStockCases: godownStockCases ? parseInt(godownStockCases) : 0,
       piecesPerCase: piecesPerCase ? parseInt(piecesPerCase) : 1,
       godownStockPieces: (godownStockCases ? parseInt(godownStockCases) : 0) * (piecesPerCase ? parseInt(piecesPerCase) : 1),
@@ -173,7 +173,11 @@ export const updateProduct = async (req, res, next) => {
       updateData.hasDiscount = false;
     }
     if (stock !== undefined) updateData.stock = parseInt(stock);
-    if (storeStockPieces !== undefined) updateData.storeStockPieces = parseInt(storeStockPieces);
+    if (storeStockPieces !== undefined) {
+      updateData.storeStockPieces = parseInt(storeStockPieces);
+    } else if (stock !== undefined) {
+      updateData.storeStockPieces = parseInt(stock);
+    }
     if (godownStockCases !== undefined) updateData.godownStockCases = parseInt(godownStockCases);
     if (piecesPerCase !== undefined) updateData.piecesPerCase = parseInt(piecesPerCase);
     if (godownStockCases !== undefined || piecesPerCase !== undefined) {
