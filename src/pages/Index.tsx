@@ -6,7 +6,7 @@ import { useSiteSettings } from "@/context/SiteSettingsContext";
 import narendira1 from "@/assets/narendira1.png";
 import narendira2 from "@/assets/narendira2.png";
 import { useState, useEffect } from "react";
-import { getProducts } from "@/lib/api";
+import { getProducts, getBrands, Brand } from "@/lib/api";
 import { Product } from "@/data/products";
 import { getUpcomingDiwaliInfo, calculateTimeLeft, UpcomingDiwaliInfo } from "@/lib/diwaliCountdown";
 import { Fireworks } from '@fireworks-js/react';
@@ -124,10 +124,14 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const [brands, setBrands] = useState<Brand[]>([]);
+
   useEffect(() => {
-    // We could fetch dynamic data here, but we will use the static data to match the UI precisely for now.
     getProducts().then((prods) => {
       setProducts(prods);
+    });
+    getBrands().then((b) => {
+      setBrands(b.filter((brand) => brand.isActive !== false));
     });
   }, []);
 
@@ -475,21 +479,24 @@ const Index = () => {
 
         <div className="relative w-full overflow-hidden py-4">
           <div className="animate-best-sellers-scroll">
-            {[...shopByBrands, ...shopByBrands].map((brand, i) => (
+            {(brands.length > 0
+              ? [...brands, ...brands]
+              : [...shopByBrands, ...shopByBrands]
+            ).map((brand: any, i) => (
               <Link
                 key={i}
-                to={`/catalog?search=${brand.name}`}
+                to={`/catalog?search=${encodeURIComponent(brand.name)}`}
                 className="bg-white border border-gray-200 p-4 flex flex-col items-center justify-between text-center shadow-md rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer relative overflow-hidden min-w-[180px] max-w-[180px]"
               >
-                {/* Brand Tag Pill */}
-                <span className="text-[9px] font-black text-[#A80000] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full mb-3 uppercase tracking-wider">
-                  {brand.tag}
+                {/* Brand Tag Pill (Shows Brand ID e.g. b0001 or tag) */}
+                <span className="text-[9px] font-black text-[#A80000] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full mb-3 uppercase tracking-wider font-mono">
+                  {brand.brandId || brand.tag || "BRAND"}
                 </span>
 
                 {/* Brand Image Container */}
                 <div className="w-full aspect-square bg-gray-50 rounded-xl p-2 mb-3 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
                   <img
-                    src={brand.image}
+                    src={brand.logo || brand.image || "/sky_rocket_box.png"}
                     alt={brand.name}
                     className="max-w-full max-h-full object-contain"
                   />
@@ -500,7 +507,7 @@ const Index = () => {
                     {brand.name}
                   </span>
                   <span className="text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-1 text-center w-full">
-                    {brand.subtitle}
+                    {brand.phone ? `Ph: ${brand.phone}` : brand.subtitle || brand.description || "Original Sivakasi"}
                   </span>
                 </div>
               </Link>
