@@ -54,7 +54,7 @@ const UserFooter = () => {
           {/* About Section */}
           <div>
             <div className="flex flex-col items-start mb-4">
-              <h3 className="text-xl font-black text-[#7A1416] uppercase font-display">{settings.siteName || "Sai Yogi Crackers"}</h3>
+              <img src={companyLogo} alt="Sai Yogi Logo" className="h-24 w-auto object-contain" />
             </div>
             <p className="text-xs text-gray-600 leading-relaxed mb-6">
               {settings.siteDescription || "Premium crackers and fireworks store based in Sivakasi. We offer the best quality crackers at wholesale prices for all your celebrations."}
@@ -71,7 +71,7 @@ const UserFooter = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       title={platform.charAt(0).toUpperCase() + platform.slice(1)}
-                      className="w-8 h-8 flex items-center justify-center bg-[#7A1416] rounded text-white hover:bg-[#9c1b1e] transition-colors duration-200"
+                      className="w-8 h-8 flex items-center justify-center bg-[#A80000] rounded text-white hover:bg-[#9c1b1e] transition-colors duration-200"
                     >
                       {icon}
                     </a>
