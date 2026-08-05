@@ -1,6 +1,6 @@
 import companyLogo from "@/assets/saiyogi-logo-1.png";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { ShoppingCart, Menu, X, Search, ChevronDown } from "lucide-react";
+import { ShoppingCart, Menu, X, Search, ChevronDown, Phone } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { useState } from "react";
@@ -46,52 +46,57 @@ const UserHeader = () => {
       : "text-gray-700 hover:text-[#A80000] font-bold";
   };
 
+  const isHomePage = location.pathname === "/";
+  const rawPhone = settings.contact?.phone || "+919488073004";
+  const phoneDigits = rawPhone.replace(/\D/g, "");
+
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100 transition-all duration-500 ease-in-out hover:shadow-md animate-fade-in w-full">
-      {/* Top Bar */}
-      <div className="bg-[#A80000] text-white text-xs py-1.5 hidden md:block">
-        <div className="container mx-auto px-4 flex justify-between items-center">
-          <div className="flex gap-4">
-            <span>{settings.contact?.email || "Info@SaiYogi.com"}</span>
-            <span>|</span>
-            <span>Call us: {settings.contact?.phone || "+91 94880 73004"}</span>
-          </div>
-          <div className="flex items-center gap-1 cursor-pointer">
-            Language: English <ChevronDown className="h-3 w-3" />
+    <>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md border-b border-gray-100 transition-all duration-300 w-full">
+        {/* Top Bar */}
+        <div className="bg-[#A80000] text-white text-xs py-1.5 hidden md:block">
+          <div className="container mx-auto px-4 flex justify-between items-center">
+            <div className="flex gap-4">
+              <span>{settings.contact?.email || "Info@SaiYogi.com"}</span>
+              <span>|</span>
+              <span>Call us: {settings.contact?.phone || "+91 94880 73004"}</span>
+            </div>
+            <div className="flex items-center gap-1 cursor-pointer">
+              Language: English <ChevronDown className="h-3 w-3" />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Header */}
-      <div className="container mx-auto px-4 py-3 md:py-4 flex flex-wrap items-center justify-between gap-4">
-        {/* Logo */}
-        <Link to="/" className="flex items-center shrink-0">
-          <img src={companyLogo} alt="Sai Yogi Crackers" className="h-12 md:h-16 object-contain" />
-        </Link>
+        {/* Main Header */}
+        <div className="container mx-auto px-4 py-3 md:py-4 flex flex-wrap items-center justify-between gap-4">
+          {/* Logo */}
+          <Link to="/" className="flex items-center shrink-0">
+            <img src={companyLogo} alt="Sai Yogi Crackers" className="h-12 md:h-16 object-contain" />
+          </Link>
 
-        {/* Search Bar (Hidden on small mobile, visible on md and up) */}
-        <div className="hidden md:flex flex-1 max-w-xl items-center mx-4 border border-gray-300 rounded-md overflow-hidden bg-white">
-          <input
-            type="text"
-            placeholder="Search products..."
-            className="flex-1 px-4 py-2 text-sm outline-none text-gray-700 bg-transparent"
-          />
-          <button className="bg-[#A80000] text-white px-5 py-2.5 hover:bg-red-800 transition-colors flex items-center justify-center">
-            <Search className="h-4 w-4" />
-          </button>
-        </div>
+          {/* Search Bar (Hidden on small mobile, visible on md and up) */}
+          <div className="hidden md:flex flex-1 max-w-xl items-center mx-4 border border-gray-300 rounded-md overflow-hidden bg-white">
+            <input
+              type="text"
+              placeholder="Search products..."
+              className="flex-1 px-4 py-2 text-sm outline-none text-gray-700 bg-transparent"
+            />
+            <button className="bg-[#A80000] text-white px-5 py-2.5 hover:bg-red-800 transition-colors flex items-center justify-center">
+              <Search className="h-4 w-4" />
+            </button>
+          </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-3">
-          <a
-            href={`https://wa.me/${(settings.contact?.phone || "+919488073004").replace(/[^0-9]/g, "")}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-2 bg-[#25D366] text-white px-5 py-2.5 rounded-full hover:bg-[#20ba5a] hover:shadow-[0_0_20px_rgba(37,211,102,0.6)] transition-all duration-300 font-black text-xs uppercase tracking-wider shadow-md hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <svg className="w-4 h-4 fill-current animate-pulse" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z" /></svg>
-            WhatsApp Inquiry
-          </a>
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3">
+            <a
+              href={`https://wa.me/${phoneDigits}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:flex items-center gap-2 bg-[#25D366] text-white px-5 py-2.5 rounded-full hover:bg-[#20ba5a] hover:shadow-lg transition-all duration-300 font-black text-xs uppercase tracking-wider shadow-md hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Phone className="w-4 h-4 animate-pulse" />
+              WhatsApp Inquiry
+            </a>
           <Button onClick={() => setIsCartOpen(true)} className="bg-[#A80000] hover:bg-red-800 text-white flex items-center gap-2 px-5 py-5 rounded-md">
             <ShoppingCart className="h-5 w-5" />
             <span className="font-semibold text-sm">My Cart</span>
@@ -139,11 +144,11 @@ const UserHeader = () => {
             <Link to="/catalog" className={getLinkClass('/catalog')}>
               ALL PRODUCTS
             </Link>
-            <Link to="/quick-enquiry" className={`relative ${getLinkClass('/quick-enquiry')} flex items-center gap-1`}>
+            <Link to="/quick-enquiry" className={getLinkClass('/quick-enquiry') + " relative flex items-center gap-1"}>
               QUICK ENQUIRY
               <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded animate-pulse absolute -right-6 -top-2">NEW</span>
             </Link>
-            <Link to="/combo-packs" className={`${getLinkClass('/combo-packs')} flex items-center gap-1`}>
+            <Link to="/combo-packs" className={getLinkClass('/combo-packs') + " flex items-center gap-1"}>
               COMBO PACKS <ChevronDown className="h-3 w-3" />
             </Link>
             <Link to="/chit-scheme" className={getLinkClass('/chit-scheme')}>
@@ -178,7 +183,7 @@ const UserHeader = () => {
           </div>
           <nav className="flex flex-col gap-4 text-sm uppercase">
             <Link to="/" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/')}>HOME</Link>
-            <Link to="/quick-enquiry" onClick={() => setMenuOpen(false)} className={`${getMobileLinkClass('/quick-enquiry')} flex items-center gap-2`}>QUICK ENQUIRY <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded">NEW</span></Link>
+            <Link to="/quick-enquiry" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/quick-enquiry') + " flex items-center gap-2"}>QUICK ENQUIRY <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded">NEW</span></Link>
             <Link to="/safety-tips" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/safety-tips')}>SAFETY TIPS</Link>
             <Link to="/combo-packs" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/combo-packs')}>COMBO PACKS</Link>
             <Link to="/chit-scheme" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/chit-scheme')}>CHIT SCHEME</Link>
@@ -188,7 +193,10 @@ const UserHeader = () => {
           </nav>
         </div>
       )}
-    </header>
+      </header>
+      {/* Responsive layout spacer so fixed header doesn't cover top of page content */}
+      <div className={isHomePage ? "w-full shrink-0 h-[104px] md:h-[172px]" : "w-full shrink-0 h-[68px] md:h-[140px]"} />
+    </>
   );
 };
 

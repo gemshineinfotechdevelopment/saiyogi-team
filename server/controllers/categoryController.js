@@ -43,19 +43,27 @@ export const createCategory = async (req, res, next) => {
       return next(new AppError('Category already exists', 400));
     }
 
-    // Auto-generate categoryCode
     let categoryCode = '100';
     try {
-      const highestCategory = await Category.findOne({}, 'categoryCode')
-        .sort({ categoryCode: -1 })
+      const allCategories = await Category.find({}, 'categoryCode')
+        .sort({ categoryCode: 1 })
         .collation({ locale: "en_US", numericOrdering: true });
         
-      if (highestCategory && highestCategory.categoryCode) {
-        const lastCode = parseInt(highestCategory.categoryCode, 10);
-        if (!isNaN(lastCode)) {
-          categoryCode = (lastCode + 10).toString();
+      let expectedCode = 100;
+      for (const cat of allCategories) {
+        if (cat.categoryCode) {
+          const currentCode = parseInt(cat.categoryCode, 10);
+          if (!isNaN(currentCode)) {
+            if (currentCode > expectedCode) {
+              break; // Found a gap
+            }
+            if (currentCode === expectedCode) {
+              expectedCode += 10;
+            }
+          }
         }
       }
+      categoryCode = expectedCode.toString();
     } catch (err) {
       console.error('Error generating categoryCode', err);
     }
