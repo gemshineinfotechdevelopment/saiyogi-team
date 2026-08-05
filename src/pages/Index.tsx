@@ -3,8 +3,9 @@ import { Play } from "lucide-react";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
-import narendira1 from "@/assets/narendira1.png";
-import narendira2 from "@/assets/narendira2.png";
+import banner1 from "@/assets/banner1.png";
+import banner2 from "@/assets/banner2.png";
+import banner3 from "@/assets/banner3.png";
 import { useState, useEffect } from "react";
 import { getProducts, getCategories } from "@/lib/api";
 import { Product, Category } from "@/data/products";
@@ -31,19 +32,21 @@ const staticFamilyPacks = [
 ];
 
 const premiumCategories = [
-  { name: "Gift Boxes", image: "/sky_rocket_box.png" },
-  { name: "Sparklers", image: "/flower_pots.png" },
-  { name: "Flower Pots", image: "/sky_rocket_box.png" },
-  { name: "Ground Chakkars", image: "/flower_pots.png" },
-  { name: "Sky Shots", image: "/sky_rocket_box.png" },
-  { name: "Novelty Crackers", image: "/flower_pots.png" },
+  { name: "Sparklers", image: "/flower_pots.png", categoryId: "cat-1" },
+  { name: "Flower Pots", image: "/sky_rocket_box.png", categoryId: "cat-2" },
+  { name: "Rockets & Sky Shots", image: "/sky_rocket_box.png", categoryId: "cat-3" },
+  { name: "Ground Chakkars", image: "/flower_pots.png", categoryId: "cat-4" },
+  { name: "Combo Packs", image: "/family_star_kit.png", categoryId: "cat-5" },
+  { name: "Gift Boxes", image: "/bestseller_pack.png", categoryId: "all" },
 ];
 
-const manufacturers = [
-  { name: "STANDARD", logo: "S" },
-  { name: "AJANTA", logo: "A" },
-  { name: "CORONATION", logo: "C" },
-  { name: "VADIVEL", logo: "V" },
+const shopByBrands = [
+  { name: "Standard", subtitle: "Standard Fireworks", tag: "Most Popular", image: "/sky_rocket_box.png" },
+  { name: "Ajanta", subtitle: "Ajanta Pyrotechnics", tag: "Top Quality", image: "/flower_pots.png" },
+  { name: "Coronation", subtitle: "Coronation Sparklers", tag: "High Demand", image: "/bestseller_pack.png" },
+  { name: "Vadivel", subtitle: "Vadivel Fireworks", tag: "Sivakasi Original", image: "/grand_sky_delight.png" },
+  { name: "Sony", subtitle: "Sony Crackers", tag: "Festive Special", image: "/family_star_kit.png" },
+  { name: "Kaliswari", subtitle: "Sri Kaliswari Cock", tag: "Heritage Brand", image: "/royal_celebration.png" },
 ];
 
 const Index = () => {
@@ -52,7 +55,7 @@ const Index = () => {
   const [categories, setCategories] = useState<Category[]>([]);
 
   // Hero image slideshow (right-to-left slide)
-  const heroImages = [narendira1, narendira2];
+  const heroImages = [banner1, banner2, banner3];
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideKey, setSlideKey] = useState(0);
 
@@ -257,20 +260,13 @@ const Index = () => {
       <canvas id="fountain-canvas" className="fixed inset-0 pointer-events-none z-[101]" />
 
       {/* Hero Section */}
-      <section className="relative w-full h-[300px] md:h-[500px] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden bg-black">
-          <img
-            key={`enter-${slideKey}`}
-            src={heroImages[currentSlide]}
-            alt="Sai Yogi Crackers"
-            className="absolute inset-0 w-full h-full object-cover object-center hero-slide-enter opacity-80"
-          />
-          <div className="absolute inset-0 bg-black/40"></div>
-        </div>
-        <div className="relative z-10 flex flex-col items-center justify-center mt-8">
-            <h1 className="text-5xl md:text-8xl font-black text-[#FFD700] drop-shadow-lg tracking-wider" style={{ fontFamily: 'serif' }}>Sai Yogi</h1>
-            <p className="text-xl md:text-3xl text-white tracking-[0.3em] font-light mt-2 uppercase">Crackers</p>
-        </div>
+      <section className="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-[600px] min-h-[220px] flex items-center justify-center overflow-hidden bg-black">
+        <img
+          key={`enter-${slideKey}`}
+          src={heroImages[currentSlide]}
+          alt="Sai Yogi Crackers Festival Banner"
+          className="w-full h-full object-cover object-center hero-slide-enter opacity-100"
+        />
       </section>
 
       {/* Best Sellers */}
@@ -325,39 +321,68 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Premium Categories */}
-      <section className="py-16 bg-[#FDF5E6]">
-        <div className="text-center mb-10">
-          <h2 className="font-black text-[#7A1416] text-2xl uppercase tracking-widest mb-2">Premium Categories</h2>
-          <p className="text-black font-bold uppercase text-sm">Shop By Category</p>
-          <p className="text-gray-500 text-xs mt-2 max-w-md mx-auto">Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.</p>
+      {/* Shop By Category */}
+      <section className="py-16 bg-[#FDF5E6] border-b border-amber-100">
+        <div className="text-center mb-10 container mx-auto px-4">
+          <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs">
+            Shop By Category
+          </h2>
+          <div className="w-24 h-1 bg-[#7A1416] mx-auto rounded-full mb-3"></div>
+          <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto font-medium">
+            Explore our wide selection of premium fireworks crafted for the most spectacular and joyful celebration.
+          </p>
         </div>
         
         <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.slice(0, 6).map((cat, i) => (
-              <div key={cat.id || cat._id || i} onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id}`} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col items-center p-4 cursor-pointer">
-                <div className="w-full aspect-square flex items-center justify-center bg-gray-50 rounded-lg p-2 mb-3">
-                  <img src={cat.image || "/sky_rocket_box.png"} alt={cat.name} className="max-w-full max-h-full object-contain" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
+            {(categories.length > 0 ? categories : premiumCategories).slice(0, 6).map((cat: any, i: number) => (
+              <div 
+                key={cat.id || cat._id || i} 
+                onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id || cat.categoryId || 'all'}`} 
+                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-amber-100 flex flex-col items-center p-4 cursor-pointer group hover:-translate-y-1"
+              >
+                <div className="w-full aspect-square flex items-center justify-center bg-gradient-to-b from-amber-50/50 to-orange-50/20 rounded-xl p-3 mb-3 group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
+                  <img src={cat.image || "/sky_rocket_box.png"} alt={cat.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
+                  <span className="absolute top-2 right-2 bg-[#7A1416] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full opacity-90">Hot</span>
                 </div>
-                <h3 className="font-bold text-xs text-gray-800 uppercase text-center">{cat.name}</h3>
+                <h3 className="font-extrabold text-xs sm:text-sm text-gray-800 uppercase text-center group-hover:text-[#7A1416] transition-colors">{cat.name}</h3>
+                <p className="text-[11px] text-amber-700 font-semibold mt-1">Explore →</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Trusted Manufacturers */}
-      <section className="py-12 bg-white border-b border-gray-100">
-        <div className="text-center mb-8">
-          <h2 className="font-black text-[#7A1416] text-xl uppercase tracking-widest mb-2">Trusted Manufacturers</h2>
-          <p className="text-gray-500 text-xs">We are supplying high quality fireworks from top brands in Sivakasi.</p>
+      {/* Shop By Brand */}
+      <section className="py-16 bg-white border-b border-gray-100">
+        <div className="text-center mb-10 container mx-auto px-4">
+          <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs">
+            Shop By Brand
+          </h2>
+          <div className="w-24 h-1 bg-[#7A1416] mx-auto rounded-full mb-3"></div>
+          <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto font-medium">
+            We supply 100% genuine and high quality fireworks directly from Sivakasi's top trusted manufacturers.
+          </p>
         </div>
-        <div className="container mx-auto px-4 max-w-4xl">
-          <div className="flex flex-wrap justify-center gap-4 md:gap-8">
-            {manufacturers.map((brand, i) => (
-              <div key={i} className="bg-[#F8F8F8] border border-gray-200 px-8 py-4 flex items-center justify-center min-w-[120px] shadow-sm">
-                <span className="font-bold text-gray-600 tracking-wider text-sm">{brand.name}</span>
+
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
+            {shopByBrands.map((brand, i) => (
+              <div 
+                key={i} 
+                onClick={() => window.location.href=`/catalog?brand=${encodeURIComponent(brand.name)}`}
+                className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-2xl p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1"
+              >
+                <span className="text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full mb-2">
+                  {brand.tag}
+                </span>
+                <div className="w-full aspect-square flex items-center justify-center p-2 mb-2 group-hover:scale-105 transition-transform duration-300">
+                  <img src={brand.image} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-sm" />
+                </div>
+                <div>
+                  <h3 className="font-black text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors">{brand.name}</h3>
+                  <p className="text-[10px] text-gray-500 font-medium mt-0.5">{brand.subtitle}</p>
+                </div>
               </div>
             ))}
           </div>
