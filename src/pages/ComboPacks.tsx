@@ -82,12 +82,14 @@ const ComboPacks = () => {
       _id: pack.id,
       id: pack.id,
       name: pack.name,
-      price: pack.price,
+      price: pack.discountPrice,
       image: pack.image,
       category: pack.category,
       brand: pack.brand,
       storeStockPieces: pack.storeStockPieces,
-      hasDiscount: true,
+      hasDiscount: false,
+      netRate: pack.discountPrice,
+      displayNetRate: true,
     };
     addToCart(product as any);
     toast.success(`${pack.name} added to cart!`);
