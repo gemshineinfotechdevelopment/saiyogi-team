@@ -26,8 +26,8 @@ const UserHeader = () => {
     if (path === '/catalog') {
       return (currentPath === '/catalog' && !currentSearch.includes('category=combo-packs')) || currentPath.startsWith('/product/');
     }
-    if (path === '/catalog?category=combo-packs') {
-      return currentPath === '/catalog' && currentSearch.includes('category=combo-packs');
+    if (path === '/combo-packs') {
+      return currentPath === '/combo-packs' || (currentPath === '/catalog' && currentSearch.includes('category=combo-packs'));
     }
     return currentPath === path;
   };

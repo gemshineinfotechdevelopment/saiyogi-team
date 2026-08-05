@@ -31,19 +31,21 @@ const staticFamilyPacks = [
 ];
 
 const premiumCategories = [
-  { name: "Gift Boxes", image: "/sky_rocket_box.png" },
-  { name: "Sparklers", image: "/flower_pots.png" },
-  { name: "Flower Pots", image: "/sky_rocket_box.png" },
-  { name: "Ground Chakkars", image: "/flower_pots.png" },
-  { name: "Sky Shots", image: "/sky_rocket_box.png" },
-  { name: "Novelty Crackers", image: "/flower_pots.png" },
+  { name: "Sparklers", image: "/flower_pots.png", categoryId: "cat-1" },
+  { name: "Flower Pots", image: "/sky_rocket_box.png", categoryId: "cat-2" },
+  { name: "Rockets & Sky Shots", image: "/sky_rocket_box.png", categoryId: "cat-3" },
+  { name: "Ground Chakkars", image: "/flower_pots.png", categoryId: "cat-4" },
+  { name: "Combo Packs", image: "/family_star_kit.png", categoryId: "cat-5" },
+  { name: "Gift Boxes", image: "/bestseller_pack.png", categoryId: "all" },
 ];
 
-const manufacturers = [
-  { name: "STANDARD", logo: "S" },
-  { name: "AJANTA", logo: "A" },
-  { name: "CORONATION", logo: "C" },
-  { name: "VADIVEL", logo: "V" },
+const shopByBrands = [
+  { name: "Standard", subtitle: "Standard Fireworks", tag: "Most Popular", image: "/sky_rocket_box.png" },
+  { name: "Ajanta", subtitle: "Ajanta Pyrotechnics", tag: "Top Quality", image: "/flower_pots.png" },
+  { name: "Coronation", subtitle: "Coronation Sparklers", tag: "High Demand", image: "/bestseller_pack.png" },
+  { name: "Vadivel", subtitle: "Vadivel Fireworks", tag: "Sivakasi Original", image: "/grand_sky_delight.png" },
+  { name: "Sony", subtitle: "Sony Crackers", tag: "Festive Special", image: "/family_star_kit.png" },
+  { name: "Kaliswari", subtitle: "Sri Kaliswari Cock", tag: "Heritage Brand", image: "/royal_celebration.png" },
 ];
 
 const Index = () => {
@@ -322,40 +324,89 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Premium Categories */}
-      <section className="py-16 bg-[#FDF5E6]">
-        <div className="text-center mb-10">
-          <h2 className="font-black text-[#7A1416] text-2xl uppercase tracking-widest mb-2">Premium Categories</h2>
-          <p className="text-black font-bold uppercase text-sm">Shop By Category</p>
-          <p className="text-gray-500 text-xs mt-2 max-w-md mx-auto">Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.</p>
+      {/* Shop By Category */}
+      <section className="py-16 bg-[#FDF5E6] border-b border-amber-100">
+        <div className="text-center mb-10 container mx-auto px-4">
+          <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs">
+            Shop By Category
+          </h2>
+          <p className="text-gray-800 font-extrabold uppercase text-xs md:text-sm tracking-widest">
+            Premium Sivakasi Fireworks Collections
+          </p>
+          <p className="text-gray-600 text-xs md:text-sm mt-2 max-w-lg mx-auto">
+            Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.
+          </p>
         </div>
         
         <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
             {premiumCategories.map((cat, i) => (
-              <div key={i} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col items-center p-4">
-                <div className="w-full aspect-square flex items-center justify-center bg-gray-50 rounded-lg p-2 mb-3">
-                  <img src={cat.image} alt={cat.name} className="max-w-full max-h-full object-contain" />
+              <Link
+                key={i}
+                to={`/catalog?category=${cat.categoryId}`}
+                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-amber-100 flex flex-col items-center p-4 group hover:-translate-y-1.5 cursor-pointer"
+              >
+                <div className="w-full aspect-square flex items-center justify-center bg-amber-50/50 rounded-xl p-3 mb-3 group-hover:bg-amber-100/60 transition-colors">
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500"
+                  />
                 </div>
-                <h3 className="font-bold text-xs text-gray-800 uppercase">{cat.name}</h3>
-              </div>
+                <h3 className="font-extrabold text-xs text-gray-900 uppercase tracking-wider group-hover:text-[#7A1416] transition-colors text-center">
+                  {cat.name}
+                </h3>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Trusted Manufacturers */}
-      <section className="py-12 bg-white border-b border-gray-100">
-        <div className="text-center mb-8">
-          <h2 className="font-black text-[#7A1416] text-xl uppercase tracking-widest mb-2">Trusted Manufacturers</h2>
-          <p className="text-gray-500 text-xs">We are supplying high quality fireworks from top brands in Sivakasi.</p>
+      {/* Shop By Brand */}
+      <section className="py-16 bg-white border-b border-gray-100">
+        <div className="text-center mb-10 container mx-auto px-4">
+          <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs">
+            Shop By Brand
+          </h2>
+          <p className="text-gray-800 font-extrabold uppercase text-xs md:text-sm tracking-widest">
+            Top Certified Sivakasi Manufacturers
+          </p>
+          <p className="text-gray-600 text-xs md:text-sm mt-2 max-w-lg mx-auto">
+            Discover top-tier fireworks manufactured by India's leading and trusted brands.
+          </p>
         </div>
-        <div className="container mx-auto px-4 max-w-4xl">
-          <div className="flex flex-wrap justify-center gap-4 md:gap-8">
-            {manufacturers.map((brand, i) => (
-              <div key={i} className="bg-[#F8F8F8] border border-gray-200 px-8 py-4 flex items-center justify-center min-w-[120px] shadow-sm">
-                <span className="font-bold text-gray-600 tracking-wider text-sm">{brand.name}</span>
-              </div>
+
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {shopByBrands.map((brand, i) => (
+              <Link
+                key={i}
+                to={`/catalog?search=${brand.name}`}
+                className="bg-[#FAF8F5] border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-between text-center hover:bg-white hover:shadow-xl hover:border-red-200 transition-all duration-300 group hover:-translate-y-1.5 cursor-pointer relative overflow-hidden"
+              >
+                {/* Brand Tag Pill */}
+                <span className="text-[9px] font-black text-[#7A1416] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full mb-3 uppercase tracking-wider">
+                  {brand.tag}
+                </span>
+
+                {/* Brand Image Container */}
+                <div className="w-full aspect-square bg-white rounded-xl p-3 mb-3 flex items-center justify-center border border-gray-100 shadow-2xs group-hover:border-red-200 transition-colors">
+                  <img
+                    src={brand.image}
+                    alt={brand.name}
+                    className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500"
+                  />
+                </div>
+
+                <div className="flex flex-col items-center">
+                  <span className="font-black text-sm text-gray-900 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors">
+                    {brand.name}
+                  </span>
+                  <span className="text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-1">
+                    {brand.subtitle}
+                  </span>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
