@@ -56,20 +56,19 @@
     --font-body: 'Outfit', sans-serif;
   }
 
-  body {
-    background: #ffffff;
-    min-height: 100vh;
-  }
-}
-
-@layer base {
   * {
     @apply border-border;
+  }
+
+  html {
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
   }
 
   h1,
@@ -79,6 +78,20 @@
   h5,
   h6 {
     font-family: var(--font-display);
+  }
+
+  /* Hide scrollbar globally for all browsers while keeping scrolling functional */
+  html, body, * {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
   }
 }
 
