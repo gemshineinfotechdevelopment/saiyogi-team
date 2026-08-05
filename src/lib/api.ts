@@ -42,27 +42,213 @@ async function fetchJSON<T>(path: string, method: string = 'GET', body?: any): P
   return res.json();
 }
 
+export const FALLBACK_CATEGORIES: Category[] = [
+  { id: "cat-1", _id: "cat-1", name: "Sparklers", productCount: 8, image: "/sky_rocket_box.png" },
+  { id: "cat-2", _id: "cat-2", name: "Flower Pots", productCount: 6, image: "/flower_pots.png" },
+  { id: "cat-3", _id: "cat-3", name: "Rockets & Sky Shots", productCount: 6, image: "/sky_rocket_box.png" },
+  { id: "cat-4", _id: "cat-4", name: "Ground Chakkars", productCount: 6, image: "/flower_pots.png" },
+  { id: "cat-5", _id: "cat-5", name: "Combo Packs", productCount: 4, image: "/family_star_kit.png" },
+];
+
+export const FALLBACK_PRODUCTS: Product[] = [
+  {
+    id: "prod-1",
+    _id: "prod-1",
+    name: "Whistling Birds",
+    brand: "Standard",
+    category: "Rockets & Sky Shots",
+    price: 320,
+    hasDiscount: true,
+    image: "/sky_rocket_box.png",
+    stock: 100,
+    storeStockPieces: 100,
+    rating: 4.8,
+    reviews: 24,
+    description: "High whistling aerial rocket box with vibrant color bursts.",
+    quantity: "1 Box"
+  },
+  {
+    id: "prod-2",
+    _id: "prod-2",
+    name: "Flower Pots Big",
+    brand: "Standard",
+    category: "Flower Pots",
+    price: 450,
+    hasDiscount: true,
+    image: "/flower_pots.png",
+    stock: 80,
+    storeStockPieces: 80,
+    rating: 4.9,
+    reviews: 42,
+    description: "Grand golden fountain with brilliant sparkles and height.",
+    quantity: "1 Box (10 Pcs)"
+  },
+  {
+    id: "prod-3",
+    _id: "prod-3",
+    name: "1000 Wala Red Garland",
+    brand: "Standard",
+    category: "Sparklers",
+    price: 1200,
+    hasDiscount: true,
+    image: "/sky_rocket_box.png",
+    stock: 50,
+    storeStockPieces: 50,
+    rating: 4.7,
+    reviews: 18,
+    description: "Loud festive 1000 cracker garland for grand celebrations.",
+    quantity: "1 Box"
+  },
+  {
+    id: "prod-4",
+    _id: "prod-4",
+    name: "King Of Kings Sky Shot",
+    brand: "Ajanta",
+    category: "Rockets & Sky Shots",
+    price: 350,
+    hasDiscount: false,
+    image: "/flower_pots.png",
+    stock: 60,
+    storeStockPieces: 60,
+    rating: 4.6,
+    reviews: 15,
+    description: "Multi-color aerial palm tree effect with loud burst.",
+    quantity: "1 Pc"
+  },
+  {
+    id: "prod-5",
+    _id: "prod-5",
+    name: "Twinkling Star Sparklers",
+    brand: "Standard",
+    category: "Sparklers",
+    price: 150,
+    hasDiscount: true,
+    image: "/sky_rocket_box.png",
+    stock: 120,
+    storeStockPieces: 120,
+    rating: 4.8,
+    reviews: 30,
+    description: "Long-lasting gold and silver sparklers for kids & family.",
+    quantity: "1 Box (10 Pcs)"
+  },
+  {
+    id: "prod-6",
+    _id: "prod-6",
+    name: "Chakkra Special Deluxe",
+    brand: "Coronation",
+    category: "Ground Chakkars",
+    price: 280,
+    hasDiscount: true,
+    image: "/flower_pots.png",
+    stock: 90,
+    storeStockPieces: 90,
+    rating: 4.9,
+    reviews: 28,
+    description: "Smooth high-speed spinning ground chakkars.",
+    quantity: "1 Box (10 Pcs)"
+  },
+  {
+    id: "combo-1",
+    _id: "combo-1",
+    name: "Family Star Kit",
+    brand: "Standard",
+    category: "Combo Packs",
+    price: 2499,
+    hasDiscount: true,
+    image: "/family_star_kit.png",
+    stock: 50,
+    storeStockPieces: 50,
+    rating: 5.0,
+    reviews: 55,
+    description: "A perfect mix of 45 items including Ground Spinners, Sparklers, and Flower Pots.",
+    quantity: "1 Combo Pack"
+  },
+  {
+    id: "combo-2",
+    _id: "combo-2",
+    name: "Grand Sky Delight",
+    brand: "Standard",
+    category: "Combo Packs",
+    price: 4999,
+    hasDiscount: true,
+    image: "/grand_sky_delight.png",
+    stock: 35,
+    storeStockPieces: 35,
+    rating: 4.9,
+    reviews: 40,
+    description: "Elite 75-item collection featuring heavy Aerial Shots and Premium Fancy items.",
+    quantity: "1 Mega Pack"
+  },
+  {
+    id: "combo-3",
+    _id: "combo-3",
+    name: "Kids Joy Bundle",
+    brand: "Standard",
+    category: "Combo Packs",
+    price: 1899,
+    hasDiscount: true,
+    image: "/kids_joy_bundle.png",
+    stock: 40,
+    storeStockPieces: 40,
+    rating: 4.9,
+    reviews: 33,
+    description: "Noise-free and light-focused 30-item kit designed specifically for young ones.",
+    quantity: "1 Kids Pack"
+  },
+  {
+    id: "combo-4",
+    _id: "combo-4",
+    name: "Royal Celebration",
+    brand: "Standard",
+    category: "Combo Packs",
+    price: 8999,
+    hasDiscount: true,
+    image: "/royal_celebration.png",
+    stock: 20,
+    storeStockPieces: 20,
+    rating: 5.0,
+    reviews: 62,
+    description: "Massive 120-item mega combo for large gatherings and community celebrations.",
+    quantity: "1 Jumbo Pack"
+  }
+];
+
 export async function getProducts(): Promise<Product[]> {
   try {
     const data = await fetchJSON<{ products: Product[] } | Product[]>('/api/products?limit=10000');
-    return Array.isArray(data) ? data : (data?.products || []);
+    const list = Array.isArray(data) ? data : (data?.products || []);
+    if (list.length > 0) {
+      return list.map(p => ({
+        ...p,
+        storeStockPieces: p.storeStockPieces !== undefined ? p.storeStockPieces : 100
+      }));
+    }
+    return FALLBACK_PRODUCTS;
   } catch (error) {
-    console.error('Failed to fetch products:', error);
-    return [];
+    console.error('Failed to fetch products, using fallback:', error);
+    return FALLBACK_PRODUCTS;
   }
 }
 
 export async function getProductById(id: string): Promise<Product> {
-  return fetchJSON<Product>(`/api/products/${id}`);
+  try {
+    return await fetchJSON<Product>(`/api/products/${id}`);
+  } catch (error) {
+    const fallback = FALLBACK_PRODUCTS.find(p => p.id === id || p._id === id);
+    if (fallback) return fallback;
+    throw error;
+  }
 }
 
 export async function getCategories(): Promise<Category[]> {
   try {
     const data = await fetchJSON<{ categories: Category[] } | Category[]>('/api/categories');
-    return Array.isArray(data) ? data : (data?.categories || []);
+    const list = Array.isArray(data) ? data : (data?.categories || []);
+    if (list.length > 0) return list;
+    return FALLBACK_CATEGORIES;
   } catch (error) {
-    console.error('Failed to fetch categories:', error);
-    return [];
+    console.error('Failed to fetch categories, using fallback:', error);
+    return FALLBACK_CATEGORIES;
   }
 }
 
