@@ -2,46 +2,21 @@ import { Link } from "react-router-dom";
 import { ChevronDown, ShieldCheck, Package, Truck, Headphones, ShoppingBag } from "lucide-react";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
-import { useState } from "react";
-
-const comboPacks = [
-  {
-    id: 1,
-    title: "Family Star Kit",
-    badge: "38% OFF",
-    badgeColor: "bg-[#7A1416] text-white",
-    image: "/family_star_kit.png",
-    description: "A perfect mix of 45 items including Ground Spinners, Sparklers, and...",
-  },
-  {
-    id: 2,
-    title: "Grand Sky Delight",
-    badge: "Bestseller",
-    badgeColor: "bg-black text-white",
-    image: "/grand_sky_delight.png",
-    description: "Elite 75-item collection featuring heavy Aerial Shots and Premium...",
-  },
-  {
-    id: 3,
-    title: "Kids Joy Bundle",
-    badge: "Kids Special",
-    badgeColor: "bg-[#4CAF50] text-white",
-    image: "/kids_joy_bundle.png",
-    description: "Noise-free and light-focused 30-item kit designed specifically for young...",
-  },
-  {
-    id: 4,
-    title: "Royal Celebration",
-    subtitle: "Royal Celebration",
-    badge: "Wholesale",
-    badgeColor: "bg-[#333333] text-white",
-    image: "/royal_celebration.png",
-    description: "Massive 120-item mega combo for large gatherings and community...",
-  },
-];
+import { useState, useEffect } from "react";
+import { getProducts } from "@/lib/api";
+import { Product } from "@/data/products";
 
 const ComboPacks = () => {
   const [email, setEmail] = useState("");
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    getProducts().then((prods) => {
+      setProducts(Array.isArray(prods) ? prods : []);
+    });
+  }, []);
+
+  const comboPacks = products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack'));
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -191,23 +166,26 @@ const ComboPacks = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
           {comboPacks.map((pack) => (
             <div
-              key={pack.id}
-              className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-2xs hover:shadow-md transition-shadow flex flex-col relative"
+              key={pack.id || pack._id}
+              className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-2xs hover:shadow-md transition-shadow flex flex-col relative cursor-pointer"
+              onClick={() => window.location.href=`/catalog`}
             >
               {/* Top-Left Badge overlay */}
+              {pack.hasDiscount && (
               <div className="absolute top-3 left-3 z-20">
                 <span
-                  className={`text-[9px] font-extrabold px-2 py-0.5 rounded ${pack.badgeColor} uppercase tracking-wider shadow-sm`}
+                  className={`text-[9px] font-extrabold px-2 py-0.5 rounded bg-[#7A1416] text-white uppercase tracking-wider shadow-sm`}
                 >
-                  {pack.badge}
+                  Special Offer
                 </span>
               </div>
+              )}
 
               {/* Product Image */}
               <div className="w-full aspect-[4/3] bg-gray-100 overflow-hidden flex items-center justify-center">
                 <img
-                  src={pack.image}
-                  alt={pack.title}
+                  src={pack.image || "/family_star_kit.png"}
+                  alt={pack.name}
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                 />
               </div>
@@ -215,17 +193,18 @@ const ComboPacks = () => {
               {/* Product Info */}
               <div className="p-4 flex flex-col flex-1 bg-white">
                 <h3 className="font-extrabold text-sm text-gray-900 leading-snug">
-                  {pack.title}
+                  {pack.name}
                 </h3>
-
-                {pack.subtitle && (
-                  <h4 className="font-extrabold text-sm text-gray-900 leading-snug">
-                    {pack.subtitle}
-                  </h4>
-                )}
+                
+                <div className="flex gap-2 items-center mt-1">
+                  {pack.hasDiscount && pack.netRate && (
+                    <span className="text-gray-400 line-through text-xs font-bold">₹{pack.price}</span>
+                  )}
+                  <span className="text-[#7A1416] font-black text-sm">₹{pack.hasDiscount && pack.netRate ? pack.netRate : pack.price}</span>
+                </div>
 
                 <p className="text-[11px] text-gray-500 leading-relaxed line-clamp-2 mt-2">
-                  {pack.description}
+                  {pack.description || "Premium collection bundle."}
                 </p>
               </div>
             </div>

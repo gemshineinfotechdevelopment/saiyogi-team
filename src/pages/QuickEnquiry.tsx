@@ -1,42 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
-
-const crackersData = [
-  {
-    category: "SPARKLERS",
-    items: [
-      { id: 1, name: "10cm Electric Sparklers", desc: "Safe for kids", size: "1 Box", inStock: "Yes", price: 50.00, image: "/flower_pots.png" },
-      { id: 2, name: "15cm Green Sparklers", desc: "Color changing", size: "1 Box", inStock: "Yes", price: 80.00, image: "/sky_rocket_box.png" },
-    ]
-  },
-  {
-    category: "FLOWER POTS",
-    items: [
-      { id: 3, name: "Flower Pots Small", desc: "Classic fountain", size: "10 Pieces", inStock: "Yes", price: 120.00, image: "/flower_pots.png" },
-      { id: 4, name: "Flower Pots Big", desc: "High reaching fountain", size: "10 Pieces", inStock: "Yes", price: 200.00, image: "/sky_rocket_box.png" },
-    ]
-  },
-  {
-    category: "GROUND CHAKKARS",
-    items: [
-      { id: 5, name: "Ground Chakkar Normal", desc: "Spinning wheel", size: "10 Pieces", inStock: "Low", price: 90.00, image: "/flower_pots.png" },
-      { id: 6, name: "Ground Chakkar Special", desc: "Long lasting spin", size: "10 Pieces", inStock: "Yes", price: 150.00, image: "/sky_rocket_box.png" },
-    ]
-  },
-  {
-    category: "SKY SHOTS",
-    items: [
-      { id: 7, name: "7 Shots", desc: "Multi-color aerial", size: "1 Piece", inStock: "Yes", price: 350.00, image: "/flower_pots.png" },
-      { id: 8, name: "12 Shots", desc: "Premium sky show", size: "1 Piece", inStock: "Yes", price: 550.00, image: "/sky_rocket_box.png" },
-    ]
-  }
-];
+import { getProducts, getCategories } from "@/lib/api";
+import { Product, Category } from "@/data/products";
+import { useCart } from "@/context/CartContext";
+import { toast } from "sonner";
+import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
+import { ShoppingBag } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const QuickEnquiry = () => {
-  const [quantities, setQuantities] = useState<Record<number, number>>({});
+  const { addToCart, totalItems, totalPrice } = useCart();
+  const { settings } = useSiteSettings();
+  
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleQuantityChange = (id: number, value: string) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [prods, cats] = await Promise.all([getProducts(), getCategories()]);
+        setProducts(Array.isArray(prods) ? prods : []);
+        setCategories(Array.isArray(cats) ? cats : []);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const handleQuantityChange = (id: string, value: string) => {
     const val = parseInt(value);
     if (!isNaN(val) && val >= 1) {
       setQuantities(prev => ({ ...prev, [id]: val }));
@@ -47,11 +45,57 @@ const QuickEnquiry = () => {
     }
   };
 
+  const handleAdd = (product: Product) => {
+    const productId = product._id || product.id || '';
+    const qty = quantities[productId] || 1;
+    addToCart(product, qty);
+    toast.success(`${qty} x ${product.name} added to cart`);
+    
+    // Reset quantity input
+    const newQuantities = { ...quantities };
+    delete newQuantities[productId];
+    setQuantities(newQuantities);
+  };
+
+  const groupedProducts = categories.map(cat => {
+    const catId = cat._id || cat.id;
+    return {
+      category: cat.name,
+      items: products.filter(p => {
+        const pCat = p.category as any;
+        const pCatId = pCat && typeof pCat === 'object' ? (pCat._id || pCat.id) : pCat;
+        return pCatId === catId;
+      })
+    };
+  }).filter(group => group.items.length > 0);
+
   return (
     <div className="min-h-screen flex flex-col bg-white relative font-sans">
       <UserHeader />
       
       <main className="flex-1 container mx-auto px-0 md:px-4 py-8">
+        
+        {/* Floating Estimate Bar (similar to combo packs) */}
+        <div className="flex justify-end mb-6 px-4 md:px-0">
+          <div className="inline-flex items-center gap-3 bg-[#4A0000] text-white px-4 py-2 rounded-full shadow-lg border border-red-900">
+            <div className="relative flex items-center justify-center">
+              <ShoppingBag className="w-5 h-5 text-amber-400" />
+              <span className="absolute -top-1 -right-1.5 bg-green-600 text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-extrabold">
+                {totalItems}
+              </span>
+            </div>
+            <div className="flex flex-col text-left text-xs">
+              <span className="text-[9px] text-red-200 tracking-wider font-semibold uppercase">CURRENT ESTIMATE</span>
+              <span className="font-extrabold text-sm text-white leading-tight">₹{totalPrice.toFixed(2)}</span>
+            </div>
+            <Link to="/cart">
+              <button className="bg-[#EAB308] hover:bg-yellow-400 text-black text-xs font-extrabold px-3.5 py-1.5 rounded-full transition-colors ml-2 shadow-xs cursor-pointer">
+                Checkout Now
+              </button>
+            </Link>
+          </div>
+        </div>
+
         <div className="w-full bg-white shadow-sm border border-gray-200">
           
           {/* Table Header */}
@@ -64,86 +108,96 @@ const QuickEnquiry = () => {
             <div className="col-span-2 text-right">ACTION</div>
           </div>
 
-          {/* Categories and Products */}
-          {crackersData.map((category, catIdx) => (
-            <div key={catIdx}>
-              {/* Category Header */}
-              <div className="bg-[#b91c1c] text-white px-4 py-2.5 text-[13px] font-bold tracking-wider uppercase">
-                {category.category}
-              </div>
+          {loading ? (
+            <div className="py-20 text-center text-gray-500 font-bold">Loading products...</div>
+          ) : groupedProducts.length === 0 ? (
+            <div className="py-20 text-center text-gray-500 font-bold">No products found.</div>
+          ) : (
+            groupedProducts.map((category, catIdx) => (
+              <div key={catIdx}>
+                {/* Category Header */}
+                <div className="bg-[#b91c1c] text-white px-4 py-2.5 text-[13px] font-bold tracking-wider uppercase">
+                  {category.category}
+                </div>
 
-              {/* Product Rows */}
-              <div className="flex flex-col">
-                {category.items.map((item, itemIdx) => (
-                  <div key={item.id} className={`grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-4 ${itemIdx !== category.items.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                {/* Product Rows */}
+                <div className="flex flex-col">
+                  {category.items.map((item, itemIdx) => {
+                    const productId = item._id || item.id || '';
+                    const dp = getDiscountPrice(item.price, item.hasDiscount, settings.discountPercent, item.netRate, item.displayNetRate);
+                    const inStock = (item.storeStockPieces ?? item.stock ?? 1) > 0;
                     
-                    {/* Product Details */}
-                    <div className="col-span-1 md:col-span-5 flex items-center gap-4">
-                      <div className="w-14 h-14 bg-gray-100 flex items-center justify-center shrink-0 rounded-md overflow-hidden">
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                    return (
+                      <div key={productId} className={`grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-4 ${itemIdx !== category.items.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                        
+                        {/* Product Details */}
+                        <div className="col-span-1 md:col-span-5 flex items-center gap-4">
+                          <div className="w-14 h-14 bg-gray-100 flex items-center justify-center shrink-0 rounded-md overflow-hidden">
+                            <img src={item.image || "/sky_rocket_box.png"} alt={item.name} className="w-full h-full object-cover" />
+                          </div>
+                          <div>
+                            <h3 className="font-extrabold text-gray-800 text-[13px]">{item.name}</h3>
+                            <p className="text-gray-500 text-[11px] mt-0.5">{item.description || "Premium cracker"}</p>
+                          </div>
+                        </div>
+
+                        {/* Unit/Size */}
+                        <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center text-[13px] text-gray-500 font-medium">
+                          <span className="md:hidden font-bold text-xs">UNIT/SIZE:</span>
+                          {item.quantity || "1 Box"}
+                        </div>
+
+                        {/* In Stock */}
+                        <div className="col-span-1 md:col-span-1 flex justify-between md:justify-center items-center">
+                          <span className="md:hidden font-bold text-xs text-gray-600">IN STOCK:</span>
+                          <span className={`font-bold text-[12px] ${inStock ? 'text-[#2eab5b]' : 'text-[#f58220]'}`}>
+                            {inStock ? "Yes" : "Out of Stock"}
+                          </span>
+                        </div>
+
+                        {/* Price */}
+                        <div className="col-span-1 md:col-span-1 flex justify-between md:justify-center items-center font-extrabold text-[#b91c1c] text-[13px]">
+                          <span className="md:hidden font-bold text-xs text-gray-600">PRICE:</span>
+                          <div className="flex flex-col md:items-center text-right md:text-center">
+                            {item.hasDiscount && (item.netRate || item.wholesalePrice) && (
+                              <span className="text-gray-400 line-through text-[10px]">₹{item.price}</span>
+                            )}
+                            <span>₹{dp.toFixed(2)}</span>
+                          </div>
+                        </div>
+
+                        {/* Quantity */}
+                        <div className="col-span-1 md:col-span-1 flex justify-between md:justify-center items-center">
+                          <span className="md:hidden font-bold text-xs text-gray-600">QUANTITY:</span>
+                          <input 
+                            type="text" 
+                            value={quantities[productId] || ""} 
+                            placeholder="1"
+                            onChange={(e) => handleQuantityChange(productId, e.target.value)}
+                            disabled={!inStock}
+                            className="w-[50px] h-[30px] border border-gray-200 rounded text-center text-[13px] text-gray-600 outline-none focus:border-[#b91c1c] disabled:bg-gray-100" 
+                          />
+                        </div>
+
+                        {/* Action */}
+                        <div className="col-span-1 md:col-span-2 flex justify-end md:justify-end items-center">
+                          <button 
+                            onClick={() => handleAdd(item)}
+                            disabled={!inStock}
+                            className="border border-[#b91c1c] text-[#b91c1c] hover:bg-red-50 font-extrabold text-[11px] tracking-wide px-5 py-1.5 rounded transition-colors uppercase cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            ADD
+                          </button>
+                        </div>
+
                       </div>
-                      <div>
-                        <h3 className="font-extrabold text-gray-800 text-[13px]">{item.name}</h3>
-                        <p className="text-gray-500 text-[11px] mt-0.5">{item.desc}</p>
-                      </div>
-                    </div>
-
-                    {/* Unit/Size */}
-                    <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center text-[13px] text-gray-500 font-medium">
-                      <span className="md:hidden font-bold text-xs">UNIT/SIZE:</span>
-                      {item.size}
-                    </div>
-
-                    {/* In Stock */}
-                    <div className="col-span-1 md:col-span-1 flex justify-between md:justify-center items-center">
-                      <span className="md:hidden font-bold text-xs text-gray-600">IN STOCK:</span>
-                      <span className={`font-bold text-[12px] ${item.inStock === 'Yes' ? 'text-[#2eab5b]' : 'text-[#f58220]'}`}>
-                        {item.inStock}
-                      </span>
-                    </div>
-
-                    {/* Price */}
-                    <div className="col-span-1 md:col-span-1 flex justify-between md:justify-center items-center font-extrabold text-[#b91c1c] text-[13px]">
-                      <span className="md:hidden font-bold text-xs text-gray-600">PRICE:</span>
-                      ₹{item.price.toFixed(2)}
-                    </div>
-
-                    {/* Quantity */}
-                    <div className="col-span-1 md:col-span-1 flex justify-between md:justify-center items-center">
-                      <span className="md:hidden font-bold text-xs text-gray-600">QUANTITY:</span>
-                      <input 
-                        type="text" 
-                        value={quantities[item.id] || "1"} 
-                        onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                        className="w-[50px] h-[30px] border border-gray-200 rounded text-center text-[13px] text-gray-600 outline-none focus:border-[#b91c1c]" 
-                      />
-                    </div>
-
-                    {/* Action */}
-                    <div className="col-span-1 md:col-span-2 flex justify-end md:justify-end items-center">
-                      <button className="border border-[#b91c1c] text-[#b91c1c] hover:bg-red-50 font-extrabold text-[11px] tracking-wide px-5 py-1.5 rounded transition-colors uppercase">
-                        ADD
-                      </button>
-                    </div>
-
-                  </div>
-                ))}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
           
-        </div>
-
-        {/* Pagination & Summary */}
-        <div className="flex flex-col md:flex-row justify-between items-center mt-6 text-sm text-gray-500">
-          <div>Showing 1 - 8 of 124 products</div>
-          <div className="flex items-center mt-4 md:mt-0 bg-white border border-gray-200 rounded overflow-hidden">
-            <button className="px-3 py-1.5 border-r border-gray-200 hover:bg-gray-50">Prev</button>
-            <button className="px-3 py-1.5 bg-[#b91c1c] text-white font-bold border-r border-[#b91c1c]">1</button>
-            <button className="px-3 py-1.5 border-r border-gray-200 hover:bg-gray-50">2</button>
-            <button className="px-3 py-1.5 border-r border-gray-200 hover:bg-gray-50">3</button>
-            <button className="px-3 py-1.5 hover:bg-gray-50">Next</button>
-          </div>
         </div>
       </main>
 
