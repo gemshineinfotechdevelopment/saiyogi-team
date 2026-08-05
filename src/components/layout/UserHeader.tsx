@@ -47,7 +47,7 @@ const UserHeader = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-md border-b border-gray-100 transition-all duration-300 w-full">
+    <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100 transition-all duration-500 ease-in-out hover:shadow-md animate-fade-in w-full">
       {/* Top Bar */}
       <div className="bg-[#A80000] text-white text-xs py-1.5 hidden md:block">
         <div className="container mx-auto px-4 flex justify-between items-center">
