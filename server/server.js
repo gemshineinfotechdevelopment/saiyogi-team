@@ -24,10 +24,15 @@ const app = express();
 const allowedOrigins = [
   'https://narandiraa-enterprises-web.netlify.app',
   'https://narandiraa-enterprises.vercel.app',
+  'https://narandiraa-enterprises.onrender.com',
+  'https://narandiraa-enterprises-1.onrender.com',
   'https://www.narendiraaenterprises.com',
   'https://narendiraaenterprises.com',
   'http://localhost:5173',
+  'http://localhost:5174',
   'http://localhost:3000',
+  'http://localhost:5000',
+  'http://localhost:8080',
   process.env.CLIENT_URL
 ].filter(Boolean);
 
