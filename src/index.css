@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Outfit:wght@300;400;500;600;700&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 @layer base {
   :root {
@@ -57,7 +57,7 @@
   }
 
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
 
   html {
@@ -65,7 +65,8 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     font-family: var(--font-body);
     min-height: 100vh;
     overflow-x: hidden;
@@ -437,4 +438,41 @@ select.bg-secondary option {
 
 .hero-slide-exit {
   animation: hero-slide-out-ltr 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Custom infinite scroll animations */
+@keyframes bestSellersScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-best-sellers-scroll {
+  display: flex;
+  gap: 1.5rem;
+  animation: bestSellersScroll 35s linear infinite;
+  width: max-content;
+}
+
+.animate-best-sellers-scroll:hover {
+  animation-play-state: paused;
+}
+
+@keyframes topMarqueeScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-top-marquee {
+  display: flex;
+  gap: 4rem;
+  animation: topMarqueeScroll 25s linear infinite;
+  width: max-content;
 }
