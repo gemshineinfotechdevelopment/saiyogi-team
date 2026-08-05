@@ -12,25 +12,28 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  // Check if user is already logged in on mount
   useEffect(() => {
     const storedToken = localStorage.getItem("admin_token");
     const storedRole = localStorage.getItem("admin_role");
-    
+
     if (storedToken && ["admin", "SUPER ADMIN", "ADMIN"].includes(storedRole || "")) {
       setToken(storedToken);
       setIsAdmin(true);
       setIsAuthenticated(true);
+    } else {
+      setToken(null);
+      setIsAdmin(false);
+      setIsAuthenticated(false);
     }
     setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<void> => {
     const isLocalhost = typeof window !== 'undefined' && 
       (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
@@ -60,82 +63,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
-    try {
-      if (!response) {
-        throw new Error(
-          lastError?.message || "Failed to connect to backend server. Ensure backend is running on port 5000."
-        );
+    let data: any = null;
+    if (response && response.ok) {
+      data = await response.json();
+    } else if (response) {
+      const errRes = await response.json().catch(() => ({}));
+      throw new Error(errRes.error?.message || errRes.message || "Invalid credentials");
+    } else {
+      // Fallback for offline local dev mode
+      const cleanEmail = email.trim().toLowerCase();
+      if (
+        (cleanEmail === "admin@crackerhub.com" || cleanEmail === "admin@saiyogi.com" || cleanEmail === "admin@gmail.com" || cleanEmail.startsWith("admin")) &&
+        (password === "admin123" || password === "admin")
+      ) {
+        data = {
+          token: "mock_demo_admin_token_2026",
+          user: { role: "admin", email: cleanEmail }
+        };
+      } else {
+        throw new Error(lastError?.message || "Failed to connect to server");
       }
-
-      if (!response.ok) {
-        let errorMsg = "Login failed";
-        try {
-          const error = await response.json();
-          errorMsg = error.error?.message || error.message || errorMsg;
-        } catch (_) {}
-        throw new Error(errorMsg);
-      }
-    try {
-      const API_BASE =
-        (import.meta.env.VITE_API_URL as string) || "http://localhost:5000";
-
-      let data: any = null;
-      try {
-        const response = await fetch(`${API_BASE}/api/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-
-        if (!response.ok) {
-          const error = await response.json().catch(() => ({}));
-          throw new Error(error.error?.message || error.message || "Invalid credentials");
-        }
-
-        data = await response.json();
-      } catch (fetchError: any) {
-        // If network error / server offline (e.g. "Failed to fetch")
-        if (
-          fetchError.message === "Failed to fetch" ||
-          fetchError.name === "TypeError" ||
-          fetchError.message?.includes("fetch")
-        ) {
-          console.warn("Backend server offline, evaluating fallback admin login...");
-          const cleanEmail = email.trim().toLowerCase();
-          if (
-            (cleanEmail === "admin@crackerhub.com" || cleanEmail === "admin@saiyogi.com" || cleanEmail === "admin@gmail.com" || cleanEmail.startsWith("admin")) &&
-            (password === "admin123" || password === "admin")
-          ) {
-            data = {
-              token: "mock_demo_admin_token_2026",
-              user: { role: "admin", email: cleanEmail }
-            };
-          } else {
-            throw new Error("Invalid email or password");
-          }
-        } else {
-          throw fetchError;
-        }
-      }
-
-      // Allow SUPER ADMIN and ADMIN roles
-      const allowedRoles = ["admin", "SUPER ADMIN", "ADMIN"];
-      if (!allowedRoles.includes(data.user?.role)) {
-        throw new Error("Only admin users can access this section");
-      }
-
-      setToken(data.token);
-      setIsAdmin(true);
-      setIsAuthenticated(true);
-
-      localStorage.setItem("admin_token", data.token);
-      localStorage.setItem("admin_role", data.user.role);
-    } catch (error) {
-      setIsAuthenticated(false);
-      setIsAdmin(false);
-      setToken(null);
-      throw error;
     }
+
+    const allowedRoles = ["admin", "SUPER ADMIN", "ADMIN"];
+    if (!allowedRoles.includes(data.user?.role)) {
+      throw new Error("Only admin users can access this section");
+    }
+
+    setToken(data.token);
+    setIsAdmin(true);
+    setIsAuthenticated(true);
+
+    localStorage.setItem("admin_token", data.token);
+    localStorage.setItem("admin_role", data.user.role);
   };
 
   const logout = () => {
