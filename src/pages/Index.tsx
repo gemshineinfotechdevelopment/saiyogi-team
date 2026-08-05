@@ -3,8 +3,9 @@ import { Play } from "lucide-react";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
-import narendira1 from "@/assets/narendira1.png";
-import narendira2 from "@/assets/narendira2.png";
+import banner1 from "@/assets/banner1.png";
+import banner2 from "@/assets/banner2.png";
+import banner3 from "@/assets/banner3.png";
 import { useState, useEffect } from "react";
 import { getProducts } from "@/lib/api";
 import { Product } from "@/data/products";
@@ -53,7 +54,7 @@ const Index = () => {
   const [products, setProducts] = useState<Product[]>([]);
 
   // Hero image slideshow (right-to-left slide)
-  const heroImages = [narendira1, narendira2];
+  const heroImages = [banner1, banner2, banner3];
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideKey, setSlideKey] = useState(0);
 
@@ -256,20 +257,13 @@ const Index = () => {
       <canvas id="fountain-canvas" className="fixed inset-0 pointer-events-none z-[101]" />
 
       {/* Hero Section */}
-      <section className="relative w-full h-[300px] md:h-[500px] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden bg-black">
-          <img
-            key={`enter-${slideKey}`}
-            src={heroImages[currentSlide]}
-            alt="Sai Yogi Crackers"
-            className="absolute inset-0 w-full h-full object-cover object-center hero-slide-enter opacity-80"
-          />
-          <div className="absolute inset-0 bg-black/40"></div>
-        </div>
-        <div className="relative z-10 flex flex-col items-center justify-center mt-8">
-            <h1 className="text-5xl md:text-8xl font-black text-[#FFD700] drop-shadow-lg tracking-wider" style={{ fontFamily: 'serif' }}>Sai Yogi</h1>
-            <p className="text-xl md:text-3xl text-white tracking-[0.3em] font-light mt-2 uppercase">Crackers</p>
-        </div>
+      <section className="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-[600px] min-h-[220px] flex items-center justify-center overflow-hidden bg-black">
+        <img
+          key={`enter-${slideKey}`}
+          src={heroImages[currentSlide]}
+          alt="Sai Yogi Crackers Festival Banner"
+          className="w-full h-full object-cover object-center hero-slide-enter opacity-100"
+        />
       </section>
 
       {/* Best Sellers */}
