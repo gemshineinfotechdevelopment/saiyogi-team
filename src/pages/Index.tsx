@@ -35,19 +35,21 @@ const staticFamilyPacks = [
 ];
 
 const premiumCategories = [
-  { name: "Gift Boxes", image: "/sky_rocket_box.png" },
-  { name: "Sparklers", image: "/flower_pots.png" },
-  { name: "Flower Pots", image: "/sky_rocket_box.png" },
-  { name: "Ground Chakkars", image: "/flower_pots.png" },
-  { name: "Sky Shots", image: "/sky_rocket_box.png" },
-  { name: "Novelty Crackers", image: "/flower_pots.png" },
+  { name: "Sparklers", image: "/flower_pots.png", categoryId: "cat-1" },
+  { name: "Flower Pots", image: "/sky_rocket_box.png", categoryId: "cat-2" },
+  { name: "Rockets & Sky Shots", image: "/sky_rocket_box.png", categoryId: "cat-3" },
+  { name: "Ground Chakkars", image: "/flower_pots.png", categoryId: "cat-4" },
+  { name: "Combo Packs", image: "/family_star_kit.png", categoryId: "cat-5" },
+  { name: "Gift Boxes", image: "/bestseller_pack.png", categoryId: "all" },
 ];
 
-const manufacturers = [
-  { name: "STANDARD", logo: "S" },
-  { name: "AJANTA", logo: "A" },
-  { name: "CORONATION", logo: "C" },
-  { name: "VADIVEL", logo: "V" },
+const shopByBrands = [
+  { name: "Standard", subtitle: "Standard Fireworks", tag: "Most Popular", image: "/sky_rocket_box.png" },
+  { name: "Ajanta", subtitle: "Ajanta Pyrotechnics", tag: "Top Quality", image: "/flower_pots.png" },
+  { name: "Coronation", subtitle: "Coronation Sparklers", tag: "High Demand", image: "/bestseller_pack.png" },
+  { name: "Vadivel", subtitle: "Vadivel Fireworks", tag: "Sivakasi Original", image: "/grand_sky_delight.png" },
+  { name: "Sony", subtitle: "Sony Crackers", tag: "Festive Special", image: "/family_star_kit.png" },
+  { name: "Kaliswari", subtitle: "Sri Kaliswari Cock", tag: "Heritage Brand", image: "/royal_celebration.png" },
 ];
 
 const demoVideos = [
@@ -429,52 +431,88 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Premium Categories */}
-      <section className="py-16 bg-[#FFF6E5] overflow-hidden">
-        <div className="text-center mb-10">
-          <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2">Premium Categories</h2>
-          <p className="text-black font-bold uppercase text-sm">Shop By Category</p>
-          <p className="text-gray-500 text-xs mt-2 max-w-md mx-auto">Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.</p>
+      {/* Shop By Category */}
+      <section className="py-12 container mx-auto px-4 max-w-6xl overflow-hidden">
+        <div className="flex justify-between items-end mb-8 border-b border-gray-200 pb-2">
+          <h2 className="text-xl md:text-2xl font-black text-gray-800 uppercase tracking-widest relative">
+            Shop By Category
+            <div className="absolute -bottom-2.5 left-0 w-1/2 h-0.5 bg-[#A80000]"></div>
+          </h2>
+          <Link to="/catalog" className="text-red-600 font-bold text-xs hover:underline uppercase">View All &gt;</Link>
         </div>
         
         <div className="relative w-full overflow-hidden py-4">
-          <div className="animate-category-slide flex gap-6">
+          <div className="animate-best-sellers-scroll">
             {[...premiumCategories, ...premiumCategories].map((cat, i) => (
-              <div 
-                key={i} 
-                className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col items-center p-5 min-w-[170px] max-w-[170px] hover:scale-105 hover:border-[#A80000]/20 cursor-pointer group"
+              <Link
+                key={i}
+                to={`/catalog?category=${cat.categoryId}`}
+                className="bg-white border border-gray-200 p-4 flex flex-col items-center text-center shadow-md rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer min-w-[170px] max-w-[170px]"
               >
                 <div className="w-full aspect-square flex items-center justify-center bg-gray-50 rounded-xl p-2 mb-3 transition-transform duration-300 group-hover:scale-110">
-                  <img src={cat.image} alt={cat.name} className="max-w-full max-h-full object-contain" />
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className="max-w-full max-h-full object-contain"
+                  />
                 </div>
-                <h3 className="font-extrabold text-xs text-gray-800 uppercase text-center tracking-wider">{cat.name}</h3>
-              </div>
+                <h3 className="font-bold text-xs text-gray-800 uppercase tracking-wider group-hover:text-[#A80000] transition-colors text-center line-clamp-1">{cat.name}</h3>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Trusted Manufacturers */}
-      <section className="py-12 bg-white border-b border-gray-100">
-        <div className="text-center mb-8">
-          <h2 className="font-black text-[#A80000] text-xl uppercase tracking-widest mb-2">Trusted Manufacturers</h2>
-          <p className="text-gray-500 text-xs">We are supplying high quality fireworks from top brands in Sivakasi.</p>
+      {/* Shop By Brand */}
+      <section className="py-12 container mx-auto px-4 max-w-6xl overflow-hidden">
+        <div className="flex justify-between items-end mb-8 border-b border-gray-200 pb-2">
+          <h2 className="text-xl md:text-2xl font-black text-gray-800 uppercase tracking-widest relative">
+            Shop By Brand
+            <div className="absolute -bottom-2.5 left-0 w-1/2 h-0.5 bg-[#A80000]"></div>
+          </h2>
+          <Link to="/catalog" className="text-red-600 font-bold text-xs hover:underline uppercase">View All &gt;</Link>
         </div>
-        <div className="container mx-auto px-4 max-w-4xl">
-          <div className="flex flex-wrap justify-center gap-4 md:gap-8">
-            {manufacturers.map((brand, i) => (
-              <div key={i} className="bg-[#F8F8F8] border border-gray-200 px-8 py-4 flex items-center justify-center min-w-[120px] shadow-sm">
-                <span className="font-bold text-gray-600 tracking-wider text-sm">{brand.name}</span>
-              </div>
+
+        <div className="relative w-full overflow-hidden py-4">
+          <div className="animate-best-sellers-scroll">
+            {[...shopByBrands, ...shopByBrands].map((brand, i) => (
+              <Link
+                key={i}
+                to={`/catalog?search=${brand.name}`}
+                className="bg-white border border-gray-200 p-4 flex flex-col items-center justify-between text-center shadow-md rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer relative overflow-hidden min-w-[180px] max-w-[180px]"
+              >
+                {/* Brand Tag Pill */}
+                <span className="text-[9px] font-black text-[#A80000] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full mb-3 uppercase tracking-wider">
+                  {brand.tag}
+                </span>
+
+                {/* Brand Image Container */}
+                <div className="w-full aspect-square bg-gray-50 rounded-xl p-2 mb-3 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                  <img
+                    src={brand.image}
+                    alt={brand.name}
+                    className="max-w-full max-h-full object-contain"
+                  />
+                </div>
+
+                <div className="flex flex-col items-center w-full">
+                  <span className="font-bold text-xs text-gray-800 uppercase tracking-wide group-hover:text-[#A80000] transition-colors line-clamp-1">
+                    {brand.name}
+                  </span>
+                  <span className="text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-1 text-center w-full">
+                    {brand.subtitle}
+                  </span>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Family Packs */}
+      {/* Combo Packs */}
       <section className="py-16 bg-[#FFF6E5] overflow-hidden px-10 md:px-12">
         <div className="text-center mb-10">
-          <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2">Family Packs</h2>
+          <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2">Combo Packs</h2>
           <p className="text-gray-700 text-xs font-bold uppercase">Our Special combo packages for you and your whole family</p>
         </div>
         
@@ -524,8 +562,8 @@ const Index = () => {
 
       {/* Premium Quality Grid Sections */}
       <section className="py-16 bg-[#FFF6E5] border-t border-b border-gray-100">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
             
             {/* Card 1: Premium Quality */}
             <div className="bg-gradient-to-br from-[#A80000] to-[#750000] rounded-3xl p-6 shadow-xl flex items-center justify-between overflow-hidden hover:scale-[1.03] transition-transform duration-300 relative group h-56 border border-white/10">

@@ -1,54 +1,99 @@
 import { Link } from "react-router-dom";
-import { ChevronDown, ShieldCheck, Package, Truck, Headphones, ShoppingBag } from "lucide-react";
+import { ChevronDown, ShieldCheck, Package, Truck, Headphones, ShoppingBag, ShoppingCart, Plus, Minus } from "lucide-react";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
+import { useCart } from "@/context/CartContext";
+import { toast } from "sonner";
 import { useState } from "react";
 
 const comboPacks = [
   {
-    id: 1,
+    id: "combo-1",
+    name: "Family Star Kit",
     title: "Family Star Kit",
     badge: "38% OFF",
     badgeColor: "bg-[#A80000] text-[#F4C542]",
     image: "/family_star_kit.png",
+    price: 2499,
+    discountPrice: 1549,
     description: "A perfect mix of 45 items including Ground Spinners, Sparklers, and Flower Pots.",
+    category: "Combo Packs",
+    brand: "Standard",
+    storeStockPieces: 50,
   },
   {
-    id: 2,
+    id: "combo-2",
+    name: "Grand Sky Delight",
     title: "Grand Sky Delight",
     badge: "Bestseller",
     badgeColor: "bg-black text-[#F4C542]",
     image: "/grand_sky_delight.png",
+    price: 4999,
+    discountPrice: 3499,
     description: "Elite 75-item collection featuring heavy Aerial Shots and Premium Flower Pots.",
+    category: "Combo Packs",
+    brand: "Standard",
+    storeStockPieces: 35,
   },
   {
-    id: 3,
+    id: "combo-3",
+    name: "Kids Joy Bundle",
     title: "Kids Joy Bundle",
     badge: "Kids Special",
     badgeColor: "bg-green-600 text-white",
     image: "/kids_joy_bundle.png",
+    price: 1899,
+    discountPrice: 1199,
     description: "Noise-free and light-focused 30-item kit designed specifically for young ones.",
+    category: "Combo Packs",
+    brand: "Standard",
+    storeStockPieces: 40,
   },
   {
-    id: 4,
+    id: "combo-4",
+    name: "Royal Celebration",
     title: "Royal Celebration",
     subtitle: "Mega Gathering Pack",
     badge: "Wholesale",
     badgeColor: "bg-[#A80000] text-white",
     image: "/royal_celebration.png",
+    price: 8999,
+    discountPrice: 5999,
     description: "Massive 120-item mega combo for large gatherings and community celebrations.",
+    category: "Combo Packs",
+    brand: "Standard",
+    storeStockPieces: 20,
   },
 ];
 
 const ComboPacks = () => {
   const [email, setEmail] = useState("");
+  const { items, addToCart, updateQuantity, totalPrice, totalItems } = useCart();
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (email) {
-      alert("Thank you for subscribing!");
+      toast.success("Thank you for subscribing!");
       setEmail("");
     }
+  };
+
+  const handleAddToCart = (pack: typeof comboPacks[0]) => {
+    const product = {
+      _id: pack.id,
+      id: pack.id,
+      name: pack.name,
+      price: pack.discountPrice,
+      image: pack.image,
+      category: pack.category,
+      brand: pack.brand,
+      storeStockPieces: pack.storeStockPieces,
+      hasDiscount: false,
+      netRate: pack.discountPrice,
+      displayNetRate: true,
+    };
+    addToCart(product as any);
+    toast.success(`${pack.name} added to cart!`);
   };
 
   return (
@@ -153,12 +198,14 @@ const ComboPacks = () => {
             <div className="relative flex items-center justify-center">
               <ShoppingBag className="w-5 h-5 text-[#F4C542] fill-[#F4C542]" />
               <span className="absolute -top-1 -right-1.5 bg-[#25D366] text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-extrabold">
-                4
+                {totalItems > 0 ? totalItems : 4}
               </span>
             </div>
             <div className="flex flex-col text-left text-xs">
               <span className="text-[9px] text-red-100 tracking-wider font-semibold uppercase">CURRENT ESTIMATE</span>
-              <span className="font-extrabold text-sm text-white leading-tight">₹5,498.00</span>
+              <span className="font-extrabold text-sm text-white leading-tight">
+                ₹{totalPrice > 0 ? totalPrice.toLocaleString() : "5,498.00"}
+              </span>
             </div>
             <Link to="/cart">
               <button className="bg-[#F4C542] hover:bg-white text-[#1A1A1A] hover:text-[#A80000] text-xs font-extrabold px-4 py-2 rounded-full transition-all duration-300 ml-2 shadow-md">
@@ -189,47 +236,98 @@ const ComboPacks = () => {
 
         {/* Product Cards Grid (4 columns) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {comboPacks.map((pack) => (
-            <div
-              key={pack.id}
-              className="bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 overflow-hidden shadow-lg hover:shadow-2xl hover:border-[#F4C542]/40 hover:scale-[1.03] transition-all duration-300 flex flex-col relative group"
-            >
-              {/* Top-Left Badge overlay */}
-              <div className="absolute top-3 left-3 z-20">
-                <span
-                  className={`text-[9px] font-black px-2.5 py-1 rounded-lg ${pack.badgeColor} uppercase tracking-wider shadow-md`}
-                >
-                  {pack.badge}
-                </span>
+          {comboPacks.map((pack) => {
+            const cartItem = items.find((i) => (i.product._id || i.product.id) === pack.id);
+            const quantity = cartItem?.quantity || 0;
+
+            return (
+              <div
+                key={pack.id}
+                className="bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 overflow-hidden shadow-lg hover:shadow-2xl hover:border-[#F4C542]/40 hover:scale-[1.03] transition-all duration-300 flex flex-col relative group"
+              >
+                {/* Top-Left Badge overlay */}
+                <div className="absolute top-3 left-3 z-20">
+                  <span
+                    className={`text-[9px] font-black px-2.5 py-1 rounded-lg ${pack.badgeColor} uppercase tracking-wider shadow-md`}
+                  >
+                    {pack.badge}
+                  </span>
+                </div>
+
+                {/* Product Image */}
+                <div className="w-full aspect-[4/3] bg-gray-50 flex items-center justify-center p-2 rounded-t-2xl overflow-hidden shrink-0 h-44">
+                  <img
+                    src={pack.image}
+                    alt={pack.title}
+                    className="max-w-full max-h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                </div>
+
+                {/* Product Info */}
+                <div className="p-5 flex flex-col flex-1 bg-white/40">
+                  <h3 className="font-extrabold text-sm text-gray-900 leading-snug group-hover:text-[#A80000] transition-colors line-clamp-1">
+                    {pack.title}
+                  </h3>
+
+                  {pack.subtitle && (
+                    <h4 className="font-bold text-[10px] text-[#A80000] uppercase mt-0.5 tracking-widest leading-none">
+                      {pack.subtitle}
+                    </h4>
+                  )}
+
+                  <p className="text-[11px] text-gray-500 leading-relaxed line-clamp-2 mt-2 h-8">
+                    {pack.description}
+                  </p>
+
+                  {/* Price Section */}
+                  <div className="mt-auto pt-4 border-t border-gray-150 flex flex-col gap-3">
+                    <div className="flex items-baseline justify-between">
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="font-black text-[#A80000] text-base">
+                          ₹{pack.discountPrice.toLocaleString()}
+                        </span>
+                        <span className="text-xs text-gray-400 line-through font-semibold">
+                          ₹{pack.price.toLocaleString()}
+                        </span>
+                      </div>
+                      <span className="text-[9px] text-green-700 font-bold bg-green-50 px-1.5 py-0.5 rounded border border-green-200">
+                        Save ₹{(pack.price - pack.discountPrice).toLocaleString()}
+                      </span>
+                    </div>
+
+                    {/* Add to Cart / Quantity Stepper */}
+                    {quantity > 0 ? (
+                      <div className="flex items-center justify-between bg-red-50/50 border border-red-200/50 rounded-xl p-1">
+                        <button
+                          onClick={() => updateQuantity(pack.id, quantity - 1)}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-white text-[#A80000] font-black hover:bg-red-50 transition-colors shadow-sm"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="font-black text-sm text-[#A80000] px-2">
+                          {quantity}
+                        </span>
+                        <button
+                          onClick={() => updateQuantity(pack.id, quantity + 1)}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#A80000] text-white font-black hover:bg-red-800 transition-colors shadow-sm"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleAddToCart(pack)}
+                        className="w-full bg-[#A80000] hover:bg-[#F4C542] hover:text-[#1A1A1A] text-white font-black text-[10px] py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all uppercase tracking-wider cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        <ShoppingCart className="w-4 h-4" />
+                        <span>Add To Cart</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-
-              {/* Product Image */}
-              <div className="w-full aspect-[4/3] bg-gray-50 flex items-center justify-center p-2 rounded-t-2xl overflow-hidden shrink-0 h-44">
-                <img
-                  src={pack.image}
-                  alt={pack.title}
-                  className="max-w-full max-h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-              </div>
-
-              {/* Product Info */}
-              <div className="p-5 flex flex-col flex-1 bg-white/40">
-                <h3 className="font-extrabold text-sm text-gray-900 leading-snug group-hover:text-[#A80000] transition-colors line-clamp-1">
-                  {pack.title}
-                </h3>
-
-                {pack.subtitle && (
-                  <h4 className="font-bold text-[10px] text-[#A80000] uppercase mt-0.5 tracking-widest leading-none">
-                    {pack.subtitle}
-                  </h4>
-                )}
-
-                <p className="text-[11px] text-gray-500 leading-relaxed line-clamp-2 mt-2 h-8">
-                  {pack.description}
-                </p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Load More Combos Button */}
@@ -299,3 +397,4 @@ const ComboPacks = () => {
 };
 
 export default ComboPacks;
+

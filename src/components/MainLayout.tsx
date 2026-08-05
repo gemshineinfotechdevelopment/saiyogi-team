@@ -4,9 +4,13 @@ import { Outlet, Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
 export function MainLayout() {
-  const { user } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
-  if (!user) {
+  if (loading) {
+    return null; // Wait for auth check
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 

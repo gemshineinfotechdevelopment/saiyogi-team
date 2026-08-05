@@ -59,7 +59,7 @@ const AdminLogin = () => {
               <label className="text-sm font-medium">Email</label>
               <Input
                 type="email"
-                placeholder="admin@crackerhub.com"
+                placeholder="cracker@saiyogi.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
@@ -92,7 +92,7 @@ const AdminLogin = () => {
           <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-xs text-gray-600">
               <span className="font-semibold">Demo Credentials:</span><br />
-              Email: admin@crackerhub.com<br />
+              Email: cracker@saiyogi.com<br />
               Password: admin123
             </p>
           </div>

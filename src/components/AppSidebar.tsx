@@ -48,9 +48,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const { theme, toggleTheme } = useTheme();
   const { settings } = useSettings();
-  const { user, logout } = useAuth();
-
-  const isAdmin = user?.role === 'admin';
+  const { isAdmin, logout } = useAuth();
 
   if (isAdmin) {
     return (
