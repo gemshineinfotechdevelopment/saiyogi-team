@@ -21,6 +21,7 @@ const seedSampleData = async () => {
     // Seed Categories
     const category1 = new Category({
       name: 'Sparklers',
+      categoryCode: 'SPARK',
       description: 'Sparkling fireworks for everyone',
       icon: 'sparkles',
       displayOrder: 1
@@ -28,6 +29,7 @@ const seedSampleData = async () => {
 
     const category2 = new Category({
       name: 'Rockets',
+      categoryCode: 'ROCK',
       description: 'Sky rockets',
       icon: 'rocket',
       displayOrder: 2

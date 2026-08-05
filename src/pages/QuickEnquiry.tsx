@@ -55,7 +55,7 @@ const QuickEnquiry = () => {
         <div className="w-full bg-white shadow-sm border border-gray-200">
           
           {/* Table Header */}
-          <div className="hidden md:grid grid-cols-12 gap-4 bg-gray-100 p-4 text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">
+          <div className="hidden md:grid grid-cols-12 gap-4 pb-2 pt-4 px-4 text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">
             <div className="col-span-5">PRODUCT DETAILS</div>
             <div className="col-span-2 text-center">UNIT/SIZE</div>
             <div className="col-span-1 text-center">IN STOCK</div>
@@ -68,7 +68,7 @@ const QuickEnquiry = () => {
           {crackersData.map((category, catIdx) => (
             <div key={catIdx}>
               {/* Category Header */}
-              <div className="bg-[#b91c1c] text-white px-4 py-2 text-sm font-bold tracking-wider uppercase">
+              <div className="bg-[#b91c1c] text-white px-4 py-2.5 text-[13px] font-bold tracking-wider uppercase">
                 {category.category}
               </div>
 
@@ -79,31 +79,31 @@ const QuickEnquiry = () => {
                     
                     {/* Product Details */}
                     <div className="col-span-1 md:col-span-5 flex items-center gap-4">
-                      <div className="w-16 h-16 bg-gray-50 flex items-center justify-center shrink-0 border border-gray-200 rounded">
-                        <img src={item.image} alt={item.name} className="max-w-full max-h-full object-contain p-1" />
+                      <div className="w-14 h-14 bg-gray-100 flex items-center justify-center shrink-0 rounded-md overflow-hidden">
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-gray-900 text-sm">{item.name}</h3>
-                        <p className="text-gray-500 text-xs mt-0.5">{item.desc}</p>
+                        <h3 className="font-extrabold text-gray-800 text-[13px]">{item.name}</h3>
+                        <p className="text-gray-500 text-[11px] mt-0.5">{item.desc}</p>
                       </div>
                     </div>
 
                     {/* Unit/Size */}
-                    <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center text-sm text-gray-600">
+                    <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center text-[13px] text-gray-500 font-medium">
                       <span className="md:hidden font-bold text-xs">UNIT/SIZE:</span>
                       {item.size}
                     </div>
 
                     {/* In Stock */}
-                    <div className="col-span-1 md:col-span-1 flex justify-between md:justify-center items-center text-sm">
+                    <div className="col-span-1 md:col-span-1 flex justify-between md:justify-center items-center">
                       <span className="md:hidden font-bold text-xs text-gray-600">IN STOCK:</span>
-                      <span className={`font-bold text-xs ${item.inStock === 'Yes' ? 'text-green-600' : 'text-orange-500'}`}>
+                      <span className={`font-bold text-[12px] ${item.inStock === 'Yes' ? 'text-[#2eab5b]' : 'text-[#f58220]'}`}>
                         {item.inStock}
                       </span>
                     </div>
 
                     {/* Price */}
-                    <div className="col-span-1 md:col-span-1 flex justify-between md:justify-center items-center font-bold text-red-700 text-sm">
+                    <div className="col-span-1 md:col-span-1 flex justify-between md:justify-center items-center font-extrabold text-[#b91c1c] text-[13px]">
                       <span className="md:hidden font-bold text-xs text-gray-600">PRICE:</span>
                       ₹{item.price.toFixed(2)}
                     </div>
@@ -115,13 +115,13 @@ const QuickEnquiry = () => {
                         type="text" 
                         value={quantities[item.id] || "1"} 
                         onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                        className="w-12 h-8 border border-gray-300 rounded text-center text-sm outline-none focus:border-red-500" 
+                        className="w-[50px] h-[30px] border border-gray-200 rounded text-center text-[13px] text-gray-600 outline-none focus:border-[#b91c1c]" 
                       />
                     </div>
 
                     {/* Action */}
                     <div className="col-span-1 md:col-span-2 flex justify-end md:justify-end items-center">
-                      <button className="border border-red-600 text-red-600 hover:bg-red-50 font-bold text-xs px-6 py-1.5 rounded transition-colors uppercase">
+                      <button className="border border-[#b91c1c] text-[#b91c1c] hover:bg-red-50 font-extrabold text-[11px] tracking-wide px-5 py-1.5 rounded transition-colors uppercase">
                         ADD
                       </button>
                     </div>

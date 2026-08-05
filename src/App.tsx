@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CartProvider } from "@/context/CartContext";
 import { SiteSettingsProvider } from "@/context/SiteSettingsContext";
 import { AuthProvider } from "@/context/AuthContext";
@@ -11,7 +11,7 @@ import Index from "./pages/Index";
 import ComboPacks from "./pages/ComboPacks";
 import Catalog from "./pages/Catalog";
 import ProductDetail from "./pages/ProductDetail";
-import Cart from "./pages/Cart";
+import CartDrawer from "./components/cart/CartDrawer";
 import SafetyTips from "./pages/SafetyTips";
 import Contact from "./pages/Contact";
 import QuickEnquiry from "./pages/QuickEnquiry";
@@ -50,10 +50,10 @@ const App = () => (
                   <Route path="/combo-packs" element={<ComboPacks />} />
                   <Route path="/catalog" element={<Catalog />} />
                   <Route path="/product/:id" element={<ProductDetail />} />
-                  <Route path="/cart" element={<Cart />} />
                   <Route path="/safety-tips" element={<SafetyTips />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/quick-enquiry" element={<QuickEnquiry />} />
+                  <Route path="/quick-enquery" element={<Navigate to="/quick-enquiry" replace />} />
                   <Route path="/about" element={<AboutUs />} />
                   <Route path="/about-us" element={<AboutUs />} />
                   <Route path="/admin/login" element={<AdminLogin />} />
@@ -115,6 +115,7 @@ const App = () => (
                   />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                <CartDrawer />
               </BrowserRouter>
             </CartProvider>
           </SettingsProvider>
