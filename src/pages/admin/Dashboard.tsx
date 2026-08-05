@@ -145,7 +145,7 @@ const Dashboard = () => {
                     <p className="font-semibold text-sm">₹{Number(order.subtotal) + (Number(order.packingCharge) || 0)}</p>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
                       order.status === "delivered" ? "bg-green-500/20 text-green-500" :
-                      order.status === "shipped" ? "bg-blue-500/20 text-blue-500" :
+                      order.status === "shipped" ? "bg-red-500/20 text-red-500" :
                       order.status === "processing" ? "bg-primary/20 text-primary" :
                       order.status === "cancelled" ? "bg-destructive/20 text-destructive" :
                       "bg-muted text-muted-foreground"

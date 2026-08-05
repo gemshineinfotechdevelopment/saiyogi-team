@@ -18,14 +18,14 @@
     --primary: 358 85% 52%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 219 100% 20%;
+    --secondary: 358 100% 15%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
 
     --accent: 51 100% 50%;
-    --accent-foreground: 219 100% 20%;
+    --accent-foreground: 358 100% 15%;
 
     --destructive: 358 85% 52%;
     --destructive-foreground: 0 0% 100%;
@@ -37,19 +37,19 @@
     --radius: 0.75rem;
 
     --gold: 51 100% 50%;
-    --gold-foreground: 219 100% 20%;
+    --gold-foreground: 358 100% 15%;
     --ember: 0 92% 48%;
     --ember-foreground: 0 0% 100%;
     --spark: 48 100% 70%;
     --festival: 0 92% 58%;
 
-    --sidebar-background: 219 100% 20%;
+    --sidebar-background: 358 100% 15%;
     --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 358 85% 52%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 219 100% 30%;
+    --sidebar-accent: 358 100% 20%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 219 100% 15%;
+    --sidebar-border: 358 100% 10%;
     --sidebar-ring: 358 85% 52%;
 
     --font-display: 'Cinzel', serif;

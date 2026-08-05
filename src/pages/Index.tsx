@@ -10,6 +10,8 @@ import { getProducts, getCategories } from "@/lib/api";
 import { Product, Category } from "@/data/products";
 import { getUpcomingDiwaliInfo, calculateTimeLeft, UpcomingDiwaliInfo } from "@/lib/diwaliCountdown";
 import { Fireworks } from '@fireworks-js/react';
+import { useCart } from "@/context/CartContext";
+import ProductCard from "@/components/ProductCard";
 
 // Static Data based on the design
 const staticBestSellers = [
@@ -50,6 +52,7 @@ const Index = () => {
   const { settings } = useSiteSettings();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const { addToCart } = useCart();
 
   // Hero image slideshow (right-to-left slide)
   const heroImages = [narendira1, narendira2];
@@ -284,25 +287,7 @@ const Index = () => {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {products.slice(0, 6).map((item) => (
-            <div key={item.id || item._id} className="bg-white border border-gray-200 p-3 flex flex-col items-center text-center shadow-sm cursor-pointer" onClick={() => window.location.href=`/catalog`}>
-              <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3">
-                <img src={item.image || "/sky_rocket_box.png"} alt={item.name} className="max-w-full max-h-full object-contain" />
-              </div>
-              <h3 className="font-bold text-xs text-gray-800 uppercase mb-1 min-h-[32px] line-clamp-2">{item.name}</h3>
-              <div className="flex gap-1 mb-2 text-yellow-400">
-                {'★★★★★'.split('').map((star, i) => <span key={i} className="text-[10px]">{star}</span>)}
-              </div>
-              <p className="text-red-600 font-bold text-sm mb-3">₹ {item.price}</p>
-              
-              <div className="flex items-center gap-2 mt-auto w-full" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center border border-gray-300 rounded text-xs flex-1">
-                  <button className="px-2 py-1 text-gray-600 hover:bg-gray-100">-</button>
-                  <input type="text" value="1" readOnly className="w-6 text-center outline-none bg-transparent" />
-                  <button className="px-2 py-1 text-gray-600 hover:bg-gray-100">+</button>
-                </div>
-                <button className="bg-[#7A1416] text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-red-800">ADD</button>
-              </div>
-            </div>
+            <ProductCard key={item.id || item._id} product={item} />
           ))}
         </div>
       </section>
@@ -374,21 +359,7 @@ const Index = () => {
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).slice(0, 6).map((item) => (
-              <div key={item.id || item._id} className="bg-white p-5 border border-white shadow-sm flex flex-col items-center text-center cursor-pointer" onClick={() => window.location.href=`/catalog`}>
-                <div className="w-full aspect-[4/3] bg-gray-50 flex items-center justify-center p-2 mb-4">
-                  <img src={item.image || "/sky_rocket_box.png"} alt={item.name} className="max-w-full max-h-full object-cover" />
-                </div>
-                <h3 className="font-bold text-sm text-gray-900 uppercase mb-2">{item.name}</h3>
-                <div className="flex gap-2 items-center mb-4">
-                  {item.hasDiscount && (item.netRate || item.wholesalePrice) && (
-                    <span className="text-gray-400 line-through text-xs font-bold">₹{item.price}</span>
-                  )}
-                  <span className="text-[#7A1416] font-black text-lg">₹{item.hasDiscount && item.netRate ? item.netRate : item.price}</span>
-                </div>
-                <button onClick={(e) => e.stopPropagation()} className="w-full bg-[#7A1416] text-white py-3 font-bold text-xs tracking-wider hover:bg-red-900 uppercase">
-                  Add To Cart
-                </button>
-              </div>
+              <ProductCard key={item.id || item._id} product={item} />
             ))}
           </div>
         </div>
