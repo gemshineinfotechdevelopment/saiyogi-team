@@ -61,7 +61,7 @@
   }
 
   html {
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   body {
@@ -69,7 +69,7 @@
     color: hsl(var(--foreground));
     font-family: var(--font-body);
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   h1,
