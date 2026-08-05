@@ -197,7 +197,7 @@ const Contact = () => {
 
                 {/* WhatsApp Support */}
                 <a
-                  href="https://wa.me/919488073004"
+                  href={`https://wa.me/${(settings.contact?.phone || "+919488073004").replace(/[^0-9]/g, "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 bg-white border border-green-200 rounded-lg px-4 py-3 mb-6 hover:bg-green-50 transition-colors group"

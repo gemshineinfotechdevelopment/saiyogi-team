@@ -52,9 +52,9 @@ const UserHeader = () => {
       <div className="bg-[#7A1416] text-white text-xs py-1.5 hidden md:block">
         <div className="container mx-auto px-4 flex justify-between items-center">
           <div className="flex gap-4">
-            <span>Info@SaiYogi.com</span>
+            <span>{settings.contact?.email || "Info@SaiYogi.com"}</span>
             <span>|</span>
-            <span>Call us: +91 94880 73004</span>
+            <span>Call us: {settings.contact?.phone || "+91 94880 73004"}</span>
           </div>
           <div className="flex items-center gap-1 cursor-pointer">
             Language: English <ChevronDown className="h-3 w-3" />
@@ -84,7 +84,7 @@ const UserHeader = () => {
         {/* Action Buttons */}
         <div className="flex items-center gap-3">
           <a
-            href="https://wa.me/919488073004"
+            href={`https://wa.me/${(settings.contact?.phone || "+919488073004").replace(/[^0-9]/g, "")}`}
             target="_blank"
             rel="noopener noreferrer"
             className="hidden sm:flex items-center gap-2 border-2 border-[#25D366] text-[#25D366] bg-white px-4 py-1.5 rounded-md hover:bg-[#25D366] hover:text-white transition-colors font-semibold text-sm"
