@@ -9,7 +9,7 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product) => void;
+  addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -28,16 +28,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const getProductId = (product: Product) => product._id || product.id;
 
-  const addToCart = useCallback((product: Product) => {
+  const addToCart = useCallback((product: Product, quantity: number = 1) => {
     const productId = getProductId(product);
     setItems((prev) => {
       const existing = prev.find((i) => getProductId(i.product) === productId);
       if (existing) {
         return prev.map((i) =>
-          getProductId(i.product) === productId ? { ...i, quantity: i.quantity + 1 } : i
+          getProductId(i.product) === productId ? { ...i, quantity: i.quantity + quantity } : i
         );
       }
-      return [...prev, { product, quantity: 1 }];
+      return [...prev, { product, quantity }];
     });
   }, []);
 
@@ -70,6 +70,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) throw new Error("useCart must be used within a CartProvider");

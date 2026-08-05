@@ -88,21 +88,31 @@ export const createProduct = async (req, res, next) => {
     }
     const categoryCode = cat.categoryCode;
 
-    // Auto-generate numeric sku
+    // Auto-generate numeric sku, filling gaps if any
     let newSkuStr = categoryCode + '1';
     try {
       const allProducts = await Product.find({}, 'sku');
-      let maxSeq = 0;
+      const seqs = [];
       for (const p of allProducts) {
         if (p.sku && p.sku.startsWith(categoryCode)) {
           const seqStr = p.sku.substring(categoryCode.length).trim();
           if (/^\d+$/.test(seqStr)) {
-            const seq = parseInt(seqStr, 10);
-            if (seq > maxSeq) maxSeq = seq;
+            seqs.push(parseInt(seqStr, 10));
           }
         }
       }
-      newSkuStr = categoryCode + (maxSeq + 1).toString();
+      seqs.sort((a, b) => a - b);
+      
+      let expectedSeq = 1;
+      for (const seq of seqs) {
+        if (seq > expectedSeq) {
+          break; // Found a gap
+        }
+        if (seq === expectedSeq) {
+          expectedSeq++;
+        }
+      }
+      newSkuStr = categoryCode + expectedSeq.toString();
     } catch (err) {
       console.error('Error generating SKU', err);
       newSkuStr = categoryCode + Date.now().toString().substring(5);
