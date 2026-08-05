@@ -325,18 +325,17 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Premium Categories */}
+      {/* Shop by Category */}
       <section className="py-16 bg-[#FDF5E6]">
         <div className="text-center mb-10">
-          <h2 className="font-black text-[#7A1416] text-2xl uppercase tracking-widest mb-2">Premium Categories</h2>
-          <p className="text-black font-bold uppercase text-sm">Shop By Category</p>
+          <h2 className="font-black text-[#7A1416] text-2xl uppercase tracking-widest mb-2">Shop By Category</h2>
           <p className="text-gray-500 text-xs mt-2 max-w-md mx-auto">Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.</p>
         </div>
         
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.slice(0, 6).map((cat, i) => (
-              <div key={cat.id || cat._id || i} onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id}`} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col items-center p-4 cursor-pointer">
+            {(categories.length > 0 ? categories : premiumCategories.map((c, i) => ({ ...c, id: i.toString() }))).slice(0, 6).map((cat, i) => (
+              <div key={cat.id || cat._id || i} onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id || ''}`} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col items-center p-4 cursor-pointer">
                 <div className="w-full aspect-square flex items-center justify-center bg-gray-50 rounded-lg p-2 mb-3">
                   <img src={cat.image || "/sky_rocket_box.png"} alt={cat.name} className="max-w-full max-h-full object-contain" />
                 </div>
@@ -347,10 +346,10 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Trusted Manufacturers */}
+      {/* Shop by Brand */}
       <section className="py-12 bg-white border-b border-gray-100">
         <div className="text-center mb-8">
-          <h2 className="font-black text-[#7A1416] text-xl uppercase tracking-widest mb-2">Trusted Manufacturers</h2>
+          <h2 className="font-black text-[#7A1416] text-2xl uppercase tracking-widest mb-2">Shop By Brand</h2>
           <p className="text-gray-500 text-xs">We are supplying high quality fireworks from top brands in Sivakasi.</p>
         </div>
         <div className="container mx-auto px-4 max-w-4xl">
