@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { Play } from "lucide-react";
+import { Play, Pause, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
+import { useCart } from "@/context/CartContext";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 import banner1 from "@/assets/banner1.png";
 import banner2 from "@/assets/banner2.png";
@@ -40,6 +41,64 @@ const premiumCategories = [
   { name: "Gift Boxes", image: "/bestseller_pack.png", categoryId: "all" },
 ];
 
+const manufacturers = [
+  { name: "STANDARD", logo: "S" },
+  { name: "AJANTA", logo: "A" },
+  { name: "CORONATION", logo: "C" },
+  { name: "VADIVEL", logo: "V" },
+  { name: "ANIL", logo: "AN" },
+  { name: "SONY", logo: "SF" },
+];
+
+const demoVideos = [
+  {
+    id: 1,
+    title: "Golden Fountain Flowerpot",
+    url: "https://assets.mixkit.co/videos/preview/mixkit-bright-fireworks-in-the-night-sky-40292-large.mp4",
+    thumbnail: "/fireworks_bg.png"
+  },
+  {
+    id: 2,
+    title: "Sky Shot Aerial Display",
+    url: "https://assets.mixkit.co/videos/preview/mixkit-fireworks-illuminating-the-dark-sky-40291-large.mp4",
+    thumbnail: "/fireworks_bg.png"
+  },
+  {
+    id: 3,
+    title: "Colorful Garland Celebration",
+    url: "https://assets.mixkit.co/videos/preview/mixkit-dramatic-fireworks-display-in-the-night-sky-40293-large.mp4",
+    thumbnail: "/fireworks_bg.png"
+  },
+  {
+    id: 4,
+    title: "Sparkling Stars Close Up",
+    url: "https://assets.mixkit.co/videos/preview/mixkit-sparks-from-a-sparkler-40295-large.mp4",
+    thumbnail: "/fireworks_bg.png"
+  },
+  {
+    id: 5,
+    title: "Ultimate Night Celebration",
+    url: "https://assets.mixkit.co/videos/preview/mixkit-bright-fireworks-in-the-night-sky-40292-large.mp4",
+    thumbnail: "/fireworks_bg.png"
+  },
+  {
+    id: 6,
+    title: "Vibrant Ring Aerial Shot",
+    url: "https://assets.mixkit.co/videos/preview/mixkit-fireworks-illuminating-the-dark-sky-40291-large.mp4",
+    thumbnail: "/fireworks_bg.png"
+  },
+  {
+    id: 7,
+    title: "Ground Crackling Sparklers",
+    url: "https://assets.mixkit.co/videos/preview/mixkit-sparks-from-a-sparkler-40295-large.mp4",
+    thumbnail: "/fireworks_bg.png"
+  },
+  {
+    id: 8,
+    title: "Dazzling Rainbow Fountain",
+    url: "https://assets.mixkit.co/videos/preview/mixkit-dramatic-fireworks-display-in-the-night-sky-40293-large.mp4",
+    thumbnail: "/fireworks_bg.png"
+  }
 const shopByBrands = [
   { name: "Standard", subtitle: "Standard Fireworks", tag: "Most Popular", image: "/sky_rocket_box.png" },
   { name: "Ajanta", subtitle: "Ajanta Pyrotechnics", tag: "Top Quality", image: "/flower_pots.png" },
@@ -51,8 +110,12 @@ const shopByBrands = [
 
 const Index = () => {
   const { settings } = useSiteSettings();
+  const { items: cartItems, addToCart, updateQuantity } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [playingVideo, setPlayingVideo] = useState<number | null>(null);
+  const [videoIndex, setVideoIndex] = useState(0);
+  const [comboIndex, setComboIndex] = useState(0);
 
   // Hero image slideshow (right-to-left slide)
   const heroImages = [banner1, banner2, banner3];
@@ -270,57 +333,199 @@ const Index = () => {
       </section>
 
       {/* Best Sellers */}
-      <section className="py-12 container mx-auto px-4 max-w-6xl">
+      <section className="py-12 container mx-auto px-4 max-w-6xl overflow-hidden">
         <div className="flex justify-between items-end mb-8 border-b border-gray-200 pb-2">
-          <h2 className="text-xl md:text-2xl font-black text-gray-800 uppercase tracking-widest relative">
+          <h2 className="text-xl md:text-2xl font-black text-[#A80000] uppercase tracking-widest relative font-display">
             Best Sellers
-            <div className="absolute -bottom-2.5 left-0 w-1/2 h-0.5 bg-[#7A1416]"></div>
+            <div className="absolute -bottom-2.5 left-0 w-1/2 h-0.5 bg-[#A80000]"></div>
           </h2>
           <Link to="/catalog" className="text-red-600 font-bold text-xs hover:underline uppercase">View All &gt;</Link>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {products.slice(0, 6).map((item) => (
-            <div key={item.id || item._id} className="bg-white border border-gray-200 p-3 flex flex-col items-center text-center shadow-sm cursor-pointer" onClick={() => window.location.href=`/catalog`}>
-              <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3">
-                <img src={item.image || "/sky_rocket_box.png"} alt={item.name} className="max-w-full max-h-full object-contain" />
-              </div>
-              <h3 className="font-bold text-xs text-gray-800 uppercase mb-1 min-h-[32px] line-clamp-2">{item.name}</h3>
-              <div className="flex gap-1 mb-2 text-yellow-400">
-                {'★★★★★'.split('').map((star, i) => <span key={i} className="text-[10px]">{star}</span>)}
-              </div>
-              <p className="text-red-600 font-bold text-sm mb-3">₹ {item.price}</p>
-              
-              <div className="flex items-center gap-2 mt-auto w-full" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center border border-gray-300 rounded text-xs flex-1">
-                  <button className="px-2 py-1 text-gray-600 hover:bg-gray-100">-</button>
-                  <input type="text" value="1" readOnly className="w-6 text-center outline-none bg-transparent" />
-                  <button className="px-2 py-1 text-gray-600 hover:bg-gray-100">+</button>
-                </div>
-                <button className="bg-[#7A1416] text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-red-800">ADD</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+        
+        {/* Infinite scrolling marquee from right to left */}
+        <div className="relative w-full overflow-hidden py-4">
+          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+            {[...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers)].map((item, index) => {
+              const itemId = item.id || item._id;
+              const cartItem = cartItems.find((i) => (i.product._id || i.product.id) === itemId);
+              const quantity = cartItem?.quantity || 0;
 
-      {/* Videos Section */}
-      <section className="py-8 bg-gradient-to-b from-white to-[#FDF5E6]">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="relative rounded-2xl overflow-hidden aspect-video bg-gray-800 group cursor-pointer shadow-lg">
-                <img src="/fireworks_bg.png" alt="Video thumbnail" className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-12 h-12 bg-white/30 backdrop-blur-sm rounded flex items-center justify-center group-hover:bg-white/50 transition-colors">
-                    <Play className="text-white fill-white w-6 h-6" />
+              return (
+                <div 
+                  key={`${itemId}-${index}`} 
+                  className="bg-white border border-gray-200 p-4 flex flex-col items-center text-center shadow-md rounded-2xl min-w-[200px] max-w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
+                  onClick={() => window.location.href=`/catalog`}
+                >
+                  <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative">
+                    <img 
+                      src={item.image || "/sky_rocket_box.png"} 
+                      alt={item.name} 
+                      className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110" 
+                    />
+                    <span className="absolute top-2 left-2 bg-[#A80000] text-[#F4C542] font-black text-[9px] px-2.5 py-0.5 rounded-full shadow">
+                      BEST
+                    </span>
+                  </div>
+                  <h3 className="font-bold text-xs text-gray-800 uppercase mb-1 min-h-[32px] line-clamp-2">{item.name}</h3>
+                  <div className="flex gap-1 mb-2 text-yellow-400">
+                    {'★★★★★'.split('').map((star, i) => <span key={i} className="text-[10px]">{star}</span>)}
+                  </div>
+                  <p className="text-[#A80000] font-extrabold text-sm mb-3">₹ {item.price}</p>
+                  
+                  <div className="flex items-center gap-2 mt-auto w-full" onClick={(e) => e.stopPropagation()}>
+                    {quantity > 0 ? (
+                      <div className="flex items-center justify-between bg-red-50/50 border border-red-200/50 rounded-lg p-1 w-full">
+                        <button 
+                          className="px-2 py-0.5 text-gray-600 hover:bg-gray-200 font-bold" 
+                          onClick={() => updateQuantity(itemId, quantity - 1)}
+                        >
+                          -
+                        </button>
+                        <span className="text-xs outline-none bg-transparent font-semibold">
+                          {quantity}
+                        </span>
+                        <button 
+                          className="px-2 py-0.5 text-gray-600 hover:bg-gray-200 font-bold" 
+                          onClick={() => updateQuantity(itemId, quantity + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+                    ) : (
+                      <button 
+                        className="w-full bg-[#A80000] text-white py-1.5 rounded-lg text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors"
+                        onClick={() => addToCart(item)}
+                      >
+                        ADD
+                      </button>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
 
+      {/* Videos Section */}
+      <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5]">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="text-center mb-10">
+            <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
+              ✨ Watch the Magic ✨
+            </span>
+            <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2 font-display">
+              Fireworks Showcase
+            </h2>
+            <p className="text-gray-500 text-xs mt-2 max-w-md mx-auto">
+              Click on any card to watch our premium Sivakasi crackers light up the night sky!
+            </p>
+          </div>
+
+          <div className="relative flex items-center justify-center">
+            {/* Left Button */}
+            <button
+              onClick={() => setVideoIndex((prev) => (prev - 1 + demoVideos.length) % demoVideos.length)}
+              className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            {/* Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full px-4">
+              {[0, 1, 2].map((offset) => {
+                const idx = (videoIndex + offset) % demoVideos.length;
+                const video = demoVideos[idx];
+                const isPlaying = playingVideo === video.id;
+
+                return (
+                  <div
+                    key={video.id}
+                    className="relative rounded-2xl overflow-hidden aspect-video bg-black group cursor-pointer shadow-lg transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl border border-white/40"
+                    onClick={() => setPlayingVideo(isPlaying ? null : video.id)}
+                  >
+                    {isPlaying ? (
+                      <video
+                        src={video.url}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <img
+                        src={video.thumbnail}
+                        alt={video.title}
+                        className="w-full h-full object-cover opacity-70 group-hover:opacity-85 transition-opacity"
+                      />
+                    )}
+
+                    {/* Button overlay */}
+                    <div className="absolute inset-0 flex flex-col justify-between p-4 bg-gradient-to-t from-black/60 via-transparent to-black/20">
+                      <span className="text-white font-bold text-xs bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm self-start">
+                        {video.title}
+                      </span>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-[#A80000] group-hover:border-red-500">
+                          {isPlaying ? (
+                            <Pause className="text-white fill-white w-5 h-5" />
+                          ) : (
+                            <Play className="text-white fill-white w-5 h-5 ml-0.5" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Right Button */}
+            <button
+              onClick={() => setVideoIndex((prev) => (prev + 1) % demoVideos.length)}
+              className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Premium Categories */}
+      <section className="py-16 bg-[#FFF6E5] overflow-hidden">
+        <div className="text-center mb-10">
+          <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2 font-display">Premium Categories</h2>
+          <p className="text-black font-bold uppercase text-sm">Shop By Category</p>
+          <p className="text-gray-500 text-xs mt-2 max-w-md mx-auto">Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.</p>
+        </div>
+        
+        {/* Infinite scrolling categories marquee from right to left */}
+        <div className="relative w-full overflow-hidden py-4">
+          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+            {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat, i) => (
+              <div 
+                key={cat.id || cat._id || i} 
+                onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id}`} 
+                className="bg-white border border-gray-200 p-4 flex flex-col items-center text-center shadow-md rounded-2xl min-w-[200px] max-w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
+              >
+                <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative border border-gray-100/50">
+                  <img 
+                    src={cat.image || "/sky_rocket_box.png"} 
+                    alt={cat.name} 
+                    className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110" 
+                  />
+                  <span className="absolute top-2 left-2 bg-[#A80000] text-[#F4C542] font-black text-[9px] px-2.5 py-0.5 rounded-full shadow uppercase">
+                    SHOP
+                  </span>
+                </div>
+                <h3 className="font-bold text-xs text-gray-800 uppercase text-center min-h-[32px] line-clamp-2 transition-colors group-hover:text-[#A80000] mb-3">{cat.name}</h3>
+                
+                <div className="w-full mt-auto">
+                  <button className="w-full bg-[#A80000] text-white py-1.5 rounded-lg text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase">
+                    View Products
+                  </button>
+                </div>
       {/* Shop By Category */}
       <section className="py-16 bg-[#FDF5E6] border-b border-amber-100">
         <div className="text-center mb-10 container mx-auto px-4">
@@ -353,6 +558,32 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Trusted Manufacturers */}
+      <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5]">
+        <div className="text-center mb-10">
+          <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
+            ⭐ AUTHENTIC PARTNERS ⭐
+          </span>
+          <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2 font-display">Trusted Manufacturers</h2>
+          <p className="text-gray-500 text-xs mt-1">We are supplying high quality fireworks from top brands in Sivakasi.</p>
+        </div>
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="flex flex-wrap justify-center gap-6">
+            {manufacturers.map((brand, i) => (
+              <div 
+                key={i} 
+                className="bg-white border-2 border-gray-100/80 rounded-2xl px-6 py-4 flex items-center gap-4 min-w-[200px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-xl hover:border-[#A80000]/30 transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br hover:from-[#A80000] hover:to-[#8a0000] hover:text-white group cursor-pointer"
+              >
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#A80000] to-[#750000] text-white flex items-center justify-center font-black text-xs tracking-wider shrink-0 transition-all duration-300 group-hover:from-[#F4C542] group-hover:to-[#d4a215] group-hover:text-[#1A1A1A]">
+                  {brand.logo}
+                </div>
+                <div className="flex flex-col items-start text-left">
+                  <span className="font-black text-[9px] text-[#A80000]/80 tracking-widest uppercase transition-colors duration-300 group-hover:text-[#F4C542]">
+                    PARTNER
+                  </span>
+                  <span className="font-black text-sm text-gray-800 tracking-wider uppercase transition-colors duration-300 group-hover:text-white">
+                    {brand.name}
+                  </span>
       {/* Shop By Brand */}
       <section className="py-16 bg-white border-b border-gray-100">
         <div className="text-center mb-10 container mx-auto px-4">
@@ -389,102 +620,206 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Family Packs */}
-      <section className="py-16 bg-[#F4E3BA]">
-        <div className="text-center mb-10">
-          <h2 className="font-black text-[#7A1416] text-2xl uppercase tracking-widest mb-2">Family Packs</h2>
-          <p className="text-gray-700 text-xs font-bold uppercase">Our Special combo packages for you and your whole family</p>
-        </div>
-        
+      {/* Combo Packs (formerly Family Packs) */}
+      <section className="py-16 bg-[#FFF6E5]">
         <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).slice(0, 6).map((item) => (
-              <div key={item.id || item._id} className="bg-white p-5 border border-white shadow-sm flex flex-col items-center text-center cursor-pointer" onClick={() => window.location.href=`/catalog`}>
-                <div className="w-full aspect-[4/3] bg-gray-50 flex items-center justify-center p-2 mb-4">
-                  <img src={item.image || "/sky_rocket_box.png"} alt={item.name} className="max-w-full max-h-full object-cover" />
-                </div>
-                <h3 className="font-bold text-sm text-gray-900 uppercase mb-2">{item.name}</h3>
-                <div className="flex gap-2 items-center mb-4">
-                  {item.hasDiscount && (item.netRate || item.wholesalePrice) && (
-                    <span className="text-gray-400 line-through text-xs font-bold">₹{item.price}</span>
-                  )}
-                  <span className="text-[#7A1416] font-black text-lg">₹{item.hasDiscount && item.netRate ? item.netRate : item.price}</span>
-                </div>
-                <button onClick={(e) => e.stopPropagation()} className="w-full bg-[#7A1416] text-white py-3 font-bold text-xs tracking-wider hover:bg-red-900 uppercase">
-                  Add To Cart
-                </button>
-              </div>
-            ))}
+          <div className="text-center mb-10">
+            <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
+              🎁 GREAT VALUE COMBOS 🎁
+            </span>
+            <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2 font-display">Combo Packs</h2>
+            <p className="text-gray-700 text-xs font-bold uppercase">Our Special combo packages for you and your whole family</p>
+          </div>
+
+          <div className="relative flex items-center justify-center">
+            {/* Left Button */}
+            <button
+              onClick={() => setComboIndex((prev) => {
+                const comboPacksList = products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).length > 0
+                  ? products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack'))
+                  : staticFamilyPacks;
+                return (prev - 1 + comboPacksList.length) % comboPacksList.length;
+              })}
+              className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            {/* Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full px-4">
+              {[0, 1, 2].map((offset) => {
+                const comboPacksList = products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).length > 0
+                  ? products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack'))
+                  : staticFamilyPacks;
+                
+                const idx = (comboIndex + offset) % comboPacksList.length;
+                const item = comboPacksList[idx];
+                const itemId = item.id || item._id;
+                const cartItem = cartItems.find((i) => (i.product._id || i.product.id) === itemId);
+                const quantity = cartItem?.quantity || 0;
+
+                return (
+                  <div 
+                    key={`${itemId}-${offset}`} 
+                    className="bg-white/45 backdrop-blur-md border border-white/60 p-6 rounded-3xl shadow-xl flex flex-col justify-between items-center text-center transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl hover:border-[#F4C542]/40 group cursor-pointer relative overflow-hidden h-[460px] w-full"
+                    onClick={() => window.location.href=`/catalog`}
+                  >
+                    <div className="w-full aspect-[4/3] bg-gray-50/50 rounded-2xl flex items-center justify-center p-2 mb-4 overflow-hidden shrink-0 h-44 border border-gray-100">
+                      <img 
+                        src={item.image || "/sky_rocket_box.png"} 
+                        alt={item.name} 
+                        className="max-w-full max-h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                      />
+                    </div>
+                    <h3 className="font-black text-sm text-gray-900 uppercase mb-2 group-hover:text-[#A80000] transition-colors">{item.name}</h3>
+                    <div className="flex gap-2 items-center mb-6">
+                      {item.oldPrice && (
+                        <span className="text-gray-400 line-through text-xs font-bold">₹{item.oldPrice}</span>
+                      )}
+                      <span className="text-[#A80000] font-black text-lg">₹{item.price}</span>
+                    </div>
+
+                    {quantity > 0 ? (
+                      <div className="flex items-center justify-between bg-red-50/50 border border-red-200/50 rounded-xl p-1.5 w-full mt-auto" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => updateQuantity(itemId, quantity - 1)}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-white text-[#A80000] font-black hover:bg-red-50 transition-colors shadow-sm"
+                        >
+                          -
+                        </button>
+                        <span className="font-black text-sm text-[#A80000] px-2">
+                          {quantity}
+                        </span>
+                        <button
+                          onClick={() => updateQuantity(itemId, quantity + 1)}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#A80000] text-white font-black hover:bg-red-800 transition-colors shadow-sm"
+                        >
+                          +
+                        </button>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addToCart(item);
+                        }}
+                        className="w-full bg-[#A80000] hover:bg-[#F4C542] hover:text-[#1A1A1A] text-white font-black text-xs py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 uppercase tracking-widest shadow-md hover:scale-[1.02] active:scale-[0.98] mt-auto"
+                      >
+                        <ShoppingCart className="w-4 h-4" />
+                        <span>Add To Cart</span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Right Button */}
+            <button
+              onClick={() => setComboIndex((prev) => {
+                const comboPacksList = products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).length > 0
+                  ? products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack'))
+                  : staticFamilyPacks;
+                return (prev + 1) % comboPacksList.length;
+              })}
+              className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </section>
 
-      {/* Premium Quality Standards */}
-      <section className="py-20 relative bg-gradient-to-r from-[#5a0f10] to-[#8f191b] overflow-hidden">
-        <div className="container mx-auto px-4 max-w-6xl relative z-10">
-          <div className="flex flex-col md:flex-row items-center gap-10">
-            <div className="md:w-1/2 text-left">
-              <span className="bg-[#DDAA55] text-black text-[10px] font-bold px-2 py-1 uppercase tracking-widest mb-4 inline-block">Made In Sivakasi</span>
-              <h2 className="font-black text-white text-3xl md:text-5xl uppercase leading-tight mb-4 tracking-wide font-display">
-                Premium<br/>
-                Sivakasi<br/>
-                <span className="text-transparent font-outline-2" style={{ WebkitTextStroke: '1px #FFD700' }}>Quality Standards</span>
-              </h2>
-              <p className="text-gray-300 text-sm mb-8 max-w-md leading-relaxed">
-                Premium fireworks handcrafted in Sivakasi, designed to turn every moment into a golden memory. Celebrate with safety and unmatched quality.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <button className="bg-[#F9EAB8] text-black px-6 py-3 font-bold text-xs uppercase tracking-wider hover:bg-white transition-colors">
-                  View Our New<br/>Collection
-                </button>
-                <button className="border border-white text-white px-6 py-3 font-bold text-xs uppercase tracking-wider hover:bg-white hover:text-[#7A1416] transition-colors">
-                  View<br/>More
-                </button>
+      {/* Premium Quality Cards Section (Visual Banner representation from reference) */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Banner Card 1 */}
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#A80000] to-[#750000] p-8 text-white shadow-xl hover:scale-[1.02] transition-transform duration-300 flex items-center justify-between min-h-[180px]">
+              <div className="max-w-[60%] flex flex-col items-start gap-2">
+                <span className="text-[10px] font-black tracking-widest uppercase text-[#F4C542] bg-[#A80000]/30 px-2.5 py-1 rounded">
+                  Premium Quality
+                </span>
+                <h3 className="text-lg font-black uppercase tracking-wide leading-tight">
+                  Best Quality from Verified Manufacturers
+                </h3>
+              </div>
+              <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none">
+                <span className="text-[9px] font-black text-[#A80000] tracking-wider uppercase font-display leading-none">SAI YOGI</span>
+                <span className="text-[7px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">CRACKERS</span>
               </div>
             </div>
-            <div className="md:w-1/2">
-              <img src="/sky_rocket_box.png" alt="Premium Quality" className="w-full max-w-lg rounded-lg shadow-2xl" />
+
+            {/* Banner Card 2 */}
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#1A1A1A] via-[#2A2A2A] to-[#111111] p-8 text-white shadow-xl hover:scale-[1.02] transition-transform duration-300 flex items-center justify-between min-h-[180px]">
+              <div className="max-w-[60%] flex flex-col items-start gap-2">
+                <span className="text-[10px] font-black tracking-widest uppercase text-[#F4C542] bg-white/10 px-2.5 py-1 rounded">
+                  Trusted Partners
+                </span>
+                <h3 className="text-lg font-black uppercase tracking-wide leading-tight">
+                  We collab with Top Partners from Sivakasi
+                </h3>
+              </div>
+              <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none">
+                <span className="text-[9px] font-black text-[#A80000] tracking-wider uppercase font-display leading-none">SAI YOGI</span>
+                <span className="text-[7px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">CRACKERS</span>
+              </div>
+            </div>
+
+            {/* Banner Card 3 */}
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#D4A316] to-[#A37B0C] p-8 text-[#1A1A1A] shadow-xl hover:scale-[1.02] transition-transform duration-300 flex items-center justify-between min-h-[180px]">
+              <div className="max-w-[60%] flex flex-col items-start gap-2">
+                <span className="text-[10px] font-black tracking-widest uppercase text-white bg-black/20 px-2.5 py-1 rounded">
+                  Authentic Brands
+                </span>
+                <h3 className="text-lg font-black uppercase tracking-wide leading-tight text-[#1A1A1A]">
+                  We are Selling Crackers from Authentic Brands
+                </h3>
+              </div>
+              <div className="relative border-4 border-white rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-lg shrink-0 select-none">
+                <span className="text-[9px] font-black text-[#A80000] tracking-wider uppercase font-display leading-none">SAI YOGI</span>
+                <span className="text-[7px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">CRACKERS</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Dynamic Diwali Celebration Countdown */}
-      <section className="py-16 bg-white border-b border-gray-100">
-        <div className="text-center mb-10">
-          <h2 className="font-black text-[#7A1416] text-2xl uppercase tracking-widest mb-2">
+      <section className="py-20 bg-gradient-to-br from-[#A80000] via-[#5c0a0b] to-[#1A1A1A] border-y border-[#F4C542]/20 relative overflow-hidden">
+        {/* Glowing sparkles background */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/5 via-transparent to-transparent pointer-events-none" />
+        
+        <div className="text-center mb-12 relative z-10">
+          <span className="bg-[#F4C542] text-[#1A1A1A] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full shadow-md">
+            💥 countdown to lights 💥
+          </span>
+          <h2 className="font-black text-white text-3xl md:text-4xl uppercase tracking-widest mb-2 font-display">
             Diwali Celebration {diwaliInfo.year}
           </h2>
-          <p className="text-gray-600 text-xs font-semibold">
+          <p className="text-gray-300 text-xs font-semibold uppercase tracking-wider">
             Celebrate the festival of lights on {diwaliInfo.formattedDate}
           </p>
         </div>
 
-        <div className="flex justify-center gap-4 md:gap-8">
-          <div className="flex flex-col items-center">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-[#7A1416] flex items-center justify-center mb-2 shadow-sm bg-red-50/20">
-              <span className="font-black text-[#7A1416] text-xl md:text-2xl">{String(timeLeft.days).padStart(2, '0')}</span>
+        <div className="flex justify-center gap-4 md:gap-8 relative z-10">
+          {[
+            { label: "Days", val: timeLeft.days },
+            { label: "Hrs", val: timeLeft.hours },
+            { label: "Min", val: timeLeft.minutes },
+            { label: "Sec", val: timeLeft.seconds },
+          ].map((item, i) => (
+            <div key={i} className="flex flex-col items-center">
+              <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl border border-white/30 bg-gradient-to-br from-white/20 via-white/10 to-[#F4C542]/10 backdrop-blur-md flex flex-col items-center justify-center mb-2 shadow-2xl transition-all duration-300 hover:scale-105 hover:border-[#F4C542] hover:shadow-[#F4C542]/20 relative overflow-hidden group">
+                <span className="font-black text-[#F4C542] text-2xl md:text-3xl tracking-tight">
+                  {String(item.val).padStart(2, '0')}
+                </span>
+                <span className="text-[9px] font-bold text-white/70 uppercase tracking-widest mt-1">
+                  {item.label}
+                </span>
+              </div>
             </div>
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Days</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-[#7A1416] flex items-center justify-center mb-2 shadow-sm bg-red-50/20">
-              <span className="font-black text-[#7A1416] text-xl md:text-2xl">{String(timeLeft.hours).padStart(2, '0')}</span>
-            </div>
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Hrs</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-[#7A1416] flex items-center justify-center mb-2 shadow-sm bg-red-50/20">
-              <span className="font-black text-[#7A1416] text-xl md:text-2xl">{String(timeLeft.minutes).padStart(2, '0')}</span>
-            </div>
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Min</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-[#7A1416] flex items-center justify-center mb-2 shadow-sm bg-red-50/20">
-              <span className="font-black text-[#7A1416] text-xl md:text-2xl">{String(timeLeft.seconds).padStart(2, '0')}</span>
-            </div>
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Sec</span>
-          </div>
+          ))}
         </div>
       </section>
 
