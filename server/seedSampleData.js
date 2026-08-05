@@ -19,61 +19,66 @@ const seedSampleData = async () => {
     await Product.deleteMany({});
 
     // Seed Categories
-    const category1 = new Category({
-      name: 'Sparklers',
-      categoryCode: 'SPARK',
-      description: 'Sparkling fireworks for everyone',
-      icon: 'sparkles',
-      displayOrder: 1
-    });
+    const categoriesData = [
+      { name: 'Sparklers', categoryCode: 'SPARK', description: 'Sparkling fireworks for everyone', displayOrder: 1, slug: 'sparklers' },
+      { name: 'Flower Pots', categoryCode: 'FLOWER', description: 'Classic fountain pots', displayOrder: 2, slug: 'flower-pots' },
+      { name: 'Ground Chakkars', categoryCode: 'CHAKKAR', description: 'Spinning wheels on the ground', displayOrder: 3, slug: 'ground-chakkars' },
+      { name: 'Sky Shots', categoryCode: 'SKY', description: 'Beautiful aerial sky shots', displayOrder: 4, slug: 'sky-shots' },
+      { name: 'Combo Packs', categoryCode: 'COMBO', description: 'Great value combo collections', displayOrder: 5, slug: 'combo-packs' }
+    ];
 
-    const category2 = new Category({
-      name: 'Rockets',
-      categoryCode: 'ROCK',
-      description: 'Sky rockets',
-      icon: 'rocket',
-      displayOrder: 2
-    });
-
-    const savedCat1 = await category1.save();
-    const savedCat2 = await category2.save();
+    const savedCategories = await Category.insertMany(categoriesData);
+    const catMap = savedCategories.reduce((acc, cat) => {
+      acc[cat.name] = cat._id;
+      return acc;
+    }, {});
     console.log('Categories seeded successfully');
 
     // Seed Products
-    const product1 = new Product({
-      name: '10cm Electric Sparklers',
-      description: 'Box of 10 electric sparklers',
-      code: 'SP-10',
-      sku: 'SKU-SP-10',
-      category: savedCat1._id,
-      price: 50,
-      wholesalePrice: 40,
-      netRate: 35,
-      stock: 500,
-      minimumStock: 50,
-      unit: 'box',
-      image: 'https://images.unsplash.com/photo-1542385151-efd9000785a0?q=80&w=200&auto=format&fit=crop',
-      isActive: true
-    });
+    const productsData = [
+      {
+        name: '10cm Electric Sparklers', description: 'Safe for kids', code: 'SP-10', sku: 'SKU-SP-10', category: catMap['Sparklers'],
+        price: 50, wholesalePrice: 40, netRate: 35, stock: 500, minimumStock: 50, image: '/flower_pots.png', isActive: true, storeStockPieces: 500, hasDiscount: true
+      },
+      {
+        name: '15cm Green Sparklers', description: 'Color changing', code: 'SP-15G', sku: 'SKU-SP-15G', category: catMap['Sparklers'],
+        price: 80, wholesalePrice: 70, netRate: 65, stock: 400, minimumStock: 40, image: '/sky_rocket_box.png', isActive: true, storeStockPieces: 400, hasDiscount: false
+      },
+      {
+        name: 'Flower Pots Small', description: 'Classic fountain', code: 'FP-S', sku: 'SKU-FP-S', category: catMap['Flower Pots'],
+        price: 120, wholesalePrice: 100, netRate: 90, stock: 300, minimumStock: 30, image: '/flower_pots.png', isActive: true, storeStockPieces: 300, hasDiscount: true
+      },
+      {
+        name: 'Flower Pots Big', description: 'High reaching fountain', code: 'FP-B', sku: 'SKU-FP-B', category: catMap['Flower Pots'],
+        price: 200, wholesalePrice: 180, netRate: 160, stock: 200, minimumStock: 20, image: '/sky_rocket_box.png', isActive: true, storeStockPieces: 200, hasDiscount: false
+      },
+      {
+        name: 'Ground Chakkar Normal', description: 'Spinning wheel', code: 'GC-N', sku: 'SKU-GC-N', category: catMap['Ground Chakkars'],
+        price: 90, wholesalePrice: 80, netRate: 75, stock: 0, minimumStock: 50, image: '/flower_pots.png', isActive: true, storeStockPieces: 0, hasDiscount: false
+      },
+      {
+        name: 'Ground Chakkar Special', description: 'Long lasting spin', code: 'GC-S', sku: 'SKU-GC-S', category: catMap['Ground Chakkars'],
+        price: 150, wholesalePrice: 130, netRate: 120, stock: 450, minimumStock: 40, image: '/sky_rocket_box.png', isActive: true, storeStockPieces: 450, hasDiscount: true
+      },
+      {
+        name: '7 Shots', description: 'Multi-color aerial', code: 'SKY-7', sku: 'SKU-SKY-7', category: catMap['Sky Shots'],
+        price: 350, wholesalePrice: 300, netRate: 280, stock: 150, minimumStock: 15, image: '/flower_pots.png', isActive: true, storeStockPieces: 150, hasDiscount: true
+      },
+      {
+        name: '12 Shots', description: 'Premium sky show', code: 'SKY-12', sku: 'SKU-SKY-12', category: catMap['Sky Shots'],
+        price: 550, wholesalePrice: 500, netRate: 480, stock: 100, minimumStock: 10, image: '/sky_rocket_box.png', isActive: true, storeStockPieces: 100, hasDiscount: false
+      },
+      {
+        name: 'Family Star Combo Pack', description: 'A perfect mix of 45 items', code: 'CMB-F', sku: 'SKU-CMB-F', category: catMap['Combo Packs'],
+        price: 1500, wholesalePrice: 1300, netRate: 1200, stock: 50, minimumStock: 5, image: '/family_star_kit.png', isActive: true, storeStockPieces: 50, hasDiscount: true
+      },
+      {
+        name: 'Grand Sky Delight Combo', description: 'Elite 75-item collection', code: 'CMB-G', sku: 'SKU-CMB-G', category: catMap['Combo Packs'],
+        price: 2500, wholesalePrice: 2200, netRate: 2000, stock: 30, minimumStock: 5, image: '/grand_sky_delight.png', isActive: true, storeStockPieces: 30, hasDiscount: true
+      }
+    ];
 
-    const product2 = new Product({
-      name: 'Sky Shot Rocket',
-      description: 'A classic sky shot rocket',
-      code: 'RK-SS',
-      sku: 'SKU-RK-SS',
-      category: savedCat2._id,
-      price: 120,
-      wholesalePrice: 100,
-      netRate: 90,
-      stock: 200,
-      minimumStock: 20,
-      unit: 'piece',
-      image: 'https://images.unsplash.com/photo-1498804103079-a6351b050096?q=80&w=200&auto=format&fit=crop',
-      isActive: true
-    });
-
-    await product1.save();
-    await product2.save();
+    await Product.insertMany(productsData);
     console.log('Products seeded successfully');
 
     process.exit(0);
