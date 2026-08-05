@@ -2,7 +2,7 @@ import Brand from '../models/Brand.js';
 import { AppError } from '../middleware/errorHandler.js';
 import logger from '../utils/logger.js';
 
-// Helper function to generate auto brandId like b0001, b0002
+// Helper function to generate auto brandId like B0001, B0002
 const generateBrandId = async () => {
   const brands = await Brand.find({ brandId: { $regex: /^b\d+$/i } }).sort({ createdAt: -1 });
   let maxNum = 0;
@@ -19,7 +19,7 @@ const generateBrandId = async () => {
 
   const nextNum = maxNum + 1;
   const padded = String(nextNum).padStart(4, '0');
-  return `b${padded}`;
+  return `B${padded}`;
 };
 
 // GET all brands

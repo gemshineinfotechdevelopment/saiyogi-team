@@ -520,9 +520,9 @@ export async function getBrands(): Promise<Brand[]> {
 export async function getNextBrandId(): Promise<string> {
   try {
     const res = await fetchJSON<{ brandId: string }>('/api/brands/next-id');
-    return res.brandId || 'b0001';
+    return res.brandId || 'B0001';
   } catch (error) {
-    return 'b0001';
+    return 'B0001';
   }
 }
 

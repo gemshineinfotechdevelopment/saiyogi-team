@@ -7,7 +7,7 @@ const brandSchema = new mongoose.Schema(
       required: true,
       unique: true,
       trim: true,
-      default: 'b0001',
+      default: 'B0001',
     },
     name: {
       type: String,

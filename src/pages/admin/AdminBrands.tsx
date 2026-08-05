@@ -26,7 +26,7 @@ const AdminBrands = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [nextAutoId, setNextAutoId] = useState("b0001");
+  const [nextAutoId, setNextAutoId] = useState("B0001");
   
   // Modal state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -65,7 +65,7 @@ const AdminBrands = () => {
       const nextId = await getNextBrandId();
       setNextAutoId(nextId);
     } catch (e) {
-      setNextAutoId("b0001");
+      setNextAutoId("B0001");
     }
     setFormData({
       name: "",
