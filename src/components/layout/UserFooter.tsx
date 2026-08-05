@@ -54,31 +54,40 @@ const UserFooter = () => {
           {/* About Section */}
           <div>
             <div className="flex flex-col items-start mb-4">
-              <img src={companyLogo} alt="Sai Yogi Logo" className="h-24 w-auto object-contain" />
+              <h3 className="text-xl font-black text-[#7A1416] uppercase font-display">{settings.siteName || "Sai Yogi Crackers"}</h3>
             </div>
             <p className="text-xs text-gray-600 leading-relaxed mb-6">
-              There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable.
+              {settings.siteDescription || "Premium crackers and fireworks store based in Sivakasi. We offer the best quality crackers at wholesale prices for all your celebrations."}
             </p>
             {/* Social Links */}
-            {settings.socialLinks && (
-              <div className="flex gap-3">
-                {Object.entries(settings.socialLinks).map(([platform, url]) => {
-                  if (!url) return null;
+            <div className="flex gap-3">
+              {(Object.entries(socialIcons) as [string, React.ReactNode][]).map(([platform, icon]) => {
+                const url = settings.socialLinks?.[platform as keyof typeof settings.socialLinks];
+                if (url) {
                   return (
                     <a
                       key={platform}
                       href={url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      title={platform}
-                      className="w-8 h-8 flex items-center justify-center bg-gray-300 rounded text-gray-600 hover:bg-[#A80000] hover:text-white transition-colors duration-200"
+                      title={platform.charAt(0).toUpperCase() + platform.slice(1)}
+                      className="w-8 h-8 flex items-center justify-center bg-[#7A1416] rounded text-white hover:bg-[#9c1b1e] transition-colors duration-200"
                     >
-                      {socialIcons[platform as keyof typeof socialIcons] || null}
+                      {icon}
                     </a>
                   );
-                })}
-              </div>
-            )}
+                }
+                return (
+                  <span
+                    key={platform}
+                    title={`${platform.charAt(0).toUpperCase() + platform.slice(1)} (not set)`}
+                    className="w-8 h-8 flex items-center justify-center bg-gray-300 rounded text-gray-500 cursor-default"
+                  >
+                    {icon}
+                  </span>
+                );
+              })}
+            </div>
           </div>
 
           {/* Quick Links */}
@@ -123,7 +132,7 @@ const UserFooter = () => {
           <div>
             <h4 className="font-bold text-black mb-6 text-sm uppercase">Contact Us</h4>
             <div className="flex flex-col gap-3 text-xs text-gray-600 font-semibold mb-4">
-              <span>Sai Yogi Crackers, Sivakasi.</span>
+              <span>{settings.contact?.address || "Sai Yogi Crackers, Sivakasi."}</span>
               <div className="flex flex-col gap-1 mt-2">
                 {settings.contact?.phone && (
                   <a href={`tel:${settings.contact.phone.replace(/[^0-9+]/g, '')}`} className="flex items-center gap-2 border border-gray-300 bg-white px-3 py-1.5 rounded text-[#A80000] hover:bg-gray-50 transition-colors w-max">
@@ -157,7 +166,7 @@ const UserFooter = () => {
 
       {/* Floating WhatsApp */}
       <a 
-        href="https://wa.me/919488073004" 
+        href={`https://wa.me/${(settings.contact?.phone || "+919488073004").replace(/[^0-9]/g, "")}`} 
         target="_blank" 
         rel="noopener noreferrer" 
         className="fixed bottom-6 right-6 bg-[#25D366] text-white px-4 py-3.5 rounded-full shadow-[0_0_20px_rgba(37,211,102,0.6)] hover:shadow-[0_0_30px_rgba(37,211,102,0.9)] hover:scale-110 active:scale-95 transition-all duration-300 z-50 flex items-center gap-2 group"
