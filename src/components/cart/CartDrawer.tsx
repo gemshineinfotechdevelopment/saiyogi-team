@@ -242,9 +242,6 @@ const CartDrawer = () => {
                   </Button>
                 </a>
               </div>
-                  </Button>
-                </a>
-              </div>
 
               <p className="text-center text-[11px] text-gray-500 mt-2 font-normal">
                 * This is only an estimate. Final price may vary.
