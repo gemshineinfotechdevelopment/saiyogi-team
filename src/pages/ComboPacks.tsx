@@ -9,34 +9,34 @@ const comboPacks = [
     id: 1,
     title: "Family Star Kit",
     badge: "38% OFF",
-    badgeColor: "bg-[#7A1416] text-white",
+    badgeColor: "bg-[#A80000] text-[#F4C542]",
     image: "/family_star_kit.png",
-    description: "A perfect mix of 45 items including Ground Spinners, Sparklers, and...",
+    description: "A perfect mix of 45 items including Ground Spinners, Sparklers, and Flower Pots.",
   },
   {
     id: 2,
     title: "Grand Sky Delight",
     badge: "Bestseller",
-    badgeColor: "bg-black text-white",
+    badgeColor: "bg-black text-[#F4C542]",
     image: "/grand_sky_delight.png",
-    description: "Elite 75-item collection featuring heavy Aerial Shots and Premium...",
+    description: "Elite 75-item collection featuring heavy Aerial Shots and Premium Flower Pots.",
   },
   {
     id: 3,
     title: "Kids Joy Bundle",
     badge: "Kids Special",
-    badgeColor: "bg-[#4CAF50] text-white",
+    badgeColor: "bg-green-600 text-white",
     image: "/kids_joy_bundle.png",
-    description: "Noise-free and light-focused 30-item kit designed specifically for young...",
+    description: "Noise-free and light-focused 30-item kit designed specifically for young ones.",
   },
   {
     id: 4,
     title: "Royal Celebration",
-    subtitle: "Royal Celebration",
+    subtitle: "Mega Gathering Pack",
     badge: "Wholesale",
-    badgeColor: "bg-[#333333] text-white",
+    badgeColor: "bg-[#A80000] text-white",
     image: "/royal_celebration.png",
-    description: "Massive 120-item mega combo for large gatherings and community...",
+    description: "Massive 120-item mega combo for large gatherings and community celebrations.",
   },
 ];
 
@@ -52,7 +52,7 @@ const ComboPacks = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F5F0] font-sans text-gray-900 antialiased">
+    <div className="min-h-screen flex flex-col bg-[#FFF6E5] font-sans text-gray-900 antialiased">
       {/* Header Component */}
       <UserHeader />
 
@@ -77,7 +77,7 @@ const ComboPacks = () => {
         {/* Hero Content Container */}
         <div className="relative z-10 container mx-auto px-4 max-w-4xl text-center flex flex-col items-center justify-center">
           {/* Sivakasi's Finest Heritage Pill */}
-          <div className="inline-flex items-center px-4 py-1 rounded-full border border-[#E6C655] bg-black/40 text-[#E6C655] text-[11px] font-bold tracking-widest uppercase mb-4 shadow-sm">
+          <div className="inline-flex items-center px-4 py-1 rounded-full border border-[#F4C542] bg-black/40 text-[#F4C542] text-[11px] font-bold tracking-widest uppercase mb-4 shadow-sm">
             SIVAKASI'S FINEST HERITAGE
           </div>
 
@@ -95,50 +95,50 @@ const ComboPacks = () => {
       </section>
 
       {/* Features Bar */}
-      <section className="bg-white border-b border-gray-200 py-3.5 shadow-2xs">
+      <section className="bg-white border-b border-gray-200 py-4 shadow-sm">
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-left">
             {/* Feature 1 */}
             <div className="flex items-center gap-3 p-2">
-              <div className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-[#6B0B0C] bg-red-50/40 shrink-0">
-                <ShieldCheck className="w-4.5 h-4.5" />
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-[#A80000] bg-[#FFF6E5] shrink-0 border border-[#A80000]/10">
+                <ShieldCheck className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
                 <span className="font-extrabold text-xs text-gray-900 leading-tight">Quality Tested</span>
-                <span className="text-[10px] text-gray-500">Sivakasi Standard</span>
+                <span className="text-[10px] text-gray-500 font-medium">Sivakasi Standard</span>
               </div>
             </div>
 
             {/* Feature 2 */}
             <div className="flex items-center gap-3 p-2">
-              <div className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-[#6B0B0C] bg-red-50/40 shrink-0">
-                <Package className="w-4.5 h-4.5" />
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-[#A80000] bg-[#FFF6E5] shrink-0 border border-[#A80000]/10">
+                <Package className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
                 <span className="font-extrabold text-xs text-gray-900 leading-tight">Secure Packing</span>
-                <span className="text-[10px] text-gray-500">Damage proof Box</span>
+                <span className="text-[10px] text-gray-500 font-medium">Damage proof Box</span>
               </div>
             </div>
 
             {/* Feature 3 */}
             <div className="flex items-center gap-3 p-2">
-              <div className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-[#6B0B0C] bg-red-50/40 shrink-0">
-                <Truck className="w-4.5 h-4.5" />
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-[#A80000] bg-[#FFF6E5] shrink-0 border border-[#A80000]/10">
+                <Truck className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
                 <span className="font-extrabold text-xs text-gray-900 leading-tight">Track Order</span>
-                <span className="text-[10px] text-gray-500">Real time Updates</span>
+                <span className="text-[10px] text-gray-500 font-medium">Real time Updates</span>
               </div>
             </div>
 
             {/* Feature 4 */}
             <div className="flex items-center gap-3 p-2">
-              <div className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-[#6B0B0C] bg-red-50/40 shrink-0">
-                <Headphones className="w-4.5 h-4.5" />
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-[#A80000] bg-[#FFF6E5] shrink-0 border border-[#A80000]/10">
+                <Headphones className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
                 <span className="font-extrabold text-xs text-gray-900 leading-tight">Direct Inquiry</span>
-                <span className="text-[10px] text-gray-500">24/7 Support</span>
+                <span className="text-[10px] text-gray-500 font-medium">24/7 Support</span>
               </div>
             </div>
           </div>
@@ -146,22 +146,22 @@ const ComboPacks = () => {
       </section>
 
       {/* Main Content Area */}
-      <main className="flex-1 container mx-auto px-4 py-8 max-w-7xl">
+      <main className="flex-1 container mx-auto px-4 py-12 max-w-7xl">
         {/* Floating Current Estimate Floating Bar */}
-        <div className="flex justify-end mb-6">
-          <div className="inline-flex items-center gap-3 bg-[#4A0000] text-white px-4 py-2 rounded-full shadow-lg border border-red-900">
+        <div className="flex justify-end mb-8">
+          <div className="inline-flex items-center gap-3 bg-[#A80000] text-white px-4.5 py-2.5 rounded-full shadow-lg border border-[#A80000]/10">
             <div className="relative flex items-center justify-center">
-              <ShoppingBag className="w-5 h-5 text-amber-400" />
-              <span className="absolute -top-1 -right-1.5 bg-green-600 text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-extrabold">
+              <ShoppingBag className="w-5 h-5 text-[#F4C542] fill-[#F4C542]" />
+              <span className="absolute -top-1 -right-1.5 bg-[#25D366] text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-extrabold">
                 4
               </span>
             </div>
             <div className="flex flex-col text-left text-xs">
-              <span className="text-[9px] text-red-200 tracking-wider font-semibold uppercase">CURRENT ESTIMATE</span>
+              <span className="text-[9px] text-red-100 tracking-wider font-semibold uppercase">CURRENT ESTIMATE</span>
               <span className="font-extrabold text-sm text-white leading-tight">₹5,498.00</span>
             </div>
             <Link to="/cart">
-              <button className="bg-[#EAB308] hover:bg-yellow-400 text-black text-xs font-extrabold px-3.5 py-1.5 rounded-full transition-colors ml-2 shadow-xs cursor-pointer">
+              <button className="bg-[#F4C542] hover:bg-white text-[#1A1A1A] hover:text-[#A80000] text-xs font-extrabold px-4 py-2 rounded-full transition-all duration-300 ml-2 shadow-md">
                 Checkout Now
               </button>
             </Link>
@@ -169,7 +169,7 @@ const ComboPacks = () => {
         </div>
 
         {/* Section Header: Best Value Combo Packs & Filter */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h2 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">
               Best Value Combo Packs
@@ -180,7 +180,7 @@ const ComboPacks = () => {
           </div>
 
           <div className="flex items-center">
-            <button className="flex items-center gap-2 border border-gray-300 bg-white text-gray-700 text-xs px-3.5 py-1.5 rounded shadow-2xs hover:bg-gray-50 font-medium">
+            <button className="flex items-center gap-2 border border-gray-300 bg-white text-gray-700 text-xs px-4 py-2 rounded-xl shadow-xs hover:bg-gray-50 font-bold transition-all">
               <span>Filter By Price</span>
               <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
             </button>
@@ -188,43 +188,43 @@ const ComboPacks = () => {
         </div>
 
         {/* Product Cards Grid (4 columns) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {comboPacks.map((pack) => (
             <div
               key={pack.id}
-              className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-2xs hover:shadow-md transition-shadow flex flex-col relative"
+              className="bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 overflow-hidden shadow-lg hover:shadow-2xl hover:border-[#F4C542]/40 hover:scale-[1.03] transition-all duration-300 flex flex-col relative group"
             >
               {/* Top-Left Badge overlay */}
               <div className="absolute top-3 left-3 z-20">
                 <span
-                  className={`text-[9px] font-extrabold px-2 py-0.5 rounded ${pack.badgeColor} uppercase tracking-wider shadow-sm`}
+                  className={`text-[9px] font-black px-2.5 py-1 rounded-lg ${pack.badgeColor} uppercase tracking-wider shadow-md`}
                 >
                   {pack.badge}
                 </span>
               </div>
 
               {/* Product Image */}
-              <div className="w-full aspect-[4/3] bg-gray-100 overflow-hidden flex items-center justify-center">
+              <div className="w-full aspect-[4/3] bg-gray-50 flex items-center justify-center p-2 rounded-t-2xl overflow-hidden shrink-0 h-44">
                 <img
                   src={pack.image}
                   alt={pack.title}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  className="max-w-full max-h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
               </div>
 
               {/* Product Info */}
-              <div className="p-4 flex flex-col flex-1 bg-white">
-                <h3 className="font-extrabold text-sm text-gray-900 leading-snug">
+              <div className="p-5 flex flex-col flex-1 bg-white/40">
+                <h3 className="font-extrabold text-sm text-gray-900 leading-snug group-hover:text-[#A80000] transition-colors line-clamp-1">
                   {pack.title}
                 </h3>
 
                 {pack.subtitle && (
-                  <h4 className="font-extrabold text-sm text-gray-900 leading-snug">
+                  <h4 className="font-bold text-[10px] text-[#A80000] uppercase mt-0.5 tracking-widest leading-none">
                     {pack.subtitle}
                   </h4>
                 )}
 
-                <p className="text-[11px] text-gray-500 leading-relaxed line-clamp-2 mt-2">
+                <p className="text-[11px] text-gray-500 leading-relaxed line-clamp-2 mt-2 h-8">
                   {pack.description}
                 </p>
               </div>
@@ -234,33 +234,36 @@ const ComboPacks = () => {
 
         {/* Load More Combos Button */}
         <div className="flex justify-center mb-10">
-          <button className="border border-[#6B0B0C] text-[#6B0B0C] hover:bg-red-50 font-bold text-xs px-8 py-2.5 rounded shadow-2xs transition-colors">
+          <button className="bg-[#A80000] text-white hover:bg-[#F4C542] hover:text-[#1A1A1A] font-extrabold text-xs px-8 py-3.5 rounded-xl shadow-md transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] uppercase tracking-wider">
             Load More Combos
           </button>
         </div>
       </main>
 
       {/* Large Events & Early Bird Offers Banner */}
-      <section className="bg-[#4A0000] text-white py-12 px-4 border-t border-red-950">
-        <div className="container mx-auto max-w-7xl">
+      <section className="bg-gradient-to-br from-[#A80000] via-[#5c0a0b] to-[#1A1A1A] text-white py-16 px-4 border-t border-[#F4C542]/20 relative overflow-hidden">
+        <div className="absolute top-0 left-10 w-24 h-24 bg-[#F4C542]/10 rounded-full blur-xl"></div>
+        <div className="absolute bottom-0 right-10 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+        
+        <div className="container mx-auto max-w-7xl relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             {/* Left: Plan for Large Events */}
             <div className="flex flex-col items-start pr-0 lg:pr-8">
-              <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight mb-3">
+              <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight mb-3 uppercase">
                 Plan for Large Events?
               </h2>
               <p className="text-xs md:text-sm text-gray-300 leading-relaxed mb-6 max-w-lg">
                 We offer special pricing for weddings, corporate events, and large public displays. Our experts can help curate the perfect display for your venue.
               </p>
               <Link to="/contact">
-                <button className="bg-[#F5D061] hover:bg-yellow-400 text-black font-extrabold text-xs px-5 py-2.5 rounded shadow-sm transition-colors cursor-pointer">
+                <button className="bg-[#F4C542] hover:bg-white text-black hover:text-[#A80000] font-extrabold text-xs px-6 py-3 rounded-xl shadow-md transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] uppercase tracking-wider">
                   Inquire for Bulk Orders
                 </button>
               </Link>
             </div>
 
             {/* Right: Get Early Bird Offers */}
-            <div className="bg-[#380202] border border-red-900/60 rounded-xl p-6 md:p-8 shadow-inner">
+            <div className="bg-white/10 border border-white/20 rounded-2xl p-6 md:p-8 shadow-2xl backdrop-blur-md">
               <h3 className="text-lg md:text-xl font-extrabold text-white mb-2">
                 Get Early Bird Offers
               </h3>
@@ -275,11 +278,11 @@ const ComboPacks = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   required
-                  className="flex-1 px-4 py-2.5 text-xs text-gray-900 bg-white rounded-l outline-none placeholder-gray-400 font-medium"
+                  className="flex-1 px-4 py-2.5 text-xs text-gray-900 bg-white rounded-l-lg outline-none placeholder-gray-400 font-bold"
                 />
                 <button
                   type="submit"
-                  className="bg-[#F0E1BD] hover:bg-white text-gray-900 text-xs font-black px-5 py-2.5 rounded-r transition-colors shrink-0 cursor-pointer"
+                  className="bg-[#F4C542] hover:bg-white text-gray-900 text-xs font-black px-5 py-2.5 rounded-r-lg transition-colors shrink-0 cursor-pointer hover:text-[#A80000]"
                 >
                   Join
                 </button>
