@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { getProducts } from "@/lib/api";
 import { Product } from "@/data/products";
 import { getUpcomingDiwaliInfo, calculateTimeLeft, UpcomingDiwaliInfo } from "@/lib/diwaliCountdown";
+import { Fireworks } from '@fireworks-js/react';
 
 // Static Data based on the design
 const staticBestSellers = [
@@ -88,9 +89,169 @@ const Index = () => {
     });
   }, []);
 
+  // Custom Canvas for Hyper-Realistic Flower Pots
+  useEffect(() => {
+    const canvas = document.getElementById('fountain-canvas') as HTMLCanvasElement;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    
+    let particles: any[] = [];
+    let saravediParticles: any[] = [];
+    
+    const createFlowerPotParticle = (x: number, y: number) => {
+      const angle = (Math.random() * Math.PI) / 3 - Math.PI / 6; // Spread
+      const speed = Math.random() * 9 + 5; // Slower speed
+      particles.push({
+        x, y,
+        vx: Math.sin(angle) * speed,
+        vy: -Math.cos(angle) * speed,
+        life: 1,
+        decay: Math.random() * 0.015 + 0.008, // Slower decay
+        color: Math.random() > 0.3 ? '255, 215, 0' : '255, 140, 0' // Gold / Dark Orange
+      });
+    };
+
+    const createSaravediParticle = (x: number, y: number) => {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 5 + 1.5; // Slower speed
+      saravediParticles.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1,
+        decay: Math.random() * 0.04 + 0.02, // Slower decay
+        color: Math.random() > 0.5 ? '255, 255, 255' : '255, 69, 0'
+      });
+    };
+
+    let animationId: number;
+    let frameCount = 0;
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'lighter';
+      frameCount++;
+      
+      const now = Date.now();
+      const cycleTime = now % 8000; // 8 seconds total cycle (5s ON, 3s OFF)
+      const isFlowerPotActive = cycleTime < 5000;
+      
+      // Generate Flower Pot particles continuously from bottom only when active
+      if (isFlowerPotActive) {
+        for (let i = 0; i < 6; i++) {
+          createFlowerPotParticle(canvas.width / 2, canvas.height);
+          createFlowerPotParticle(canvas.width / 6, canvas.height);
+          createFlowerPotParticle(5 * canvas.width / 6, canvas.height);
+        }
+      }
+
+      // Generate random Saravedi bursts near the ground every few frames
+      if (frameCount % 12 === 0) {
+        const sx = Math.random() * canvas.width;
+        const sy = canvas.height - Math.random() * 50;
+        for (let i = 0; i < 15; i++) {
+          createSaravediParticle(sx, sy);
+        }
+      }
+      
+      // Update and draw Flower Pot particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.vy += 0.15; // Slower gravity
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= p.decay;
+        
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+        
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x - p.vx * 1.5, p.y - p.vy * 1.5);
+        ctx.strokeStyle = `rgba(${p.color}, ${p.life})`;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      }
+
+      // Update and draw Saravedi particles
+      for (let i = saravediParticles.length - 1; i >= 0; i--) {
+        const p = saravediParticles[i];
+        p.vy += 0.1; // Light gravity
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= p.decay;
+        
+        if (p.life <= 0) {
+          saravediParticles.splice(i, 1);
+          continue;
+        }
+        
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${p.color}, ${p.life})`;
+        ctx.fill();
+      }
+      
+      animationId = requestAnimationFrame(animate);
+    };
+    
+    animate();
+    
+    return () => {
+      cancelAnimationFrame(animationId);
+      window.removeEventListener('resize', resizeCanvas);
+    };
+  }, []);
+
+
+
   return (
     <div className="min-h-screen flex flex-col bg-white relative font-sans">
       <UserHeader />
+
+      {/* Real Crackers Animation Overlay */}
+      <Fireworks
+        options={{
+          rocketsPoint: { min: 10, max: 90 },
+          hue: { min: 0, max: 360 },
+          delay: { min: 50, max: 100 },
+          acceleration: 1.02,
+          friction: 0.95,
+          gravity: 1,
+          particles: 70,
+          traceLength: 3,
+          traceSpeed: 2,
+          explosion: 5,
+          intensity: 20,
+          flickering: 50,
+          lineStyle: 'round',
+          brightness: { min: 50, max: 80 },
+          decay: { min: 0.015, max: 0.03 },
+          mouse: { click: false, move: false, max: 1 }
+        }}
+        style={{
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          position: 'fixed',
+          zIndex: 100,
+          pointerEvents: 'none'
+        }}
+      />
+      
+      {/* Hyper-Realistic Custom Canvas for Flower Pots & Saravedi */}
+      <canvas id="fountain-canvas" className="fixed inset-0 pointer-events-none z-[101]" />
 
       {/* Hero Section */}
       <section className="relative w-full h-[300px] md:h-[500px] flex items-center justify-center overflow-hidden">
