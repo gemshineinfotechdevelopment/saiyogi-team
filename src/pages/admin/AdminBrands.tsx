@@ -8,9 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Edit2, Trash2, Tag, Phone, Image as ImageIcon, CheckCircle, XCircle } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Tag, Phone, Image as ImageIcon, CheckCircle, XCircle, Upload } from "lucide-react";
 import { toast } from "sonner";
-import { getBrands, createBrand, updateBrand, deleteBrand, Brand } from "@/lib/api";
+import { getBrands, getNextBrandId, createBrand, updateBrand, deleteBrand, Brand } from "@/lib/api";
 
 const PRESET_LOGOS = [
   "/sky_rocket_box.png",
@@ -26,6 +26,7 @@ const AdminBrands = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [nextAutoId, setNextAutoId] = useState("b0001");
   
   // Modal state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -58,8 +59,14 @@ const AdminBrands = () => {
     loadBrands();
   }, []);
 
-  const handleOpenAddDialog = () => {
+  const handleOpenAddDialog = async () => {
     setEditingBrand(null);
+    try {
+      const nextId = await getNextBrandId();
+      setNextAutoId(nextId);
+    } catch (e) {
+      setNextAutoId("b0001");
+    }
     setFormData({
       name: "",
       phone: "",
@@ -82,6 +89,24 @@ const AdminBrands = () => {
       isActive: brand.isActive !== false
     });
     setIsDialogOpen(true);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size must be less than 5MB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          setFormData((prev) => ({ ...prev, logo: reader.result as string }));
+          toast.success("Image selected & ready!");
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -284,6 +309,16 @@ const AdminBrands = () => {
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4 py-2">
+            {/* Auto Generated Brand ID */}
+            <div>
+              <Label className="text-xs font-bold text-gray-700 uppercase">Brand ID (Auto Generated)</Label>
+              <Input
+                value={editingBrand ? editingBrand.brandId : `${nextAutoId} (Auto Created)`}
+                disabled
+                className="mt-1 font-mono font-bold bg-gray-100 text-red-700 border-red-200"
+              />
+            </div>
+
             <div>
               <Label className="text-xs font-bold text-gray-700 uppercase">Brand Name *</Label>
               <Input
@@ -305,26 +340,50 @@ const AdminBrands = () => {
               />
             </div>
 
-            <div>
-              <Label className="text-xs font-bold text-gray-700 uppercase">Logo Image URL</Label>
-              <Input
-                placeholder="/sky_rocket_box.png or image URL"
-                value={formData.logo}
-                onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
-                className="mt-1"
-              />
-              <div className="mt-2 flex gap-2 items-center overflow-x-auto pb-1">
-                <span className="text-[10px] text-gray-400 font-bold uppercase shrink-0">Presets:</span>
-                {PRESET_LOGOS.map((url, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, logo: url })}
-                    className={`w-8 h-8 rounded border p-0.5 shrink-0 bg-gray-50 overflow-hidden ${formData.logo === url ? 'border-red-600 ring-2 ring-red-200' : 'border-gray-200'}`}
-                  >
-                    <img src={url} alt="preset" className="w-full h-full object-contain" />
-                  </button>
-                ))}
+            {/* File Upload & Presets */}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-gray-700 uppercase flex items-center justify-between">
+                <span>Brand Logo / Image</span>
+                <span className="text-[10px] text-gray-400 font-normal">Upload or select preset</span>
+              </Label>
+              
+              {/* File upload input */}
+              <div className="flex items-center gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="cursor-pointer text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                />
+              </div>
+
+              {/* Preview */}
+              {formData.logo && (
+                <div className="flex items-center gap-3 p-2 bg-gray-50 border rounded-md">
+                  <div className="w-10 h-10 rounded border bg-white p-1 flex items-center justify-center shrink-0">
+                    <img src={formData.logo} alt="Preview" className="max-w-full max-h-full object-contain" />
+                  </div>
+                  <span className="text-xs text-gray-600 font-medium truncate flex-1">
+                    {formData.logo.startsWith("data:") ? "Uploaded Image File" : formData.logo}
+                  </span>
+                </div>
+              )}
+
+              {/* Preset buttons */}
+              <div className="pt-1">
+                <span className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Preset Logos:</span>
+                <div className="flex gap-2 items-center overflow-x-auto pb-1">
+                  {PRESET_LOGOS.map((url, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, logo: url })}
+                      className={`w-8 h-8 rounded border p-0.5 shrink-0 bg-gray-50 overflow-hidden ${formData.logo === url ? 'border-red-600 ring-2 ring-red-200' : 'border-gray-200'}`}
+                    >
+                      <img src={url} alt="preset" className="w-full h-full object-contain" />
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 

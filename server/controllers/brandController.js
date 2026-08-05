@@ -32,6 +32,16 @@ export const getBrands = async (req, res, next) => {
   }
 };
 
+// GET next auto brand ID
+export const getNextBrandId = async (req, res, next) => {
+  try {
+    const nextBrandId = await generateBrandId();
+    res.json({ brandId: nextBrandId });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // CREATE brand
 export const createBrand = async (req, res, next) => {
   try {

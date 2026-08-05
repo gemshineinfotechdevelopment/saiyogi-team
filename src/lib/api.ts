@@ -517,6 +517,15 @@ export async function getBrands(): Promise<Brand[]> {
   }
 }
 
+export async function getNextBrandId(): Promise<string> {
+  try {
+    const res = await fetchJSON<{ brandId: string }>('/api/brands/next-id');
+    return res.brandId || 'b0001';
+  } catch (error) {
+    return 'b0001';
+  }
+}
+
 export async function createBrand(data: Partial<Brand>): Promise<Brand> {
   return fetchJSON<Brand>('/api/brands', 'POST', data);
 }
