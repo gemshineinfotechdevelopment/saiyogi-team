@@ -55,14 +55,25 @@ export const signup = async (req, res, next) => {
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    const cleanEmail = (email || '').trim().toLowerCase();
 
-    // Check Users (Staff/Admins) first
-    let account = await User.findOne({ email });
+    // Check Users (Staff/Admins) first with case-insensitive search
+    let account = await User.findOne({ 
+      $or: [
+        { email: cleanEmail },
+        { email: { $regex: new RegExp(`^${cleanEmail}$`, 'i') } }
+      ]
+    });
     let isCustomer = false;
 
     if (!account) {
       // Check Customers
-      account = await Customer.findOne({ email });
+      account = await Customer.findOne({ 
+        $or: [
+          { email: cleanEmail },
+          { email: { $regex: new RegExp(`^${cleanEmail}$`, 'i') } }
+        ]
+      });
       isCustomer = true;
     }
 

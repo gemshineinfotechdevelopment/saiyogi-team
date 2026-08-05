@@ -31,24 +31,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string) => {
-    try {const API_BASE =
-        (import.meta.env.VITE_API_URL as string) || "http://localhost:5000";
-      const response = await fetch(`${API_BASE}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+    const primaryBase = (import.meta.env.VITE_API_URL as string) || "";
+    const urlsToTry = [
+      `${primaryBase}/api/auth/login`,
+      "http://127.0.0.1:5000/api/auth/login",
+      "http://localhost:5000/api/auth/login",
+    ].filter((v, i, a) => a.indexOf(v) === i);
+
+    let lastError: Error | null = null;
+    let response: Response | null = null;
+
+    for (const url of urlsToTry) {
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        response = res;
+        break;
+      } catch (err: any) {
+        lastError = err;
+      }
+    }
+
+    try {
+      if (!response) {
+        throw new Error(
+          lastError?.message || "Failed to connect to backend server. Ensure backend is running on port 5000."
+        );
+      }
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || "Login failed");
+        let errorMsg = "Login failed";
+        try {
+          const error = await response.json();
+          errorMsg = error.error?.message || error.message || errorMsg;
+        } catch (_) {}
+        throw new Error(errorMsg);
       }
 
       const data = await response.json();
 
       // Allow SUPER ADMIN and ADMIN roles
       const allowedRoles = ["admin", "SUPER ADMIN", "ADMIN"];
-      if (!allowedRoles.includes(data.user.role)) {
+      if (!allowedRoles.includes(data.user?.role)) {
         throw new Error("Only admin users can access this section");
       }
 

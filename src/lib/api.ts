@@ -1,6 +1,6 @@
 import { Product, Category, Order } from "@/data/products";
 
-export const API_BASE_URL = (import.meta.env.VITE_API_URL as string) || "http://localhost:5000";
+export const API_BASE_URL = (import.meta.env.VITE_API_URL as string) || "";
 
 async function fetchJSON<T>(path: string, method: string = 'GET', body?: any): Promise<T> {
   const token = localStorage.getItem("admin_token");
@@ -22,10 +22,32 @@ async function fetchJSON<T>(path: string, method: string = 'GET', body?: any): P
     options.body = JSON.stringify(body);
   }
 
-  const url = path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
-  const res = await fetch(url, options);
+  const urlsToTry = path.startsWith('http')
+    ? [path]
+    : [
+        `${API_BASE_URL}${path}`,
+        `http://127.0.0.1:5000${path}`,
+        `http://localhost:5000${path}`,
+      ].filter((v, i, a) => a.indexOf(v) === i);
+
+  let res: Response | null = null;
+  let lastError: any = null;
+
+  for (const url of urlsToTry) {
+    try {
+      const response = await fetch(url, options);
+      res = response;
+      break;
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  if (!res) {
+    throw new Error(lastError?.message || "Failed to connect to backend server");
+  }
+
   if (!res.ok) {
-    // Try to parse error body for more context
     let errorBody: any = null;
     try {
       errorBody = await res.json();
@@ -36,7 +58,7 @@ async function fetchJSON<T>(path: string, method: string = 'GET', body?: any): P
         errorBody = null;
       }
     }
-    const message = errorBody && typeof errorBody === 'object' ? (errorBody.message || JSON.stringify(errorBody)) : (errorBody || res.statusText);
+    const message = errorBody && typeof errorBody === 'object' ? (errorBody.error?.message || errorBody.message || JSON.stringify(errorBody)) : (errorBody || res.statusText);
     throw new Error(`API error ${res.status}: ${message}`);
   }
   return res.json();
