@@ -31,12 +31,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string) => {
-    const primaryBase = (import.meta.env.VITE_API_URL as string) || "";
-    const urlsToTry = [
-      `${primaryBase}/api/auth/login`,
-      "http://127.0.0.1:5000/api/auth/login",
-      "http://localhost:5000/api/auth/login",
-    ].filter((v, i, a) => a.indexOf(v) === i);
+    const isLocalhost = typeof window !== 'undefined' && 
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+    const primaryBase = isLocalhost ? "" : ((import.meta.env.VITE_API_URL as string) || "");
+    const urlsToTry = isLocalhost
+      ? [
+          `${primaryBase}/api/auth/login`,
+          "http://127.0.0.1:5000/api/auth/login",
+          "http://localhost:5000/api/auth/login",
+        ].filter((v, i, a) => a.indexOf(v) === i)
+      : [`${primaryBase}/api/auth/login`];
 
     let lastError: Error | null = null;
     let response: Response | null = null;

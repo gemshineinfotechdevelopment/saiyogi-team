@@ -1,6 +1,11 @@
 import { Product, Category, Order } from "@/data/products";
 
-export const API_BASE_URL = (import.meta.env.VITE_API_URL as string) || "";
+const isLocalhost = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+export const API_BASE_URL = isLocalhost
+  ? "" 
+  : ((import.meta.env.VITE_API_URL as string) || "");
 
 async function fetchJSON<T>(path: string, method: string = 'GET', body?: any): Promise<T> {
   const token = localStorage.getItem("admin_token");
@@ -24,11 +29,13 @@ async function fetchJSON<T>(path: string, method: string = 'GET', body?: any): P
 
   const urlsToTry = path.startsWith('http')
     ? [path]
-    : [
-        `${API_BASE_URL}${path}`,
-        `http://127.0.0.1:5000${path}`,
-        `http://localhost:5000${path}`,
-      ].filter((v, i, a) => a.indexOf(v) === i);
+    : isLocalhost
+      ? [
+          `${API_BASE_URL}${path}`,
+          `http://127.0.0.1:5000${path}`,
+          `http://localhost:5000${path}`,
+        ].filter((v, i, a) => a.indexOf(v) === i)
+      : [`${API_BASE_URL}${path}`];
 
   let res: Response | null = null;
   let lastError: any = null;
