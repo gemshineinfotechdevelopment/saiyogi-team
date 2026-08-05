@@ -115,7 +115,11 @@ const CartDrawer = () => {
           sitePhone: settings.contact?.phone || '',
           siteEmail: settings.contact?.email || '',
         };
-        generateOrderReceiptPDF(orderData);
+        try {
+          generateOrderReceiptPDF(orderData);
+        } catch (pdfErr) {
+          console.error("PDF download deferred/failed:", pdfErr);
+        }
       }
 
       toast.success("Order placed successfully! 🎆");

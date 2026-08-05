@@ -105,9 +105,14 @@ const AdminCustomers = () => {
 
   const filteredCustomers = useMemo(() => {
     return customers
-      .filter((c) =>
-        c.phone?.toLowerCase().includes(phoneFilter.toLowerCase())
-      )
+      .filter((c) => {
+        const q = phoneFilter.trim().toLowerCase();
+        if (!q) return true;
+        const phone = String(c.phone || "").toLowerCase();
+        const name = String(c.name || "").toLowerCase();
+        const email = String(c.email || "").toLowerCase();
+        return phone.includes(q) || name.includes(q) || email.includes(q);
+      })
       .sort((a, b) => {
         const dateA = a.lastOrderDate ? new Date(a.lastOrderDate).getTime() : 0;
         const dateB = b.lastOrderDate ? new Date(b.lastOrderDate).getTime() : 0;

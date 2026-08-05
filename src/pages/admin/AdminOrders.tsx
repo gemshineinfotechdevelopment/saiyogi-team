@@ -136,8 +136,18 @@ const AdminOrders = () => {
     }
   };
 
+  const fetchOrders = () => {
+    getOrders().then((data) => {
+      if (Array.isArray(data)) {
+        setOrderList(data);
+      }
+    }).catch(() => setOrderList([]));
+  };
+
   useEffect(() => {
-    getOrders().then(setOrderList).catch(() => setOrderList([]));
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const updateStatus = (id: string, status: any) => {
@@ -194,10 +204,15 @@ const AdminOrders = () => {
     }
   };
 
-  // Per-tab counts (based only on phone filter, not status filter)
-  const phoneFiltered = orderList.filter((o) =>
-    o.customerPhone?.toLowerCase().includes(phoneFilter.toLowerCase())
-  );
+  const phoneFiltered = orderList.filter((o) => {
+    const q = phoneFilter.trim().toLowerCase();
+    if (!q) return true;
+    const phone = String(o.customerPhone || o.phone || "").toLowerCase();
+    const name = String(o.customerName || o.name || "").toLowerCase();
+    const email = String(o.customerEmail || o.email || "").toLowerCase();
+    const orderNo = String(o.orderNumber || o._id || "").toLowerCase();
+    return phone.includes(q) || name.includes(q) || email.includes(q) || orderNo.includes(q);
+  });
   const tabCounts = {
     all: phoneFiltered.length,
     approved: phoneFiltered.filter((o) => o.approved).length,

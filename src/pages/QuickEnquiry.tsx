@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { getProducts, getCategories } from "@/lib/api";
@@ -57,17 +57,55 @@ const QuickEnquiry = () => {
     setQuantities(newQuantities);
   };
 
-  const groupedProducts = categories.map(cat => {
-    const catId = cat._id || cat.id;
-    return {
-      category: cat.name,
-      items: products.filter(p => {
+  const groupedProducts = useMemo(() => {
+    const groups: { category: string; items: Product[] }[] = [];
+    const processedProductIds = new Set<string>();
+
+    categories.forEach(cat => {
+      const catId = cat._id || cat.id;
+      const catName = cat.name;
+
+      const matchingItems = products.filter(p => {
+        const pId = p._id || p.id || '';
         const pCat = p.category as any;
         const pCatId = pCat && typeof pCat === 'object' ? (pCat._id || pCat.id) : pCat;
-        return pCatId === catId;
-      })
-    };
-  }).filter(group => group.items.length > 0);
+        const pCatName = pCat && typeof pCat === 'object' ? pCat.name : (typeof pCat === 'string' ? pCat : '');
+
+        const matches = (catId && pCatId === catId) || (catName && pCatName && pCatName.toLowerCase() === catName.toLowerCase());
+        if (matches) {
+          processedProductIds.add(pId);
+        }
+        return matches;
+      });
+
+      if (matchingItems.length > 0) {
+        groups.push({
+          category: catName,
+          items: matchingItems
+        });
+      }
+    });
+
+    // Collect any products that were not matched by categories array
+    const remainingProducts = products.filter(p => !processedProductIds.has(p._id || p.id || ''));
+    if (remainingProducts.length > 0) {
+      const remainingGroupMap = new Map<string, Product[]>();
+      remainingProducts.forEach(p => {
+        const pCat = p.category as any;
+        const catName = (pCat && typeof pCat === 'object' ? pCat.name : pCat) || "Other Crackers";
+        if (!remainingGroupMap.has(catName)) {
+          remainingGroupMap.set(catName, []);
+        }
+        remainingGroupMap.get(catName)!.push(p);
+      });
+
+      remainingGroupMap.forEach((items, catName) => {
+        groups.push({ category: catName, items });
+      });
+    }
+
+    return groups;
+  }, [categories, products]);
 
   return (
     <div className="min-h-screen flex flex-col bg-white relative font-sans">
