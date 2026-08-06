@@ -305,6 +305,7 @@ const Index = () => {
       />
 
       {/* Hero Section */}
+      {/* Hero Section */}
       <section className="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-[600px] min-h-[220px] flex items-center justify-center overflow-hidden bg-black">
         <img
           key={`enter-${slideKey}`}
@@ -379,6 +380,46 @@ const Index = () => {
             >
               <ChevronRight className="w-5 h-5" />
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Premium Categories */}
+      <section className="py-16 bg-[#FFF6E5] overflow-hidden">
+        <div className="text-center mb-10">
+          <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2 font-display">Premium Categories</h2>
+          <p className="text-black font-bold uppercase text-sm">Shop By Category</p>
+          <p className="text-gray-500 text-xs mt-2 max-w-md mx-auto">Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.</p>
+        </div>
+        
+        {/* Infinite scrolling categories marquee from right to left */}
+        <div className="relative w-full overflow-hidden py-4">
+          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+            {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i) => (
+              <div 
+                key={`${cat.id || cat._id || 'cat'}-${i}`} 
+                onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id || cat.categoryId}`}
+                className="bg-white border border-gray-200 p-4 flex flex-col items-center text-center shadow-md rounded-2xl min-w-[200px] max-w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
+              >
+                <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative border border-gray-100/50">
+                  <img 
+                    src={cat.image || "/sky_rocket_box.png"} 
+                    alt={cat.name} 
+                    className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110" 
+                  />
+                  <span className="absolute top-2 left-2 bg-[#A80000] text-[#F4C542] font-black text-[9px] px-2.5 py-0.5 rounded-full shadow uppercase">
+                    SHOP
+                  </span>
+                </div>
+                <h3 className="font-bold text-xs text-gray-800 uppercase text-center min-h-[32px] line-clamp-2 transition-colors group-hover:text-[#A80000] mb-3">{cat.name}</h3>
+                
+                <div className="w-full mt-auto">
+                  <button className="w-full bg-[#A80000] text-white py-1.5 rounded-lg text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase">
+                    View Products
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -542,8 +583,8 @@ const Index = () => {
                     </div>
                     <h3 className="font-black text-sm text-gray-900 uppercase mb-2 group-hover:text-[#A80000] transition-colors">{item.name}</h3>
                     <div className="flex gap-2 items-center mb-6">
-                      {item.oldPrice && (
-                        <span className="text-gray-400 line-through text-xs font-bold">₹{item.oldPrice}</span>
+                      {(item as any).oldPrice && (
+                        <span className="text-gray-400 line-through text-xs font-bold">₹{(item as any).oldPrice}</span>
                       )}
                       <span className="text-[#A80000] font-black text-lg">₹{item.price}</span>
                     </div>
@@ -570,7 +611,7 @@ const Index = () => {
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
-                          addToCart(item);
+                          addToCart(item as Product);
                         }}
                         className="w-full bg-[#A80000] hover:bg-[#F4C542] hover:text-[#1A1A1A] text-white font-black text-xs py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 uppercase tracking-widest shadow-md hover:scale-[1.02] active:scale-[0.98] mt-auto"
                       >
