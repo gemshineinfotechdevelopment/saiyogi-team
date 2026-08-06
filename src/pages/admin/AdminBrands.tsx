@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Edit2, Trash2, Tag, CheckCircle, XCircle, Eye, Package } from "lucide-react";
@@ -351,6 +351,7 @@ const AdminBrands = () => {
               <Tag className="h-5 w-5 text-red-600" />
               {editingBrand ? `Edit Brand (${editingBrand.brandId})` : "Add New Brand"}
             </DialogTitle>
+            <DialogDescription className="sr-only">Form to add or edit brand details</DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4 py-2">
@@ -477,6 +478,7 @@ const AdminBrands = () => {
                 )}
               </div>
             </DialogTitle>
+            <DialogDescription className="sr-only">Products list for brand {viewingBrand?.name}</DialogDescription>
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto py-4">

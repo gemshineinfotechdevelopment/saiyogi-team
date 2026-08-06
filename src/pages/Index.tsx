@@ -170,17 +170,17 @@ const Index = () => {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    
+
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     };
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
-    
+
     let particles: any[] = [];
     let saravediParticles: any[] = [];
-    
+
     const createFlowerPotParticle = (x: number, y: number) => {
       const angle = (Math.random() * Math.PI) / 3 - Math.PI / 6;
       const speed = Math.random() * 9 + 5;
@@ -210,7 +210,7 @@ const Index = () => {
     let animationId: number;
     const render = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
+
       const leftPotX = canvas.width * 0.08;
       const rightPotX = canvas.width * 0.92;
       const potY = canvas.height - 40;
@@ -233,7 +233,7 @@ const Index = () => {
         p.y += p.vy;
         p.vy += 0.12;
         p.life -= p.decay;
-        
+
         if (p.life <= 0) {
           particles.splice(index, 1);
         } else {
@@ -265,9 +265,9 @@ const Index = () => {
 
       animationId = requestAnimationFrame(render);
     };
-    
+
     render();
-    
+
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       cancelAnimationFrame(animationId);
@@ -282,13 +282,13 @@ const Index = () => {
       <section className="relative w-full overflow-hidden bg-black flex flex-col">
         <div className="relative w-full aspect-[21/9] min-h-[300px] md:min-h-[480px] max-h-[600px] overflow-hidden bg-gradient-to-r from-red-950 via-black to-red-950 flex items-center justify-center">
           <div key={slideKey} className="absolute inset-0 w-full h-full animate-slide-left">
-            <img 
-              src={heroImages[currentSlide]} 
-              alt="Hero Banner" 
-              className="w-full h-full object-cover object-center scale-105 filter brightness-95" 
+            <img
+              src={heroImages[currentSlide]}
+              alt="Hero Banner"
+              className="w-full h-full object-cover object-center scale-105 filter brightness-95"
             />
           </div>
-          
+
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
 
           {/* Dots Indicator */}
@@ -300,9 +300,8 @@ const Index = () => {
                   setCurrentSlide(idx);
                   setSlideKey((k) => k + 1);
                 }}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  currentSlide === idx ? "bg-[#F4C542] w-8 shadow-lg shadow-yellow-500/50" : "bg-white/40 hover:bg-white/70"
-                }`}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${currentSlide === idx ? "bg-[#F4C542] w-8 shadow-lg shadow-yellow-500/50" : "bg-white/40 hover:bg-white/70"
+                  }`}
                 aria-label={`Slide ${idx + 1}`}
               />
             ))}
@@ -311,8 +310,8 @@ const Index = () => {
       </section>
 
       {/* Hyper-Realistic Background Fireworks Canvas */}
-      <canvas 
-        id="fountain-canvas" 
+      <canvas
+        id="fountain-canvas"
         className="fixed inset-0 pointer-events-none z-40 opacity-75"
       />
 
@@ -329,8 +328,8 @@ const Index = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {(products.length > 0 ? products.slice(0, 6) : staticBestSellers).map((item: any, idx: number) => (
-              <div 
-                key={`bestseller-${item._id || item.id || idx}`} 
+              <div
+                key={`bestseller-${item._id || item.id || idx}`}
                 className="bg-white border border-gray-200 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
               >
                 <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative">
@@ -341,7 +340,7 @@ const Index = () => {
                 </div>
                 <h3 className="font-bold text-xs text-gray-800 uppercase text-center line-clamp-2 min-h-[32px] mb-2">{item.name}</h3>
                 <div className="text-[#A80000] font-black text-sm mb-3">₹{item.price}</div>
-                <button 
+                <button
                   onClick={() => addToCart(item)}
                   className="w-full bg-[#A80000] text-white py-1.5 rounded-lg text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase flex items-center justify-center gap-1 cursor-pointer"
                 >
@@ -440,19 +439,6 @@ const Index = () => {
       </section>
 
       {/* Shop By Category */}
-      <section className="py-16 bg-[#FFF6E5] overflow-hidden">
-        <div className="text-center mb-10 container mx-auto px-4">
-          <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs">
-            Shop By Category
-          </h2>
-          <div className="w-24 h-1 bg-[#7A1416] mx-auto rounded-full mb-3"></div>
-          <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto font-medium">
-            Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.
-          </p>
-        </div>
-      </section>
-
-      {/* Shop By Category */}
       <section className="py-16 bg-[#FFF6E5]">
         <div className="text-center mb-10 container mx-auto px-4">
           <h2 className="font-black text-[#A80000] text-3xl sm:text-4xl uppercase tracking-tight mb-2 font-display">
@@ -467,23 +453,23 @@ const Index = () => {
         <div className="relative w-full overflow-hidden py-4 mb-8">
           <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
             {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i: number) => (
-              <div 
-                key={`${cat.id || cat._id || 'cat'}-${i}`} 
-                onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id}`} 
+              <div
+                key={`${cat.id || cat._id || 'cat'}-${i}`}
+                onClick={() => window.location.href = `/catalog?category=${cat.id || cat._id}`}
                 className="bg-white border border-gray-200 p-4 flex flex-col items-center text-center shadow-md rounded-2xl min-w-[200px] max-w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
               >
                 <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative border border-gray-100/50">
-                  <img 
-                    src={cat.image || "/sky_rocket_box.png"} 
-                    alt={cat.name} 
-                    className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110" 
+                  <img
+                    src={cat.image || "/sky_rocket_box.png"}
+                    alt={cat.name}
+                    className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110"
                   />
                   <span className="absolute top-2 left-2 bg-[#A80000] text-[#F4C542] font-black text-[9px] px-2.5 py-0.5 rounded-full shadow uppercase">
                     SHOP
                   </span>
                 </div>
                 <h3 className="font-bold text-xs text-gray-800 uppercase text-center min-h-[32px] line-clamp-2 transition-colors group-hover:text-[#A80000] mb-3">{cat.name}</h3>
-                
+
                 <div className="w-full mt-auto">
                   <button className="w-full bg-[#A80000] text-white py-1.5 rounded-lg text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase">
                     View Products
@@ -514,9 +500,9 @@ const Index = () => {
             {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i: number) => {
               const catId = cat.id || cat._id || cat.categoryId || 'all';
               return (
-                <div 
-                  key={`${catId}-${i}`} 
-                  onClick={() => window.location.href=`/catalog?category=${catId}`} 
+                <div
+                  key={`${catId}-${i}`}
+                  onClick={() => window.location.href = `/catalog?category=${catId}`}
                   className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-amber-100 flex flex-col items-center p-4 cursor-pointer group hover:-translate-y-1 w-[180px] shrink-0"
                 >
                   <div className="w-full aspect-square flex items-center justify-center bg-gradient-to-b from-amber-50/50 to-orange-50/20 rounded-xl p-3 mb-3 group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
@@ -545,8 +531,8 @@ const Index = () => {
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="flex flex-wrap justify-center gap-6">
             {manufacturers.map((brand, i) => (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 className="bg-white border-2 border-gray-100/80 rounded-2xl px-6 py-4 flex items-center gap-4 min-w-[200px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-xl hover:border-[#A80000]/30 transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br hover:from-[#A80000] hover:to-[#8a0000] hover:text-white group cursor-pointer"
               >
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#A80000] to-[#750000] text-white flex items-center justify-center font-black text-xs tracking-wider shrink-0 transition-all duration-300 group-hover:from-[#F4C542] group-hover:to-[#d4a215] group-hover:text-[#1A1A1A]">
@@ -582,9 +568,9 @@ const Index = () => {
             {[...(brands.length > 0 ? brands : shopByBrands), ...(brands.length > 0 ? brands : shopByBrands), ...(brands.length > 0 ? brands : shopByBrands)].map((brand: any, i: number) => {
               const brandId = brand._id || brand.id || i;
               return (
-                <div 
-                  key={`${brandId}-${i}`} 
-                  onClick={() => window.location.href=`/catalog?search=${encodeURIComponent(brand.name)}`}
+                <div
+                  key={`${brandId}-${i}`}
+                  onClick={() => window.location.href = `/catalog?search=${encodeURIComponent(brand.name)}`}
                   className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-2xl p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[180px] shrink-0"
                 >
                   <span className="text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full mb-2 font-mono">
@@ -635,7 +621,7 @@ const Index = () => {
                 const comboPacksList = (products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).length > 0
                   ? products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack'))
                   : staticFamilyPacks) as any[];
-                
+
                 const idx = (comboIndex + offset) % comboPacksList.length;
                 const item = comboPacksList[idx] as any;
                 const itemId = item.id || item._id;
@@ -643,8 +629,8 @@ const Index = () => {
                 const quantity = cartItem?.quantity || 0;
 
                 return (
-                  <div 
-                    key={`combo-${offset}-${item._id || item.id || offset}`} 
+                  <div
+                    key={`combo-${offset}-${item._id || item.id || offset}`}
                     className="bg-[#FFFFFF] border-2 border-amber-100 rounded-3xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center relative group hover:-translate-y-1 overflow-hidden"
                   >
                     <div className="absolute top-4 right-4 bg-gradient-to-r from-[#A80000] to-[#5c0a0b] text-[#F4C542] font-black text-[10px] px-3 py-1 rounded-full uppercase shadow-md">
@@ -656,7 +642,7 @@ const Index = () => {
                     </div>
 
                     <h3 className="font-extrabold text-base text-gray-900 uppercase mb-2 line-clamp-1">{item.name}</h3>
-                    
+
                     <div className="flex gap-3 items-center mb-5">
                       {item.oldPrice && (
                         <span className="text-gray-400 line-through text-xs font-bold">₹{item.oldPrice}</span>
@@ -682,7 +668,7 @@ const Index = () => {
                         </button>
                       </div>
                     ) : (
-                      <button 
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           addToCart(item as Product);
@@ -773,7 +759,7 @@ const Index = () => {
       <section className="py-20 bg-gradient-to-br from-[#A80000] via-[#5c0a0b] to-[#1A1A1A] border-y border-[#F4C542]/20 relative overflow-hidden">
         {/* Glowing sparkles background */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/5 via-transparent to-transparent pointer-events-none" />
-        
+
         <div className="text-center mb-12 relative z-10">
           <span className="bg-[#F4C542] text-[#1A1A1A] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full shadow-md">
             💥 countdown to lights 💥

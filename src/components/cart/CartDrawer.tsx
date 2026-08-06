@@ -192,6 +192,7 @@ const CartDrawer = () => {
               <SheetTitle className="text-[#a41a1c] font-black uppercase tracking-wider text-base m-0">
                 CHECKOUT
               </SheetTitle>
+              <SheetDescription className="sr-only">Shopping cart items and checkout drawer</SheetDescription>
             </div>
           ) : (
             <div>
@@ -439,6 +440,7 @@ const CartDrawer = () => {
             <DialogTitle className="text-lg sm:text-xl font-bold text-gray-900">
               Confirmation
             </DialogTitle>
+            <DialogDescription className="sr-only">Terms and conditions details for order confirmation</DialogDescription>
           </DialogHeader>
 
           <div className="p-5 sm:p-6 max-h-[65vh] overflow-y-auto space-y-4 text-gray-800 bg-white leading-normal">
@@ -501,13 +503,13 @@ const CartDrawer = () => {
               <Check className="w-10 h-10 text-emerald-500 stroke-[3]" />
             </div>
 
-            <h3 className="text-2xl font-black text-gray-900 tracking-wide mb-2">
+            <DialogTitle className="text-2xl font-black text-gray-900 tracking-wide mb-2">
               Success!
-            </h3>
+            </DialogTitle>
 
-            <p className="text-sm text-gray-600 leading-relaxed mb-6 font-medium max-w-[260px]">
+            <DialogDescription className="text-sm text-gray-600 leading-relaxed mb-6 font-medium max-w-[260px]">
               You enquiry request <strong className="text-[#900000] font-bold">#{completedOrderNumber}</strong> was submitted successfully
-            </p>
+            </DialogDescription>
 
             <Button
               onClick={handleCloseSuccessModal}
