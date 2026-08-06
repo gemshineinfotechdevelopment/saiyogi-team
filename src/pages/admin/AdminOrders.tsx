@@ -1,9 +1,10 @@
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminNavbar from "@/components/layout/AdminNavbar";
 import { useEffect, useState } from "react";
-import { getOrders, approveOrder, updatePackingStatus, updateHoldDays } from "@/lib/api";
+import { getOrders, approveOrder, updatePackingStatus, updateHoldDays, deleteOrder } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Dialog,
@@ -136,8 +137,33 @@ const AdminOrders = () => {
     }
   };
 
+  const handleDeleteOrder = async (orderId: string) => {
+    if (!window.confirm("Are you sure you want to delete this order? This action cannot be undone.")) return;
+    try {
+      await deleteOrder(orderId);
+      setOrderList((prev) => prev.filter((o) => o._id !== orderId));
+      if (selectedOrder && selectedOrder._id === orderId) {
+        setSelectedOrder(null);
+      }
+      toast.success("Order deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to delete order");
+    }
+  };
+
+  const fetchOrders = () => {
+    getOrders().then((data) => {
+      if (Array.isArray(data)) {
+        setOrderList(data);
+      }
+    }).catch(() => setOrderList([]));
+  };
+
   useEffect(() => {
-    getOrders().then(setOrderList).catch(() => setOrderList([]));
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const updateStatus = (id: string, status: any) => {
@@ -194,10 +220,15 @@ const AdminOrders = () => {
     }
   };
 
-  // Per-tab counts (based only on phone filter, not status filter)
-  const phoneFiltered = orderList.filter((o) =>
-    o.customerPhone?.toLowerCase().includes(phoneFilter.toLowerCase())
-  );
+  const phoneFiltered = orderList.filter((o) => {
+    const q = phoneFilter.trim().toLowerCase();
+    if (!q) return true;
+    const phone = String(o.customerPhone || o.phone || "").toLowerCase();
+    const name = String(o.customerName || o.name || "").toLowerCase();
+    const email = String(o.customerEmail || o.email || "").toLowerCase();
+    const orderNo = String(o.orderNumber || o._id || "").toLowerCase();
+    return phone.includes(q) || name.includes(q) || email.includes(q) || orderNo.includes(q);
+  });
   const tabCounts = {
     all: phoneFiltered.length,
     approved: phoneFiltered.filter((o) => o.approved).length,
@@ -377,12 +408,12 @@ const AdminOrders = () => {
                       {o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "N/A"}
                     </td>
                     <td className="p-3 text-right">
-                      <div className="flex flex-col gap-1 items-end">
+                      <div className="flex items-center justify-end gap-1.5">
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => setSelectedOrder(o)}
-                          className="text-xs w-full max-w-[100px]"
+                          className="text-xs px-2.5 h-8"
                         >
                           View Details
                         </Button>
@@ -391,11 +422,21 @@ const AdminOrders = () => {
                             size="sm"
                             variant="default"
                             onClick={() => handleRemoveHold(o._id)}
-                            className="text-xs w-full max-w-[100px] h-7 bg-red-600 hover:bg-red-700"
+                            className="text-xs px-2 h-8 bg-red-600 hover:bg-red-700"
                           >
                             Remove Hold
                           </Button>
                         )}
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeleteOrder(o._id)}
+                          className="text-xs px-2.5 h-8 bg-red-600 hover:bg-red-700 text-white flex items-center gap-1"
+                          title="Delete Order"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline">Delete</span>
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -540,6 +581,14 @@ const AdminOrders = () => {
                       {isUpdatingPacking ? "Updating..." : selectedOrder.packingStatus === 'packed' ? '📦 Mark Unpacked' : '🔹 Mark Packed'}
                     </Button>
                   )}
+                  <Button
+                    variant="destructive"
+                    onClick={() => handleDeleteOrder(selectedOrder._id)}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-1"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Delete</span>
+                  </Button>
                 </div>
               </div>
             )}
