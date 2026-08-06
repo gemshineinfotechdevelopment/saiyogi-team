@@ -23,7 +23,6 @@ export interface Product {
   piecesPerCase?: number;
   godownStockPieces?: number;
   minimumStock?: number;
-  oldPrice?: number;
 }
 
 export interface Category {

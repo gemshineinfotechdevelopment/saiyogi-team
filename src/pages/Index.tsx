@@ -101,6 +101,15 @@ const shopByBrands = [
   { name: "Kaliswari", subtitle: "Sri Kaliswari Cock", tag: "Heritage Brand", image: "/royal_celebration.png" },
 ];
 
+const manufacturers = [
+  { name: "Standard Fireworks", logo: "SF" },
+  { name: "Ajanta Pyrotechnics", logo: "AP" },
+  { name: "Coronation Sparklers", logo: "CS" },
+  { name: "Vadivel Fireworks", logo: "VF" },
+  { name: "Sony Crackers", logo: "SC" },
+  { name: "Sri Kaliswari", logo: "SK" },
+];
+
 const Index = () => {
   const { settings } = useSiteSettings();
   const { items: cartItems, addToCart, updateQuantity } = useCart();

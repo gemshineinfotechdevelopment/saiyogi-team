@@ -466,7 +466,7 @@ const AdminProducts = () => {
                       <td className="p-3 text-right">
                         <div className="flex justify-end gap-1">
                           <button className="p-1.5 rounded hover:bg-secondary transition-colors text-muted-foreground hover:text-primary" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></button>
-                          <button className="p-1.5 rounded hover:bg-secondary transition-colors text-muted-foreground hover:text-destructive" onClick={() => handleDelete(p.id)}><Trash2 className="h-4 w-4" /></button>
+                          <button className="p-1.5 rounded hover:bg-secondary transition-colors text-muted-foreground hover:text-destructive" onClick={() => handleDelete(String(p._id || p.id))}><Trash2 className="h-4 w-4" /></button>
                         </div>
                       </td>
                     </tr>

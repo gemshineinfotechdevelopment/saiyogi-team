@@ -12,8 +12,8 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
   const { items, addToCart, updateQuantity } = useCart();
   const { settings } = useSiteSettings();
 
-  const productId = product._id || product.id;
-  const cartItem = useMemo(() => items.find(i => (i.product._id || i.product.id) === productId), [items, productId]);
+  const productId = String(product._id || product.id || '');
+  const cartItem = useMemo(() => items.find(i => String(i.product._id || i.product.id) === productId), [items, productId]);
   const quantity = cartItem?.quantity || 0;
 
   const discountPrice = getDiscountPrice(product.price, product.hasDiscount, settings.discountPercent, product.netRate, product.displayNetRate);

@@ -68,10 +68,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
-      data = await response.json();
-    } catch (fetchError: any) {
+    if (!data) {
       // If network error / server offline (e.g. "Failed to fetch") or invalid credentials
-      console.warn("Backend login failed or server offline, evaluating fallback admin login:", fetchError);
+      console.warn("Backend login failed or server offline, evaluating fallback admin login:", lastError);
       
       const cleanEmail = email.trim().toLowerCase();
       if (
@@ -83,12 +82,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           user: { role: "admin", email: cleanEmail }
         };
       } else {
-        throw fetchError;
+        throw lastError || new Error("Login failed");
       }
     }
 
-    try {
-      // Allow SUPER ADMIN and ADMIN roles
+    // Allow SUPER ADMIN and ADMIN roles
       const allowedRoles = ["admin", "SUPER ADMIN", "ADMIN"];
       if (!allowedRoles.includes(data.user?.role)) {
         throw new Error("Only admin users can access this section");
