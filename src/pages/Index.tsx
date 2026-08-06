@@ -542,8 +542,8 @@ const Index = () => {
                     </div>
                     <h3 className="font-black text-sm text-gray-900 uppercase mb-2 group-hover:text-[#A80000] transition-colors">{item.name}</h3>
                     <div className="flex gap-2 items-center mb-6">
-                      {item.oldPrice && (
-                        <span className="text-gray-400 line-through text-xs font-bold">₹{item.oldPrice}</span>
+                      {(item as any).oldPrice && (
+                        <span className="text-gray-400 line-through text-xs font-bold">₹{(item as any).oldPrice}</span>
                       )}
                       <span className="text-[#A80000] font-black text-lg">₹{item.price}</span>
                     </div>
@@ -570,7 +570,7 @@ const Index = () => {
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
-                          addToCart(item);
+                          addToCart(item as Product);
                         }}
                         className="w-full bg-[#A80000] hover:bg-[#F4C542] hover:text-[#1A1A1A] text-white font-black text-xs py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 uppercase tracking-widest shadow-md hover:scale-[1.02] active:scale-[0.98] mt-auto"
                       >
