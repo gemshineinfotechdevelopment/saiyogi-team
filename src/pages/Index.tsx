@@ -99,6 +99,7 @@ const demoVideos = [
     url: "https://assets.mixkit.co/videos/preview/mixkit-dramatic-fireworks-display-in-the-night-sky-40293-large.mp4",
     thumbnail: "/fireworks_bg.png"
   }
+];
 const shopByBrands = [
   { name: "Standard", subtitle: "Standard Fireworks", tag: "Most Popular", image: "/sky_rocket_box.png" },
   { name: "Ajanta", subtitle: "Ajanta Pyrotechnics", tag: "Top Quality", image: "/flower_pots.png" },
@@ -345,7 +346,7 @@ const Index = () => {
         {/* Infinite scrolling marquee from right to left */}
         <div className="relative w-full overflow-hidden py-4">
           <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
-            {[...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers)].map((item, index) => {
+            {[...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers)].map((item: any, index) => {
               const itemId = item.id || item._id;
               const cartItem = cartItems.find((i) => (i.product._id || i.product.id) === itemId);
               const quantity = cartItem?.quantity || 0;
@@ -492,20 +493,24 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Premium Categories */}
+      {/* Shop By Category */}
       <section className="py-16 bg-[#FFF6E5] overflow-hidden">
-        <div className="text-center mb-10">
-          <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2 font-display">Premium Categories</h2>
-          <p className="text-black font-bold uppercase text-sm">Shop By Category</p>
-          <p className="text-gray-500 text-xs mt-2 max-w-md mx-auto">Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.</p>
+        <div className="text-center mb-10 container mx-auto px-4">
+          <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs">
+            Shop By Category
+          </h2>
+          <div className="w-24 h-1 bg-[#7A1416] mx-auto rounded-full mb-3"></div>
+          <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto font-medium">
+            Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.
+          </p>
         </div>
         
         {/* Infinite scrolling categories marquee from right to left */}
         <div className="relative w-full overflow-hidden py-4">
           <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
-            {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat, i) => (
+            {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i) => (
               <div 
-                key={cat.id || cat._id || i} 
+                key={`${cat.id || cat._id || 'cat'}-${i}`} 
                 onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id}`} 
                 className="bg-white border border-gray-200 p-4 flex flex-col items-center text-center shadow-md rounded-2xl min-w-[200px] max-w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
               >
@@ -526,32 +531,6 @@ const Index = () => {
                     View Products
                   </button>
                 </div>
-      {/* Shop By Category */}
-      <section className="py-16 bg-[#FDF5E6] border-b border-amber-100">
-        <div className="text-center mb-10 container mx-auto px-4">
-          <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs">
-            Shop By Category
-          </h2>
-          <div className="w-24 h-1 bg-[#7A1416] mx-auto rounded-full mb-3"></div>
-          <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto font-medium">
-            Explore our wide selection of premium fireworks crafted for the most spectacular and joyful celebration.
-          </p>
-        </div>
-        
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-            {(categories.length > 0 ? categories : premiumCategories).slice(0, 6).map((cat: any, i: number) => (
-              <div 
-                key={cat.id || cat._id || i} 
-                onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id || cat.categoryId || 'all'}`} 
-                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-amber-100 flex flex-col items-center p-4 cursor-pointer group hover:-translate-y-1"
-              >
-                <div className="w-full aspect-square flex items-center justify-center bg-gradient-to-b from-amber-50/50 to-orange-50/20 rounded-xl p-3 mb-3 group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
-                  <img src={cat.image || "/sky_rocket_box.png"} alt={cat.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
-                  <span className="absolute top-2 right-2 bg-[#7A1416] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full opacity-90">Hot</span>
-                </div>
-                <h3 className="font-extrabold text-xs sm:text-sm text-gray-800 uppercase text-center group-hover:text-[#7A1416] transition-colors">{cat.name}</h3>
-                <p className="text-[11px] text-amber-700 font-semibold mt-1">Explore →</p>
               </div>
             ))}
           </div>
@@ -584,6 +563,12 @@ const Index = () => {
                   <span className="font-black text-sm text-gray-800 tracking-wider uppercase transition-colors duration-300 group-hover:text-white">
                     {brand.name}
                   </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
       {/* Shop By Brand */}
       <section className="py-16 bg-white border-b border-gray-100">
         <div className="text-center mb-10 container mx-auto px-4">
@@ -648,9 +633,9 @@ const Index = () => {
             {/* Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full px-4">
               {[0, 1, 2].map((offset) => {
-                const comboPacksList = products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).length > 0
+                const comboPacksList = (products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).length > 0
                   ? products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack'))
-                  : staticFamilyPacks;
+                  : staticFamilyPacks) as any[];
                 
                 const idx = (comboIndex + offset) % comboPacksList.length;
                 const item = comboPacksList[idx];

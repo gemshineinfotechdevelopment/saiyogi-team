@@ -43,6 +43,10 @@ async function fetchJSON<T>(path: string, method: string = 'GET', body?: any): P
   for (const url of urlsToTry) {
     try {
       const response = await fetch(url, options);
+      // Skip if response is HTML (Vite SPA fallback) instead of actual API JSON
+      if (response.headers.get('content-type')?.includes('text/html')) {
+        continue;
+      }
       res = response;
       break;
     } catch (err) {
