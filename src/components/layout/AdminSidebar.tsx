@@ -1,6 +1,6 @@
 import companyLogo from "@/assets/saiyogi-logo-1.png";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Package, FolderTree, ShoppingBag, Users, Settings, ArrowLeft, LogOut, Menu } from "lucide-react";
+import { LayoutDashboard, Package, FolderTree, ShoppingBag, Users, Settings, ArrowLeft, LogOut, Menu, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -8,6 +8,7 @@ import { useState, useEffect, useRef } from "react";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
+  { label: "Brands", icon: Tag, href: "/admin/brands" },
   { label: "Products", icon: Package, href: "/admin/products" },
   { label: "Categories", icon: FolderTree, href: "/admin/categories" },
   { label: "Orders", icon: ShoppingBag, href: "/admin/orders" },

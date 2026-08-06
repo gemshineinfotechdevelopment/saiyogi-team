@@ -25,6 +25,13 @@ export const adminOnly = (req, res, next) => {
   next();
 };
 
+export const authorize = (...roles) => (req, res, next) => {
+  if (roles.length > 0 && !roles.includes(req.role)) {
+    return next(new AppError('Unauthorized access', 403));
+  }
+  next();
+};
+
 export const optionalAuth = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
 
