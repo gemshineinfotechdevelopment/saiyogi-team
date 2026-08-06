@@ -1,14 +1,17 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { ChevronDown, ShieldCheck, Package, Truck, Headphones, ShoppingBag } from "lucide-react";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
-import { useState, useEffect } from "react";
 import { getProducts } from "@/lib/api";
 import { Product } from "@/data/products";
+import ProductCard from "@/components/ProductCard";
+import { useCart } from "@/context/CartContext";
 
 const ComboPacks = () => {
   const [email, setEmail] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
+  const { items, totalItems, totalPrice } = useCart();
 
   useEffect(() => {
     getProducts().then((prods) => {
@@ -128,18 +131,16 @@ const ComboPacks = () => {
             <div className="relative flex items-center justify-center">
               <ShoppingBag className="w-5 h-5 text-amber-400" />
               <span className="absolute -top-1 -right-1.5 bg-green-600 text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-extrabold">
-                4
+                {totalItems}
               </span>
             </div>
             <div className="flex flex-col text-left text-xs">
               <span className="text-[9px] text-red-200 tracking-wider font-semibold uppercase">CURRENT ESTIMATE</span>
-              <span className="font-extrabold text-sm text-white leading-tight">₹5,498.00</span>
+              <span className="font-extrabold text-sm text-white leading-tight">₹{totalPrice.toLocaleString()}</span>
             </div>
-            <Link to="/cart">
-              <button className="bg-[#EAB308] hover:bg-yellow-400 text-black text-xs font-extrabold px-3.5 py-1.5 rounded-full transition-colors ml-2 shadow-xs cursor-pointer">
-                Checkout Now
-              </button>
-            </Link>
+            <button className="bg-[#EAB308] hover:bg-yellow-400 text-black text-xs font-extrabold px-3.5 py-1.5 rounded-full transition-colors ml-2 shadow-xs cursor-pointer" onClick={() => document.getElementById('cart-trigger')?.click()}>
+              Checkout Now
+            </button>
           </div>
         </div>
 
@@ -163,51 +164,9 @@ const ComboPacks = () => {
         </div>
 
         {/* Product Cards Grid (4 columns) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mb-10">
           {comboPacks.map((pack) => (
-            <div
-              key={pack.id || pack._id}
-              className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-2xs hover:shadow-md transition-shadow flex flex-col relative cursor-pointer"
-              onClick={() => window.location.href=`/catalog`}
-            >
-              {/* Top-Left Badge overlay */}
-              {pack.hasDiscount && (
-              <div className="absolute top-3 left-3 z-20">
-                <span
-                  className={`text-[9px] font-extrabold px-2 py-0.5 rounded bg-[#7A1416] text-white uppercase tracking-wider shadow-sm`}
-                >
-                  Special Offer
-                </span>
-              </div>
-              )}
-
-              {/* Product Image */}
-              <div className="w-full aspect-[4/3] bg-gray-100 overflow-hidden flex items-center justify-center">
-                <img
-                  src={pack.image || "/family_star_kit.png"}
-                  alt={pack.name}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-
-              {/* Product Info */}
-              <div className="p-4 flex flex-col flex-1 bg-white">
-                <h3 className="font-extrabold text-sm text-gray-900 leading-snug">
-                  {pack.name}
-                </h3>
-                
-                <div className="flex gap-2 items-center mt-1">
-                  {pack.hasDiscount && pack.netRate && (
-                    <span className="text-gray-400 line-through text-xs font-bold">₹{pack.price}</span>
-                  )}
-                  <span className="text-[#7A1416] font-black text-sm">₹{pack.hasDiscount && pack.netRate ? pack.netRate : pack.price}</span>
-                </div>
-
-                <p className="text-[11px] text-gray-500 leading-relaxed line-clamp-2 mt-2">
-                  {pack.description || "Premium collection bundle."}
-                </p>
-              </div>
-            </div>
+            <ProductCard key={pack.id || pack._id} product={pack} />
           ))}
         </div>
 

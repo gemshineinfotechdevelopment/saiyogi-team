@@ -291,7 +291,7 @@ const AdminCustomers = () => {
                             <TableCell>
                               <span className={`text-xs px-2 py-0.5 rounded-full ${
                                 o.status === "delivered" ? "bg-green-500/20 text-green-500" :
-                                o.status === "shipped" ? "bg-blue-500/20 text-blue-500" :
+                                o.status === "shipped" ? "bg-red-500/20 text-red-500" :
                                 o.status === "processing" ? "bg-primary/20 text-primary" :
                                 o.status === "cancelled" ? "bg-destructive/20 text-destructive" :
                                 "bg-muted text-muted-foreground"

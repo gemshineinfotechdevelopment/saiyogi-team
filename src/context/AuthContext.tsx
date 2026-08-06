@@ -33,57 +33,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<void> => {
-    const isLocalhost = typeof window !== 'undefined' && 
-      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  const login = async (email: string, password: string) => {
 
-    const primaryBase = isLocalhost ? "" : ((import.meta.env.VITE_API_URL as string) || "");
-    const urlsToTry = isLocalhost
-      ? [
-          `${primaryBase}/api/auth/login`,
-          "http://127.0.0.1:5000/api/auth/login",
-          "http://localhost:5000/api/auth/login",
-        ].filter((v, i, a) => a.indexOf(v) === i)
-      : [`${primaryBase}/api/auth/login`];
+    try {
+      const API_BASE =
+        (import.meta.env.VITE_API_URL as string) || "http://localhost:5000";
 
-    let lastError: Error | null = null;
-    let response: Response | null = null;
-
-    for (const url of urlsToTry) {
+      let data: any = null;
       try {
-        const res = await fetch(url, {
+        const response = await fetch(`${API_BASE}/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
         });
-        response = res;
-        break;
-      } catch (err: any) {
-        lastError = err;
-      }
-    }
-
-    let data: any = null;
-    if (response && response.ok) {
-      data = await response.json();
-    } else if (response) {
-      const errRes = await response.json().catch(() => ({}));
-      throw new Error(errRes.error?.message || errRes.message || "Invalid credentials");
-    } else {
-      // Fallback for offline local dev mode
-      const cleanEmail = email.trim().toLowerCase();
-      if (
-        (cleanEmail === "admin@crackerhub.com" || cleanEmail === "admin@saiyogi.com" || cleanEmail === "admin@gmail.com" || cleanEmail.startsWith("admin")) &&
-        (password === "admin123" || password === "admin")
-      ) {
-        data = {
-          token: "mock_demo_admin_token_2026",
-          user: { role: "admin", email: cleanEmail }
-        };
-      } else {
-        throw new Error(lastError?.message || "Failed to connect to server");
-      }
-    }
 
     const allowedRoles = ["admin", "SUPER ADMIN", "ADMIN"];
     if (!allowedRoles.includes(data.user?.role)) {

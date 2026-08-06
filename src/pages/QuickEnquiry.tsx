@@ -6,7 +6,8 @@ import { Product, Category } from "@/data/products";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
 import { toast } from "sonner";
-import { Plus, Minus, ShoppingCart, Sparkles } from "lucide-react";
+import { Plus, Minus, ShoppingCart, Sparkles, ShoppingBag } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const QuickEnquiry = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -87,6 +88,12 @@ const QuickEnquiry = () => {
     toast.success(`${qty}x ${product.name} added to cart!`);
   };
 
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPrice = items.reduce((sum, item) => {
+    const dp = getDiscountPrice(item.product.price, item.product.hasDiscount, settings.discountPercent, item.product.netRate, item.product.displayNetRate);
+    return sum + (dp * item.quantity);
+  }, 0);
+
   return (
     <div className="min-h-screen flex flex-col bg-white relative font-sans">
       <UserHeader />
@@ -105,7 +112,7 @@ const QuickEnquiry = () => {
 
         {/* Product Table Card wrapper */}
         <div className="w-full bg-white/85 backdrop-blur-md shadow-2xl border-y border-gray-150 rounded-none overflow-hidden mb-8">
-          <div className="container mx-auto px-0 md:px-4 py-8">
+          <div className="flex-1 container mx-auto px-0 md:px-4 py-8">
         
         {/* Floating Estimate Bar (similar to combo packs) */}
         <div className="flex justify-end mb-6 px-4 md:px-0">
@@ -252,7 +259,10 @@ const QuickEnquiry = () => {
             ))
           )}
         </div>
-      </div>
+        </div>
+        </div>
+      </main>
+      <UserFooter />
     </div>
   </main>
 

@@ -42,28 +42,28 @@ export default function InventoryManagement() {
         <main className="flex-1 p-6 lg:p-8 overflow-auto">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-600 rounded-md text-white">
+              <div className="p-2 bg-red-600 rounded-md text-white">
                 <Warehouse className="w-5 h-5" />
               </div>
-              <h2 className="text-2xl font-bold tracking-tight text-blue-600">Inventory Management</h2>
+              <h2 className="text-2xl font-bold tracking-tight text-red-600">Inventory Management</h2>
             </div>
           </div>
 
           <Tabs defaultValue="levels" className="w-full">
             <TabsList className="bg-white border shadow-sm p-1 h-auto mb-4">
-              <TabsTrigger value="levels" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-600 px-6 py-2">
+              <TabsTrigger value="levels" className="data-[state=active]:bg-red-50 data-[state=active]:text-red-600 px-6 py-2">
                 <Warehouse className="w-4 h-4 mr-2" />
                 Stock Levels
               </TabsTrigger>
-              <TabsTrigger value="transfer" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-600 px-6 py-2">
+              <TabsTrigger value="transfer" className="data-[state=active]:bg-red-50 data-[state=active]:text-red-600 px-6 py-2">
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Stock Transfer
               </TabsTrigger>
-              <TabsTrigger value="adjust" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-600 px-6 py-2">
+              <TabsTrigger value="adjust" className="data-[state=active]:bg-red-50 data-[state=active]:text-red-600 px-6 py-2">
                 <Store className="w-4 h-4 mr-2" />
                 Adjust Inventory
               </TabsTrigger>
-              <TabsTrigger value="ledger" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-600 px-6 py-2">
+              <TabsTrigger value="ledger" className="data-[state=active]:bg-red-50 data-[state=active]:text-red-600 px-6 py-2">
                 <History className="w-4 h-4 mr-2" />
                 Transaction Ledger
               </TabsTrigger>
@@ -131,7 +131,7 @@ function StockLevelsTab({ inventory }: { inventory: any[] }) {
         
         <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v)} className="bg-gray-50/50 p-1 rounded-md border border-gray-200">
           <ToggleGroupItem value="shop" aria-label="Shop" className="data-[state=on]:bg-white data-[state=on]:shadow-sm">
-            <Printer className="w-4 h-4 mr-2 text-blue-600" />
+            <Printer className="w-4 h-4 mr-2 text-red-600" />
             Shop (Pieces)
           </ToggleGroupItem>
           <ToggleGroupItem value="godown" aria-label="Godown" className="data-[state=on]:bg-white data-[state=on]:shadow-sm">
@@ -175,7 +175,7 @@ function StockLevelsTab({ inventory }: { inventory: any[] }) {
                   )}
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <button className="text-sm font-medium text-gray-500 hover:text-blue-600 flex items-center justify-end gap-1.5 ml-auto transition-colors">
+                  <button className="text-sm font-medium text-gray-500 hover:text-red-600 flex items-center justify-end gap-1.5 ml-auto transition-colors">
                     <RefreshCw className="w-3.5 h-3.5" /> Quick Adjust
                   </button>
                 </td>
@@ -282,7 +282,7 @@ function StockTransferTab({ inventory, fetchInventory }: { inventory: any[], fet
           />
         </div>
 
-        <Button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 h-10 mt-2">
+        <Button type="submit" disabled={loading} className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 h-10 mt-2">
           {loading ? "Processing..." : "Complete Transfer"}
         </Button>
       </form>
@@ -415,7 +415,7 @@ function AdjustInventoryTab({ inventory, fetchInventory }: { inventory: any[], f
           />
         </div>
 
-        <Button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 h-10 mt-2">
+        <Button type="submit" disabled={loading} className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 h-10 mt-2">
           {loading ? "Processing..." : "Record Adjustment"}
         </Button>
       </form>
@@ -486,7 +486,7 @@ function TransactionLedgerTab() {
         
         <div className="flex gap-2">
           <Button variant="outline" className="border-gray-200 text-gray-700 bg-white">Export Excel</Button>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white">Print / PDF</Button>
+          <Button className="bg-red-600 hover:bg-red-700 text-white">Print / PDF</Button>
         </div>
       </div>
 
