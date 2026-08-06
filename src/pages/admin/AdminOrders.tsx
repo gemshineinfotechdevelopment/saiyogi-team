@@ -264,7 +264,7 @@ const AdminOrders = () => {
           {([
             { key: 'all',      label: 'All Orders',  icon: '📋', activeClass: 'bg-primary text-primary-foreground border-primary' },
             { key: 'approved', label: 'Approved',     icon: '✅', activeClass: 'bg-green-600 text-white border-green-600' },
-            { key: 'packing',  label: 'Packed',       icon: '📦', activeClass: 'bg-blue-600 text-white border-blue-600' },
+            { key: 'packing',  label: 'Packed',       icon: '📦', activeClass: 'bg-red-600 text-white border-red-600' },
             { key: 'hold',     label: 'On Hold',      icon: '🔒', activeClass: 'bg-amber-500 text-white border-amber-500' },
           ] as { key: StatusFilter; label: string; icon: string; activeClass: string }[]).map(({ key, label, icon, activeClass }) => (
             <button
@@ -348,7 +348,7 @@ const AdminOrders = () => {
                     <td className="p-3 text-right hidden sm:table-cell">{o.items?.length || 0}</td>
                     <td className="p-3 text-right font-bold text-primary">₹{Number(o.subtotal) + (Number(o.packingCharge) || 0)}</td>
                     <td className="p-3 text-center">
-                      <Badge variant={o.packingStatus === 'packed' ? 'default' : 'secondary'} className={o.packingStatus === 'packed' ? 'bg-blue-600' : ''}>
+                      <Badge variant={o.packingStatus === 'packed' ? 'default' : 'secondary'} className={o.packingStatus === 'packed' ? 'bg-red-600' : ''}>
                         {o.packingStatus ? (o.packingStatus === 'packed' ? '📦 Packed' : '🔹 Unpacked') : 'N/A'}
                       </Badge>
                     </td>
@@ -550,7 +550,7 @@ const AdminOrders = () => {
                     <Button
                       onClick={handleTogglePackingStatus}
                       disabled={isUpdatingPacking}
-                      className={`flex-1 ${selectedOrder.packingStatus === 'packed' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-orange-600 hover:bg-orange-700'} text-white`}
+                      className={`flex-1 ${selectedOrder.packingStatus === 'packed' ? 'bg-red-600 hover:bg-red-700' : 'bg-orange-600 hover:bg-orange-700'} text-white`}
                     >
                       {isUpdatingPacking ? "Updating..." : selectedOrder.packingStatus === 'packed' ? '📦 Mark Unpacked' : '🔹 Mark Packed'}
                     </Button>

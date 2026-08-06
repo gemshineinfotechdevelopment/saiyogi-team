@@ -141,7 +141,7 @@ const QuickEnquiry = () => {
               <span className="text-[9px] text-red-200 tracking-wider font-semibold uppercase">CURRENT ESTIMATE</span>
               <span className="font-extrabold text-sm text-white leading-tight">₹{totalPrice.toFixed(2)}</span>
             </div>
-            <Link to="/cart">
+            <Link to="/catalog">
               <button className="bg-[#EAB308] hover:bg-yellow-400 text-black text-xs font-extrabold px-3.5 py-1.5 rounded-full transition-colors ml-2 shadow-xs cursor-pointer">
                 Checkout Now
               </button>

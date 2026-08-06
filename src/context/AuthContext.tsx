@@ -9,27 +9,34 @@ interface AuthContextType {
   logout: () => void;
 }
 
+const isLocalhost = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(localStorage.getItem("admin_token"));
-  const [isAdmin, setIsAdmin] = useState<boolean>(!!localStorage.getItem("admin_token"));
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!localStorage.getItem("admin_token"));
-  const [loading, setLoading] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem("admin_token");
-    if (savedToken) {
-      setToken(savedToken);
+    const storedToken = localStorage.getItem("admin_token");
+    const storedRole = localStorage.getItem("admin_role");
+
+    if (storedToken) {
+      setToken(storedToken);
       setIsAdmin(true);
       setIsAuthenticated(true);
+    } else {
+      setToken(null);
+      setIsAdmin(false);
+      setIsAuthenticated(false);
     }
+    setLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
-    const isLocalhost = typeof window !== 'undefined' && 
-      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
     const primaryBase = isLocalhost ? "" : ((import.meta.env.VITE_API_URL as string) || "http://localhost:5000");
     const urlsToTry = isLocalhost
       ? [
@@ -80,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Allow SUPER ADMIN and ADMIN roles
     const allowedRoles = ["admin", "SUPER ADMIN", "ADMIN"];
-    if (!allowedRoles.includes(data.user?.role)) {
+    if (data.user?.role && !allowedRoles.includes(data.user?.role)) {
       throw new Error("Only admin users can access this section");
     }
 
@@ -89,7 +96,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAuthenticated(true);
 
     localStorage.setItem("admin_token", data.token);
-    localStorage.setItem("admin_role", data.user.role);
+    if (data.user?.role) {
+      localStorage.setItem("admin_role", data.user.role);
+    }
   };
 
   const logout = () => {

@@ -8,7 +8,7 @@ import banner1 from "@/assets/banner1.png";
 import banner2 from "@/assets/banner2.png";
 import banner3 from "@/assets/banner3.png";
 import { useState, useEffect } from "react";
-import { getProducts, getCategories } from "@/lib/api";
+import { getProducts, getCategories, getBrands, Brand } from "@/lib/api";
 import { Product, Category } from "@/data/products";
 import { getUpcomingDiwaliInfo, calculateTimeLeft, UpcomingDiwaliInfo } from "@/lib/diwaliCountdown";
 import { Fireworks } from '@fireworks-js/react';
@@ -39,15 +39,6 @@ const premiumCategories = [
   { name: "Ground Chakkars", image: "/flower_pots.png", categoryId: "cat-4" },
   { name: "Combo Packs", image: "/family_star_kit.png", categoryId: "cat-5" },
   { name: "Gift Boxes", image: "/bestseller_pack.png", categoryId: "all" },
-];
-
-const manufacturers = [
-  { name: "STANDARD", logo: "S" },
-  { name: "AJANTA", logo: "A" },
-  { name: "CORONATION", logo: "C" },
-  { name: "VADIVEL", logo: "V" },
-  { name: "ANIL", logo: "AN" },
-  { name: "SONY", logo: "SF" },
 ];
 
 const demoVideos = [
@@ -112,9 +103,10 @@ const shopByBrands = [
 
 const Index = () => {
   const { settings } = useSiteSettings();
-  const { items: cartItems, addToCart, updateQuantity } = useCart();
+  const { items: cartItems, addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [playingVideo, setPlayingVideo] = useState<number | null>(null);
   const [videoIndex, setVideoIndex] = useState(0);
   const [comboIndex, setComboIndex] = useState(0);
@@ -157,6 +149,9 @@ const Index = () => {
     });
     getCategories().then((cats) => {
       setCategories(Array.isArray(cats) ? cats : []);
+    });
+    getBrands().then((b) => {
+      setBrands(Array.isArray(b) ? b.filter((brand) => brand.isActive !== false) : []);
     });
   }, []);
 
@@ -492,21 +487,21 @@ const Index = () => {
 
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-            {shopByBrands.map((brand, i) => (
+            {(brands.length > 0 ? brands : shopByBrands).map((brand: any, i: number) => (
               <div 
-                key={i} 
+                key={brand._id || brand.id || i} 
                 onClick={() => window.location.href=`/catalog?brand=${encodeURIComponent(brand.name)}`}
                 className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#A80000] rounded-2xl p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1"
               >
                 <span className="text-[9px] font-extrabold text-[#A80000] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full mb-2">
-                  {brand.tag}
+                  {brand.tag || "Authentic"}
                 </span>
                 <div className="w-full aspect-square flex items-center justify-center p-2 mb-2 group-hover:scale-105 transition-transform duration-300">
-                  <img src={brand.image} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-sm" />
+                  <img src={brand.image || brand.logoUrl || "/sky_rocket_box.png"} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-sm" />
                 </div>
                 <div>
                   <h3 className="font-black text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#A80000] transition-colors">{brand.name}</h3>
-                  <p className="text-[10px] text-gray-500 font-medium mt-0.5">{brand.subtitle}</p>
+                  <p className="text-[10px] text-gray-500 font-medium mt-0.5">{brand.subtitle || "Original Brand"}</p>
                 </div>
               </div>
             ))}

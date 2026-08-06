@@ -499,3 +499,47 @@ export const apiRequest = async (path: string, options: any = {}) => {
 
   return response.json();
 };
+
+export interface Brand {
+  _id?: string;
+  id?: string;
+  brandId: string; // Auto generated e.g. b0001, b0002
+  name: string;
+  phone?: string;
+  logo?: string;
+  description?: string;
+  itemsCount?: number;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export async function getBrands(): Promise<Brand[]> {
+  try {
+    return await fetchJSON<Brand[]>('/api/brands');
+  } catch (error) {
+    console.error("Failed to fetch brands:", error);
+    return [];
+  }
+}
+
+export async function getNextBrandId(): Promise<string> {
+  try {
+    const res = await fetchJSON<{ brandId: string }>('/api/brands/next-id');
+    return res.brandId || 'B0001';
+  } catch (error) {
+    return 'B0001';
+  }
+}
+
+export async function createBrand(data: Partial<Brand>): Promise<Brand> {
+  return fetchJSON<Brand>('/api/brands', 'POST', data);
+}
+
+export async function updateBrand(id: string, data: Partial<Brand>): Promise<Brand> {
+  return fetchJSON<Brand>(`/api/brands/${id}`, 'PUT', data);
+}
+
+export async function deleteBrand(id: string): Promise<{ message: string }> {
+  return fetchJSON<{ message: string }>(`/api/brands/${id}`, 'DELETE');
+}

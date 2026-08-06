@@ -18,6 +18,7 @@ import QuickEnquiry from "./pages/QuickEnquiry";
 import AboutUs from "./pages/AboutUs";
 import AdminLogin from "./pages/admin/AdminLogin";
 import Dashboard from "./pages/admin/Dashboard";
+import AdminBrands from "./pages/admin/AdminBrands";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminCategories from "./pages/admin/AdminCategories";
@@ -63,6 +64,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/brands"
+                    element={
+                      <ProtectedRoute>
+                        <AdminBrands />
                       </ProtectedRoute>
                     }
                   />

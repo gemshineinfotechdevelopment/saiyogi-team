@@ -345,7 +345,7 @@ const AdminProducts = () => {
                       <td className="p-3 text-right">
                         <span className="font-bold text-primary">₹{p.price}</span>
                       </td>
-                      <td className="p-3 text-right font-bold text-indigo-600">
+                      <td className="p-3 text-right font-bold text-red-600">
                         ₹{p.netRate || 0}
                       </td>
                       <td className="p-3 text-center hidden md:table-cell">
