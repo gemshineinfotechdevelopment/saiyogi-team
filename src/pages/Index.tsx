@@ -14,7 +14,7 @@ import { getUpcomingDiwaliInfo, calculateTimeLeft, UpcomingDiwaliInfo } from "@/
 import { Fireworks } from '@fireworks-js/react';
 
 // Static Data based on the design
-const staticBestSellers = [
+const staticBestSellers: Product[] = [
   { id: 1, name: "Whistling Birds", price: 240, image: "/sky_rocket_box.png" },
   { id: 2, name: "Flower Pots Big", price: 450, image: "/flower_pots.png" },
   { id: 3, name: "1000 Wala", price: 1200, image: "/sky_rocket_box.png" },
@@ -23,7 +23,7 @@ const staticBestSellers = [
   { id: 6, name: "Chakkra Special", price: 280, image: "/flower_pots.png" },
 ];
 
-const staticFamilyPacks = [
+const staticFamilyPacks: Product[] = [
   { id: 7, name: "Mega Family Pack", oldPrice: 4500, price: 3200, image: "/sky_rocket_box.png" },
   { id: 8, name: "Grand Celebration Combo", oldPrice: 6000, price: 4500, image: "/flower_pots.png" },
   { id: 9, name: "Sky Show Magic", oldPrice: 7500, price: 5500, image: "/sky_rocket_box.png" },
@@ -324,9 +324,9 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {(products.length > 0 ? products.slice(0, 6) : staticBestSellers).map((item: any) => (
+            {(products.length > 0 ? products.slice(0, 6) : staticBestSellers).map((item: any, idx: number) => (
               <div 
-                key={item.id || item._id} 
+                key={`bestseller-${item._id || item.id || idx}`} 
                 className="bg-white border border-gray-200 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
               >
                 <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative">
@@ -449,7 +449,7 @@ const Index = () => {
           <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
             {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i: number) => (
               <div 
-                key={cat.id || cat._id || i} 
+                key={`${cat.id || cat._id || 'cat'}-${i}`} 
                 onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id}`} 
                 className="bg-white border border-gray-200 p-4 flex flex-col items-center text-center shadow-md rounded-2xl min-w-[200px] max-w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
               >
@@ -549,8 +549,8 @@ const Index = () => {
 
                 return (
                   <div 
-                    key={item.id || item._id} 
-                    className="bg-white border-2 border-amber-100 rounded-3xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center relative group hover:-translate-y-1 overflow-hidden"
+                    key={`combo-${offset}-${item._id || item.id || offset}`} 
+                    className="bg-[#FFFFFF] border-2 border-amber-100 rounded-3xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center relative group hover:-translate-y-1 overflow-hidden"
                   >
                     <div className="absolute top-4 right-4 bg-gradient-to-r from-[#A80000] to-[#5c0a0b] text-[#F4C542] font-black text-[10px] px-3 py-1 rounded-full uppercase shadow-md">
                       SAVE BIG

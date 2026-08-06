@@ -43,6 +43,12 @@ async function fetchJSON<T>(path: string, method: string = 'GET', body?: any): P
   for (const url of urlsToTry) {
     try {
       const response = await fetch(url, options);
+      const contentType = response.headers.get('content-type') || '';
+      // If server returned 200 OK HTML (SPA fallback), skip and try next API URL
+      if (response.ok && contentType.includes('text/html') && url.endsWith(path) && isLocalhost) {
+        lastError = new Error(`HTML response received for ${url}`);
+        continue;
+      }
       res = response;
       break;
     } catch (err) {

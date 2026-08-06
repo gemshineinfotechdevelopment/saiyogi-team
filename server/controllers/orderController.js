@@ -118,8 +118,18 @@ export const createOrder = async (req, res, next) => {
     const gst = 0;
     const total = subtotal + packingCharge;
 
-    const count = await Order.countDocuments().session(session);
-    const orderNumber = (count + 1).toString().padStart(5, '0');
+    // Generate sequential order number starting from 8899
+    const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(50).session(session);
+    let maxNum = 8898;
+    for (const o of recentOrders) {
+      if (o.orderNumber) {
+        const num = parseInt(o.orderNumber, 10);
+        if (!isNaN(num) && num > maxNum) {
+          maxNum = num;
+        }
+      }
+    }
+    const orderNumber = (maxNum + 1).toString();
 
     // Attempt to link to an existing customer
     const existingCustomer = await Customer.findOne({ email: customerEmail }).session(session);

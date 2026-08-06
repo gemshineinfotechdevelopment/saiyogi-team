@@ -26,7 +26,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isCartOpen, setIsCartOpen] = useState(false);
   const { settings } = useSiteSettings();
 
-  const getProductId = (product: Product) => product._id || product.id;
+  const getProductId = (product: Product) => String(product._id || product.id || '');
 
   const addToCart = useCallback((product: Product, quantity: number = 1) => {
     const productId = getProductId(product);

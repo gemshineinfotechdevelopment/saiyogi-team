@@ -133,8 +133,17 @@ orderSchema.index({ createdAt: -1 });
 // Generate order number before saving
 orderSchema.pre('save', async function() {
   if (!this.orderNumber) {
-    const count = await mongoose.model('Order').countDocuments();
-    this.orderNumber = (count + 1).toString().padStart(5, '0');
+    const recentOrders = await mongoose.model('Order').find().sort({ createdAt: -1 }).limit(50).exec();
+    let maxNum = 8898;
+    for (const o of recentOrders) {
+      if (o.orderNumber) {
+        const num = parseInt(o.orderNumber, 10);
+        if (!isNaN(num) && num > maxNum) {
+          maxNum = num;
+        }
+      }
+    }
+    this.orderNumber = (maxNum + 1).toString();
   }
 });
 
