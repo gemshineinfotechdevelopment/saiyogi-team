@@ -89,7 +89,7 @@ const AdminLogin = () => {
             </Button>
           </form>
 
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-xs text-gray-600">
               <span className="font-semibold">Demo Credentials:</span><br />
               Email: cracker@saiyogi.com<br />

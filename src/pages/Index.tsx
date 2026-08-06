@@ -12,6 +12,7 @@ import { getProducts, getCategories, getBrands, Brand } from "@/lib/api";
 import { Product, Category } from "@/data/products";
 import { getUpcomingDiwaliInfo, calculateTimeLeft, UpcomingDiwaliInfo } from "@/lib/diwaliCountdown";
 import { Fireworks } from '@fireworks-js/react';
+import ProductCard from "@/components/ProductCard";
 
 // Static Data based on the design
 const staticBestSellers = [
@@ -304,6 +305,59 @@ const Index = () => {
       />
 
       {/* Hero Section */}
+      <section className="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-[600px] min-h-[220px] flex items-center justify-center overflow-hidden bg-black">
+        <img
+          key={`enter-${slideKey}`}
+          src={heroImages[currentSlide]}
+          alt="Sai Yogi Crackers Festival Banner"
+          className="w-full h-full object-cover object-center hero-slide-enter opacity-100"
+        />
+      </section>
+
+      {/* Best Sellers */}
+      <section className="py-12 container mx-auto px-4 max-w-6xl overflow-hidden">
+        <div className="flex justify-between items-end mb-8 border-b border-gray-200 pb-2">
+          <h2 className="text-xl md:text-2xl font-black text-[#A80000] uppercase tracking-widest relative font-display">
+            Best Sellers
+            <div className="absolute -bottom-2.5 left-0 w-1/2 h-0.5 bg-[#A80000]"></div>
+          </h2>
+          <Link to="/catalog" className="text-red-600 font-bold text-xs hover:underline uppercase">View All &gt;</Link>
+        </div>
+        {/* Infinite scrolling marquee from right to left */}
+        <div className="relative w-full overflow-hidden py-4">
+          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+            {[...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers)].map((item: any, index: number) => {
+              const itemId = item.id || item._id;
+              return (
+                <div key={`${itemId}-${index}`} className="min-w-[260px] max-w-[260px] shrink-0">
+                  <ProductCard product={item} />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Videos Section */}
+      <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5]">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="text-center mb-10">
+            <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
+              ✨ Watch the Magic ✨
+            </span>
+            <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2 font-display">
+              Fireworks Showcase
+            </h2>
+            <p className="text-gray-500 text-xs mt-2 max-w-md mx-auto">
+              Click on any card to watch our premium Sivakasi crackers light up the night sky!
+            </p>
+          </div>
+
+          <div className="relative flex items-center justify-center">
+            {/* Left Button */}
+            <button
+              onClick={() => setVideoIndex((prev) => (prev - 1 + demoVideos.length) % demoVideos.length)}
+              className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
       <section className="relative overflow-hidden bg-black text-white min-h-[300px] sm:min-h-[420px] md:min-h-[500px] lg:min-h-[580px] flex items-center justify-center">
         <div className="absolute inset-0 z-0">
           {heroImages.map((img, index) => (
@@ -346,6 +400,48 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Premium Categories */}
+      <section className="py-16 bg-[#FFF6E5] overflow-hidden">
+        <div className="text-center mb-10">
+          <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2 font-display">Premium Categories</h2>
+          <p className="text-black font-bold uppercase text-sm">Shop By Category</p>
+          <p className="text-gray-500 text-xs mt-2 max-w-md mx-auto">Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.</p>
+        </div>
+        
+        {/* Infinite scrolling categories marquee from right to left */}
+        <div className="relative w-full overflow-hidden py-4">
+          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+            {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i) => (
+              <div 
+                key={`${cat.id || cat._id || 'cat'}-${i}`} 
+                onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id}`} 
+                className="bg-white border border-gray-200 p-4 flex flex-col items-center text-center shadow-md rounded-2xl min-w-[200px] max-w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
+              >
+                <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative border border-gray-100/50">
+                  <img 
+                    src={cat.image || "/sky_rocket_box.png"} 
+                    alt={cat.name} 
+                    className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110" 
+                  />
+                  <span className="absolute top-2 left-2 bg-[#A80000] text-[#F4C542] font-black text-[9px] px-2.5 py-0.5 rounded-full shadow uppercase">
+                    SHOP
+                  </span>
+                </div>
+                <h3 className="font-bold text-xs text-gray-800 uppercase text-center min-h-[32px] line-clamp-2 transition-colors group-hover:text-[#A80000] mb-3">{cat.name}</h3>
+                
+                <div className="w-full mt-auto">
+                  <button className="w-full bg-[#A80000] text-white py-1.5 rounded-lg text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase">
+                    View Products
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Shop By Category */}
+      <section className="py-16 bg-[#FDF5E6] border-b border-amber-100">
       {/* Categories Grid */}
       <section className="py-16 bg-[#FFF8EE] border-b border-amber-100/50">
         <div className="text-center mb-10 container mx-auto px-4">
@@ -486,7 +582,7 @@ const Index = () => {
                   : staticFamilyPacks;
                 
                 const idx = (comboIndex + offset) % comboPacksList.length;
-                const item = comboPacksList[idx];
+                const item = comboPacksList[idx] as any;
                 const itemId = item.id || item._id;
                 const cartItem = cartItems.find((i) => (i.product._id || i.product.id) === itemId);
                 const quantity = cartItem?.quantity || 0;
