@@ -49,10 +49,12 @@ const AdminSidebar = () => {
   };
 
   return (
-    <aside className={cn(
-      "shrink-0 border-r border-border bg-sidebar h-screen sticky top-0 hidden lg:flex flex-col transition-all duration-300",
-      isCollapsed ? "w-20" : "w-64"
-    )}>
+    <>
+      {/* Fixed Sidebar */}
+      <aside className={cn(
+        "border-r border-border bg-sidebar h-screen fixed top-0 left-0 hidden lg:flex flex-col transition-all duration-300 z-40",
+        isCollapsed ? "w-20" : "w-64"
+      )}>
       <div className={cn("p-4 shrink-0 flex flex-col gap-2", !isCollapsed && "p-6")}>
         <div className={cn("flex items-center", isCollapsed ? "justify-center" : "justify-between")}>
           {!isCollapsed && (
@@ -115,6 +117,13 @@ const AdminSidebar = () => {
         </Button>
       </div>
     </aside>
+      
+      {/* Spacer to push main content to the right so it doesn't get hidden under the fixed sidebar */}
+      <div className={cn(
+        "shrink-0 hidden lg:block transition-all duration-300",
+        isCollapsed ? "w-20" : "w-64"
+      )} />
+    </>
   );
 };
 
