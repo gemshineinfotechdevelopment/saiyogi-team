@@ -8,10 +8,11 @@ import banner1 from "@/assets/banner1.png";
 import banner2 from "@/assets/banner2.png";
 import banner3 from "@/assets/banner3.png";
 import { useState, useEffect } from "react";
-import { getProducts, getCategories } from "@/lib/api";
+import { getProducts, getCategories, getBrands, Brand } from "@/lib/api";
 import { Product, Category } from "@/data/products";
 import { getUpcomingDiwaliInfo, calculateTimeLeft, UpcomingDiwaliInfo } from "@/lib/diwaliCountdown";
 import { Fireworks } from '@fireworks-js/react';
+import ProductCard from "@/components/ProductCard";
 
 // Static Data based on the design
 const staticBestSellers = [
@@ -115,6 +116,7 @@ const Index = () => {
   const { items: cartItems, addToCart, updateQuantity } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [playingVideo, setPlayingVideo] = useState<number | null>(null);
   const [videoIndex, setVideoIndex] = useState(0);
   const [comboIndex, setComboIndex] = useState(0);
@@ -158,6 +160,9 @@ const Index = () => {
     getCategories().then((cats) => {
       setCategories(Array.isArray(cats) ? cats : []);
     });
+    getBrands().then((b) => {
+      setBrands(Array.isArray(b) ? b.filter((brand) => brand.isActive !== false) : []);
+    });
   }, []);
 
   // Custom Canvas for Hyper-Realistic Flower Pots
@@ -178,54 +183,44 @@ const Index = () => {
     let saravediParticles: any[] = [];
     
     const createFlowerPotParticle = (x: number, y: number) => {
-      const angle = (Math.random() * Math.PI) / 3 - Math.PI / 6; // Spread
-      const speed = Math.random() * 9 + 5; // Slower speed
+      const angle = (Math.random() * Math.PI) / 3 - Math.PI / 6;
+      const speed = Math.random() * 9 + 5;
       particles.push({
         x, y,
         vx: Math.sin(angle) * speed,
         vy: -Math.cos(angle) * speed,
         life: 1,
-        decay: Math.random() * 0.015 + 0.008, // Slower decay
-        color: Math.random() > 0.3 ? '255, 215, 0' : '255, 140, 0' // Gold / Dark Orange
+        decay: Math.random() * 0.015 + 0.008,
+        color: Math.random() > 0.3 ? '255, 215, 0' : '255, 140, 0'
       });
     };
-
+    
     const createSaravediParticle = (x: number, y: number) => {
       const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 5 + 1.5; // Slower speed
+      const speed = Math.random() * 6 + 2;
       saravediParticles.push({
         x, y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         life: 1,
-        decay: Math.random() * 0.04 + 0.02, // Slower decay
-        color: Math.random() > 0.5 ? '255, 255, 255' : '255, 69, 0'
+        decay: Math.random() * 0.04 + 0.02,
+        color: Math.random() > 0.5 ? '255, 50, 50' : '255, 220, 0'
       });
     };
 
     let animationId: number;
-    let frameCount = 0;
-
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.globalCompositeOperation = 'lighter';
-      frameCount++;
       
-      const now = Date.now();
-      const cycleTime = now % 8000; // 8 seconds total cycle (5s ON, 3s OFF)
-      const isFlowerPotActive = cycleTime < 5000;
-      
-      // Generate Flower Pot particles continuously from bottom only when active
-      if (isFlowerPotActive) {
-        for (let i = 0; i < 6; i++) {
-          createFlowerPotParticle(canvas.width / 2, canvas.height);
-          createFlowerPotParticle(canvas.width / 6, canvas.height);
-          createFlowerPotParticle(5 * canvas.width / 6, canvas.height);
+      if (Math.random() < 0.8) {
+        const sx = canvas.width / 2;
+        const sy = canvas.height - 20;
+        for (let i = 0; i < 4; i++) {
+          createFlowerPotParticle(sx, sy);
         }
       }
 
-      // Generate random Saravedi bursts near the ground every few frames
-      if (frameCount % 12 === 0) {
+      if (Math.random() < 0.15) {
         const sx = Math.random() * canvas.width;
         const sy = canvas.height - Math.random() * 50;
         for (let i = 0; i < 15; i++) {
@@ -233,10 +228,9 @@ const Index = () => {
         }
       }
       
-      // Update and draw Flower Pot particles
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
-        p.vy += 0.15; // Slower gravity
+        p.vy += 0.15;
         p.x += p.vx;
         p.y += p.vy;
         p.life -= p.decay;
@@ -254,10 +248,9 @@ const Index = () => {
         ctx.stroke();
       }
 
-      // Update and draw Saravedi particles
       for (let i = saravediParticles.length - 1; i >= 0; i--) {
         const p = saravediParticles[i];
-        p.vy += 0.1; // Light gravity
+        p.vy += 0.1;
         p.x += p.vx;
         p.y += p.vy;
         p.life -= p.decay;
@@ -284,8 +277,6 @@ const Index = () => {
     };
   }, []);
 
-
-
   return (
     <div className="min-h-screen flex flex-col bg-white relative font-sans">
       <UserHeader />
@@ -293,22 +284,14 @@ const Index = () => {
       {/* Real Crackers Animation Overlay */}
       <Fireworks
         options={{
-          rocketsPoint: { min: 10, max: 90 },
-          hue: { min: 0, max: 360 },
-          delay: { min: 50, max: 100 },
-          acceleration: 1.02,
-          friction: 0.95,
-          gravity: 1,
-          particles: 70,
-          traceLength: 3,
-          traceSpeed: 2,
+          opacity: 0.5,
+          particles: 80,
           explosion: 5,
-          intensity: 20,
-          flickering: 50,
-          lineStyle: 'round',
-          brightness: { min: 50, max: 80 },
-          decay: { min: 0.015, max: 0.03 },
-          mouse: { click: false, move: false, max: 1 }
+          intensity: 15,
+          friction: 0.97,
+          gravity: 1.5,
+          acceleration: 1.05,
+          hue: { min: 0, max: 360 },
         }}
         style={{
           top: 0,
@@ -316,13 +299,10 @@ const Index = () => {
           width: '100%',
           height: '100%',
           position: 'fixed',
-          zIndex: 100,
-          pointerEvents: 'none'
+          pointerEvents: 'none',
+          zIndex: 40,
         }}
       />
-      
-      {/* Hyper-Realistic Custom Canvas for Flower Pots & Saravedi */}
-      <canvas id="fountain-canvas" className="fixed inset-0 pointer-events-none z-[101]" />
 
       {/* Hero Section */}
       <section className="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-[600px] min-h-[220px] flex items-center justify-center overflow-hidden bg-black">
@@ -343,65 +323,14 @@ const Index = () => {
           </h2>
           <Link to="/catalog" className="text-red-600 font-bold text-xs hover:underline uppercase">View All &gt;</Link>
         </div>
-        
         {/* Infinite scrolling marquee from right to left */}
         <div className="relative w-full overflow-hidden py-4">
           <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
-            {[...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers)].map((item, index) => {
-              const itemId = item.id || (item as any)._id;
-              const cartItem = cartItems.find((i) => ((i.product as any)._id || i.product.id) === itemId);
-              const quantity = cartItem?.quantity || 0;
-
+            {[...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers)].map((item: any, index: number) => {
+              const itemId = item.id || item._id;
               return (
-                <div 
-                  key={`${itemId}-${index}`} 
-                  className="bg-white border border-gray-200 p-4 flex flex-col items-center text-center shadow-md rounded-2xl min-w-[200px] max-w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
-                  onClick={() => window.location.href=`/catalog`}
-                >
-                  <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative">
-                    <img 
-                      src={item.image || "/sky_rocket_box.png"} 
-                      alt={item.name} 
-                      className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110" 
-                    />
-                    <span className="absolute top-2 left-2 bg-[#A80000] text-[#F4C542] font-black text-[9px] px-2.5 py-0.5 rounded-full shadow">
-                      BEST
-                    </span>
-                  </div>
-                  <h3 className="font-bold text-xs text-gray-800 uppercase mb-1 min-h-[32px] line-clamp-2">{item.name}</h3>
-                  <div className="flex gap-1 mb-2 text-yellow-400">
-                    {'★★★★★'.split('').map((star, i) => <span key={i} className="text-[10px]">{star}</span>)}
-                  </div>
-                  <p className="text-[#A80000] font-extrabold text-sm mb-3">₹ {item.price}</p>
-                  
-                  <div className="flex items-center gap-2 mt-auto w-full" onClick={(e) => e.stopPropagation()}>
-                    {quantity > 0 ? (
-                      <div className="flex items-center justify-between bg-red-50/50 border border-red-200/50 rounded-lg p-1 w-full">
-                        <button 
-                          className="px-2 py-0.5 text-gray-600 hover:bg-gray-200 font-bold" 
-                          onClick={() => updateQuantity(itemId, quantity - 1)}
-                        >
-                          -
-                        </button>
-                        <span className="text-xs outline-none bg-transparent font-semibold">
-                          {quantity}
-                        </span>
-                        <button 
-                          className="px-2 py-0.5 text-gray-600 hover:bg-gray-200 font-bold" 
-                          onClick={() => updateQuantity(itemId, quantity + 1)}
-                        >
-                          +
-                        </button>
-                      </div>
-                    ) : (
-                      <button 
-                        className="w-full bg-[#A80000] text-white py-1.5 rounded-lg text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors"
-                        onClick={() => addToCart(item as Product)}
-                      >
-                        ADD
-                      </button>
-                    )}
-                  </div>
+                <div key={`${itemId}-${index}`} className="min-w-[260px] max-w-[260px] shrink-0">
+                  <ProductCard product={item} />
                 </div>
               );
             })}
@@ -429,67 +358,44 @@ const Index = () => {
             <button
               onClick={() => setVideoIndex((prev) => (prev - 1 + demoVideos.length) % demoVideos.length)}
               className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
+      <section className="relative overflow-hidden bg-black text-white min-h-[300px] sm:min-h-[420px] md:min-h-[500px] lg:min-h-[580px] flex items-center justify-center">
+        <div className="absolute inset-0 z-0">
+          {heroImages.map((img, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
+              }`}
             >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-
-            {/* Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full px-4">
-              {[0, 1, 2].map((offset) => {
-                const idx = (videoIndex + offset) % demoVideos.length;
-                const video = demoVideos[idx];
-                const isPlaying = playingVideo === video.id;
-
-                return (
-                  <div
-                    key={video.id}
-                    className="relative rounded-2xl overflow-hidden aspect-video bg-black group cursor-pointer shadow-lg transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl border border-white/40"
-                    onClick={() => setPlayingVideo(isPlaying ? null : video.id)}
-                  >
-                    {isPlaying ? (
-                      <video
-                        src={video.url}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <img
-                        src={video.thumbnail}
-                        alt={video.title}
-                        className="w-full h-full object-cover opacity-70 group-hover:opacity-85 transition-opacity"
-                      />
-                    )}
-
-                    {/* Button overlay */}
-                    <div className="absolute inset-0 flex flex-col justify-between p-4 bg-gradient-to-t from-black/60 via-transparent to-black/20">
-                      <span className="text-white font-bold text-xs bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm self-start">
-                        {video.title}
-                      </span>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-[#A80000] group-hover:border-red-500">
-                          {isPlaying ? (
-                            <Pause className="text-white fill-white w-5 h-5" />
-                          ) : (
-                            <Play className="text-white fill-white w-5 h-5 ml-0.5" />
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              <img
+                key={`${index}-${slideKey}`}
+                src={img}
+                alt={`Diwali Banner ${index + 1}`}
+                className={`w-full h-full object-cover sm:object-contain object-center ${
+                  index === currentSlide ? "animate-hero-slide-rtl" : ""
+                }`}
+              />
             </div>
+          ))}
 
-            {/* Right Button */}
-            <button
-              onClick={() => setVideoIndex((prev) => (prev + 1) % demoVideos.length)}
-              className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
+          <div className="absolute inset-0 bg-black/20 z-15 pointer-events-none" />
+
+          {/* Dots Indicator */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+            {heroImages.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  setCurrentSlide(i);
+                  setSlideKey((k) => k + 1);
+                }}
+                className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                  i === currentSlide
+                    ? "bg-[#F4C542] w-8 shadow-[0_0_10px_#F4C542]"
+                    : "bg-white/50 hover:bg-white"
+                }`}
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -507,8 +413,8 @@ const Index = () => {
           <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
             {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i) => (
               <div 
-                key={cat.id || cat._id || cat.categoryId || i} 
-                onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id || cat.categoryId}`} 
+                key={`${cat.id || cat._id || 'cat'}-${i}`} 
+                onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id || cat.categoryId}`}
                 className="bg-white border border-gray-200 p-4 flex flex-col items-center text-center shadow-md rounded-2xl min-w-[200px] max-w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
               >
                 <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative border border-gray-100/50">
@@ -533,26 +439,28 @@ const Index = () => {
           </div>
         </div>
       </section>
-      
-      {/* Shop By Category */}
-      <section className="py-16 bg-[#FDF5E6] border-b border-amber-100">
+
+      {/* Categories Grid */}
+      <section className="py-16 bg-[#FFF8EE] border-b border-amber-100/50">
         <div className="text-center mb-10 container mx-auto px-4">
-          <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs">
-            Shop By Category
+          <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
+            ✨ POPULAR CATEGORIES ✨
+          </span>
+          <h2 className="font-black text-[#A80000] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 font-display">
+            Explore Categories
           </h2>
-          <div className="w-24 h-1 bg-[#7A1416] mx-auto rounded-full mb-3"></div>
           <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto font-medium">
-            Explore our wide selection of premium fireworks crafted for the most spectacular and joyful celebration.
+            Discover our vast range of Sivakasi fireworks tailored for all your celebrations.
           </p>
         </div>
-        
+
         <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-            {(categories.length > 0 ? categories : premiumCategories).slice(0, 6).map((cat: any, i: number) => (
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+            {(categories.length > 0 ? categories : premiumCategories).map((cat: any, i: number) => (
               <div 
                 key={cat.id || cat._id || i} 
                 onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id || cat.categoryId || 'all'}`} 
-                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-amber-100 flex flex-col items-center p-4 cursor-pointer group hover:-translate-y-1"
+                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-amber-100 flex flex-col items-center p-4 cursor-pointer group hover:-translate-y-1 w-[calc(50%-8px)] sm:w-[170px] lg:w-[175px] shrink-0"
               >
                 <div className="w-full aspect-square flex items-center justify-center bg-gradient-to-b from-amber-50/50 to-orange-50/20 rounded-xl p-3 mb-3 group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
                   <img src={cat.image || "/sky_rocket_box.png"} alt={cat.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
@@ -575,6 +483,7 @@ const Index = () => {
           <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2 font-display">Trusted Manufacturers</h2>
           <p className="text-gray-500 text-xs mt-1">We are supplying high quality fireworks from top brands in Sivakasi.</p>
         </div>
+
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="flex flex-wrap justify-center gap-6">
             {manufacturers.map((brand, i) => (
@@ -598,10 +507,11 @@ const Index = () => {
           </div>
         </div>
       </section>
+
       {/* Shop By Brand */}
       <section className="py-16 bg-white border-b border-gray-100">
         <div className="text-center mb-10 container mx-auto px-4">
-          <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs">
+          <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs font-display">
             Shop By Brand
           </h2>
           <div className="w-24 h-1 bg-[#7A1416] mx-auto rounded-full mb-3"></div>
@@ -611,22 +521,25 @@ const Index = () => {
         </div>
 
         <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-            {shopByBrands.map((brand, i) => (
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+            {(brands.length > 0
+              ? brands
+              : shopByBrands
+            ).map((brand: any, i: number) => (
               <div 
-                key={i} 
-                onClick={() => window.location.href=`/catalog?brand=${encodeURIComponent(brand.name)}`}
-                className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-2xl p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1"
+                key={brand._id || brand.id || i} 
+                onClick={() => window.location.href=`/catalog?search=${encodeURIComponent(brand.name)}`}
+                className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-2xl p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[calc(50%-8px)] sm:w-[170px] lg:w-[175px] shrink-0"
               >
-                <span className="text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full mb-2">
-                  {brand.tag}
+                <span className="text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full mb-2 font-mono">
+                  {brand.tag || "BRAND"}
                 </span>
                 <div className="w-full aspect-square flex items-center justify-center p-2 mb-2 group-hover:scale-105 transition-transform duration-300">
-                  <img src={brand.image} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-sm" />
+                  <img src={brand.logo || brand.image || "/sky_rocket_box.png"} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-sm" />
                 </div>
                 <div>
                   <h3 className="font-black text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors">{brand.name}</h3>
-                  <p className="text-[10px] text-gray-500 font-medium mt-0.5">{brand.subtitle}</p>
+                  <p className="text-[10px] text-gray-500 font-medium mt-0.5">{brand.subtitle || brand.description || "Original Sivakasi"}</p>
                 </div>
               </div>
             ))}
@@ -667,9 +580,9 @@ const Index = () => {
                   : staticFamilyPacks;
                 
                 const idx = (comboIndex + offset) % comboPacksList.length;
-                const item = comboPacksList[idx];
-                const itemId = item.id || (item as any)._id;
-                const cartItem = cartItems.find((i) => ((i.product as any)._id || i.product.id) === itemId);
+                const item = comboPacksList[idx] as any;
+                const itemId = item.id || item._id;
+                const cartItem = cartItems.find((i) => (i.product._id || i.product.id) === itemId);
                 const quantity = cartItem?.quantity || 0;
 
                 return (

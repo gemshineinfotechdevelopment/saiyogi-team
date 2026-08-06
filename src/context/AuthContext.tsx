@@ -12,27 +12,28 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  // Check if user is already logged in on mount
   useEffect(() => {
     const storedToken = localStorage.getItem("admin_token");
     const storedRole = localStorage.getItem("admin_role");
-    
+
     if (storedToken && ["admin", "SUPER ADMIN", "ADMIN"].includes(storedRole || "")) {
       setToken(storedToken);
       setIsAdmin(true);
       setIsAuthenticated(true);
+    } else {
+      setToken(null);
+      setIsAdmin(false);
+      setIsAuthenticated(false);
     }
     setLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
-    const isLocalhost = typeof window !== 'undefined' && 
-      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
     const primaryBase = isLocalhost ? "" : ((import.meta.env.VITE_API_URL as string) || "");
     const urlsToTry = isLocalhost
