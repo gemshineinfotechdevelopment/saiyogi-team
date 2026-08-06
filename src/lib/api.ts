@@ -43,6 +43,12 @@ async function fetchJSON<T>(path: string, method: string = 'GET', body?: any): P
   for (const url of urlsToTry) {
     try {
       const response = await fetch(url, options);
+      
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("text/html")) {
+        throw new Error(`Received HTML from ${url}, expected JSON`);
+      }
+      
       res = response;
       break;
     } catch (err) {
