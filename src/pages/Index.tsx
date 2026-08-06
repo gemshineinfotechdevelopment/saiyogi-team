@@ -455,9 +455,9 @@ const Index = () => {
         {/* Infinite scrolling categories marquee from right to left */}
         <div className="relative w-full overflow-hidden py-4">
           <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
-            {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat, i) => (
+            {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i) => (
               <div 
-                key={cat.id || cat._id || i} 
+                key={`${cat.id || cat._id || 'cat'}-${i}`} 
                 onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id}`} 
                 className="bg-white border border-gray-200 p-4 flex flex-col items-center text-center shadow-md rounded-2xl min-w-[200px] max-w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
               >

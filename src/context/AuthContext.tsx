@@ -31,50 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string) => {
-    const isLocalhost = typeof window !== 'undefined' && 
-      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-    const primaryBase = isLocalhost ? "" : ((import.meta.env.VITE_API_URL as string) || "");
-    const urlsToTry = isLocalhost
-      ? [
-          `${primaryBase}/api/auth/login`,
-          "http://127.0.0.1:5000/api/auth/login",
-          "http://localhost:5000/api/auth/login",
-        ].filter((v, i, a) => a.indexOf(v) === i)
-      : [`${primaryBase}/api/auth/login`];
-
-    let lastError: Error | null = null;
-    let response: Response | null = null;
-
-    for (const url of urlsToTry) {
-      try {
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-        response = res;
-        break;
-      } catch (err: any) {
-        lastError = err;
-      }
-    }
-
-    try {
-      if (!response) {
-        throw new Error(
-          lastError?.message || "Failed to connect to backend server. Ensure backend is running on port 5000."
-        );
-      }
-
-      if (!response.ok) {
-        let errorMsg = "Login failed";
-        try {
-          const error = await response.json();
-          errorMsg = error.error?.message || error.message || errorMsg;
-        } catch (_) {}
-        throw new Error(errorMsg);
-      }
     try {
       const API_BASE =
         (import.meta.env.VITE_API_URL as string) || "http://localhost:5000";
