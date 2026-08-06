@@ -7,9 +7,10 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     proxy: {
-      '/api': {
-        target: 'http://localhost:5000',
+      "/api": {
+        target: "http://localhost:5000",
         changeOrigin: true,
+        secure: false,
       },
     },
     // allow Render host for preview/dev when deployed on Render
@@ -18,13 +19,6 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     hmr: {
       overlay: false,
-    },
-    proxy: {
-      "/api": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-        secure: false,
-      },
     },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),

@@ -479,12 +479,8 @@ const Index = () => {
                   </span>
                 </div>
                 <h3 className="font-bold text-xs text-gray-800 uppercase text-center min-h-[32px] line-clamp-2 transition-colors group-hover:text-[#A80000] mb-3">{cat.name}</h3>
-                
-                <div className="w-full mt-auto">
-                  <button className="w-full bg-[#A80000] text-white py-1.5 rounded-lg text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase">
-                    View Products
-                  </button>
-                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
