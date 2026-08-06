@@ -467,12 +467,21 @@ const Index = () => {
                 </div>
               </div>
             ))}
+            {/* Right Button */}
+            <button
+              onClick={() => setVideoIndex((prev) => (prev + 1) % demoVideos.length)}
+              className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </section>
 
       {/* Trusted Manufacturers & Shop By Brand */}
       <section className="py-16 bg-white border-b border-gray-100">
+      {/* Categories Grid */}
+      <section className="py-16 bg-[#FFF8EE] border-b border-amber-100/50">
         <div className="text-center mb-10 container mx-auto px-4">
           <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
             ⭐ AUTHENTIC PARTNERS ⭐
@@ -560,6 +569,10 @@ const Index = () => {
                     <div className="flex gap-3 items-center mb-5">
                       {item.oldPrice && (
                         <span className="text-gray-400 line-through text-xs font-bold">₹{item.oldPrice}</span>
+                    <h3 className="font-black text-sm text-gray-900 uppercase mb-2 group-hover:text-[#A80000] transition-colors">{item.name}</h3>
+                    <div className="flex gap-2 items-center mb-6">
+                      {(item as any).oldPrice && (
+                        <span className="text-gray-400 line-through text-xs font-bold">₹{(item as any).oldPrice}</span>
                       )}
                       <span className="text-[#A80000] font-black text-xl">₹{item.price}</span>
                     </div>
@@ -570,6 +583,36 @@ const Index = () => {
                     >
                       <ShoppingCart className="w-4 h-4" /> Add Combo To Cart
                     </button>
+                    {quantity > 0 ? (
+                      <div className="flex items-center justify-between bg-red-50/50 border border-red-200/50 rounded-xl p-1.5 w-full mt-auto" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => updateQuantity(itemId, quantity - 1)}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-white text-[#A80000] font-black hover:bg-red-50 transition-colors shadow-sm"
+                        >
+                          -
+                        </button>
+                        <span className="font-black text-sm text-[#A80000] px-2">
+                          {quantity}
+                        </span>
+                        <button
+                          onClick={() => updateQuantity(itemId, quantity + 1)}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#A80000] text-white font-black hover:bg-red-800 transition-colors shadow-sm"
+                        >
+                          +
+                        </button>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addToCart(item as Product);
+                        }}
+                        className="w-full bg-[#A80000] hover:bg-[#F4C542] hover:text-[#1A1A1A] text-white font-black text-xs py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 uppercase tracking-widest shadow-md hover:scale-[1.02] active:scale-[0.98] mt-auto"
+                      >
+                        <ShoppingCart className="w-4 h-4" />
+                        <span>Add To Cart</span>
+                      </button>
+                    )}
                   </div>
                 );
               })}

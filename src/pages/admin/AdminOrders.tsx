@@ -70,8 +70,8 @@ const AdminOrders = () => {
         displayNetRate: i.displayNetRate !== undefined ? i.displayNetRate : i.product?.displayNetRate
       })),
       subtotal: order.subtotal,
-      packingCharge: order.packingCharge || Math.round(order.subtotal * 0.03),
-      total: order.total || (order.subtotal + (order.packingCharge || Math.round(order.subtotal * 0.03))),
+      packingCharge: order.packingCharge || (order.subtotal <= 3999 ? 120 : Math.round(order.subtotal * 0.03)),
+      total: order.total || (order.subtotal + (order.packingCharge || (order.subtotal <= 3999 ? 120 : Math.round(order.subtotal * 0.03)))),
       date: new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN'),
       discountPercent: settings.discountPercent,
       siteName: settings.siteName,
@@ -486,9 +486,9 @@ const AdminOrders = () => {
                     <h3 className="font-semibold text-sm mb-2">Order Summary</h3>
                     <div className="space-y-1 text-sm">
                       <p><strong>Subtotal:</strong> ₹{selectedOrder.subtotal}</p>
-                      <p><strong>Packing Charges (3%):</strong> ₹{selectedOrder.packingCharge || Math.round(Number(selectedOrder.subtotal) * 0.03)}</p>
+                      <p><strong>Packing Charges:</strong> ₹{selectedOrder.packingCharge || (Number(selectedOrder.subtotal) <= 3999 ? 120 : Math.round(Number(selectedOrder.subtotal) * 0.03))}</p>
                       <p className="text-green-600 text-xs italic"><strong>Delivery Charges:</strong> Excluded</p>
-                      <p className="font-bold"><strong>Total:</strong> ₹{Number(selectedOrder.subtotal) + (Number(selectedOrder.packingCharge) || Math.round(Number(selectedOrder.subtotal) * 0.03))}</p>
+                      <p className="font-bold"><strong>Total:</strong> ₹{Number(selectedOrder.subtotal) + (Number(selectedOrder.packingCharge) || (Number(selectedOrder.subtotal) <= 3999 ? 120 : Math.round(Number(selectedOrder.subtotal) * 0.03)))}</p>
                       <p><strong>Status:</strong> {selectedOrder.status}</p>
                       <p><strong>Packing Status:</strong> {selectedOrder.packingStatus ? (selectedOrder.packingStatus === 'packed' ? '📦 Packed' : '🔹 Unpacked') : 'Not set'}</p>
                     </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminNavbar from "@/components/layout/AdminNavbar";
-import { getProducts, getCategories, API_BASE_URL } from "@/lib/api";
+import { getProducts, getCategories, getBrands, API_BASE_URL, Brand } from "@/lib/api";
 import { Product, Category } from "@/data/products";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,9 @@ const AdminProducts = () => {
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
 
-  const [form, setForm] = useState({ name: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", hasDiscount: false, displayNetRate: false, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1" });
+  const [form, setForm] = useState({ name: "", sku: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", hasDiscount: false, displayNetRate: false, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1" });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
 
@@ -38,6 +39,7 @@ const AdminProducts = () => {
     setEditing(product);
     setForm({
       name: product.name,
+      sku: product.sku || product.code || "",
       price: product.price.toString(),
       stock: product.stock.toString(),
       brand: product.brand,
@@ -58,7 +60,7 @@ const AdminProducts = () => {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ name: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", hasDiscount: false, displayNetRate: false, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1" });
+    setForm({ name: "", sku: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", hasDiscount: false, displayNetRate: false, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1" });
     setImageFile(null);
     setDialogOpen(true);
   };
@@ -86,6 +88,7 @@ const AdminProducts = () => {
         setCategories(safeArr.map((c: any) => ({
           id: c._id || c.id || c.slug,
           name: c.name,
+          categoryCode: c.categoryCode || '',
           productCount: c.productCount || 0,
           image: c.image || ''
         })));
@@ -94,6 +97,12 @@ const AdminProducts = () => {
         console.error('Failed to fetch categories (AdminProducts):', err);
         setCategories([]);
       });
+
+    getBrands()
+      .then((arr) => {
+        setBrands(Array.isArray(arr) ? arr : []);
+      })
+      .catch(() => setBrands([]));
   }, []);
 
   const filtered = productList.filter((p) =>
@@ -168,29 +177,45 @@ const AdminProducts = () => {
                   <div className="space-y-4 max-h-[85vh] overflow-y-auto pr-2 custom-scrollbar">
                     <div className="grid grid-cols-2 gap-4">
                       <div><Label>Product Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter product name" /></div>
-                      <div><Label>SKU / Code</Label><Input value={editing?.sku || 'Auto-generated on save'} disabled className="bg-muted" /></div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div><Label>Retail Price (₹)</Label><Input value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} type="number" placeholder="0" /></div>
-                      <div><Label>Wholesale Price (₹)</Label><Input value={form.wholesalePrice} onChange={(e) => setForm({ ...form, wholesalePrice: e.target.value })} type="number" placeholder="0" /></div>
-                      <div><Label>Net-Rate (₹)</Label><Input value={form.netRate} onChange={(e) => setForm({ ...form, netRate: e.target.value })} type="number" placeholder="0" /></div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div><Label>Shop Stock (Pcs)</Label><Input value={form.storeStockPieces} onChange={(e) => {
-                        const val = e.target.value;
-                        setForm({ ...form, storeStockPieces: val, stock: val });
-                      }} type="number" placeholder="0" /></div>
-                      <div><Label>Godown (Cases)</Label><Input value={form.godownStockCases} onChange={(e) => {
-                        const val = e.target.value;
-                        setForm({ ...form, godownStockCases: val });
-                      }} type="number" placeholder="0" /></div>
-                      <div><Label>Pcs / Case</Label><Input value={form.piecesPerCase} onChange={(e) => {
-                        const val = e.target.value;
-                        setForm({ ...form, piecesPerCase: val });
-                      }} type="number" placeholder="1" /></div>
+                      <div>
+                        <Label className="text-xs font-bold uppercase text-gray-700">SKU / Code (Auto Generated)</Label>
+                        <Input 
+                          value={editing ? (editing.sku || editing.code || 'N/A') : (form.sku || 'Select category to generate SKU')} 
+                          disabled 
+                          className="mt-1 font-mono font-bold bg-gray-100 text-red-700 border-red-200" 
+                        />
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <div><Label>Brand</Label><Input value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} placeholder="Brand name" /></div>
+                      <div><Label>Retail Price (₹)</Label><Input value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} type="number" placeholder="0" /></div>
+                      <div><Label>Net-Rate (₹)</Label><Input value={form.netRate} onChange={(e) => setForm({ ...form, netRate: e.target.value })} type="number" placeholder="0" /></div>
+                    </div>
+                    <div>
+                      <Label>Shop Stock (Pcs)</Label>
+                      <Input value={form.storeStockPieces} onChange={(e) => {
+                        const val = e.target.value;
+                        setForm({ ...form, storeStockPieces: val, stock: val });
+                      }} type="number" placeholder="0" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Brand</Label>
+                        <select
+                          value={form.brand}
+                          onChange={(e) => setForm({ ...form, brand: e.target.value })}
+                          className="w-full mt-1 rounded-md border border-gray-300 bg-white p-2.5 text-sm text-gray-900 focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-none font-medium shadow-xs"
+                        >
+                          <option value="">Select brand</option>
+                          {brands.filter((b) => b.isActive !== false).map((b) => (
+                            <option key={b._id || b.id} value={b.name}>
+                              {b.name} ({b.brandId})
+                            </option>
+                          ))}
+                          {form.brand && !brands.some((b) => b.name === form.brand) && (
+                            <option value={form.brand}>{form.brand}</option>
+                          )}
+                        </select>
+                      </div>
                       <div className="flex flex-col gap-2 pt-6">
                         <div className="flex items-center gap-2">
                           <Checkbox 
@@ -222,17 +247,59 @@ const AdminProducts = () => {
                         </div>
                       </div>
                     </div>
-                    <div><Label>Category</Label>
-                      <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full rounded-lg border border-border bg-secondary p-2 text-sm text-foreground">
+                    <div>
+                      <Label>Category</Label>
+                      <select 
+                        value={form.category} 
+                        onChange={(e) => {
+                          const selectedCatId = e.target.value;
+                          const selectedCat = categories.find(c => (c.id === selectedCatId || (c as any)._id === selectedCatId));
+                          let calculatedSku = form.sku || '';
+
+                          if (selectedCat && selectedCat.categoryCode && selectedCat.categoryCode !== 'N/A' && !editing) {
+                            const code = selectedCat.categoryCode;
+                            let maxSeq = 0;
+                            productList.forEach(p => {
+                              if (p.sku && p.sku.startsWith(code)) {
+                                const seqStr = p.sku.substring(code.length).trim();
+                                const seqNum = parseInt(seqStr, 10);
+                                if (!isNaN(seqNum) && seqNum > maxSeq) {
+                                  maxSeq = seqNum;
+                                }
+                              }
+                            });
+                            calculatedSku = `${code}${maxSeq + 1}`;
+                          }
+
+                          setForm({ 
+                            ...form, 
+                            category: selectedCatId,
+                            sku: calculatedSku
+                          });
+                        }} 
+                        className="w-full mt-1 rounded-md border border-gray-300 bg-white p-2.5 text-sm text-gray-900 focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-none font-medium shadow-xs"
+                      >
                         <option value="">Select category</option>
-                        {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        {categories.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name} {c.categoryCode && c.categoryCode !== 'N/A' ? `(Code: ${c.categoryCode})` : ''}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div>
                       <Label>Image (Max 5MB, optional)</Label>
-                      <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} />
+                      <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} className="mt-1 block w-full text-xs text-gray-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer" />
                     </div>
-                    <div><Label>Description</Label><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full rounded-lg border border-border bg-secondary p-2 text-sm min-h-[80px] text-foreground" placeholder="Product description..." /></div>
+                    <div>
+                      <Label>Description</Label>
+                      <textarea 
+                        value={form.description} 
+                        onChange={(e) => setForm({ ...form, description: e.target.value })} 
+                        className="w-full mt-1 rounded-md border border-gray-300 bg-white p-2.5 text-sm text-gray-900 focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-none font-medium shadow-xs min-h-[90px]" 
+                        placeholder="Product description..." 
+                      />
+                    </div>
                     <Button className="w-full" onClick={async () => {
                       // basic client-side validation
                       if (!form.name.trim()) return toast.error('Name required');
@@ -241,6 +308,10 @@ const AdminProducts = () => {
 
                       const fd = new FormData();
                       fd.append('name', form.name);
+                      if (form.sku) {
+                        fd.append('sku', form.sku);
+                        fd.append('code', form.sku);
+                      }
                       fd.append('price', form.price);
                       fd.append('stock', form.stock);
                       fd.append('brand', form.brand);
@@ -281,7 +352,7 @@ const AdminProducts = () => {
                         }
 
                         setDialogOpen(false);
-                        setForm({ name: '', price: '', wholesalePrice: '', netRate: '', stock: '', brand: '', category: '', description: '', quantity: '', hasDiscount: false, displayNetRate: false, storeStockPieces: '0', godownStockCases: '0', piecesPerCase: '1' });
+                        setForm({ name: '', sku: '', price: '', wholesalePrice: '', netRate: '', stock: '', brand: '', category: '', description: '', quantity: '', hasDiscount: false, displayNetRate: false, storeStockPieces: '0', godownStockCases: '0', piecesPerCase: '1' });
                         setImageFile(null);
                         setEditing(null);
                         toast.success(editing ? 'Product updated!' : 'Product added!');

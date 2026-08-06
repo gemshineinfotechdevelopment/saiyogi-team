@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
+const isLocalhost = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -91,9 +93,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error("Only admin users can access this section");
     }
 
-    setToken(data.token);
-    setIsAdmin(true);
-    setIsAuthenticated(true);
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed");
+      }
 
     localStorage.setItem("admin_token", data.token);
     if (data.user?.role) {

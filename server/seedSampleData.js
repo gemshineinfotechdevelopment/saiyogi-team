@@ -20,11 +20,11 @@ const seedSampleData = async () => {
 
     // Seed Categories
     const categoriesData = [
-      { name: 'Sparklers', categoryCode: 'SPARK', description: 'Sparkling fireworks for everyone', displayOrder: 1, slug: 'sparklers' },
-      { name: 'Flower Pots', categoryCode: 'FLOWER', description: 'Classic fountain pots', displayOrder: 2, slug: 'flower-pots' },
-      { name: 'Ground Chakkars', categoryCode: 'CHAKKAR', description: 'Spinning wheels on the ground', displayOrder: 3, slug: 'ground-chakkars' },
-      { name: 'Sky Shots', categoryCode: 'SKY', description: 'Beautiful aerial sky shots', displayOrder: 4, slug: 'sky-shots' },
-      { name: 'Combo Packs', categoryCode: 'COMBO', description: 'Great value combo collections', displayOrder: 5, slug: 'combo-packs' }
+      { name: 'Sparklers', categoryCode: '100', description: 'Sparkling fireworks for everyone', displayOrder: 1, slug: 'sparklers' },
+      { name: 'Flower Pots', categoryCode: '110', description: 'Classic fountain pots', displayOrder: 2, slug: 'flower-pots' },
+      { name: 'Ground Chakkars', categoryCode: '120', description: 'Spinning wheels on the ground', displayOrder: 3, slug: 'ground-chakkars' },
+      { name: 'Sky Shots', categoryCode: '130', description: 'Beautiful aerial sky shots', displayOrder: 4, slug: 'sky-shots' },
+      { name: 'Combo Packs', categoryCode: '140', description: 'Great value combo collections', displayOrder: 5, slug: 'combo-packs' }
     ];
 
     const savedCategories = await Category.insertMany(categoriesData);

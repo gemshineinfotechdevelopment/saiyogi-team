@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose, SheetDescription } from "@/components/ui/sheet";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
 import { Minus, Plus, Trash2, X, User, MapPin, ArrowLeft, ShieldCheck, CheckCircle2, FileText, Check } from "lucide-react";
@@ -167,6 +167,7 @@ const CartDrawer = () => {
   };
 
   const packingCharge = settings.enablePackingCharge !== false ? Math.round(totalPrice * 0.03) : 0;
+  const packingCharge = settings.enablePackingCharge !== false ? (totalPrice <= 3999 ? 120 : Math.round(totalPrice * 0.03)) : 0;
   const estimatedTotal = totalPrice + packingCharge;
   const dialogMinPurchase = formData.state === "Tamil Nadu" ? settings.minimumPurchaseAmount : settings.minPurchaseOutsideTN;
   const canPlaceOrder = !formData.state || totalPrice >= dialogMinPurchase;
@@ -198,6 +199,49 @@ const CartDrawer = () => {
               MY CART ({totalItems})
             </SheetTitle>
           )}
+    <>
+      <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
+        <SheetContent className="w-[70vw] sm:w-full sm:max-w-md overflow-y-auto p-0 bg-white border-l-0 sm:border-l flex flex-col font-sans">
+          
+          {/* Drawer Header */}
+          <SheetHeader className="p-4 border-b border-gray-200 sticky top-0 bg-white z-10 flex flex-row items-center justify-between shadow-sm">
+            <div>
+              <SheetTitle className="text-[#a41a1c] font-black uppercase tracking-wider text-base m-0">
+                MY CART ({totalItems})
+              </SheetTitle>
+              <SheetDescription className="sr-only">
+                Review and modify your cart items before checkout.
+              </SheetDescription>
+            </div>
+            <SheetClose className="rounded-full p-1.5 text-gray-500 hover:text-red-700 hover:bg-red-50 transition-colors focus:outline-none">
+              <X className="h-5 w-5" />
+              <span className="sr-only">Close</span>
+            </SheetClose>
+          </SheetHeader>
+
+          {/* Cart Items List */}
+          <div className="flex-1 overflow-y-auto px-4 py-2 bg-white divide-y divide-gray-100">
+            {items.length === 0 ? (
+              <div className="text-center py-12 text-gray-400 font-medium text-sm">
+                Your cart is empty.
+              </div>
+            ) : (
+              items.map(({ product, quantity }) => {
+                const dp = getDiscountPrice(product.price, product.hasDiscount, settings.discountPercent, product.netRate, product.displayNetRate);
+                return (
+                  <div key={product._id || product.id} className="py-3.5 flex gap-3 items-start">
+                    <img src={(product.storeStockPieces || 0) <= 0 ? '/1.png' : product.image} alt={product.name} className="w-14 h-14 rounded-md object-contain shrink-0 border border-gray-100 p-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start gap-2">
+                        <h4 className="font-bold text-sm text-gray-900 truncate">{product.name}</h4>
+                        <button 
+                          onClick={() => removeFromCart(product._id || product.id)} 
+                          className="text-gray-400 hover:text-red-500 transition-colors p-0.5 shrink-0"
+                          title="Remove item"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
 
           <SheetClose className="rounded-full p-1.5 text-gray-500 hover:text-red-700 hover:bg-red-50 transition-colors focus:outline-none">
             <X className="h-5 w-5" />
@@ -303,6 +347,21 @@ const CartDrawer = () => {
                 <p className="text-center text-[11px] text-gray-500 mt-2 font-normal">
                   * This is only an estimate. Final price may vary.
                 </p>
+          {/* Cart Footer */}
+          {items.length > 0 && (
+            <div className="p-4 bg-white border-t border-gray-100 space-y-3">
+              <div className="flex justify-between text-xs text-gray-600 font-medium">
+                <span>Items Total ({totalItems} Items)</span>
+                <span className="text-gray-900 font-bold">₹{totalPrice.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between text-xs text-gray-600 font-medium">
+                <span>Packing Charge</span>
+                <span className="text-gray-900 font-bold">₹{packingCharge.toLocaleString('en-IN')}</span>
+              </div>
+              
+              <div className="flex justify-between items-center py-2 pt-3 border-t border-gray-100">
+                <span className="font-bold text-[#a41a1c] text-sm tracking-wide">ESTIMATED TOTAL</span>
+                <span className="font-black text-[#a41a1c] text-xl">₹{estimatedTotal.toLocaleString('en-IN')}</span>
               </div>
             )}
           </>
@@ -387,6 +446,40 @@ const CartDrawer = () => {
                   </div>
                 </div>
               </div>
+              <Button 
+                onClick={() => setShowCheckoutDialog(true)}
+                className="w-full bg-[#900000] hover:bg-[#700000] text-white font-bold tracking-wider py-5 rounded-md uppercase text-sm shadow-sm"
+              >
+                REQUEST ENQUIRY
+              </Button>
+
+              <p className="text-center text-[11px] text-gray-500 mt-2 font-normal">
+                * This is just an enquiry only.
+              </p>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Checkout Dialog */}
+      <Dialog open={showCheckoutDialog} onOpenChange={setShowCheckoutDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-900">Checkout</DialogTitle>
+            <DialogDescription>Enter your details to place the order</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="email" className="text-red-900">Email Address *</Label>
+              <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} placeholder="your@email.com" className="border-red-300" />
+            </div>
+            <div>
+              <Label htmlFor="name" className="text-red-900">Full Name *</Label>
+              <Input id="name" name="name" value={formData.name} onChange={handleInputChange} placeholder="Your Name" className="border-red-300" />
+            </div>
+            <div>
+              <Label htmlFor="phoneNumber" className="text-red-900">Phone Number *</Label>
+              <Input id="phoneNumber" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} placeholder="10-digit phone number" className="border-red-300" maxLength={10} />
             </div>
 
             {/* Checkout Footer Actions */}
