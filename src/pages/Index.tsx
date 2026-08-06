@@ -392,16 +392,6 @@ const Index = () => {
         </div>
       </section>
 
-            {/* Right Button */}
-            <button
-              onClick={() => setVideoIndex((prev) => (prev + 1) % demoVideos.length)}
-              className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </section>
 
       {/* Categories Grid */}
       <section className="py-16 bg-[#FFF8EE] border-b border-amber-100/50">
