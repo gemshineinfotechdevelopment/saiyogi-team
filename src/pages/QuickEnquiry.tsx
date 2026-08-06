@@ -134,16 +134,14 @@ const QuickEnquiry = () => {
           </p>
         </div>
 
-        <div className="w-full bg-white/85 backdrop-blur-md shadow-2xl border-y border-gray-150 rounded-none overflow-hidden mb-8">
-          <div className="flex-1 container mx-auto px-0 md:px-4 py-8">
-        
-        {/* Filters & Cart Row */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 sticky top-[60px] md:top-[80px] z-40 bg-white py-4 border-b border-gray-100 shadow-sm md:shadow-none md:border-none">
+        {/* Filters & Cart Row (Fixed at Top when scrolling the entire page) */}
+        <div className="sticky top-[68px] md:top-[140px] z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-md py-4 px-4 mb-8">
+          <div className="container mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
             <select 
               value={selectedBrand} 
               onChange={e => setSelectedBrand(e.target.value)}
-              className="w-full sm:w-40 p-2.5 rounded-lg border border-gray-200 text-sm font-semibold outline-none focus:border-[#A80000] text-gray-700 bg-white appearance-none cursor-pointer"
+              className="w-full sm:w-40 p-2.5 rounded-xl border border-gray-200 text-sm font-bold outline-none focus:border-[#A80000] text-gray-700 bg-white shadow-xs appearance-none cursor-pointer"
               style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%238b2ce0\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1rem' }}
             >
               {uniqueBrands.map(b => <option key={b} value={b}>{b}</option>)}
@@ -151,7 +149,7 @@ const QuickEnquiry = () => {
             <select 
               value={selectedCategory} 
               onChange={e => setSelectedCategory(e.target.value)}
-              className="w-full sm:w-48 p-2.5 rounded-lg border border-gray-200 text-sm font-semibold outline-none focus:border-[#A80000] text-gray-700 bg-white appearance-none cursor-pointer"
+              className="w-full sm:w-48 p-2.5 rounded-xl border border-gray-200 text-sm font-bold outline-none focus:border-[#A80000] text-gray-700 bg-white shadow-xs appearance-none cursor-pointer"
               style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%238b2ce0\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1rem' }}
             >
               {uniqueCategoryNames.map(c => <option key={c} value={c}>{c}</option>)}
@@ -162,32 +160,34 @@ const QuickEnquiry = () => {
                 placeholder="Search products..." 
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-3 pr-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#A80000] bg-white"
+                className="w-full pl-3 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium outline-none focus:border-[#A80000] bg-white shadow-xs"
               />
             </div>
           </div>
           
-          <div className="w-full md:w-auto bg-[#A80000] text-white rounded-xl p-3 flex items-center justify-between md:justify-start md:gap-6 shadow-md border border-[#8a0000]">
-            <div className="flex flex-col">
-              <div className="text-[10px] font-bold text-white/80 uppercase">Cart Total</div>
-              <div className="text-xl font-black leading-tight">₹{totalPrice.toLocaleString('en-IN')}</div>
+          {/* Cart Total & Checkout Box */}
+          <div 
+            onClick={() => navigate('/cart')}
+            className="w-full md:w-auto bg-[#A80000] hover:bg-red-800 text-white rounded-2xl px-5 py-2.5 flex items-center justify-between md:justify-start md:gap-5 shadow-lg border border-[#8a0000] cursor-pointer hover:scale-105 active:scale-95 transition-all shrink-0"
+            title="Click to view Cart & Checkout"
+          >
+            <div className="flex flex-col text-left">
+              <span className="text-[10px] font-extrabold text-white/90 uppercase tracking-wider">Cart Total</span>
+              <span className="text-xl font-black leading-tight">₹{totalPrice.toLocaleString('en-IN')}</span>
             </div>
             
-            <button 
-              onClick={() => navigate('/cart')}
-              className="flex items-center gap-2 bg-white/20 hover:bg-white/30 border border-white/30 px-4 py-1.5 rounded-lg font-bold text-sm transition-colors cursor-pointer"
-            >
-              <LogIn className="w-4 h-4 rotate-180" /> Checkout
-            </button>
-            
-            <div className="relative mr-2 md:mr-0 hidden md:block">
-              <ShoppingBag className="w-6 h-6 opacity-90" />
-              <span className="absolute -top-1.5 -right-2 bg-[#D35400] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-black shadow-sm">
+            <div className="relative flex items-center justify-center pl-2">
+              <ShoppingBag className="w-6 h-6 text-white" />
+              <span className="absolute -top-1.5 -right-2 bg-[#F4C542] text-[#1A1A1A] text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-black shadow-sm border border-white">
                 {totalItems}
               </span>
             </div>
           </div>
         </div>
+      </div>
+
+        <div className="w-full bg-white/85 backdrop-blur-md shadow-2xl border-y border-gray-150 rounded-none mb-8">
+          <div className="flex-1 container mx-auto px-0 md:px-4 py-8">
 
         <div className="hidden md:grid md:grid-cols-12 gap-4 bg-[#f8f9fa] rounded-t-xl py-3 px-6 text-[11px] font-black text-gray-500 uppercase tracking-wider items-center mb-2">
           <div className="col-span-4 pl-2">PRODUCT NAME</div>
@@ -319,6 +319,52 @@ const QuickEnquiry = () => {
               </div>
             ))
           )}
+        </div>
+      </div>
+    </div>
+
+    {/* Cart Summary Section */}
+    <div className="flex justify-center md:justify-end mt-8 px-4 md:px-6 container mx-auto mb-12">
+      <div className="w-full max-w-md bg-white border border-gray-100/80 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50">
+        {/* Header */}
+        <div className="flex items-center gap-3 border-b border-gray-100 pb-4 mb-6">
+          <ShoppingBag className="w-6 h-6 text-slate-800" />
+          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Cart Summary</h2>
+        </div>
+
+        {/* Subtotal & Total */}
+        <div className="space-y-4 mb-6">
+          <div className="flex justify-between items-center">
+            <span className="text-slate-600 font-bold text-base">Subtotal</span>
+            <span className="text-[#A80000] font-extrabold text-base">₹ {totalPrice.toLocaleString('en-IN')}</span>
+          </div>
+          <div className="flex justify-between items-center pt-1 border-t border-gray-50">
+            <span className="text-slate-900 font-extrabold text-base">Total</span>
+            <span className="text-[#A80000] font-black text-lg">₹ {totalPrice.toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+
+        {/* Proceed to Checkout Button */}
+        <Link to="/cart" className="block w-full mb-5">
+          <button className="w-full bg-[#A80000] hover:bg-[#F4C542] hover:text-[#1A1A1A] text-white font-extrabold py-4 px-6 rounded-2xl shadow-lg shadow-red-900/20 transition-all flex items-center justify-center gap-2 text-base uppercase tracking-wider cursor-pointer active:scale-[0.99]">
+            <ShoppingCart className="w-5 h-5 fill-current" />
+            <span>Proceed to Checkout</span>
+          </button>
+        </Link>
+
+        {/* Minimum Order Warning Box */}
+        <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-2xl p-4 text-center">
+          <div className="flex items-center justify-center gap-1.5 text-[#78350F] font-extrabold text-sm mb-1">
+            <span>⚠️</span>
+            <span>Minimum Order:</span>
+          </div>
+          <div className="text-[#78350F] font-bold text-xs sm:text-sm">
+            <span>Tamil Nadu </span>
+            <span className="font-black">₹ 3,000.00</span>
+            <span className="mx-1 font-normal text-amber-700">|</span>
+            <span>Other States </span>
+            <span className="font-black">₹ 5,000.00</span>
+          </div>
         </div>
       </div>
     </div>

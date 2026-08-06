@@ -282,13 +282,13 @@ const Index = () => {
       <section className="relative w-full overflow-hidden bg-black flex flex-col">
         <div className="relative w-full aspect-[21/9] min-h-[300px] md:min-h-[480px] max-h-[600px] overflow-hidden bg-gradient-to-r from-red-950 via-black to-red-950 flex items-center justify-center">
           <div key={slideKey} className="absolute inset-0 w-full h-full animate-slide-left">
-            <img
-              src={heroImages[currentSlide]}
-              alt="Hero Banner"
-              className="w-full h-full object-cover object-center scale-105 filter brightness-95"
+            <img 
+              src={heroImages[currentSlide]} 
+              alt="Hero Banner" 
+              className="w-full h-full object-cover object-center scale-105 filter brightness-95" 
             />
           </div>
-
+          
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
 
           {/* Dots Indicator */}
@@ -300,8 +300,9 @@ const Index = () => {
                   setCurrentSlide(idx);
                   setSlideKey((k) => k + 1);
                 }}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${currentSlide === idx ? "bg-[#F4C542] w-8 shadow-lg shadow-yellow-500/50" : "bg-white/40 hover:bg-white/70"
-                  }`}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  currentSlide === idx ? "bg-[#F4C542] w-8 shadow-lg shadow-yellow-500/50" : "bg-white/40 hover:bg-white/70"
+                }`}
                 aria-label={`Slide ${idx + 1}`}
               />
             ))}
@@ -469,7 +470,7 @@ const Index = () => {
                   </span>
                 </div>
                 <h3 className="font-bold text-xs text-gray-800 uppercase text-center min-h-[32px] line-clamp-2 transition-colors group-hover:text-[#A80000] mb-3">{cat.name}</h3>
-
+                
                 <div className="w-full mt-auto">
                   <button className="w-full bg-[#A80000] text-white py-1.5 rounded-lg text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase">
                     View Products
@@ -477,11 +478,9 @@ const Index = () => {
                 </div>
               </div>
             ))}
-
           </div>
         </div>
       </section>
-
       {/* Categories Grid */}
       <section className="py-16 bg-[#FFF8EE] border-b border-amber-100/50">
         <div className="text-center mb-10 container mx-auto px-4">

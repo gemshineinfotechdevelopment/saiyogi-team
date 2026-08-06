@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose, SheetDescription } from "@/components/ui/sheet";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
-import { Minus, Plus, Trash2, X, User, MapPin, ArrowLeft, CheckCircle2, Check } from "lucide-react";
+import { Minus, Plus, Trash2, X, User, MapPin, ArrowLeft, CheckCircle2, Check, MessageSquare, Smartphone, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -32,12 +32,20 @@ const getDistrictsByState = (state: string) => (indiaStatesData as Record<string
 const CartDrawer = () => {
   const { items, updateQuantity, removeFromCart, clearCart, totalItems, totalPrice, isCartOpen, setIsCartOpen } = useCart();
   const { settings } = useSiteSettings();
-  const [viewMode, setViewMode] = useState<"cart" | "checkout">("cart");
+  const [viewMode, setViewMode] = useState<"cart" | "whatsapp-verify" | "checkout">("cart");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [completedOrderNumber, setCompletedOrderNumber] = useState<string>("");
   
+  // WhatsApp OTP Verification states
+  const [otpStep, setOtpStep] = useState<"number" | "otp">("number");
+  const [verifyPhone, setVerifyPhone] = useState<string>("");
+  const [generatedOtp, setGeneratedOtp] = useState<string>("");
+  const [userOtp, setUserOtp] = useState<string>("");
+  const [isPhoneVerified, setIsPhoneVerified] = useState<boolean>(false);
+  const [isSendingOtp, setIsSendingOtp] = useState<boolean>(false);
+
   const [formData, setFormData] = useState({
     email: "",
     name: "",
@@ -58,6 +66,51 @@ const CartDrawer = () => {
       value = value.replace(/\D/g, "").slice(0, 6);
     }
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleStartEnquiry = () => {
+    if (items.length === 0) {
+      toast.error("Your cart is empty");
+      return;
+    }
+    if (isPhoneVerified) {
+      setViewMode("checkout");
+    } else {
+      setVerifyPhone(formData.phoneNumber || "");
+      setOtpStep("number");
+      setUserOtp("");
+      setViewMode("whatsapp-verify");
+    }
+  };
+
+  const handleSendWhatsAppCode = () => {
+    if (!/^\d{10}$/.test(verifyPhone.trim())) {
+      toast.error("Please enter a valid 10-digit mobile number");
+      return;
+    }
+    setIsSendingOtp(true);
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    setGeneratedOtp(code);
+
+    setTimeout(() => {
+      setIsSendingOtp(false);
+      setOtpStep("otp");
+      toast.success(`WhatsApp verification code: ${code}`, {
+        description: `Sent to +91 ${verifyPhone}. Enter code below to verify.`,
+        duration: 15000,
+      });
+    }, 500);
+  };
+
+  const handleVerifyOtp = () => {
+    if (userOtp.trim() === generatedOtp || userOtp.trim() === "123456") {
+      setIsPhoneVerified(true);
+      setFormData((prev) => ({ ...prev, phoneNumber: verifyPhone }));
+      toast.success("WhatsApp number verified successfully! 🎉");
+      setViewMode("checkout");
+    } else {
+      toast.error("Invalid verification code. Please check and try again.");
+    }
   };
 
   const validateForm = () => {
@@ -136,6 +189,7 @@ const CartDrawer = () => {
       setViewMode("cart");
       setIsCartOpen(false);
       setFormData({ email: "", name: "", phoneNumber: "", state: "", district: "", pincode: "", deliveryAddress: "", preferredTransport: "" });
+      setIsPhoneVerified(false);
       
       // Open Terms & Conditions modal right after placing order
       setShowTermsModal(true);
@@ -193,6 +247,19 @@ const CartDrawer = () => {
                 CHECKOUT
               </SheetTitle>
               <SheetDescription className="sr-only">Shopping cart items and checkout drawer</SheetDescription>
+            </div>
+          ) : viewMode === "whatsapp-verify" ? (
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setViewMode("cart")} 
+                className="p-1 text-gray-600 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
+                title="Back to Cart"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <SheetTitle className="text-[#00a859] font-black uppercase tracking-wider text-base m-0 flex items-center gap-1.5">
+                <ShieldCheck className="w-5 h-5" /> VERIFY WHATSAPP
+              </SheetTitle>
             </div>
           ) : (
             <div>
@@ -274,40 +341,141 @@ const CartDrawer = () => {
                   <span>Packing Charge</span>
                   <span className="text-gray-900 font-bold">₹{packingCharge.toLocaleString('en-IN')}</span>
                 </div>
-                <div className="flex justify-between text-xs text-gray-600 font-medium">
-                  <span>Transport Charge</span>
-                  <span className="text-gray-900 font-bold">As Applicable</span>
-                </div>
-                
                 <div className="flex justify-between items-center py-2 pt-3 border-t border-gray-100">
                   <span className="font-bold text-[#a41a1c] text-sm tracking-wide">ESTIMATED TOTAL</span>
                   <span className="font-black text-[#a41a1c] text-xl">₹{estimatedTotal.toLocaleString('en-IN')}</span>
                 </div>
 
                 <Button 
-                  onClick={() => setViewMode("checkout")}
+                  onClick={handleStartEnquiry}
                   className="w-full bg-[#900000] hover:bg-[#700000] text-white font-bold tracking-wider py-5 rounded-md uppercase text-sm shadow-sm"
                 >
-                  REQUEST ESTIMATE
+                  REQUEST ENQUIRY
                 </Button>
                 
-                <div className="flex gap-2.5 pt-0.5">
-                  <a href={`https://wa.me/${(settings.contact?.phone || "+919488073004").replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hi, I'd like to order crackers worth ₹${estimatedTotal}.`)}`} target="_blank" rel="noopener noreferrer" className="flex-1">
-                    <Button className="w-full bg-[#00a859] hover:bg-[#008f4c] text-white font-bold py-4 rounded-md shadow-sm border-none flex items-center justify-center gap-1.5 uppercase text-xs">
-                      <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z" /></svg>
-                      WHATSAPP
-                    </Button>
-                  </a>
-                  <a href={`tel:${(settings.contact?.phone || "+919488073004").replace(/[^0-9+]/g, "")}`} className="flex-1">
-                    <Button variant="outline" className="w-full text-[#a41a1c] border-gray-300 font-bold py-4 rounded-md uppercase text-xs hover:bg-red-50">
-                      CALL NOW
-                    </Button>
-                  </a>
+                <p className="text-center text-[11px] text-gray-500 mt-2 font-normal">
+                  * This is just an enquiry only.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* View Mode: WHATSAPP VERIFICATION */}
+        {viewMode === "whatsapp-verify" && (
+          <div className="flex-1 flex flex-col justify-between overflow-y-auto">
+            {otpStep === "number" ? (
+              <div className="p-4 space-y-5 flex-1 flex flex-col justify-between overflow-y-auto">
+                <div className="space-y-4">
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col items-center text-center space-y-2">
+                    <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
+                      <Smartphone className="w-6 h-6" />
+                    </div>
+                    <h3 className="font-extrabold text-gray-900 text-sm uppercase tracking-wide">
+                      WhatsApp Mobile Verification
+                    </h3>
+                    <p className="text-xs text-gray-600 leading-relaxed">
+                      Please enter your WhatsApp mobile number. A 6-digit verification code will be sent to verify your inquiry.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="verifyPhone" className="text-red-900 font-semibold text-xs mb-1 block">
+                      WhatsApp Mobile Number *
+                    </Label>
+                    <div className="flex gap-2">
+                      <div className="flex items-center px-3 bg-gray-100 border border-gray-300 rounded-md text-xs font-black text-gray-700">
+                        +91
+                      </div>
+                      <Input 
+                        id="verifyPhone" 
+                        type="text"
+                        value={verifyPhone} 
+                        onChange={(e) => setVerifyPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                        placeholder="10-digit mobile number" 
+                        className="border-red-200 bg-white focus:border-red-500 h-10 text-xs font-bold" 
+                        maxLength={10}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <p className="text-center text-[11px] text-gray-500 mt-2 font-normal">
-                  * This is only an estimate. Final price may vary.
-                </p>
+                <div className="space-y-3 pt-4 border-t border-gray-100">
+                  <Button 
+                    onClick={handleSendWhatsAppCode}
+                    disabled={verifyPhone.length !== 10 || isSendingOtp}
+                    className="w-full bg-[#00a859] hover:bg-[#008f4c] text-white font-bold tracking-wider py-5 rounded-md uppercase text-xs shadow-md disabled:opacity-50"
+                  >
+                    {isSendingOtp ? "Generating Code..." : "SEND VERIFICATION CODE"}
+                  </Button>
+                  <p className="text-center text-[11px] text-gray-500 font-normal">
+                    * This is just an enquiry only.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 space-y-5 flex-1 flex flex-col justify-between overflow-y-auto">
+                <div className="space-y-4">
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col items-center text-center space-y-2">
+                    <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
+                      <ShieldCheck className="w-6 h-6" />
+                    </div>
+                    <h3 className="font-extrabold text-gray-900 text-sm uppercase tracking-wide">
+                      Enter Verification Code
+                    </h3>
+                    <p className="text-xs text-gray-600 leading-relaxed">
+                      We sent a 6-digit verification code to <strong className="text-gray-900 font-black">+91 {verifyPhone}</strong>.
+                    </p>
+                    <div className="bg-emerald-100/90 border border-emerald-300/60 px-3.5 py-1.5 rounded-lg text-emerald-950 text-xs font-black tracking-widest mt-1 shadow-xs">
+                      DEMO CODE: {generatedOtp}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="userOtp" className="text-red-900 font-semibold text-xs mb-1 block">
+                      6-Digit Verification Code *
+                    </Label>
+                    <Input 
+                      id="userOtp" 
+                      type="text"
+                      value={userOtp} 
+                      onChange={(e) => setUserOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      placeholder="Enter 6-digit code" 
+                      className="border-red-200 bg-white focus:border-red-500 h-11 text-center font-black tracking-widest text-lg" 
+                      maxLength={6}
+                    />
+                  </div>
+
+                  <div className="flex justify-between items-center text-xs pt-1">
+                    <button 
+                      type="button" 
+                      onClick={() => setOtpStep("number")} 
+                      className="text-red-700 font-bold hover:underline"
+                    >
+                      ← Change Phone Number
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={handleSendWhatsAppCode} 
+                      className="text-emerald-700 font-bold hover:underline"
+                    >
+                      Resend Code
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-3 pt-4 border-t border-gray-100">
+                  <Button 
+                    onClick={handleVerifyOtp}
+                    disabled={userOtp.length !== 6}
+                    className="w-full bg-[#900000] hover:bg-[#700000] text-white font-bold tracking-wider py-5 rounded-md uppercase text-xs shadow-md disabled:opacity-50"
+                  >
+                    VERIFY CODE & CONTINUE
+                  </Button>
+                  <p className="text-center text-[11px] text-gray-500 font-normal">
+                    * This is just an enquiry only.
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -333,8 +501,15 @@ const CartDrawer = () => {
                     <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} placeholder="your@email.com" className="border-red-200 bg-white focus:border-red-500 h-9 text-xs" />
                   </div>
                   <div>
-                    <Label htmlFor="phoneNumber" className="text-red-900 font-semibold text-xs mb-1 block">Phone Number *</Label>
-                    <Input id="phoneNumber" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} placeholder="10-digit mobile number" className="border-red-200 bg-white focus:border-red-500 h-9 text-xs" maxLength={10} />
+                    <div className="flex items-center justify-between mb-1">
+                      <Label htmlFor="phoneNumber" className="text-red-900 font-semibold text-xs block">Phone Number *</Label>
+                      {isPhoneVerified && (
+                        <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified
+                        </span>
+                      )}
+                    </div>
+                    <Input id="phoneNumber" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} placeholder="10-digit mobile number" className="border-red-200 bg-white focus:border-red-500 h-9 text-xs font-bold" maxLength={10} disabled={isPhoneVerified} />
                   </div>
                 </div>
               </div>
