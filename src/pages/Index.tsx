@@ -358,44 +358,67 @@ const Index = () => {
             <button
               onClick={() => setVideoIndex((prev) => (prev - 1 + demoVideos.length) % demoVideos.length)}
               className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
-      <section className="relative overflow-hidden bg-black text-white min-h-[300px] sm:min-h-[420px] md:min-h-[500px] lg:min-h-[580px] flex items-center justify-center">
-        <div className="absolute inset-0 z-0">
-          {heroImages.map((img, index) => (
-            <div
-              key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
-              }`}
             >
-              <img
-                key={`${index}-${slideKey}`}
-                src={img}
-                alt={`Diwali Banner ${index + 1}`}
-                className={`w-full h-full object-cover sm:object-contain object-center ${
-                  index === currentSlide ? "animate-hero-slide-rtl" : ""
-                }`}
-              />
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            {/* Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full px-4">
+              {[0, 1, 2].map((offset) => {
+                const idx = (videoIndex + offset) % demoVideos.length;
+                const video = demoVideos[idx];
+                const isPlaying = playingVideo === video.id;
+
+                return (
+                  <div
+                    key={video.id}
+                    className="relative rounded-2xl overflow-hidden aspect-video bg-black group cursor-pointer shadow-lg transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl border border-white/40"
+                    onClick={() => setPlayingVideo(isPlaying ? null : video.id)}
+                  >
+                    {isPlaying ? (
+                      <video
+                        src={video.url}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <img
+                        src={video.thumbnail}
+                        alt={video.title}
+                        className="w-full h-full object-cover opacity-70 group-hover:opacity-85 transition-opacity"
+                      />
+                    )}
+
+                    {/* Button overlay */}
+                    <div className="absolute inset-0 flex flex-col justify-between p-4 bg-gradient-to-t from-black/60 via-transparent to-black/20">
+                      <span className="text-white font-bold text-xs bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm self-start">
+                        {video.title}
+                      </span>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-[#A80000] group-hover:border-red-500">
+                          {isPlaying ? (
+                            <Pause className="text-white fill-white w-5 h-5" />
+                          ) : (
+                            <Play className="text-white fill-white w-5 h-5 ml-0.5" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ))}
 
-          <div className="absolute inset-0 bg-black/20 z-15 pointer-events-none" />
-
-          {/* Dots Indicator */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-            {heroImages.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => {
-                  setCurrentSlide(i);
-                  setSlideKey((k) => k + 1);
-                }}
-                className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                  i === currentSlide
-                    ? "bg-[#F4C542] w-8 shadow-[0_0_10px_#F4C542]"
-                    : "bg-white/50 hover:bg-white"
-                }`}
-              />
-            ))}
+            {/* Right Button */}
+            <button
+              onClick={() => setVideoIndex((prev) => (prev + 1) % demoVideos.length)}
+              className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </section>
@@ -412,22 +435,26 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-            {(categories.length > 0 ? categories : premiumCategories).map((cat: any, i: number) => (
-              <div 
-                key={cat.id || cat._id || i} 
-                onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id || cat.categoryId || 'all'}`} 
-                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-amber-100 flex flex-col items-center p-4 cursor-pointer group hover:-translate-y-1 w-[calc(50%-8px)] sm:w-[170px] lg:w-[175px] shrink-0"
-              >
-                <div className="w-full aspect-square flex items-center justify-center bg-gradient-to-b from-amber-50/50 to-orange-50/20 rounded-xl p-3 mb-3 group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
-                  <img src={cat.image || "/sky_rocket_box.png"} alt={cat.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
-                  <span className="absolute top-2 right-2 bg-[#7A1416] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full opacity-90">Hot</span>
+        {/* Infinite scrolling categories marquee from right to left */}
+        <div className="relative w-full overflow-hidden py-4">
+          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+            {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i: number) => {
+              const catId = cat.id || cat._id || cat.categoryId || 'all';
+              return (
+                <div 
+                  key={`${catId}-${i}`} 
+                  onClick={() => window.location.href=`/catalog?category=${catId}`} 
+                  className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-amber-100 flex flex-col items-center p-4 cursor-pointer group hover:-translate-y-1 w-[180px] shrink-0"
+                >
+                  <div className="w-full aspect-square flex items-center justify-center bg-gradient-to-b from-amber-50/50 to-orange-50/20 rounded-xl p-3 mb-3 group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
+                    <img src={cat.image || "/sky_rocket_box.png"} alt={cat.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
+                    <span className="absolute top-2 right-2 bg-[#7A1416] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full opacity-90">Hot</span>
+                  </div>
+                  <h3 className="font-extrabold text-xs sm:text-sm text-gray-800 uppercase text-center group-hover:text-[#7A1416] transition-colors min-h-[36px] line-clamp-2 flex items-center justify-center">{cat.name}</h3>
+                  <p className="text-[11px] text-amber-700 font-semibold mt-1">Explore →</p>
                 </div>
-                <h3 className="font-extrabold text-xs sm:text-sm text-gray-800 uppercase text-center group-hover:text-[#7A1416] transition-colors">{cat.name}</h3>
-                <p className="text-[11px] text-amber-700 font-semibold mt-1">Explore →</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -477,29 +504,30 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-            {(brands.length > 0
-              ? brands
-              : shopByBrands
-            ).map((brand: any, i: number) => (
-              <div 
-                key={brand._id || brand.id || i} 
-                onClick={() => window.location.href=`/catalog?search=${encodeURIComponent(brand.name)}`}
-                className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-2xl p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[calc(50%-8px)] sm:w-[170px] lg:w-[175px] shrink-0"
-              >
-                <span className="text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full mb-2 font-mono">
-                  {brand.tag || "BRAND"}
-                </span>
-                <div className="w-full aspect-square flex items-center justify-center p-2 mb-2 group-hover:scale-105 transition-transform duration-300">
-                  <img src={brand.logo || brand.image || "/sky_rocket_box.png"} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-sm" />
+        {/* Infinite scrolling brands marquee from right to left */}
+        <div className="relative w-full overflow-hidden py-4">
+          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+            {[...(brands.length > 0 ? brands : shopByBrands), ...(brands.length > 0 ? brands : shopByBrands), ...(brands.length > 0 ? brands : shopByBrands)].map((brand: any, i: number) => {
+              const brandId = brand._id || brand.id || i;
+              return (
+                <div 
+                  key={`${brandId}-${i}`} 
+                  onClick={() => window.location.href=`/catalog?search=${encodeURIComponent(brand.name)}`}
+                  className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-2xl p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[180px] shrink-0"
+                >
+                  <span className="text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full mb-2 font-mono">
+                    {brand.tag || "BRAND"}
+                  </span>
+                  <div className="w-full aspect-square flex items-center justify-center p-2 mb-2 group-hover:scale-105 transition-transform duration-300">
+                    <img src={brand.logo || brand.image || "/sky_rocket_box.png"} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors">{brand.name}</h3>
+                    <p className="text-[10px] text-gray-500 font-medium mt-0.5">{brand.subtitle || brand.description || "Original Sivakasi"}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-black text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors">{brand.name}</h3>
-                  <p className="text-[10px] text-gray-500 font-medium mt-0.5">{brand.subtitle || brand.description || "Original Sivakasi"}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

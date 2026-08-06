@@ -100,12 +100,6 @@ const QuickEnquiry = () => {
     toast.success(`${qty}x ${product.name} added to cart!`);
   };
 
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = items.reduce((sum, item) => {
-    const dp = getDiscountPrice(item.product.price, item.product.hasDiscount, settings.discountPercent, item.product.netRate, item.product.displayNetRate);
-    return sum + (dp * item.quantity);
-  }, 0);
-
   return (
     <div className="min-h-screen flex flex-col bg-white relative font-sans">
       <UserHeader />
@@ -271,9 +265,10 @@ const QuickEnquiry = () => {
           )}
       </div>
     </div>
-  </main>
+  </div>
+</main>
 
-  <UserFooter />
+<UserFooter />
 </div>
   );
 };
