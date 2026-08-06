@@ -9,19 +9,20 @@ interface AuthContextType {
   logout: () => void;
 }
 
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [token, setToken] = useState<string | null>(localStorage.getItem("admin_token"));
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [token, setToken] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("admin_token");
     const storedRole = localStorage.getItem("admin_role");
 
-    if (storedToken && ["admin", "SUPER ADMIN", "ADMIN"].includes(storedRole || "")) {
+    if (storedToken) {
       setToken(storedToken);
       setIsAdmin(true);
       setIsAuthenticated(true);
@@ -41,42 +42,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           `${primaryBase}/api/auth/login`,
           "http://127.0.0.1:5000/api/auth/login",
           "http://localhost:5000/api/auth/login",
-        ].filter((v, i, a) => a.indexOf(v) === i)
-      : [`${primaryBase}/api/auth/login`];
+        ].filter((v, i, a) => a.indexOf(v) === i && v.trim() !== "")
+      : [`${primaryBase}/api/auth/login`].filter((v) => v.trim() !== "");
 
-    let lastError: Error | null = null;
-    let response: Response | null = null;
     let data: any = null;
+    let lastError: any = null;
 
-    try {
-      for (const url of urlsToTry) {
-        try {
-          const res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-          });
-          response = res;
-          break;
-        } catch (err: any) {
-          lastError = err;
+    for (const url of urlsToTry) {
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.error?.message || error.message || "Invalid credentials");
         }
-      }
 
-      if (!response) {
-        throw new Error(
-          lastError?.message || "Failed to connect to backend server. Ensure backend is running on port 5000."
-        );
+        data = await response.json();
+        break;
+      } catch (err: any) {
+        lastError = err;
       }
-
-      if (!response.ok) {
-        let errorMsg = "Invalid credentials";
-        try {
-          const error = await response.json();
-          errorMsg = error.error?.message || error.message || errorMsg;
-        } catch (_) {}
-        throw new Error(errorMsg);
-      }
+    }
 
       data = await response.json();
     } catch (fetchError: any) {
@@ -107,13 +97,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsAdmin(true);
       setIsAuthenticated(true);
 
-      localStorage.setItem("admin_token", data.token);
+    localStorage.setItem("admin_token", data.token);
+    if (data.user?.role) {
       localStorage.setItem("admin_role", data.user.role);
-    } catch (error) {
-      setIsAuthenticated(false);
-      setIsAdmin(false);
-      setToken(null);
-      throw error;
     }
   };
 

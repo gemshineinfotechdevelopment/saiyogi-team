@@ -12,10 +12,9 @@ import { getProducts, getCategories, getBrands, Brand } from "@/lib/api";
 import { Product, Category } from "@/data/products";
 import { getUpcomingDiwaliInfo, calculateTimeLeft, UpcomingDiwaliInfo } from "@/lib/diwaliCountdown";
 import { Fireworks } from '@fireworks-js/react';
-import ProductCard from "@/components/ProductCard";
 
 // Static Data based on the design
-const staticBestSellers = [
+const staticBestSellers: Product[] = [
   { id: 1, name: "Whistling Birds", price: 240, image: "/sky_rocket_box.png" },
   { id: 2, name: "Flower Pots Big", price: 450, image: "/flower_pots.png" },
   { id: 3, name: "1000 Wala", price: 1200, image: "/sky_rocket_box.png" },
@@ -24,7 +23,7 @@ const staticBestSellers = [
   { id: 6, name: "Chakkra Special", price: 280, image: "/flower_pots.png" },
 ];
 
-const staticFamilyPacks = [
+const staticFamilyPacks: Product[] = [
   { id: 7, name: "Mega Family Pack", oldPrice: 4500, price: 3200, image: "/sky_rocket_box.png" },
   { id: 8, name: "Grand Celebration Combo", oldPrice: 6000, price: 4500, image: "/flower_pots.png" },
   { id: 9, name: "Sky Show Magic", oldPrice: 7500, price: 5500, image: "/sky_rocket_box.png" },
@@ -40,15 +39,6 @@ const premiumCategories = [
   { name: "Ground Chakkars", image: "/flower_pots.png", categoryId: "cat-4" },
   { name: "Combo Packs", image: "/family_star_kit.png", categoryId: "cat-5" },
   { name: "Gift Boxes", image: "/bestseller_pack.png", categoryId: "all" },
-];
-
-const manufacturers = [
-  { name: "STANDARD", logo: "S" },
-  { name: "AJANTA", logo: "A" },
-  { name: "CORONATION", logo: "C" },
-  { name: "VADIVEL", logo: "V" },
-  { name: "ANIL", logo: "AN" },
-  { name: "SONY", logo: "SF" },
 ];
 
 const demoVideos = [
@@ -194,86 +184,84 @@ const Index = () => {
         color: Math.random() > 0.3 ? '255, 215, 0' : '255, 140, 0'
       });
     };
-    
+
     const createSaravediParticle = (x: number, y: number) => {
       const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 6 + 2;
+      const speed = Math.random() * 5 + 1.5;
       saravediParticles.push({
         x, y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         life: 1,
         decay: Math.random() * 0.04 + 0.02,
-        color: Math.random() > 0.5 ? '255, 50, 50' : '255, 220, 0'
+        color: Math.random() > 0.4 ? '255, 50, 0' : '255, 200, 0'
       });
     };
 
     let animationId: number;
-    const animate = () => {
+    const render = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      if (Math.random() < 0.8) {
-        const sx = canvas.width / 2;
-        const sy = canvas.height - 20;
-        for (let i = 0; i < 4; i++) {
-          createFlowerPotParticle(sx, sy);
+      const leftPotX = canvas.width * 0.08;
+      const rightPotX = canvas.width * 0.92;
+      const potY = canvas.height - 40;
+
+      for (let i = 0; i < 4; i++) {
+        createFlowerPotParticle(leftPotX, potY);
+        createFlowerPotParticle(rightPotX, potY);
+      }
+
+      if (Math.random() < 0.25) {
+        const saravediX = Math.random() * (canvas.width * 0.6) + canvas.width * 0.2;
+        const saravediY = Math.random() * (canvas.height * 0.4) + canvas.height * 0.1;
+        for (let i = 0; i < 8; i++) {
+          createSaravediParticle(saravediX, saravediY);
         }
       }
 
-      if (Math.random() < 0.15) {
-        const sx = Math.random() * canvas.width;
-        const sy = canvas.height - Math.random() * 50;
-        for (let i = 0; i < 15; i++) {
-          createSaravediParticle(sx, sy);
-        }
-      }
-      
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.vy += 0.15;
+      particles.forEach((p, index) => {
         p.x += p.vx;
         p.y += p.vy;
+        p.vy += 0.12;
         p.life -= p.decay;
         
         if (p.life <= 0) {
-          particles.splice(i, 1);
-          continue;
+          particles.splice(index, 1);
+        } else {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, Math.random() * 2.5 + 1, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${p.color}, ${p.life})`;
+          ctx.shadowBlur = 12;
+          ctx.shadowColor = `rgba(${p.color}, 1)`;
+          ctx.fill();
         }
-        
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y);
-        ctx.lineTo(p.x - p.vx * 1.5, p.y - p.vy * 1.5);
-        ctx.strokeStyle = `rgba(${p.color}, ${p.life})`;
-        ctx.lineWidth = 2.5;
-        ctx.stroke();
-      }
+      });
 
-      for (let i = saravediParticles.length - 1; i >= 0; i--) {
-        const p = saravediParticles[i];
-        p.vy += 0.1;
-        p.x += p.vx;
-        p.y += p.vy;
-        p.life -= p.decay;
-        
-        if (p.life <= 0) {
-          saravediParticles.splice(i, 1);
-          continue;
+      saravediParticles.forEach((sp, index) => {
+        sp.x += sp.vx;
+        sp.y += sp.vy;
+        sp.life -= sp.decay;
+
+        if (sp.life <= 0) {
+          saravediParticles.splice(index, 1);
+        } else {
+          ctx.beginPath();
+          ctx.arc(sp.x, sp.y, Math.random() * 2 + 1, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${sp.color}, ${sp.life})`;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = `rgba(${sp.color}, 1)`;
+          ctx.fill();
         }
-        
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${p.color}, ${p.life})`;
-        ctx.fill();
-      }
-      
-      animationId = requestAnimationFrame(animate);
+      });
+
+      animationId = requestAnimationFrame(render);
     };
     
-    animate();
+    render();
     
     return () => {
-      cancelAnimationFrame(animationId);
       window.removeEventListener('resize', resizeCanvas);
+      cancelAnimationFrame(animationId);
     };
   }, []);
 
@@ -281,92 +269,77 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-white relative font-sans">
       <UserHeader />
 
-      {/* Real Crackers Animation Overlay */}
-      <Fireworks
-        options={{
-          opacity: 0.5,
-          particles: 80,
-          explosion: 5,
-          intensity: 15,
-          friction: 0.97,
-          gravity: 1.5,
-          acceleration: 1.05,
-          hue: { min: 0, max: 360 },
-        }}
-        style={{
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          position: 'fixed',
-          pointerEvents: 'none',
-          zIndex: 40,
-        }}
-      />
-
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-black text-white min-h-[300px] sm:min-h-[420px] md:min-h-[500px] lg:min-h-[580px] flex items-center justify-center">
-        <div className="absolute inset-0 z-0">
-          {heroImages.map((img, index) => (
-            <div
-              key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
-              }`}
-            >
-              <img
-                key={`${index}-${slideKey}`}
-                src={img}
-                alt={`Diwali Banner ${index + 1}`}
-                className={`w-full h-full object-cover sm:object-contain object-center ${
-                  index === currentSlide ? "animate-hero-slide-rtl" : ""
-                }`}
-              />
-            </div>
-          ))}
-
-          <div className="absolute inset-0 bg-black/20 z-15 pointer-events-none" />
+      <section className="relative w-full overflow-hidden bg-black flex flex-col">
+        <div className="relative w-full aspect-[21/9] min-h-[300px] md:min-h-[480px] max-h-[600px] overflow-hidden bg-gradient-to-r from-red-950 via-black to-red-950 flex items-center justify-center">
+          <div key={slideKey} className="absolute inset-0 w-full h-full animate-slide-left">
+            <img 
+              src={heroImages[currentSlide]} 
+              alt="Hero Banner" 
+              className="w-full h-full object-cover object-center scale-105 filter brightness-95" 
+            />
+          </div>
+          
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
 
           {/* Dots Indicator */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-            {heroImages.map((_, i) => (
+          <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center gap-2">
+            {heroImages.map((_, idx) => (
               <button
-                key={i}
+                key={idx}
                 onClick={() => {
-                  setCurrentSlide(i);
+                  setCurrentSlide(idx);
                   setSlideKey((k) => k + 1);
                 }}
-                className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                  i === currentSlide
-                    ? "bg-[#F4C542] w-8 shadow-[0_0_10px_#F4C542]"
-                    : "bg-white/50 hover:bg-white"
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  currentSlide === idx ? "bg-[#F4C542] w-8 shadow-lg shadow-yellow-500/50" : "bg-white/40 hover:bg-white/70"
                 }`}
+                aria-label={`Slide ${idx + 1}`}
               />
             ))}
           </div>
         </div>
       </section>
 
-      {/* Best Sellers */}
-      <section className="py-12 container mx-auto px-4 max-w-6xl overflow-hidden">
-        <div className="flex justify-between items-end mb-8 border-b border-gray-200 pb-2">
-          <h2 className="text-xl md:text-2xl font-black text-[#A80000] uppercase tracking-widest relative font-display">
-            Best Sellers
-            <div className="absolute -bottom-2.5 left-0 w-1/2 h-0.5 bg-[#A80000]"></div>
-          </h2>
-          <Link to="/catalog" className="text-red-600 font-bold text-xs hover:underline uppercase">View All &gt;</Link>
-        </div>
-        {/* Infinite scrolling marquee from right to left */}
-        <div className="relative w-full overflow-hidden py-4">
-          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
-            {[...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers)].map((item: any, index: number) => {
-              const itemId = item.id || item._id;
-              return (
-                <div key={`${itemId}-${index}`} className="min-w-[260px] max-w-[260px] shrink-0">
-                  <ProductCard product={item} />
+      {/* Hyper-Realistic Background Fireworks Canvas */}
+      <canvas 
+        id="fountain-canvas" 
+        className="fixed inset-0 pointer-events-none z-40 opacity-75"
+      />
+
+      {/* Best Sellers Section */}
+      <section className="py-16 bg-gradient-to-b from-[#FFF6E5] to-white border-b border-gray-100">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="text-center mb-10">
+            <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
+              🔥 POPULAR SELECTIONS 🔥
+            </span>
+            <h2 className="font-black text-[#A80000] text-3xl md:text-4xl uppercase tracking-widest mb-2 font-display">Best Sellers</h2>
+            <p className="text-gray-600 text-xs font-bold uppercase tracking-wider">Handpicked customer favorites for grand celebrations</p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {(products.length > 0 ? products.slice(0, 6) : staticBestSellers).map((item: any, idx: number) => (
+              <div 
+                key={`bestseller-${item._id || item.id || idx}`} 
+                className="bg-white border border-gray-200 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
+              >
+                <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative">
+                  <img src={item.image || "/sky_rocket_box.png"} alt={item.name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" />
+                  <span className="absolute top-1.5 left-1.5 bg-[#A80000] text-[#F4C542] font-black text-[8px] px-2 py-0.5 rounded-full uppercase">
+                    HOT
+                  </span>
                 </div>
-              );
-            })}
+                <h3 className="font-bold text-xs text-gray-800 uppercase text-center line-clamp-2 min-h-[32px] mb-2">{item.name}</h3>
+                <div className="text-[#A80000] font-black text-sm mb-3">₹{item.price}</div>
+                <button 
+                  onClick={() => addToCart(item)}
+                  className="w-full bg-[#A80000] text-white py-1.5 rounded-lg text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <ShoppingCart className="w-3 h-3" /> Add
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -468,14 +441,26 @@ const Index = () => {
             Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.
           </p>
         </div>
-        
-        {/* Infinite scrolling categories marquee from right to left */}
-        <div className="relative w-full overflow-hidden py-4">
+      </section>
+
+      {/* Shop By Category */}
+      <section className="py-16 bg-[#FFF6E5]">
+        <div className="text-center mb-10 container mx-auto px-4">
+          <h2 className="font-black text-[#A80000] text-3xl sm:text-4xl uppercase tracking-tight mb-2 font-display">
+            Shop By Category
+          </h2>
+          <p className="text-gray-600 text-xs font-bold uppercase tracking-wider">
+            Explore our wide selection of premium fireworks crafted for spectacular celebrations
+          </p>
+        </div>
+
+        {/* Infinite scrolling categories marquee */}
+        <div className="relative w-full overflow-hidden py-4 mb-8">
           <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
-            {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i) => (
+            {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i: number) => (
               <div 
                 key={`${cat.id || cat._id || 'cat'}-${i}`} 
-                onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id || cat.categoryId}`}
+                onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id}`} 
                 className="bg-white border border-gray-200 p-4 flex flex-col items-center text-center shadow-md rounded-2xl min-w-[200px] max-w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
               >
                 <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative border border-gray-100/50">
@@ -577,8 +562,7 @@ const Index = () => {
           <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs font-display">
             Shop By Brand
           </h2>
-          <div className="w-24 h-1 bg-[#7A1416] mx-auto rounded-full mb-3"></div>
-          <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto font-medium">
+          <p className="text-gray-600 text-xs font-bold uppercase tracking-wider max-w-xl mx-auto">
             We supply 100% genuine and high quality fireworks directly from Sivakasi's top trusted manufacturers.
           </p>
         </div>
@@ -611,14 +595,14 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Combo Packs (formerly Family Packs) */}
+      {/* Combo Packs */}
       <section className="py-16 bg-[#FFF6E5]">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center mb-10">
             <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
               🎁 GREAT VALUE COMBOS 🎁
             </span>
-            <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2 font-display">Combo Packs</h2>
+            <h2 className="font-black text-[#A80000] text-3xl md:text-4xl uppercase tracking-widest mb-2 font-display">Combo Packs</h2>
             <p className="text-gray-700 text-xs font-bold uppercase">Our Special combo packages for you and your whole family</p>
           </div>
 
@@ -631,7 +615,7 @@ const Index = () => {
                   : staticFamilyPacks;
                 return (prev - 1 + comboPacksList.length) % comboPacksList.length;
               })}
-              className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
+              className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -651,25 +635,25 @@ const Index = () => {
 
                 return (
                   <div 
-                    key={`${itemId}-${offset}`} 
-                    className="bg-white/45 backdrop-blur-md border border-white/60 p-6 rounded-3xl shadow-xl flex flex-col justify-between items-center text-center transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl hover:border-[#F4C542]/40 group cursor-pointer relative overflow-hidden h-[460px] w-full"
-                    onClick={() => window.location.href=`/catalog`}
+                    key={`combo-${offset}-${item._id || item.id || offset}`} 
+                    className="bg-[#FFFFFF] border-2 border-amber-100 rounded-3xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center relative group hover:-translate-y-1 overflow-hidden"
                   >
-                    <div className="w-full aspect-[4/3] bg-gray-50/50 rounded-2xl flex items-center justify-center p-2 mb-4 overflow-hidden shrink-0 h-44 border border-gray-100">
-                      <img 
-                        src={item.image || "/sky_rocket_box.png"} 
-                        alt={item.name} 
-                        className="max-w-full max-h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                      />
-                    </div>
-                    <h3 className="font-black text-sm text-gray-900 uppercase mb-2 group-hover:text-[#A80000] transition-colors">{item.name}</h3>
-                    <div className="flex gap-2 items-center mb-6">
-                      {(item as any).oldPrice && (
-                        <span className="text-gray-400 line-through text-xs font-bold">₹{(item as any).oldPrice}</span>
-                      )}
-                      <span className="text-[#A80000] font-black text-lg">₹{item.price}</span>
+                    <div className="absolute top-4 right-4 bg-gradient-to-r from-[#A80000] to-[#5c0a0b] text-[#F4C542] font-black text-[10px] px-3 py-1 rounded-full uppercase shadow-md">
+                      SAVE BIG
                     </div>
 
+                    <div className="w-full aspect-[4/3] bg-gray-50 flex items-center justify-center p-4 mb-4 rounded-2xl overflow-hidden">
+                      <img src={item.image || "/sky_rocket_box.png"} alt={item.name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" />
+                    </div>
+
+                    <h3 className="font-extrabold text-base text-gray-900 uppercase mb-2 line-clamp-1">{item.name}</h3>
+                    
+                    <div className="flex gap-3 items-center mb-5">
+                      {item.oldPrice && (
+                        <span className="text-gray-400 line-through text-xs font-bold">₹{item.oldPrice}</span>
+                      )}
+                      <span className="text-[#A80000] font-black text-xl">₹{item.price}</span>
+                    </div>
                     {quantity > 0 ? (
                       <div className="flex items-center justify-between bg-red-50/50 border border-red-200/50 rounded-xl p-1.5 w-full mt-auto" onClick={(e) => e.stopPropagation()}>
                         <button
@@ -713,7 +697,7 @@ const Index = () => {
                   : staticFamilyPacks;
                 return (prev + 1) % comboPacksList.length;
               })}
-              className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
+              className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all cursor-pointer"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -721,7 +705,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Premium Quality Cards Section (Visual Banner representation from reference) */}
+      {/* Premium Quality Cards Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

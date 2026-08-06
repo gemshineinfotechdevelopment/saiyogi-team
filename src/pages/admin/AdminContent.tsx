@@ -214,8 +214,8 @@ const AdminContent = () => {
                 <div className="space-y-2 col-span-1 md:col-span-2 pt-2 border-t border-border mt-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label>Enable Packing Charge (3%)</Label>
-                      <p className="text-xs text-muted-foreground">Automatically add 3% packing charge to website orders</p>
+                      <Label>Enable Packing Charge (Flat / 3%)</Label>
+                      <p className="text-xs text-muted-foreground">Automatically add ₹120 (for orders ≤ 3999) or 3% packing charge to website orders</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input 

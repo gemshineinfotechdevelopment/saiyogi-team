@@ -59,6 +59,7 @@ const App = () => (
                   <Route path="/quick-enquery" element={<Navigate to="/quick-enquiry" replace />} />
                   <Route path="/about" element={<AboutUs />} />
                   <Route path="/about-us" element={<AboutUs />} />
+                  <Route path="/chit-scheme" element={<Navigate to="/quick-enquiry" replace />} />
                   <Route path="/admin/login" element={<AdminLogin />} />
                   <Route
                     path="/admin"

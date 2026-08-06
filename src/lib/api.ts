@@ -43,15 +43,14 @@ async function fetchJSON<T>(path: string, method: string = 'GET', body?: any): P
   for (const url of urlsToTry) {
     try {
       const response = await fetch(url, options);
-<<<<<<< HEAD
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("text/html")) {
         throw new Error(`Received HTML from ${url}, expected JSON`);
-=======
-      // Skip if response is HTML (Vite SPA fallback) instead of actual API JSON
-      if (response.headers.get('content-type')?.includes('text/html')) {
+      const contentType = response.headers.get('content-type') || '';
+      // If server returned 200 OK HTML (SPA fallback), skip and try next API URL
+      if (response.ok && contentType.includes('text/html') && url.endsWith(path) && isLocalhost) {
+        lastError = new Error(`HTML response received for ${url}`);
         continue;
->>>>>>> 949bafd2ffa7b3189b79bb9656426923fc0fb3b3
       }
       res = response;
       break;
@@ -306,6 +305,7 @@ export async function createOrder(orderData: {
   customerEmail: string;
   customerPhone: string;
   alternatePhoneNumber?: string;
+  preferredTransport?: string;
   deliveryAddress: string;
   state: string;
   district: string;
@@ -348,6 +348,16 @@ export async function updateHoldDays(orderId: string, holdDays: number): Promise
     return response.order || response;
   } catch (error) {
     console.error('Failed to update hold days:', error);
+    throw error;
+  }
+}
+
+export async function deleteOrder(orderId: string): Promise<any> {
+  try {
+    const response = await fetchJSON(`/api/orders/${orderId}`, 'DELETE');
+    return response;
+  } catch (error) {
+    console.error('Failed to delete order:', error);
     throw error;
   }
 }

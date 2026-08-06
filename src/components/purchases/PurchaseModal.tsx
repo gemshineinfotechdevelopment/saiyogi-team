@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -108,6 +109,7 @@ export function PurchaseModal({ open, onOpenChange, onSuccess, purchase }: Purch
       <DialogContent className="sm:max-w-[500px] max-h-[85vh] flex flex-col p-0 overflow-hidden">
         <DialogHeader className="p-6 pb-2">
           <DialogTitle>{purchase ? "Edit Purchase Order" : "New Purchase Order"}</DialogTitle>
+          <DialogDescription>{purchase ? "Update purchase order details and supplier information." : "Create a new purchase order for stock."}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
           <ScrollArea className="flex-1 px-6 py-4">

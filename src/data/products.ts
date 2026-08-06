@@ -1,19 +1,20 @@
 export interface Product {
   _id?: string;
-  id?: string;
+  id?: string | number;
   name: string;
   sku?: string;
   code?: string;
-  category: string;
+  category?: string;
   price: number;
-  hasDiscount: boolean;
-  image: string;
-  brand: string;
-  stock: number;
-  rating: number;
-  reviews: number;
-  description: string;
-  quantity: string;
+  oldPrice?: number;
+  hasDiscount?: boolean;
+  image?: string;
+  brand?: string;
+  stock?: number;
+  rating?: number;
+  reviews?: number;
+  description?: string;
+  quantity?: string;
   netRate?: number;
   displayNetRate?: boolean;
   wholesalePrice?: number;
@@ -22,6 +23,7 @@ export interface Product {
   piecesPerCase?: number;
   godownStockPieces?: number;
   minimumStock?: number;
+  oldPrice?: number;
 }
 
 export interface Category {
