@@ -12,7 +12,6 @@ import { getProducts, getCategories } from "@/lib/api";
 import { Product, Category } from "@/data/products";
 import { getUpcomingDiwaliInfo, calculateTimeLeft, UpcomingDiwaliInfo } from "@/lib/diwaliCountdown";
 import { Fireworks } from '@fireworks-js/react';
-import { useCart } from "@/context/CartContext";
 import ProductCard from "@/components/ProductCard";
 
 // Static Data based on the design
@@ -101,6 +100,8 @@ const demoVideos = [
     url: "https://assets.mixkit.co/videos/preview/mixkit-dramatic-fireworks-display-in-the-night-sky-40293-large.mp4",
     thumbnail: "/fireworks_bg.png"
   }
+];
+
 const shopByBrands = [
   { name: "Standard", subtitle: "Standard Fireworks", tag: "Most Popular", image: "/sky_rocket_box.png" },
   { name: "Ajanta", subtitle: "Ajanta Pyrotechnics", tag: "Top Quality", image: "/flower_pots.png" },
@@ -346,11 +347,11 @@ const Index = () => {
         {/* Infinite scrolling marquee from right to left */}
         <div className="relative w-full overflow-hidden py-4">
           <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
-            {[...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers)].map((item, index) => {
+            {[...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers), ...(products.length > 0 ? products : staticBestSellers)].map((item: any, index: number) => {
               const itemId = item.id || item._id;
               return (
                 <div key={`${itemId}-${index}`} className="min-w-[260px] max-w-[260px] shrink-0">
-                  <ProductCard product={item as Product} />
+                  <ProductCard product={item} />
                 </div>
               );
             })}
@@ -477,6 +478,12 @@ const Index = () => {
                     View Products
                   </button>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Shop By Category */}
       <section className="py-16 bg-[#FDF5E6] border-b border-amber-100">
         <div className="text-center mb-10 container mx-auto px-4">
@@ -535,6 +542,13 @@ const Index = () => {
                   <span className="font-black text-sm text-gray-800 tracking-wider uppercase transition-colors duration-300 group-hover:text-white">
                     {brand.name}
                   </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Shop By Brand */}
       <section className="py-16 bg-white border-b border-gray-100">
         <div className="text-center mb-10 container mx-auto px-4">
@@ -604,7 +618,7 @@ const Index = () => {
                   : staticFamilyPacks;
                 
                 const idx = (comboIndex + offset) % comboPacksList.length;
-                const item = comboPacksList[idx];
+                const item = comboPacksList[idx] as any;
                 const itemId = item.id || item._id;
                 const cartItem = cartItems.find((i) => (i.product._id || i.product.id) === itemId);
                 const quantity = cartItem?.quantity || 0;
