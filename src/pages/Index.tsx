@@ -23,13 +23,13 @@ const staticBestSellers = [
   { id: 6, name: "Chakkra Special", price: 280, image: "/flower_pots.png" },
 ];
 
-const staticFamilyPacks = [
-  { id: 7, name: "Mega Family Pack", oldPrice: 4500, price: 3200, image: "/sky_rocket_box.png" },
-  { id: 8, name: "Grand Celebration Combo", oldPrice: 6000, price: 4500, image: "/flower_pots.png" },
-  { id: 9, name: "Sky Show Magic", oldPrice: 7500, price: 5500, image: "/sky_rocket_box.png" },
-  { id: 10, name: "Classic Family Pack", oldPrice: 3000, price: 2100, image: "/flower_pots.png" },
-  { id: 11, name: "Royal Festival Pack", oldPrice: 10000, price: 7200, image: "/sky_rocket_box.png" },
-  { id: 12, name: "Kids Joy Cracker", oldPrice: 2000, price: 1500, image: "/flower_pots.png" },
+const staticFamilyPacks: Product[] = [
+  { id: "7", name: "Mega Family Pack", oldPrice: 4500, price: 3200, image: "/sky_rocket_box.png", category: "Combo", hasDiscount: true, brand: "Standard", stock: 10, rating: 5, reviews: 10, description: "Mega Family Pack", quantity: "1 Box" },
+  { id: "8", name: "Grand Celebration Combo", oldPrice: 6000, price: 4500, image: "/flower_pots.png", category: "Combo", hasDiscount: true, brand: "Standard", stock: 10, rating: 5, reviews: 10, description: "Grand Celebration Combo", quantity: "1 Box" },
+  { id: "9", name: "Sky Show Magic", oldPrice: 7500, price: 5500, image: "/sky_rocket_box.png", category: "Combo", hasDiscount: true, brand: "Standard", stock: 10, rating: 5, reviews: 10, description: "Sky Show Magic", quantity: "1 Box" },
+  { id: "10", name: "Classic Family Pack", oldPrice: 3000, price: 2100, image: "/flower_pots.png", category: "Combo", hasDiscount: true, brand: "Standard", stock: 10, rating: 5, reviews: 10, description: "Classic Family Pack", quantity: "1 Box" },
+  { id: "11", name: "Royal Festival Pack", oldPrice: 10000, price: 7200, image: "/sky_rocket_box.png", category: "Combo", hasDiscount: true, brand: "Standard", stock: 10, rating: 5, reviews: 10, description: "Royal Festival Pack", quantity: "1 Box" },
+  { id: "12", name: "Kids Joy Cracker", oldPrice: 2000, price: 1500, image: "/flower_pots.png", category: "Combo", hasDiscount: true, brand: "Standard", stock: 10, rating: 5, reviews: 10, description: "Kids Joy Cracker", quantity: "1 Box" },
 ];
 
 const premiumCategories = [
