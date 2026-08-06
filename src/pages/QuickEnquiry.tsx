@@ -8,7 +8,10 @@ import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
 import { toast } from "sonner";
 import { Plus, Minus, ShoppingCart, Sparkles, ShoppingBag } from "lucide-react";
+<<<<<<< HEAD
 
+=======
+>>>>>>> 949bafd2ffa7b3189b79bb9656426923fc0fb3b3
 
 const QuickEnquiry = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -18,6 +21,18 @@ const QuickEnquiry = () => {
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const { addToCart, updateQuantity, items } = useCart();
   const { settings } = useSiteSettings();
+
+  const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
+  const totalPrice = items.reduce((acc, item) => {
+    const dp = getDiscountPrice(
+      item.product.price,
+      item.product.hasDiscount,
+      settings.discountPercent,
+      item.product.netRate,
+      item.product.displayNetRate
+    );
+    return acc + dp * item.quantity;
+  }, 0);
 
   useEffect(() => {
     Promise.all([getProducts(), getCategories()])
@@ -252,7 +267,10 @@ const QuickEnquiry = () => {
               </div>
             ))
           )}
+<<<<<<< HEAD
         </div>
+=======
+>>>>>>> 949bafd2ffa7b3189b79bb9656426923fc0fb3b3
       </div>
     </div>
   </div>

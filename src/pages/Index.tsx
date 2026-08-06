@@ -449,6 +449,7 @@ const Index = () => {
               onClick={() => setVideoIndex((prev) => (prev + 1) % demoVideos.length)}
               className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
             >
+<<<<<<< HEAD
               <ChevronRight className="h-5 w-5" />
             </button>
           </div>
@@ -495,21 +496,27 @@ const Index = () => {
                 </div>
               </div>
             ))}
+=======
+              <ChevronRight className="w-5 h-5" />
+            </button>
+>>>>>>> 949bafd2ffa7b3189b79bb9656426923fc0fb3b3
           </div>
         </div>
       </section>
 
+<<<<<<< HEAD
       {/* Categories Grid */}
+=======
+      {/* Shop By Category */}
+>>>>>>> 949bafd2ffa7b3189b79bb9656426923fc0fb3b3
       <section className="py-16 bg-[#FFF8EE] border-b border-amber-100/50">
         <div className="text-center mb-10 container mx-auto px-4">
-          <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
-            ✨ POPULAR CATEGORIES ✨
-          </span>
-          <h2 className="font-black text-[#A80000] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 font-display">
-            Explore Categories
+          <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs">
+            Shop By Category
           </h2>
+          <div className="w-24 h-1 bg-[#7A1416] mx-auto rounded-full mb-3"></div>
           <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto font-medium">
-            Discover our vast range of Sivakasi fireworks tailored for all your celebrations.
+            Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.
           </p>
         </div>
 
@@ -570,7 +577,6 @@ const Index = () => {
           </div>
         </div>
       </section>
-
       {/* Shop By Brand */}
       <section className="py-16 bg-white border-b border-gray-100">
         <div className="text-center mb-10 container mx-auto px-4">
