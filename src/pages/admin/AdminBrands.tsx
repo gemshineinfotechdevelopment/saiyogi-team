@@ -8,9 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Edit2, Trash2, Tag, Phone, Image as ImageIcon, CheckCircle, XCircle, Upload } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Tag, CheckCircle, XCircle, Eye, Package } from "lucide-react";
 import { toast } from "sonner";
-import { getBrands, getNextBrandId, createBrand, updateBrand, deleteBrand, Brand } from "@/lib/api";
+import { getBrands, getNextBrandId, createBrand, updateBrand, deleteBrand, getProducts, Brand } from "@/lib/api";
+import { Product } from "@/data/products";
 
 const PRESET_LOGOS = [
   "/sky_rocket_box.png",
@@ -24,6 +25,7 @@ const PRESET_LOGOS = [
 
 const AdminBrands = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [nextAutoId, setNextAutoId] = useState("B0001");
@@ -31,23 +33,26 @@ const AdminBrands = () => {
   // Modal state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
+  const [viewingBrand, setViewingBrand] = useState<Brand | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form State
+  // Form State (Phone Number and manual Items Count removed)
   const [formData, setFormData] = useState({
     name: "",
-    phone: "",
     logo: "/sky_rocket_box.png",
     description: "",
-    itemsCount: 0,
     isActive: true
   });
 
-  const loadBrands = async () => {
+  const loadBrandsAndProducts = async () => {
     setLoading(true);
     try {
-      const data = await getBrands();
-      setBrands(data);
+      const [brandsData, productsData] = await Promise.all([
+        getBrands(),
+        getProducts().catch(() => [])
+      ]);
+      setBrands(Array.isArray(brandsData) ? brandsData : []);
+      setProducts(Array.isArray(productsData) ? productsData : []);
     } catch (error) {
       toast.error("Failed to load brands");
     } finally {
@@ -56,7 +61,7 @@ const AdminBrands = () => {
   };
 
   useEffect(() => {
-    loadBrands();
+    loadBrandsAndProducts();
   }, []);
 
   const handleOpenAddDialog = async () => {
@@ -69,10 +74,8 @@ const AdminBrands = () => {
     }
     setFormData({
       name: "",
-      phone: "",
       logo: "/sky_rocket_box.png",
       description: "",
-      itemsCount: 0,
       isActive: true
     });
     setIsDialogOpen(true);
@@ -82,31 +85,61 @@ const AdminBrands = () => {
     setEditingBrand(brand);
     setFormData({
       name: brand.name || "",
-      phone: brand.phone || "",
       logo: brand.logo || "/sky_rocket_box.png",
       description: brand.description || "",
-      itemsCount: brand.itemsCount || 0,
       isActive: brand.isActive !== false
     });
     setIsDialogOpen(true);
   };
 
+  const handleOpenViewProductsDialog = (brand: Brand) => {
+    setViewingBrand(brand);
+  };
+
+  // Image Upload handler: Resizes uploaded image to intrinsic size 1024x1024px canvas
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("File size must be less than 5MB");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === "string") {
-          setFormData((prev) => ({ ...prev, logo: reader.result as string }));
-          toast.success("Image selected & ready!");
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be less than 5MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const targetWidth = 1024;
+        const targetHeight = 1024;
+
+        const canvas = document.createElement("canvas");
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        const ctx = canvas.getContext("2d");
+
+        if (ctx) {
+          ctx.fillStyle = "#FFFFFF";
+          ctx.fillRect(0, 0, targetWidth, targetHeight);
+
+          // Fit image nicely into 1024x1024 maintaining aspect ratio
+          const scale = Math.min(targetWidth / img.width, targetHeight / img.height);
+          const drawW = img.width * scale;
+          const drawH = img.height * scale;
+          const offsetX = (targetWidth - drawW) / 2;
+          const offsetY = (targetHeight - drawH) / 2;
+
+          ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+          const dataUrl = canvas.toDataURL("image/png");
+          setFormData((prev) => ({ ...prev, logo: dataUrl }));
+          toast.success("Image uploaded & scaled to 1024x1024px intrinsic size!");
         }
       };
-      reader.readAsDataURL(file);
-    }
+      if (typeof event.target?.result === "string") {
+        img.src = event.target.result;
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -127,7 +160,7 @@ const AdminBrands = () => {
         toast.success(`Brand ${newBrand.brandId} created successfully!`);
       }
       setIsDialogOpen(false);
-      loadBrands();
+      loadBrandsAndProducts();
     } catch (error: any) {
       toast.error(error.message || "Failed to save brand");
     } finally {
@@ -143,7 +176,7 @@ const AdminBrands = () => {
       try {
         await deleteBrand(id);
         toast.success("Brand deleted successfully");
-        loadBrands();
+        loadBrandsAndProducts();
       } catch (error: any) {
         toast.error(error.message || "Failed to delete brand");
       }
@@ -153,7 +186,7 @@ const AdminBrands = () => {
   const filteredBrands = brands.filter((b) =>
     b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (b.brandId && b.brandId.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (b.phone && b.phone.includes(searchQuery))
+    (b.description && b.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -171,7 +204,7 @@ const AdminBrands = () => {
                 Brand Management
               </h1>
               <p className="text-sm text-gray-500 mt-1">
-                Add and manage cracker brands. Brand IDs are auto-generated (e.g. b0001, b0002) and displayed on the store front.
+                Add and manage cracker brands. Click on any brand row or view icon to see its items.
               </p>
             </div>
             <Button onClick={handleOpenAddDialog} className="bg-red-600 hover:bg-red-700 text-white font-bold gap-2">
@@ -185,7 +218,7 @@ const AdminBrands = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search by Brand ID (e.g. b0001), Brand Name, or Phone Number..."
+                  placeholder="Search by Brand ID (e.g. B0001), Brand Name, or Description..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -216,79 +249,91 @@ const AdminBrands = () => {
                         <TableHead className="font-extrabold text-xs text-gray-700 uppercase">Brand ID</TableHead>
                         <TableHead className="font-extrabold text-xs text-gray-700 uppercase">Logo</TableHead>
                         <TableHead className="font-extrabold text-xs text-gray-700 uppercase">Brand Name</TableHead>
-                        <TableHead className="font-extrabold text-xs text-gray-700 uppercase">Phone Number</TableHead>
                         <TableHead className="font-extrabold text-xs text-gray-700 uppercase">Items Count</TableHead>
                         <TableHead className="font-extrabold text-xs text-gray-700 uppercase">Status</TableHead>
                         <TableHead className="font-extrabold text-xs text-gray-700 uppercase text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody className="divide-y divide-gray-100">
-                      {filteredBrands.map((brand) => (
-                        <TableRow key={brand._id || brand.id} className="hover:bg-gray-50/50">
-                          <TableCell>
-                            <Badge variant="outline" className="font-mono font-bold text-red-700 bg-red-50 border-red-200">
-                              {brand.brandId}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 p-1 flex items-center justify-center overflow-hidden">
-                              <img src={brand.logo || "/sky_rocket_box.png"} alt={brand.name} className="max-w-full max-h-full object-contain" />
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-bold text-gray-900 text-sm">
-                            {brand.name}
-                            {brand.description && (
-                              <p className="text-xs font-normal text-gray-500 mt-0.5 line-clamp-1">{brand.description}</p>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-sm font-medium text-gray-700">
-                            {brand.phone ? (
-                              <span className="flex items-center gap-1.5 text-gray-800 font-semibold">
-                                <Phone className="h-3.5 w-3.5 text-green-600" />
-                                {brand.phone}
-                              </span>
-                            ) : (
-                              <span className="text-gray-400 text-xs">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="secondary" className="font-bold">
-                              {brand.itemsCount || 0} Items
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {brand.isActive !== false ? (
-                              <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200 gap-1">
-                                <CheckCircle className="h-3 w-3" /> Active
+                      {filteredBrands.map((brand) => {
+                        const itemsCount = products.filter(p => {
+                          const pBrand = p.brand?.trim().toLowerCase();
+                          return pBrand && (pBrand === brand.name?.trim().toLowerCase() || pBrand === brand.brandId?.trim().toLowerCase());
+                        }).length;
+
+                        return (
+                          <TableRow 
+                            key={brand._id || brand.id} 
+                            onClick={() => handleOpenViewProductsDialog(brand)}
+                            className="hover:bg-red-50/40 cursor-pointer transition-colors"
+                          >
+                            <TableCell className="py-2.5">
+                              <Badge variant="outline" className="font-mono font-bold text-red-700 bg-red-50 border-red-200">
+                                {brand.brandId}
                               </Badge>
-                            ) : (
-                              <Badge variant="outline" className="bg-gray-100 text-gray-600 border-gray-300 gap-1">
-                                <XCircle className="h-3 w-3" /> Inactive
+                            </TableCell>
+                            <TableCell className="py-2.5">
+                              {/* Compact Logo Thumbnail for neat row height */}
+                              <div className="w-12 h-12 rounded-lg bg-gray-50 border border-gray-200 p-1 flex items-center justify-center overflow-hidden shrink-0">
+                                <img src={brand.logo || "/sky_rocket_box.png"} alt={brand.name} className="max-w-full max-h-full object-contain" />
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-2.5 font-bold text-gray-900 text-sm">
+                              {brand.name}
+                              {brand.description && (
+                                <p className="text-xs font-normal text-gray-500 mt-0.5 line-clamp-1">{brand.description}</p>
+                              )}
+                            </TableCell>
+                            <TableCell className="py-2.5">
+                              <Badge variant="secondary" className="font-bold">
+                                {itemsCount} Items
                               </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleOpenEditDialog(brand)}
-                                className="h-8 px-2.5 text-blue-600 border-blue-200 hover:bg-blue-50"
-                              >
-                                <Edit2 className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDelete(brand)}
-                                className="h-8 px-2.5 text-red-600 border-red-200 hover:bg-red-50"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                            </TableCell>
+                            <TableCell className="py-2.5">
+                              {brand.isActive !== false ? (
+                                <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200 gap-1">
+                                  <CheckCircle className="h-3 w-3" /> Active
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-gray-100 text-gray-600 border-gray-300 gap-1">
+                                  <XCircle className="h-3 w-3" /> Inactive
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="py-2.5 text-right">
+                              <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleOpenViewProductsDialog(brand)}
+                                  className="h-8 w-8 p-0 text-gray-700 border-gray-200 hover:bg-gray-100 hover:text-red-700"
+                                  title="View Brand Products"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleOpenEditDialog(brand)}
+                                  className="h-8 w-8 p-0 text-blue-600 border-blue-200 hover:bg-blue-50"
+                                  title="Edit Brand"
+                                >
+                                  <Edit2 className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDelete(brand)}
+                                  className="h-8 w-8 p-0 text-red-600 border-red-200 hover:bg-red-50"
+                                  title="Delete Brand"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
@@ -330,21 +375,11 @@ const AdminBrands = () => {
               />
             </div>
 
-            <div>
-              <Label className="text-xs font-bold text-gray-700 uppercase">Phone Number</Label>
-              <Input
-                placeholder="e.g. +91 94880 73004"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-
             {/* File Upload & Presets */}
             <div className="space-y-2">
               <Label className="text-xs font-bold text-gray-700 uppercase flex items-center justify-between">
                 <span>Brand Logo / Image</span>
-                <span className="text-[10px] text-gray-400 font-normal">Upload or select preset</span>
+                <span className="text-[10px] text-gray-400 font-normal">Intrinsic size: 1024x1024px</span>
               </Label>
               
               {/* File upload input */}
@@ -359,13 +394,14 @@ const AdminBrands = () => {
 
               {/* Preview */}
               {formData.logo && (
-                <div className="flex items-center gap-3 p-2 bg-gray-50 border rounded-md">
-                  <div className="w-10 h-10 rounded border bg-white p-1 flex items-center justify-center shrink-0">
+                <div className="flex items-center gap-3 p-3 bg-gray-50 border rounded-md">
+                  <div className="w-16 h-16 rounded border bg-white p-2 flex items-center justify-center shrink-0">
                     <img src={formData.logo} alt="Preview" className="max-w-full max-h-full object-contain" />
                   </div>
-                  <span className="text-xs text-gray-600 font-medium truncate flex-1">
-                    {formData.logo.startsWith("data:") ? "Uploaded Image File" : formData.logo}
-                  </span>
+                  <div className="text-xs text-gray-600 font-medium truncate flex-1">
+                    <p className="font-bold text-gray-800 mb-0.5">Logo Preview</p>
+                    <p className="text-[11px] text-gray-500">Auto-scaled to 1024x1024px intrinsic canvas</p>
+                  </div>
                 </div>
               )}
 
@@ -378,7 +414,7 @@ const AdminBrands = () => {
                       key={idx}
                       type="button"
                       onClick={() => setFormData({ ...formData, logo: url })}
-                      className={`w-8 h-8 rounded border p-0.5 shrink-0 bg-gray-50 overflow-hidden ${formData.logo === url ? 'border-red-600 ring-2 ring-red-200' : 'border-gray-200'}`}
+                      className={`w-10 h-10 rounded border p-1 shrink-0 bg-gray-50 overflow-hidden ${formData.logo === url ? 'border-red-600 ring-2 ring-red-200' : 'border-gray-200'}`}
                     >
                       <img src={url} alt="preset" className="w-full h-full object-contain" />
                     </button>
@@ -387,29 +423,16 @@ const AdminBrands = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-xs font-bold text-gray-700 uppercase">Items Count</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={formData.itemsCount}
-                  onChange={(e) => setFormData({ ...formData, itemsCount: parseInt(e.target.value) || 0 })}
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <Label className="text-xs font-bold text-gray-700 uppercase">Status</Label>
-                <select
-                  value={formData.isActive ? "active" : "inactive"}
-                  onChange={(e) => setFormData({ ...formData, isActive: e.target.value === "active" })}
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm bg-white"
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </div>
+            <div>
+              <Label className="text-xs font-bold text-gray-700 uppercase">Status</Label>
+              <select
+                value={formData.isActive ? "active" : "inactive"}
+                onChange={(e) => setFormData({ ...formData, isActive: e.target.value === "active" })}
+                className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm bg-white"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
             </div>
 
             <div>
@@ -431,6 +454,99 @@ const AdminBrands = () => {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Brand Products Modal */}
+      <Dialog open={!!viewingBrand} onOpenChange={(open) => !open && setViewingBrand(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col">
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle className="text-xl font-bold text-gray-900 flex items-center gap-3">
+              <div className="w-12 h-12 rounded-lg bg-gray-50 border p-1 flex items-center justify-center shrink-0">
+                <img src={viewingBrand?.logo || "/sky_rocket_box.png"} alt={viewingBrand?.name} className="max-w-full max-h-full object-contain" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span>{viewingBrand?.name}</span>
+                  <Badge variant="outline" className="font-mono text-xs font-bold text-red-700 bg-red-50 border-red-200">
+                    {viewingBrand?.brandId}
+                  </Badge>
+                </div>
+                {viewingBrand?.description && (
+                  <p className="text-xs text-gray-500 font-normal mt-0.5">{viewingBrand.description}</p>
+                )}
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto py-4">
+            {(() => {
+              const brandProducts = products.filter(p => {
+                const pBrand = p.brand?.trim().toLowerCase();
+                return pBrand && (pBrand === viewingBrand?.name?.trim().toLowerCase() || pBrand === viewingBrand?.brandId?.trim().toLowerCase());
+              });
+
+              if (brandProducts.length === 0) {
+                return (
+                  <div className="p-8 text-center text-gray-500 space-y-2">
+                    <Package className="h-10 w-10 text-gray-300 mx-auto" />
+                    <p className="font-semibold text-sm">No products found under "{viewingBrand?.name}"</p>
+                    <p className="text-xs text-gray-400">Add products and select "{viewingBrand?.name}" as the brand in the Products Admin page.</p>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-xs font-bold text-gray-600 uppercase px-1">
+                    <span>Products List ({brandProducts.length})</span>
+                  </div>
+                  <div className="border rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader className="bg-gray-50">
+                        <TableRow>
+                          <TableHead className="text-xs font-bold uppercase">Product</TableHead>
+                          <TableHead className="text-xs font-bold uppercase">Retail Price</TableHead>
+                          <TableHead className="text-xs font-bold uppercase">Net Rate</TableHead>
+                          <TableHead className="text-xs font-bold uppercase">Stock (Pcs)</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody className="divide-y divide-gray-100">
+                        {brandProducts.map((p) => (
+                          <TableRow key={p.id || p._id} className="hover:bg-gray-50">
+                            <TableCell className="py-2.5">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded border p-1 bg-white flex items-center justify-center shrink-0">
+                                  <img src={p.image || "/sky_rocket_box.png"} alt={p.name} className="max-w-full max-h-full object-contain" />
+                                </div>
+                                <div>
+                                  <p className="font-bold text-sm text-gray-900">{p.name}</p>
+                                  {p.sku && <p className="text-[10px] text-gray-400 font-mono">SKU: {p.sku}</p>}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-2.5 font-bold text-red-700">₹{p.price}</TableCell>
+                            <TableCell className="py-2.5 font-medium text-gray-700">{p.netRate ? `₹${p.netRate}` : '-'}</TableCell>
+                            <TableCell className="py-2.5">
+                              <Badge variant={p.stock > 0 ? "outline" : "destructive"} className="text-xs font-bold">
+                                {p.stock > 0 ? `${p.stock} Pcs` : "Out of Stock"}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          <DialogFooter className="border-t pt-3">
+            <Button variant="outline" onClick={() => setViewingBrand(null)}>
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -18,16 +18,15 @@ const migrate = async () => {
     let catCodeNum = 100;
     
     for (const cat of categories) {
-      if (!cat.categoryCode) {
+      // Force assign numeric categoryCode (100, 110, 120, 130...)
+      const currentNum = parseInt(cat.categoryCode, 10);
+      if (isNaN(currentNum) || !cat.categoryCode) {
         cat.categoryCode = catCodeNum.toString();
         await cat.save();
-        console.log(`Updated Category ${cat.name} with code ${cat.categoryCode}`);
+        console.log(`Updated Category "${cat.name}" with code ${cat.categoryCode}`);
         catCodeNum += 10;
       } else {
-        const codeNum = parseInt(cat.categoryCode, 10);
-        if (!isNaN(codeNum) && codeNum >= catCodeNum) {
-          catCodeNum = codeNum + 10;
-        }
+        catCodeNum = Math.max(catCodeNum, currentNum + 10);
       }
     }
 
@@ -35,35 +34,20 @@ const migrate = async () => {
 
     const products = await Product.find().populate('category');
     
-    // Map to keep track of max sequence per category code
-    const seqMap = {};
-    for (const p of products) {
-        if (p.category && p.category.categoryCode) {
-            const catCode = p.category.categoryCode;
-            if (p.sku && p.sku.startsWith(catCode)) {
-                const seq = parseInt(p.sku.substring(catCode.length), 10);
-                if (!isNaN(seq)) {
-                    if (!seqMap[catCode] || seq > seqMap[catCode]) {
-                        seqMap[catCode] = seq;
-                    }
-                }
-            }
-        }
-    }
-
+    // Group products by category and reassign SKUs as categoryCode + 1, 2, 3...
+    const catProductCount = {};
     for (const p of products) {
       if (p.category && p.category.categoryCode) {
         const catCode = p.category.categoryCode;
-        
-        if (!p.sku || !p.sku.startsWith(catCode)) {
-            if (!seqMap[catCode]) seqMap[catCode] = 0;
-            seqMap[catCode]++;
-            const newSku = catCode + seqMap[catCode].toString();
-            p.sku = newSku;
-            p.code = newSku;
-            await p.save();
-            console.log(`Updated Product ${p.name} with SKU ${newSku}`);
+        if (!catProductCount[catCode]) {
+          catProductCount[catCode] = 0;
         }
+        catProductCount[catCode]++;
+        const newSku = `${catCode}${catProductCount[catCode]}`;
+        p.sku = newSku;
+        p.code = newSku;
+        await p.save();
+        console.log(`Updated Product "${p.name}" -> Category "${p.category.name}" (${catCode}) -> SKU: ${newSku}`);
       }
     }
 
