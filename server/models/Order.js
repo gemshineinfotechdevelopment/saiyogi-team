@@ -22,6 +22,10 @@ const orderSchema = new mongoose.Schema(
     customerPhone: {
       type: String
     },
+    preferredTransport: {
+      type: String,
+      default: ''
+    },
     alternatePhoneNumber: {
       type: String
     },

@@ -33,7 +33,7 @@ export const createOrder = async (req, res, next) => {
   session.startTransaction();
   
   try {
-    const { items, customerName, customerEmail, customerPhone, alternatePhoneNumber, deliveryAddress, state, district, shippingAddress, paymentMethod } = req.body;
+    const { items, customerName, customerEmail, customerPhone, preferredTransport, alternatePhoneNumber, deliveryAddress, state, district, shippingAddress, paymentMethod } = req.body;
 
     if (!customerName || !customerPhone || !deliveryAddress) {
       throw new AppError('Missing required fields: name, phone, and delivery address', 400);
@@ -138,6 +138,7 @@ export const createOrder = async (req, res, next) => {
       customerName,
       customerEmail,
       customerPhone,
+      preferredTransport: preferredTransport || '',
       alternatePhoneNumber,
       customer: existingCustomer ? existingCustomer._id : null,
       deliveryAddress: {
@@ -353,6 +354,19 @@ export const updateHoldDays = async (req, res, next) => {
       message: 'Hold days updated successfully',
       order
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteOrder = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const order = await Order.findByIdAndDelete(id);
+    if (!order) {
+      return next(new AppError('Order not found', 404));
+    }
+    res.json({ message: 'Order deleted successfully', id });
   } catch (error) {
     next(error);
   }

@@ -302,6 +302,7 @@ export async function createOrder(orderData: {
   customerEmail: string;
   customerPhone: string;
   alternatePhoneNumber?: string;
+  preferredTransport?: string;
   deliveryAddress: string;
   state: string;
   district: string;
@@ -344,6 +345,16 @@ export async function updateHoldDays(orderId: string, holdDays: number): Promise
     return response.order || response;
   } catch (error) {
     console.error('Failed to update hold days:', error);
+    throw error;
+  }
+}
+
+export async function deleteOrder(orderId: string): Promise<any> {
+  try {
+    const response = await fetchJSON(`/api/orders/${orderId}`, 'DELETE');
+    return response;
+  } catch (error) {
+    console.error('Failed to delete order:', error);
     throw error;
   }
 }

@@ -98,9 +98,9 @@ const QuickEnquiry = () => {
   };
 
   const handleAdd = (product: Product) => {
-    const pId = product._id || product.id;
+    const pId = String(product._id || product.id || '');
     const qty = quantities[pId] || 1;
-    const existing = items.find((i) => (i.product._id || i.product.id) === pId);
+    const existing = items.find((i) => String(i.product._id || i.product.id) === pId);
     
     if (existing) {
       updateQuantity(pId, existing.quantity + qty);
@@ -182,7 +182,7 @@ const QuickEnquiry = () => {
                 {/* Product Rows */}
                 <div className="flex flex-col divide-y divide-gray-100">
                   {group.items.map((item) => {
-                    const pId = item._id || item.id;
+                    const pId = String(item._id || item.id || '');
                     const dp = getDiscountPrice(item.price, item.hasDiscount, settings.discountPercent, item.netRate, item.displayNetRate);
                     const stock = item.storeStockPieces ?? item.stock ?? 1;
                     const inStockText = stock > 0 ? (stock < 20 ? "Low Stock" : "In Stock") : "Out of Stock";
