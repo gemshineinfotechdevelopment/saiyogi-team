@@ -264,10 +264,6 @@ const QuickEnquiry = () => {
       </main>
       <UserFooter />
     </div>
-  </main>
-
-  <UserFooter />
-</div>
   );
 };
 

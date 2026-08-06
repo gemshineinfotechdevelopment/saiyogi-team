@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose, SheetDescription } from "@/components/ui/sheet";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
 import { Minus, Plus, Trash2, X } from "lucide-react";
@@ -131,7 +131,7 @@ const CartDrawer = () => {
     }
   };
 
-  const packingCharge = settings.enablePackingCharge !== false ? Math.round(totalPrice * 0.03) : 0;
+  const packingCharge = settings.enablePackingCharge !== false ? (totalPrice <= 3999 ? 120 : Math.round(totalPrice * 0.03)) : 0;
   const estimatedTotal = totalPrice + packingCharge;
   const dialogMinPurchase = formData.state === "Tamil Nadu" ? settings.minimumPurchaseAmount : settings.minPurchaseOutsideTN;
   const canPlaceOrder = !formData.state || totalPrice >= dialogMinPurchase;
@@ -143,9 +143,14 @@ const CartDrawer = () => {
           
           {/* Drawer Header */}
           <SheetHeader className="p-4 border-b border-gray-200 sticky top-0 bg-white z-10 flex flex-row items-center justify-between shadow-sm">
-            <SheetTitle className="text-[#a41a1c] font-black uppercase tracking-wider text-base m-0">
-              MY CART ({totalItems})
-            </SheetTitle>
+            <div>
+              <SheetTitle className="text-[#a41a1c] font-black uppercase tracking-wider text-base m-0">
+                MY CART ({totalItems})
+              </SheetTitle>
+              <SheetDescription className="sr-only">
+                Review and modify your cart items before checkout.
+              </SheetDescription>
+            </div>
             <SheetClose className="rounded-full p-1.5 text-gray-500 hover:text-red-700 hover:bg-red-50 transition-colors focus:outline-none">
               <X className="h-5 w-5" />
               <span className="sr-only">Close</span>

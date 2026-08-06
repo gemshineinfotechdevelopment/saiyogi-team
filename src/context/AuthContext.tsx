@@ -34,30 +34,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string) => {
-
     try {
       const API_BASE =
         (import.meta.env.VITE_API_URL as string) || "http://localhost:5000";
 
-      let data: any = null;
-      try {
-        const response = await fetch(`${API_BASE}/api/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const allowedRoles = ["admin", "SUPER ADMIN", "ADMIN"];
-    if (!allowedRoles.includes(data.user?.role)) {
-      throw new Error("Only admin users can access this section");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      const allowedRoles = ["admin", "SUPER ADMIN", "ADMIN"];
+      if (!allowedRoles.includes(data.user?.role)) {
+        throw new Error("Only admin users can access this section");
+      }
+
+      setToken(data.token);
+      setIsAdmin(true);
+      setIsAuthenticated(true);
+
+      localStorage.setItem("admin_token", data.token);
+      localStorage.setItem("admin_role", data.user.role);
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
     }
-
-    setToken(data.token);
-    setIsAdmin(true);
-    setIsAuthenticated(true);
-
-    localStorage.setItem("admin_token", data.token);
-    localStorage.setItem("admin_role", data.user.role);
   };
 
   const logout = () => {

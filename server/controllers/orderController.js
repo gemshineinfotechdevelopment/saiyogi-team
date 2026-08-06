@@ -71,7 +71,7 @@ export const createOrder = async (req, res, next) => {
     const settings = await Settings.findOne().session(session);
     const packingChargeEnabled = settings ? settings.enablePackingCharge !== false : true;
 
-    const packingCharge = packingChargeEnabled ? Math.round(subtotal * 0.03) : 0;
+    const packingCharge = packingChargeEnabled ? (subtotal <= 3999 ? 120 : Math.round(subtotal * 0.03)) : 0;
     const delivery = 0;
     const gst = 0;
     const total = subtotal + packingCharge;

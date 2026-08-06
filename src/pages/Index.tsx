@@ -358,44 +358,36 @@ const Index = () => {
             <button
               onClick={() => setVideoIndex((prev) => (prev - 1 + demoVideos.length) % demoVideos.length)}
               className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
-      <section className="relative overflow-hidden bg-black text-white min-h-[300px] sm:min-h-[420px] md:min-h-[500px] lg:min-h-[580px] flex items-center justify-center">
-        <div className="absolute inset-0 z-0">
-          {heroImages.map((img, index) => (
-            <div
-              key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
-              }`}
             >
-              <img
-                key={`${index}-${slideKey}`}
-                src={img}
-                alt={`Diwali Banner ${index + 1}`}
-                className={`w-full h-full object-cover sm:object-contain object-center ${
-                  index === currentSlide ? "animate-hero-slide-rtl" : ""
-                }`}
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            {/* Video Player */}
+            <div className="w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl border-4 border-white/50 relative group max-w-4xl">
+              <video 
+                key={demoVideos[videoIndex].id}
+                src={demoVideos[videoIndex].url}
+                className="w-full h-full object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
+                poster={demoVideos[videoIndex].thumbnail}
               />
+              <div className="absolute bottom-4 left-4 right-4 text-center">
+                <span className="bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg border border-white/20">
+                  {demoVideos[videoIndex].title}
+                </span>
+              </div>
             </div>
-          ))}
 
-          <div className="absolute inset-0 bg-black/20 z-15 pointer-events-none" />
-
-          {/* Dots Indicator */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-            {heroImages.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => {
-                  setCurrentSlide(i);
-                  setSlideKey((k) => k + 1);
-                }}
-                className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                  i === currentSlide
-                    ? "bg-[#F4C542] w-8 shadow-[0_0_10px_#F4C542]"
-                    : "bg-white/50 hover:bg-white"
-                }`}
-              />
-            ))}
+            {/* Right Button */}
+            <button
+              onClick={() => setVideoIndex((prev) => (prev + 1) % demoVideos.length)}
+              className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </section>
@@ -440,8 +432,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Shop By Category */}
-      <section className="py-16 bg-[#FDF5E6] border-b border-amber-100">
       {/* Categories Grid */}
       <section className="py-16 bg-[#FFF8EE] border-b border-amber-100/50">
         <div className="text-center mb-10 container mx-auto px-4">
