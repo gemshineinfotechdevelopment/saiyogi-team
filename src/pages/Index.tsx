@@ -304,6 +304,7 @@ const Index = () => {
         }}
       />
 
+      {/* Hero Section */}
       <section className="relative overflow-hidden bg-black text-white min-h-[300px] sm:min-h-[420px] md:min-h-[500px] lg:min-h-[580px] flex items-center justify-center">
         <div className="absolute inset-0 z-0">
           {heroImages.map((img, index) => (
@@ -390,6 +391,7 @@ const Index = () => {
             <button
               onClick={() => setVideoIndex((prev) => (prev - 1 + demoVideos.length) % demoVideos.length)}
               className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
+
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -449,7 +451,6 @@ const Index = () => {
               onClick={() => setVideoIndex((prev) => (prev + 1) % demoVideos.length)}
               className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
             >
-<<<<<<< HEAD
               <ChevronRight className="h-5 w-5" />
             </button>
           </div>
@@ -496,19 +497,12 @@ const Index = () => {
                 </div>
               </div>
             ))}
-=======
-              <ChevronRight className="w-5 h-5" />
-            </button>
->>>>>>> 949bafd2ffa7b3189b79bb9656426923fc0fb3b3
+
           </div>
         </div>
       </section>
 
-<<<<<<< HEAD
       {/* Categories Grid */}
-=======
-      {/* Shop By Category */}
->>>>>>> 949bafd2ffa7b3189b79bb9656426923fc0fb3b3
       <section className="py-16 bg-[#FFF8EE] border-b border-amber-100/50">
         <div className="text-center mb-10 container mx-auto px-4">
           <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs">
