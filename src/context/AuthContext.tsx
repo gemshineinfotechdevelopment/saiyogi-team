@@ -45,9 +45,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+
       const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(data.message || "Invalid credentials");
+        throw new Error(data.message || "Login failed");
+      }
+
+      const allowedRoles = ["admin", "SUPER ADMIN", "ADMIN"];
+      if (!allowedRoles.includes(data.user?.role)) {
+        throw new Error("Only admin users can access this section");
       }
 
       setToken(data.token);
@@ -55,11 +62,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsAuthenticated(true);
 
       localStorage.setItem("admin_token", data.token);
-      if (data.user?.role) {
-        localStorage.setItem("admin_role", data.user.role);
-      }
-    } catch (err: any) {
-      throw new Error(err.message || "Failed to connect to backend server");
+      localStorage.setItem("admin_role", data.user.role);
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
     }
   };
 

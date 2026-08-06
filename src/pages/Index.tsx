@@ -362,14 +362,23 @@ const Index = () => {
               <ChevronLeft className="w-5 h-5" />
             </button>
 
-            {/* Video Card Showcase */}
-            <div className="w-full max-w-xl bg-black rounded-3xl overflow-hidden shadow-2xl border-4 border-[#F4C542]/30 relative aspect-video flex items-center justify-center">
-              <video
+            {/* Video Player */}
+            <div className="w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl border-4 border-white/50 relative group max-w-4xl">
+              <video 
+                key={demoVideos[videoIndex].id}
                 src={demoVideos[videoIndex].url}
-                poster={demoVideos[videoIndex].thumbnail}
-                controls
                 className="w-full h-full object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
+                poster={demoVideos[videoIndex].thumbnail}
               />
+              <div className="absolute bottom-4 left-4 right-4 text-center">
+                <span className="bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg border border-white/20">
+                  {demoVideos[videoIndex].title}
+                </span>
+              </div>
             </div>
 
             {/* Right Button */}
@@ -382,6 +391,18 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+            {/* Right Button */}
+            <button
+              onClick={() => setVideoIndex((prev) => (prev + 1) % demoVideos.length)}
+              className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Categories Grid */}
       <section className="py-16 bg-[#FFF8EE] border-b border-amber-100/50">
         <div className="text-center mb-10 container mx-auto px-4">
