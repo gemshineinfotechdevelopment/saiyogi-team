@@ -439,62 +439,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Shop By Category */}
-      <section className="py-16 bg-[#FFF6E5] overflow-hidden">
-        <div className="text-center mb-10 container mx-auto px-4">
-          <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs">
-            Shop By Category
-          </h2>
-          <div className="w-24 h-1 bg-[#7A1416] mx-auto rounded-full mb-3"></div>
-          <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto font-medium">
-            Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.
-          </p>
-        </div>
-      </section>
-
-      {/* Shop By Category */}
-      <section className="py-16 bg-[#FFF6E5]">
-        <div className="text-center mb-10 container mx-auto px-4">
-          <h2 className="font-black text-[#A80000] text-3xl sm:text-4xl uppercase tracking-tight mb-2 font-display">
-            Shop By Category
-          </h2>
-          <p className="text-gray-600 text-xs font-bold uppercase tracking-wider">
-            Explore our wide selection of premium fireworks crafted for spectacular celebrations
-          </p>
-        </div>
-
-        {/* Infinite scrolling categories marquee */}
-        <div className="relative w-full overflow-hidden py-4 mb-8">
-          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
-            {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i: number) => (
-              <div 
-                key={`${cat.id || cat._id || 'cat'}-${i}`} 
-                onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id}`} 
-                className="bg-white border border-gray-200 p-4 flex flex-col items-center text-center shadow-md rounded-2xl min-w-[200px] max-w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
-              >
-                <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative border border-gray-100/50">
-                  <img 
-                    src={cat.image || "/sky_rocket_box.png"} 
-                    alt={cat.name} 
-                    className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110" 
-                  />
-                  <span className="absolute top-2 left-2 bg-[#A80000] text-[#F4C542] font-black text-[9px] px-2.5 py-0.5 rounded-full shadow uppercase">
-                    SHOP
-                  </span>
-                </div>
-                <h3 className="font-bold text-xs text-gray-800 uppercase text-center min-h-[32px] line-clamp-2 transition-colors group-hover:text-[#A80000] mb-3">{cat.name}</h3>
-                
-                <div className="w-full mt-auto">
-                  <button className="w-full bg-[#A80000] text-white py-1.5 rounded-lg text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase">
-                    View Products
-                  </button>
-                </div>
-              </div>
-            ))}
-
-          </div>
-        </div>
-      </section>
 
       {/* Categories Grid */}
       <section className="py-16 bg-[#FFF8EE] border-b border-amber-100/50">
