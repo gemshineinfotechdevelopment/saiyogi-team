@@ -70,7 +70,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (!data) {
-      // Evaluate fallback admin login if server is offline or failed
+      console.warn("Backend login failed or server offline, evaluating fallback admin login:", lastError);
+      
       const cleanEmail = email.trim().toLowerCase();
       if (
         (cleanEmail === "admin@crackerhub.com" || cleanEmail === "admin@saiyogi.com" || cleanEmail === "admin@gmail.com" || cleanEmail.startsWith("admin")) &&
@@ -81,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           user: { role: "admin", email: cleanEmail }
         };
       } else {
-        throw lastError || new Error("Failed to connect to backend server");
+        throw lastError || new Error("Login failed");
       }
     }
 

@@ -3,6 +3,8 @@
  * Uses HTML canvas to create a PDF-like document
  */
 
+import saiyogiLogo from "@/assets/saiyogi-logo-1.png";
+
 export interface OrderItem {
   productName: string;
   quantity: number;
@@ -72,13 +74,27 @@ export function generateOrderReceiptPDF(orderData: OrderData) {
               compress: true, // Enable jsPDF compression
             });
 
-            // Use JPEG instead of PNG and specify quality (0.75 - 0.9 is good balance)
             const imgData = canvas.toDataURL("image/jpeg", 0.8);
             const pdfWidth = pdf.internal.pageSize.getWidth();
-            const imgWidth = pdfWidth - 20;
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const margin = 10;
+            const imgWidth = pdfWidth - (margin * 2);
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            const pageHeight = pdfHeight - (margin * 2);
 
-            pdf.addImage(imgData, "JPEG", 10, 10, imgWidth, imgHeight, undefined, 'MEDIUM');
+            let heightLeft = imgHeight;
+            let position = margin;
+
+            // Add the first page
+            pdf.addImage(imgData, "JPEG", margin, position, imgWidth, imgHeight, undefined, 'MEDIUM');
+            heightLeft -= pageHeight;
+
+            while (heightLeft > 0) {
+              position = margin - (imgHeight - heightLeft);
+              pdf.addPage();
+              pdf.addImage(imgData, "JPEG", margin, position, imgWidth, imgHeight, undefined, 'MEDIUM');
+              heightLeft -= pageHeight;
+            }
 
             const currentYear = new Date().getFullYear();
             pdf.save(`order${currentYear}.pdf`);
@@ -235,11 +251,11 @@ function generateReceiptHTML(order: OrderData): string {
   const grandTotal = netAmount2 + packingCharge;
   const inWords = numberToWords(grandTotal);
 
-  const shopName = order.siteName || 'NARENDIRAA ENTERPRISES';
-  const shopPhone = order.sitePhone || '+91 95859 75756';
-  const shopAddress = order.siteAddress || 'Sattur, Virudhunagar District, Tamil Nadu';
-  const shopEmail = order.siteEmail || 'contact@narendiraa-enterprises.com';
-  const shopWebsite = order.siteWebsite || 'www.narendiraa-enterprises.com';
+  const shopName = (order.siteName && order.siteName.trim()) ? order.siteName : 'NARENDIRAA ENTERPRISES';
+  const shopPhone = (order.sitePhone && order.sitePhone.trim()) ? order.sitePhone : '+91 95859 75756';
+  const shopAddress = (order.siteAddress && order.siteAddress.trim()) ? order.siteAddress : 'Sattur, Virudhunagar District, Tamil Nadu';
+  const shopEmail = (order.siteEmail && order.siteEmail.trim()) ? order.siteEmail : 'contact@narendiraa-enterprises.com';
+  const shopWebsite = (order.siteWebsite && order.siteWebsite.trim()) ? order.siteWebsite : 'www.narendiraa-enterprises.com';
 
   return `
 <!DOCTYPE html>
@@ -268,7 +284,7 @@ body {
   position: relative;
 }
 .content-wrapper {
-  border: 1px solid #000;
+  border: 1px solid #cbd5e1;
   width: 100%;
   height: 100%;
   min-height: 277mm;
@@ -282,29 +298,28 @@ table.main-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 11px;
+  border-top: 1px solid #cbd5e1;
+  border-bottom: 1px solid #cbd5e1;
 }
 .main-table th {
-  border: 1px solid #000;
-  padding: 4px;
+  border: 1px solid #cbd5e1;
+  padding: 6px 4px;
   font-weight: bold;
-  background-color: #ECA1A1;
-  color: #000;
+  background-color: #f1f5f9;
+  color: #0f172a;
 }
 .main-table td {
-  border-left: 1px solid #000;
-  border-right: 1px solid #000;
-  padding: 4px;
-  color: #000;
+  border: 1px solid #cbd5e1;
+  padding: 5px 4px;
+  color: #0f172a;
 }
 .info-section {
   display: flex;
-  border-top: 1px solid #000;
-  border-bottom: 1px solid #000;
   margin-top: 0;
 }
 .footer-section {
   display: flex;
-  border-top: 1px solid #000;
+  border-top: 1px solid #cbd5e1;
   margin-top: auto;
 }
 .totals-row {
@@ -318,60 +333,50 @@ table.main-table {
 <body>
 <div class="page">
   <div class="content-wrapper">
-    <div class="header">
-      <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 10px;">
+    <div class="header" style="margin-bottom: 20px;">
+      <table width="100%" border="0" cellpadding="0" cellspacing="0">
         <tr>
-          <td width="120" valign="top">
-            <img src="${window.location.origin}/1.png" style="width: 100px; height: 100px; object-fit: contain;" />
+          <td valign="bottom" align="left">
+            <div style="font-size: 32px; font-weight: 900; color: #0f172a; letter-spacing: 3px; text-transform: uppercase; font-family: sans-serif; line-height: 1;">ESTIMATE</div>
+            <div style="font-size: 11px; font-weight: bold; color: #64748b; margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px;">Retail Estimate Invoice</div>
           </td>
-          <td align="center" valign="top">
-            <div style="font-size: 10px; margin-bottom: 4px;">ஸ்ரீ கருப்பசாமி துணை</div>
-            <div style="color: #1E3A8A; font-size: 26px; font-weight: bold; margin-bottom: 2px;">${shopName.toUpperCase()}</div>
-            <div style="font-size: 13px; font-style: italic; margin-bottom: 2px; font-weight: bold;">(Wholesale & Retail Shop)</div>
-            <div style="font-size: 12px; margin-bottom: 2px;">${shopAddress}</div>
-            <div style="font-size: 12px;">E-Mail : ${shopEmail} &nbsp;&nbsp;&nbsp; Website : ${shopWebsite}</div>
-          </td>
-          <td width="120" valign="top" align="right" style="font-size: 10px;">
-            <div style="margin-bottom: 5px; color:#000;">Customer Copy</div>
-            <div style="color: #16a34a; font-weight: bold; font-size: 12px; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg> ${shopPhone}
-            </div>
+          <td valign="top" align="right">
+            <img src="${saiyogiLogo}" style="width: 140px; height: auto; max-height: 75px; object-fit: contain;" />
           </td>
         </tr>
       </table>
     </div>
 
-    <div class="info-section">
-      <div style="flex: 1; padding: 5px 15px 10px 15px; display: flex; flex-direction: column; justify-content: space-between;">
-        <div style="border-bottom: 1.5px dotted #000; margin-top: 10px; position: relative;">
-          <span style="position: absolute; bottom: 1px; font-weight: bold; font-size: 13px; left: 10px;">${order.customerName || ''}</span>
-        </div>
-        <div style="border-bottom: 1.5px dotted #000; margin-top: 20px; position: relative;">
-          <span style="position: absolute; bottom: 1px; font-weight: bold; font-size: 13px; left: 10px;">${order.customerPhone ? 'Phone: ' + order.customerPhone : ''}</span>
-        </div>
-        <div style="border-bottom: 1.5px dotted #000; margin-top: 20px; position: relative;">
-          <span style="position: absolute; bottom: 1px; font-weight: bold; font-size: 13px; left: 10px;">${order.district ? 'District: ' + order.district : ''}</span>
-        </div>
-        <div style="border-bottom: 1.5px dotted #000; margin-top: 20px; position: relative; margin-bottom: 5px;">
-          <span style="position: absolute; bottom: 1px; font-weight: bold; font-size: 13px; left: 10px;">${order.state ? 'State: ' + order.state : ''}</span>
+    <div class="info-section" style="border: none; margin-bottom: 20px; display: flex; gap: 20px; padding: 0 10px;">
+      <div style="flex: 1.2; text-align: left;">
+        <div style="border: 1px solid #cbd5e1; border-radius: 12px; padding: 14px; background-color: #f8fafc; font-size: 11px; line-height: 1.6; box-shadow: 0 2px 8px rgba(0,0,0,0.01);">
+          <div style="font-weight: 900; border-bottom: 2px solid #64748b; padding-bottom: 4px; margin-bottom: 8px; text-transform: uppercase; color: #1e293b; letter-spacing: 0.5px; font-size: 12px;">Customer Details</div>
+          <table width="100%" cellpadding="2" cellspacing="0" style="font-size: 11px; color: #334155;">
+            <tr><td width="115"><strong>Enquiry Number</strong></td><td><strong>:</strong> ${order.orderNumber}</td></tr>
+            <tr><td><strong>Date</strong></td><td><strong>:</strong> ${order.date}</td></tr>
+            <tr><td><strong>Customer</strong></td><td><strong>:</strong> ${order.customerName}</td></tr>
+            <tr><td><strong>Mobile Number</strong></td><td><strong>:</strong> ${order.customerPhone}</td></tr>
+            <tr><td><strong>Email</strong></td><td><strong>:</strong> ${order.customerEmail}</td></tr>
+            <tr><td valign="top"><strong>Address</strong></td><td><strong>:</strong> ${order.deliveryAddress}</td></tr>
+            <tr><td><strong>Pickup Location</strong></td><td><strong>:</strong> ${order.district ? order.district + ', ' : ''}${order.state || ''}</td></tr>
+          </table>
         </div>
       </div>
-      <div style="width: 220px; border-left: 1px solid #000; display: flex; flex-direction: column;">
-        <div style="background-color: #F8CBAD; font-weight: bold; font-size: 13px; text-align: center; padding: 7px; border-bottom: 1px solid #000; color: #000;">
-          RETAIL ESTIMATE
-        </div>
-        <div style="padding: 7px; font-size: 12px; border-bottom: 1px solid #000;">
-          R.Est No. : ${order.orderNumber}
-        </div>
-        <div style="padding: 7px; font-size: 12px; flex-grow: 1;">
-          Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ${order.date}
+      <div style="flex: 1; display: flex; justify-content: flex-end; align-items: flex-start;">
+        <div style="text-align: left; font-size: 11px; line-height: 1.6; color: #334155; padding-left: 20px;">
+          <div style="font-size: 18px; font-weight: 900; color: #0f172a; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px;">${shopName}</div>
+          <div style="font-size: 10px; font-weight: bold; color: #64748b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Wholesale & Retail Firecrackers</div>
+          <div style="font-weight: 500;">${shopAddress}</div>
+          <div style="margin-top: 6px;"><strong>Phone:</strong> ${shopPhone}</div>
+          <div><strong>Email:</strong> ${shopEmail}</div>
+          <div><strong>Website:</strong> ${shopWebsite}</div>
         </div>
       </div>
     </div>
 
     <div style="flex-grow: 1; display: flex; flex-direction: column; position: relative; z-index: 1;">
       <!-- Watermark Background -->
-      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('${window.location.origin}/1.png'); background-position: center; background-repeat: no-repeat; background-size: 350px; opacity: 0.1; z-index: -1; pointer-events: none;"></div>
+      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('${saiyogiLogo}'); background-position: center; background-repeat: no-repeat; background-size: 320px; opacity: 0.06; z-index: -1; pointer-events: none;"></div>
       
       <table class="main-table">
         <thead>
@@ -442,12 +447,10 @@ table.main-table {
           <span style="width: 45%; text-align: right;">${formatAmt(packingCharge)}</span>
         </div>
         
-        <div style="margin-top: auto; padding-top: 4px; padding-bottom: 6px;">
-          <div class="totals-row" style="font-weight: bold; font-size: 13px;">
-            <span style="width: 45%;">Grand Total</span>
-            <span style="width: 10%; text-align: center;">:</span>
-            <span style="width: 45%; text-align: right;">${formatAmt(grandTotal)}</span>
-          </div>
+        <div class="totals-row" style="font-weight: bold; font-size: 13px; border-top: 1px solid #cbd5e1; border-bottom: 3px double #000000; padding: 6px 15px; margin-top: 8px; margin-bottom: 4px;">
+          <span style="width: 45%; text-transform: uppercase; letter-spacing: 0.5px;">Grand Total</span>
+          <span style="width: 10%; text-align: center;">:</span>
+          <span style="width: 45%; text-align: right; font-size: 15px; color: #0f172a;">₹ ${formatAmt(grandTotal)}</span>
         </div>
       </div>
     </div>

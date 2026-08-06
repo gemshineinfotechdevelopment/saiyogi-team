@@ -101,6 +101,15 @@ const shopByBrands = [
   { name: "Kaliswari", subtitle: "Sri Kaliswari Cock", tag: "Heritage Brand", image: "/royal_celebration.png" },
 ];
 
+const manufacturers = [
+  { name: "Standard Fireworks", logo: "SF" },
+  { name: "Ajanta Pyrotechnics", logo: "AP" },
+  { name: "Coronation Sparklers", logo: "CS" },
+  { name: "Vadivel Fireworks", logo: "VF" },
+  { name: "Sony Crackers", logo: "SC" },
+  { name: "Sri Kaliswari", logo: "SK" },
+];
+
 const Index = () => {
   const { settings } = useSiteSettings();
   const { items: cartItems, addToCart, updateQuantity } = useCart();
@@ -340,22 +349,27 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Video Gallery Section */}
-      <section className="py-16 bg-[#1A1A1A] text-white relative overflow-hidden border-y border-[#F4C542]/20">
-        <div className="container mx-auto px-4 max-w-6xl relative z-10">
+      {/* Videos Section */}
+      <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5]">
+        <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center mb-10">
-            <span className="bg-[#F4C542] text-[#1A1A1A] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full shadow-lg">
-              ✨ LIVE DEMO PREVIEWS ✨
+            <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
+              ✨ Watch the Magic ✨
             </span>
-            <h2 className="font-black text-white text-3xl md:text-4xl uppercase tracking-widest mb-2 font-display">Watch Fireworks In Action</h2>
-            <p className="text-gray-300 text-xs font-medium max-w-md mx-auto">Experience high definition live video clips of our top fireworks displays.</p>
+            <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2 font-display">
+              Fireworks Showcase
+            </h2>
+            <p className="text-gray-500 text-xs mt-2 max-w-md mx-auto">
+              Click on any card to watch our premium Sivakasi crackers light up the night sky!
+            </p>
           </div>
 
           <div className="relative flex items-center justify-center">
             {/* Left Button */}
             <button
               onClick={() => setVideoIndex((prev) => (prev - 1 + demoVideos.length) % demoVideos.length)}
-              className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md text-white border border-white/20 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all cursor-pointer"
+              className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
+
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -368,46 +382,43 @@ const Index = () => {
                 const isPlaying = playingVideo === video.id;
 
                 return (
-                  <div 
-                    key={video.id} 
-                    className="relative rounded-2xl overflow-hidden aspect-video bg-black/60 border border-white/10 group shadow-2xl flex flex-col justify-end"
+                  <div
+                    key={video.id}
+                    className="relative rounded-2xl overflow-hidden aspect-video bg-black group cursor-pointer shadow-lg transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl border border-white/40"
+                    onClick={() => setPlayingVideo(isPlaying ? null : video.id)}
                   >
                     {isPlaying ? (
-                      <video 
-                        src={video.url} 
-                        controls 
-                        autoPlay 
+                      <video
+                        src={video.url}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
                         className="w-full h-full object-cover"
-                        onEnded={() => setPlayingVideo(null)}
                       />
                     ) : (
-                      <>
-                        <img 
-                          src={video.thumbnail} 
-                          alt={video.title} 
-                          className="w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity group-hover:scale-105 duration-500" 
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-between p-4">
-                          <span className="bg-[#A80000] text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider self-start shadow-md">
-                            HD Video
-                          </span>
-                          
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h3 className="font-extrabold text-sm text-white tracking-wide">{video.title}</h3>
-                              <p className="text-gray-400 text-[10px] mt-0.5">Click play to preview effect</p>
-                            </div>
-
-                            <button 
-                              onClick={() => setPlayingVideo(video.id)}
-                              className="w-10 h-10 rounded-full bg-[#F4C542] text-[#1A1A1A] flex items-center justify-center shadow-lg hover:scale-110 transition-all cursor-pointer shrink-0"
-                            >
-                              <Play className="w-5 h-5 fill-current ml-0.5" />
-                            </button>
-                          </div>
-                        </div>
-                      </>
+                      <img
+                        src={video.thumbnail}
+                        alt={video.title}
+                        className="w-full h-full object-cover opacity-70 group-hover:opacity-85 transition-opacity"
+                      />
                     )}
+
+                    {/* Button overlay */}
+                    <div className="absolute inset-0 flex flex-col justify-between p-4 bg-gradient-to-t from-black/60 via-transparent to-black/20">
+                      <span className="text-white font-bold text-xs bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm self-start">
+                        {video.title}
+                      </span>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-[#A80000] group-hover:border-red-500">
+                          {isPlaying ? (
+                            <Pause className="text-white fill-white w-5 h-5" />
+                          ) : (
+                            <Play className="text-white fill-white w-5 h-5 ml-0.5" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
@@ -416,11 +427,24 @@ const Index = () => {
             {/* Right Button */}
             <button
               onClick={() => setVideoIndex((prev) => (prev + 1) % demoVideos.length)}
-              className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md text-white border border-white/20 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all cursor-pointer"
+              className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="h-5 w-5" />
             </button>
           </div>
+        </div>
+      </section>
+
+      {/* Shop By Category */}
+      <section className="py-16 bg-[#FFF6E5] overflow-hidden">
+        <div className="text-center mb-10 container mx-auto px-4">
+          <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs">
+            Shop By Category
+          </h2>
+          <div className="w-24 h-1 bg-[#7A1416] mx-auto rounded-full mb-3"></div>
+          <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto font-medium">
+            Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.
+          </p>
         </div>
       </section>
 
@@ -461,18 +485,82 @@ const Index = () => {
                     View Products
                   </button>
                 </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
       {/* Categories Grid */}
       <section className="py-16 bg-[#FFF8EE] border-b border-amber-100/50">
         <div className="text-center mb-10 container mx-auto px-4">
+          <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs">
+            Shop By Category
+          </h2>
+          <div className="w-24 h-1 bg-[#7A1416] mx-auto rounded-full mb-3"></div>
+          <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto font-medium">
+            Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.
+          </p>
+        </div>
+
+        {/* Infinite scrolling categories marquee from right to left */}
+        <div className="relative w-full overflow-hidden py-4">
+          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+            {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i: number) => {
+              const catId = cat.id || cat._id || cat.categoryId || 'all';
+              return (
+                <div 
+                  key={`${catId}-${i}`} 
+                  onClick={() => window.location.href=`/catalog?category=${catId}`} 
+                  className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-amber-100 flex flex-col items-center p-4 cursor-pointer group hover:-translate-y-1 w-[180px] shrink-0"
+                >
+                  <div className="w-full aspect-square flex items-center justify-center bg-gradient-to-b from-amber-50/50 to-orange-50/20 rounded-xl p-3 mb-3 group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
+                    <img src={cat.image || "/sky_rocket_box.png"} alt={cat.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
+                    <span className="absolute top-2 right-2 bg-[#7A1416] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full opacity-90">Hot</span>
+                  </div>
+                  <h3 className="font-extrabold text-xs sm:text-sm text-gray-800 uppercase text-center group-hover:text-[#7A1416] transition-colors min-h-[36px] line-clamp-2 flex items-center justify-center">{cat.name}</h3>
+                  <p className="text-[11px] text-amber-700 font-semibold mt-1">Explore →</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Trusted Manufacturers */}
+      <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5]">
+        <div className="text-center mb-10">
           <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
             ⭐ AUTHENTIC PARTNERS ⭐
           </span>
-          <h2 className="font-black text-[#A80000] text-3xl sm:text-4xl uppercase tracking-tight mb-2 font-display">
+          <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2 font-display">Trusted Manufacturers</h2>
+          <p className="text-gray-500 text-xs mt-1">We are supplying high quality fireworks from top brands in Sivakasi.</p>
+        </div>
+
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="flex flex-wrap justify-center gap-6">
+            {manufacturers.map((brand, i) => (
+              <div 
+                key={i} 
+                className="bg-white border-2 border-gray-100/80 rounded-2xl px-6 py-4 flex items-center gap-4 min-w-[200px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-xl hover:border-[#A80000]/30 transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br hover:from-[#A80000] hover:to-[#8a0000] hover:text-white group cursor-pointer"
+              >
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#A80000] to-[#750000] text-white flex items-center justify-center font-black text-xs tracking-wider shrink-0 transition-all duration-300 group-hover:from-[#F4C542] group-hover:to-[#d4a215] group-hover:text-[#1A1A1A]">
+                  {brand.logo}
+                </div>
+                <div className="flex flex-col items-start text-left">
+                  <span className="font-black text-[9px] text-[#A80000]/80 tracking-widest uppercase transition-colors duration-300 group-hover:text-[#F4C542]">
+                    PARTNER
+                  </span>
+                  <span className="font-black text-sm text-gray-800 tracking-wider uppercase transition-colors duration-300 group-hover:text-white">
+                    {brand.name}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      {/* Shop By Brand */}
+      <section className="py-16 bg-white border-b border-gray-100">
+        <div className="text-center mb-10 container mx-auto px-4">
+          <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs font-display">
             Shop By Brand
           </h2>
           <p className="text-gray-600 text-xs font-bold uppercase tracking-wider max-w-xl mx-auto">
@@ -480,26 +568,30 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-            {(brands.length > 0 ? brands : shopByBrands).map((brand: any, i: number) => (
-              <div 
-                key={brand._id || brand.id || i} 
-                onClick={() => window.location.href=`/catalog?brand=${encodeURIComponent(brand.name)}`}
-                className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#A80000] rounded-2xl p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1"
-              >
-                <span className="text-[9px] font-extrabold text-[#A80000] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full mb-2">
-                  {brand.tag || "Authentic"}
-                </span>
-                <div className="w-full aspect-square flex items-center justify-center p-2 mb-2 group-hover:scale-105 transition-transform duration-300">
-                  <img src={brand.image || brand.logoUrl || "/sky_rocket_box.png"} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-sm" />
+        {/* Infinite scrolling brands marquee from right to left */}
+        <div className="relative w-full overflow-hidden py-4">
+          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+            {[...(brands.length > 0 ? brands : shopByBrands), ...(brands.length > 0 ? brands : shopByBrands), ...(brands.length > 0 ? brands : shopByBrands)].map((brand: any, i: number) => {
+              const brandId = brand._id || brand.id || i;
+              return (
+                <div 
+                  key={`${brandId}-${i}`} 
+                  onClick={() => window.location.href=`/catalog?search=${encodeURIComponent(brand.name)}`}
+                  className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-2xl p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[180px] shrink-0"
+                >
+                  <span className="text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full mb-2 font-mono">
+                    {brand.tag || "BRAND"}
+                  </span>
+                  <div className="w-full aspect-square flex items-center justify-center p-2 mb-2 group-hover:scale-105 transition-transform duration-300">
+                    <img src={brand.logo || brand.image || "/sky_rocket_box.png"} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors">{brand.name}</h3>
+                    <p className="text-[10px] text-gray-500 font-medium mt-0.5">{brand.subtitle || brand.description || "Original Sivakasi"}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-black text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#A80000] transition-colors">{brand.name}</h3>
-                  <p className="text-[10px] text-gray-500 font-medium mt-0.5">{brand.subtitle || "Original Brand"}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -532,12 +624,14 @@ const Index = () => {
             {/* Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full px-4">
               {[0, 1, 2].map((offset) => {
-                const comboPacksList = products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).length > 0
+                const comboPacksList = (products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).length > 0
                   ? products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack'))
-                  : staticFamilyPacks;
-                const item = comboPacksList[(comboIndex + offset) % comboPacksList.length];
-                const itemId = String(item._id || item.id);
-                const cartItem = cartItems.find((i) => String(i.product._id || i.product.id) === itemId);
+                  : staticFamilyPacks) as any[];
+                
+                const idx = (comboIndex + offset) % comboPacksList.length;
+                const item = comboPacksList[idx] as any;
+                const itemId = item.id || item._id;
+                const cartItem = cartItems.find((i) => (i.product._id || i.product.id) === itemId);
                 const quantity = cartItem?.quantity || 0;
 
                 return (
