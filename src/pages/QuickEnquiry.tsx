@@ -1,124 +1,139 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { getProducts, getCategories } from "@/lib/api";
 import { Product, Category } from "@/data/products";
 import { useCart } from "@/context/CartContext";
-import { toast } from "sonner";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
-import { ShoppingBag } from "lucide-react";
-import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import { Plus, Minus, ShoppingCart, Sparkles, ShoppingBag, X } from "lucide-react";
 
 const QuickEnquiry = () => {
-  const { addToCart, totalItems, totalPrice } = useCart();
-  const { settings } = useSiteSettings();
-  
-  const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [activeImage, setActiveImage] = useState<string | null>(null);
+  const { addToCart, updateQuantity, items } = useCart();
+  const { settings } = useSiteSettings();
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [prods, cats] = await Promise.all([getProducts(), getCategories()]);
+    Promise.all([getProducts(), getCategories()])
+      .then(([prods, cats]) => {
         setProducts(Array.isArray(prods) ? prods : []);
         setCategories(Array.isArray(cats) ? cats : []);
-      } catch (error) {
-        console.error("Failed to fetch data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+      })
+      .catch((err) => {
+        console.error("Failed to load products/categories:", err);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  const handleQuantityChange = (id: string, value: string) => {
-    const val = parseInt(value);
-    if (!isNaN(val) && val >= 1) {
-      setQuantities(prev => ({ ...prev, [id]: val }));
-    } else if (value === "") {
-      const newQuantities = { ...quantities };
-      delete newQuantities[id];
-      setQuantities(newQuantities);
-    }
-  };
+  const totalItems = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items]);
 
-  const handleAdd = (product: Product) => {
-    const productId = product._id || product.id || '';
-    const qty = quantities[productId] || 1;
-    addToCart(product, qty);
-    toast.success(`${qty} x ${product.name} added to cart`);
-    
-    // Reset quantity input
-    const newQuantities = { ...quantities };
-    delete newQuantities[productId];
-    setQuantities(newQuantities);
-  };
+  const totalPrice = useMemo(() => {
+    return items.reduce((sum, item) => {
+      const price = getDiscountPrice(
+        item.product.price,
+        item.product.hasDiscount,
+        settings.discountPercent,
+        item.product.netRate,
+        item.product.displayNetRate
+      );
+      return sum + price * item.quantity;
+    }, 0);
+  }, [items, settings.discountPercent]);
 
   const groupedProducts = useMemo(() => {
-    const groups: { category: string; items: Product[] }[] = [];
-    const processedProductIds = new Set<string>();
+    const catMap: Record<string, { categoryName: string; items: Product[] }> = {};
 
-    categories.forEach(cat => {
-      const catId = cat._id || cat.id;
-      const catName = cat.name;
+    categories.forEach((cat) => {
+      catMap[cat._id || cat.id] = { categoryName: cat.name.toUpperCase(), items: [] };
+    });
 
-      const matchingItems = products.filter(p => {
-        const pId = p._id || p.id || '';
-        const pCat = p.category as any;
-        const pCatId = pCat && typeof pCat === 'object' ? (pCat._id || pCat.id) : pCat;
-        const pCatName = pCat && typeof pCat === 'object' ? pCat.name : (typeof pCat === 'string' ? pCat : '');
+    catMap["uncategorized"] = { categoryName: "OTHER PRODUCTS", items: [] };
 
-        const matches = (catId && pCatId === catId) || (catName && pCatName && pCatName.toLowerCase() === catName.toLowerCase());
-        if (matches) {
-          processedProductIds.add(pId);
+    products.forEach((p) => {
+      const cat = p.category as any;
+      const catId = typeof cat === 'object' && cat !== null ? (cat._id || cat.id) : cat;
+      const catName = typeof cat === 'object' && cat !== null ? cat.name : (typeof cat === 'string' ? cat : null);
+
+      if (catId && catMap[catId]) {
+        catMap[catId].items.push(p);
+      } else if (catName) {
+        const foundKey = Object.keys(catMap).find(k => catMap[k].categoryName === catName.toUpperCase());
+        if (foundKey) {
+          catMap[foundKey].items.push(p);
+        } else {
+          catMap["uncategorized"].items.push(p);
         }
-        return matches;
-      });
-
-      if (matchingItems.length > 0) {
-        groups.push({
-          category: catName,
-          items: matchingItems
-        });
+      } else {
+        catMap["uncategorized"].items.push(p);
       }
     });
 
-    // Collect any products that were not matched by categories array
-    const remainingProducts = products.filter(p => !processedProductIds.has(p._id || p.id || ''));
-    if (remainingProducts.length > 0) {
-      const remainingGroupMap = new Map<string, Product[]>();
-      remainingProducts.forEach(p => {
-        const pCat = p.category as any;
-        const catName = (pCat && typeof pCat === 'object' ? pCat.name : pCat) || "Other Crackers";
-        if (!remainingGroupMap.has(catName)) {
-          remainingGroupMap.set(catName, []);
-        }
-        remainingGroupMap.get(catName)!.push(p);
-      });
+    return Object.values(catMap).filter((g) => g.items.length > 0);
+  }, [products, categories]);
 
-      remainingGroupMap.forEach((items, catName) => {
-        groups.push({ category: catName, items });
-      });
+  const handleQuantityChange = (productId: string, value: string) => {
+    const val = parseInt(value);
+    if (!isNaN(val) && val >= 1) {
+      setQuantities((prev) => ({ ...prev, [productId]: val }));
+    } else if (value === "" || value === "0") {
+      setQuantities((prev) => ({ ...prev, [productId]: 0 }));
     }
+  };
 
-    return groups;
-  }, [categories, products]);
+  const incrementQuantity = (productId: string) => {
+    setQuantities((prev) => ({ ...prev, [productId]: (prev[productId] || 1) + 1 }));
+  };
+
+  const decrementQuantity = (productId: string) => {
+    setQuantities((prev) => {
+      const current = prev[productId] || 1;
+      if (current <= 1) return prev;
+      return { ...prev, [productId]: current - 1 };
+    });
+  };
+
+  const handleAdd = (product: Product) => {
+    const pId = product._id || product.id;
+    const qty = quantities[pId] || 1;
+    const existing = items.find((i) => (i.product._id || i.product.id) === pId);
+    
+    if (existing) {
+      updateQuantity(pId, existing.quantity + qty);
+    } else {
+      for (let i = 0; i < qty; i++) {
+        addToCart(product);
+      }
+    }
+    toast.success(`${qty}x ${product.name} added to cart!`);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-white relative font-sans">
       <UserHeader />
       
-      <main className="flex-1 container mx-auto px-0 md:px-4 py-8">
-        
-        {/* Floating Estimate Bar (similar to combo packs) */}
-        <div className="flex justify-end mb-6 px-4 md:px-0">
-          <div className="inline-flex items-center gap-3 bg-[#4A0000] text-white px-4 py-2 rounded-full shadow-lg border border-red-900">
+      <main className="flex-1 w-full py-8 px-4 md:px-8 max-w-7xl mx-auto">
+        {/* Beautiful Top Banner */}
+        <div className="bg-gradient-to-br from-[#A80000] via-[#5c0a0b] to-[#1A1A1A] text-center py-10 px-6 rounded-2xl mb-8 relative overflow-hidden border border-[#F4C542]/20 shadow-xl">
+          <div className="absolute top-0 left-10 w-24 h-24 bg-[#F4C542]/10 rounded-full blur-xl"></div>
+          <div className="absolute bottom-0 right-10 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+          <span className="text-[#F4C542] text-xs font-black tracking-widest uppercase mb-2 inline-block">✨ Direct Wholesale Orders ✨</span>
+          <h1 className="text-3xl md:text-5xl font-black text-white uppercase tracking-wider mb-3 font-display">Quick Enquiry List</h1>
+          <p className="text-gray-200 text-xs md:text-sm max-w-lg mx-auto leading-relaxed">
+            Browse our premium crackers range, click the images to view previews, adjust quantities, and instantly add them to your inquiry sheet.
+          </p>
+        </div>
+
+        {/* Floating Estimate Bar */}
+        <div className="flex justify-end mb-6">
+          <div className="inline-flex items-center gap-3 bg-[#4A0000] text-white px-5 py-2.5 rounded-full shadow-lg border border-red-900">
             <div className="relative flex items-center justify-center">
               <ShoppingBag className="w-5 h-5 text-amber-400" />
-              <span className="absolute -top-1 -right-1.5 bg-green-600 text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-extrabold">
+              <span className="absolute -top-1 -right-1.5 bg-green-600 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-extrabold">
                 {totalItems}
               </span>
             </div>
@@ -134,100 +149,122 @@ const QuickEnquiry = () => {
           </div>
         </div>
 
-        <div className="w-full bg-white shadow-sm border border-gray-200">
-          
+        {/* Product Table Card wrapper */}
+        <div className="w-full bg-white shadow-lg border border-gray-200 rounded-xl overflow-hidden mb-8">
           {/* Table Header */}
-          <div className="hidden md:grid grid-cols-12 gap-4 pb-2 pt-4 px-4 text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">
+          <div className="hidden md:grid grid-cols-12 gap-4 pb-3 pt-4 px-6 text-[10px] font-extrabold text-gray-500 uppercase tracking-widest bg-gray-50 border-b border-gray-200">
             <div className="col-span-5">PRODUCT DETAILS</div>
             <div className="col-span-2 text-center">UNIT/SIZE</div>
             <div className="col-span-1 text-center">IN STOCK</div>
             <div className="col-span-1 text-center">PRICE</div>
-            <div className="col-span-1 text-center">QUANTITY</div>
-            <div className="col-span-2 text-right">ACTION</div>
+            <div className="col-span-2 text-center">QUANTITY</div>
+            <div className="col-span-1 text-right">ACTION</div>
           </div>
 
           {loading ? (
-            <div className="py-20 text-center text-gray-500 font-bold">Loading products...</div>
+            <div className="p-12 text-center text-gray-400 font-medium">Loading products...</div>
           ) : groupedProducts.length === 0 ? (
-            <div className="py-20 text-center text-gray-500 font-bold">No products found.</div>
+            <div className="p-12 text-center text-gray-400 font-medium">No products available.</div>
           ) : (
-            groupedProducts.map((category, catIdx) => (
-              <div key={catIdx}>
+            groupedProducts.map((group, catIdx) => (
+              <div key={catIdx} className="border-b border-gray-100 last:border-0">
                 {/* Category Header */}
-                <div className="bg-[#b91c1c] text-white px-4 py-2.5 text-[13px] font-bold tracking-wider uppercase">
-                  {category.category}
+                <div className="bg-[#FFF6E5] text-[#A80000] px-6 py-3.5 text-sm font-black tracking-widest uppercase flex items-center justify-between border-b border-[#A80000]/10">
+                  <span className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-[#F4C542] fill-[#F4C542]" />
+                    {group.categoryName}
+                  </span>
+                  <span className="text-[10px] text-gray-500 font-bold bg-white px-2.5 py-1 rounded-full border border-gray-200">
+                    {group.items.length} Products
+                  </span>
                 </div>
 
                 {/* Product Rows */}
-                <div className="flex flex-col">
-                  {category.items.map((item, itemIdx) => {
-                    const productId = item._id || item.id || '';
+                <div className="flex flex-col divide-y divide-gray-100">
+                  {group.items.map((item) => {
+                    const pId = item._id || item.id;
                     const dp = getDiscountPrice(item.price, item.hasDiscount, settings.discountPercent, item.netRate, item.displayNetRate);
-                    const inStock = (item.storeStockPieces ?? item.stock ?? 1) > 0;
-                    
+                    const stock = item.storeStockPieces ?? item.stock ?? 1;
+                    const inStockText = stock > 0 ? (stock < 20 ? "Low Stock" : "In Stock") : "Out of Stock";
+
                     return (
-                      <div key={productId} className={`grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-4 ${itemIdx !== category.items.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                        
+                      <div key={pId} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-6 hover:bg-gray-50/50 transition-colors">
                         {/* Product Details */}
                         <div className="col-span-1 md:col-span-5 flex items-center gap-4">
-                          <div className="w-14 h-14 bg-gray-100 flex items-center justify-center shrink-0 rounded-md overflow-hidden">
-                            <img src={item.image || "/sky_rocket_box.png"} alt={item.name} className="w-full h-full object-cover" />
+                          <div 
+                            onClick={() => setActiveImage(stock <= 0 ? '/1.png' : (item.image || '/1.png'))} 
+                            className="w-16 h-16 bg-white flex items-center justify-center shrink-0 border border-gray-200 rounded-xl cursor-zoom-in hover:border-[#A80000] hover:scale-105 transition-all shadow-sm relative overflow-hidden group"
+                            title="Click to view image"
+                          >
+                            <img src={stock <= 0 ? '/1.png' : (item.image || '/1.png')} alt={item.name} className="max-w-full max-h-full object-contain p-1 group-hover:scale-110 transition-transform" />
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <span className="text-[9px] text-white font-extrabold tracking-wider uppercase bg-[#A80000]/80 px-2 py-0.5 rounded-full scale-90">View</span>
+                            </div>
                           </div>
                           <div>
-                            <h3 className="font-extrabold text-gray-800 text-[13px]">{item.name}</h3>
-                            <p className="text-gray-500 text-[11px] mt-0.5">{item.description || "Premium cracker"}</p>
+                            <h3 className="font-extrabold text-gray-900 text-sm tracking-wide">{item.name}</h3>
+                            <p className="text-gray-400 text-xs mt-0.5 font-medium">{item.description || item.brand || "Standard"}</p>
                           </div>
                         </div>
 
                         {/* Unit/Size */}
-                        <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center text-[13px] text-gray-500 font-medium">
-                          <span className="md:hidden font-bold text-xs">UNIT/SIZE:</span>
+                        <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center text-sm text-gray-600 font-bold">
+                          <span className="md:hidden font-bold text-xs text-gray-400 uppercase">UNIT/SIZE:</span>
                           {item.quantity || "1 Box"}
                         </div>
 
                         {/* In Stock */}
-                        <div className="col-span-1 md:col-span-1 flex justify-between md:justify-center items-center">
-                          <span className="md:hidden font-bold text-xs text-gray-600">IN STOCK:</span>
-                          <span className={`font-bold text-[12px] ${inStock ? 'text-[#2eab5b]' : 'text-[#f58220]'}`}>
-                            {inStock ? "Yes" : "Out of Stock"}
+                        <div className="col-span-1 md:col-span-1 flex justify-between md:justify-center items-center text-sm">
+                          <span className="md:hidden font-bold text-xs text-gray-400 uppercase">STOCK:</span>
+                          <span className={`font-black text-[10px] px-3 py-1 rounded-full uppercase tracking-wider ${stock > 0 ? (stock < 20 ? 'text-amber-700 bg-amber-50 border border-amber-200/50' : 'text-green-700 bg-green-50 border border-green-200/50') : 'text-red-700 bg-red-50 border border-red-200/50'}`}>
+                            {inStockText}
                           </span>
                         </div>
 
                         {/* Price */}
-                        <div className="col-span-1 md:col-span-1 flex justify-between md:justify-center items-center font-extrabold text-[#b91c1c] text-[13px]">
-                          <span className="md:hidden font-bold text-xs text-gray-600">PRICE:</span>
-                          <div className="flex flex-col md:items-center text-right md:text-center">
-                            {item.hasDiscount && (item.netRate || item.wholesalePrice) && (
-                              <span className="text-gray-400 line-through text-[10px]">₹{item.price}</span>
-                            )}
-                            <span>₹{dp.toFixed(2)}</span>
+                        <div className="col-span-1 md:col-span-1 flex justify-between md:justify-center items-center font-black text-[#A80000] text-sm">
+                          <span className="md:hidden font-bold text-xs text-gray-400 uppercase">PRICE:</span>
+                          ₹{dp.toLocaleString('en-IN')}
+                        </div>
+
+                        {/* Quantity Selector with Plus/Minus buttons */}
+                        <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
+                          <span className="md:hidden font-bold text-xs text-gray-400 uppercase">QUANTITY:</span>
+                          <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg p-0.5 shadow-sm">
+                            <button 
+                              onClick={() => decrementQuantity(pId)}
+                              disabled={stock <= 0}
+                              className="w-8 h-8 rounded-md bg-white hover:bg-[#A80000] hover:text-white text-gray-800 flex items-center justify-center font-bold border border-gray-150 transition-all duration-200 disabled:opacity-40"
+                            >
+                              <Minus className="h-3 w-3" />
+                            </button>
+                            <input 
+                              type="text" 
+                              value={quantities[pId] !== undefined ? quantities[pId] : "1"} 
+                              onChange={(e) => handleQuantityChange(pId, e.target.value)}
+                              disabled={stock <= 0}
+                              className="w-10 h-8 bg-transparent text-center text-sm font-black text-gray-900 outline-none disabled:opacity-40" 
+                            />
+                            <button 
+                              onClick={() => incrementQuantity(pId)}
+                              disabled={stock <= 0}
+                              className="w-8 h-8 rounded-md bg-white hover:bg-[#A80000] hover:text-white text-gray-800 flex items-center justify-center font-bold border border-gray-150 transition-all duration-200 disabled:opacity-40"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </button>
                           </div>
                         </div>
 
-                        {/* Quantity */}
-                        <div className="col-span-1 md:col-span-1 flex justify-between md:justify-center items-center">
-                          <span className="md:hidden font-bold text-xs text-gray-600">QUANTITY:</span>
-                          <input 
-                            type="text" 
-                            value={quantities[productId] || ""} 
-                            placeholder="1"
-                            onChange={(e) => handleQuantityChange(productId, e.target.value)}
-                            disabled={!inStock}
-                            className="w-[50px] h-[30px] border border-gray-200 rounded text-center text-[13px] text-gray-600 outline-none focus:border-[#b91c1c] disabled:bg-gray-100" 
-                          />
-                        </div>
-
                         {/* Action */}
-                        <div className="col-span-1 md:col-span-2 flex justify-end md:justify-end items-center">
+                        <div className="col-span-1 md:col-span-1 flex justify-end md:justify-end items-center">
                           <button 
                             onClick={() => handleAdd(item)}
-                            disabled={!inStock}
-                            className="border border-[#b91c1c] text-[#b91c1c] hover:bg-red-50 font-extrabold text-[11px] tracking-wide px-5 py-1.5 rounded transition-colors uppercase cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={stock <= 0}
+                            className="w-full bg-[#A80000] text-white hover:bg-[#F4C542] hover:text-[#1A1A1A] font-extrabold text-[11px] py-2.5 rounded-xl transition-all duration-300 shadow-md uppercase tracking-wider flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                           >
-                            ADD
+                            <ShoppingCart className="h-3 w-3" /> Add
                           </button>
                         </div>
-
                       </div>
                     );
                   })}
@@ -235,9 +272,26 @@ const QuickEnquiry = () => {
               </div>
             ))
           )}
-          
         </div>
       </main>
+
+      {/* Image Preview Modal */}
+      {activeImage && (
+        <div 
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-xs" 
+          onClick={() => setActiveImage(null)}
+        >
+          <div className="relative max-w-2xl max-h-[85vh] bg-white rounded-2xl p-2 shadow-2xl border border-gray-700" onClick={(e) => e.stopPropagation()}>
+            <img src={activeImage} alt="Product Preview" className="max-w-full max-h-[80vh] object-contain rounded-xl" />
+            <button 
+              className="absolute -top-3 -right-3 bg-[#A80000] text-white p-2 rounded-full hover:bg-red-700 transition-colors shadow-lg cursor-pointer" 
+              onClick={() => setActiveImage(null)}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <UserFooter />
     </div>
