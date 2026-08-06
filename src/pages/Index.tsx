@@ -164,9 +164,9 @@ const Index = () => {
     });
   }, []);
 
-  // Custom Canvas for Hyper-Realistic Flower Pots
+  // Realistic Flower Pot Effect
   useEffect(() => {
-    const canvas = document.getElementById('fountain-canvas') as HTMLCanvasElement;
+    const canvas = document.getElementById('flower-pot-canvas') as HTMLCanvasElement;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -179,100 +179,77 @@ const Index = () => {
     resizeCanvas();
 
     let particles: any[] = [];
-    let saravediParticles: any[] = [];
-
+    
     const createFlowerPotParticle = (x: number, y: number) => {
-      const angle = (Math.random() * Math.PI) / 3 - Math.PI / 6;
-      const speed = Math.random() * 9 + 5;
+      const angle = (Math.random() * Math.PI) / 4 - Math.PI / 8; // Narrower angle for realistic fountain
+      const speed = Math.random() * 12 + 6; // Stronger initial thrust
       particles.push({
         x, y,
         vx: Math.sin(angle) * speed,
         vy: -Math.cos(angle) * speed,
         life: 1,
         decay: Math.random() * 0.015 + 0.008,
-        color: Math.random() > 0.3 ? '255, 215, 0' : '255, 140, 0'
-      });
-    };
-
-    const createSaravediParticle = (x: number, y: number) => {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 5 + 1.5;
-      saravediParticles.push({
-        x, y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        life: 1,
-        decay: Math.random() * 0.04 + 0.02,
-        color: Math.random() > 0.4 ? '255, 50, 0' : '255, 200, 0'
+        color: Math.random() > 0.4 ? '255, 215, 0' : '255, 140, 0' // Gold and orange
       });
     };
 
     let animationId: number;
-    const render = () => {
+    let isActive = true;
+    let lastToggleTime = performance.now();
+
+    const render = (time: number) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const leftPotX = canvas.width * 0.08;
-      const rightPotX = canvas.width * 0.92;
-      const potY = canvas.height - 40;
-
-      for (let i = 0; i < 4; i++) {
-        createFlowerPotParticle(leftPotX, potY);
-        createFlowerPotParticle(rightPotX, potY);
+      
+      const elapsed = time - lastToggleTime;
+      if (isActive && elapsed > 5000) {
+        isActive = false;
+        lastToggleTime = time;
+      } else if (!isActive && elapsed > 10000) {
+        isActive = true;
+        lastToggleTime = time;
       }
 
-      if (Math.random() < 0.25) {
-        const saravediX = Math.random() * (canvas.width * 0.6) + canvas.width * 0.2;
-        const saravediY = Math.random() * (canvas.height * 0.4) + canvas.height * 0.1;
-        for (let i = 0; i < 8; i++) {
-          createSaravediParticle(saravediX, saravediY);
+      const leftPotX = canvas.width * 0.1;
+      const rightPotX = canvas.width * 0.9;
+      const potY = canvas.height; // Emit from bottom
+
+      if (isActive) {
+        for (let i = 0; i < 5; i++) {
+          createFlowerPotParticle(leftPotX, potY);
+          createFlowerPotParticle(rightPotX, potY);
         }
       }
 
       particles.forEach((p, index) => {
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.12;
+        p.vy += 0.15; // Gravity
         p.life -= p.decay;
 
         if (p.life <= 0) {
           particles.splice(index, 1);
         } else {
           ctx.beginPath();
-          ctx.arc(p.x, p.y, Math.random() * 2.5 + 1, 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, Math.random() * 2 + 1, 0, Math.PI * 2);
           ctx.fillStyle = `rgba(${p.color}, ${p.life})`;
-          ctx.shadowBlur = 12;
-          ctx.shadowColor = `rgba(${p.color}, 1)`;
-          ctx.fill();
-        }
-      });
-
-      saravediParticles.forEach((sp, index) => {
-        sp.x += sp.vx;
-        sp.y += sp.vy;
-        sp.life -= sp.decay;
-
-        if (sp.life <= 0) {
-          saravediParticles.splice(index, 1);
-        } else {
-          ctx.beginPath();
-          ctx.arc(sp.x, sp.y, Math.random() * 2 + 1, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${sp.color}, ${sp.life})`;
           ctx.shadowBlur = 10;
-          ctx.shadowColor = `rgba(${sp.color}, 1)`;
+          ctx.shadowColor = `rgba(${p.color}, 1)`;
           ctx.fill();
         }
       });
 
       animationId = requestAnimationFrame(render);
     };
-
-    render();
-
+    
+    animationId = requestAnimationFrame(render);
+    
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       cancelAnimationFrame(animationId);
     };
   }, []);
+
+
 
   return (
     <div className="min-h-screen flex flex-col bg-white relative font-sans">
@@ -310,10 +287,45 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Hyper-Realistic Background Fireworks Canvas */}
-      <canvas
-        id="fountain-canvas"
-        className="fixed inset-0 pointer-events-none z-40 opacity-75"
+      {/* Realistic Flower Pot Canvas */}
+      <canvas 
+        id="flower-pot-canvas" 
+        className="fixed inset-0 pointer-events-none z-[45] opacity-90"
+      />
+
+      {/* Background Fireworks Canvas */}
+      <Fireworks
+        options={{
+          rocketsPoint: { min: 0, max: 100 },
+          hue: { min: 0, max: 360 },
+          delay: { min: 30, max: 60 },
+
+          acceleration: 1.05,
+          friction: 0.97,
+          gravity: 1.5,
+          particles: 50,
+          traceLength: 3,
+          traceSpeed: 10,
+          explosion: 5,
+          intensity: 30,
+          flickering: 50,
+          lineStyle: 'round',
+          lineWidth: { explosion: { min: 1, max: 3 }, trace: { min: 1, max: 2 } },
+          brightness: { min: 50, max: 80 },
+          decay: { min: 0.015, max: 0.03 },
+          mouse: { click: false, move: false, max: 1 }
+        }}
+        style={{
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          position: 'fixed',
+          background: 'transparent',
+          zIndex: 40,
+          pointerEvents: 'none',
+          opacity: 0.5
+        }}
       />
 
       {/* Best Sellers Section */}
