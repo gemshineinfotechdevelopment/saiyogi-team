@@ -7,13 +7,14 @@ import { Product, Category } from "@/data/products";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
 import { toast } from "sonner";
-import { Plus, Minus, ShoppingCart, Sparkles, ShoppingBag, X, LogIn } from "lucide-react";
+import { Plus, Minus, ShoppingCart, Sparkles, ShoppingBag, Search, LogIn } from "lucide-react";
 
 const QuickEnquiry = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [activeImage, setActiveImage] = useState<string | null>(null);
   
   // Filters
@@ -21,8 +22,20 @@ const QuickEnquiry = () => {
   const [selectedBrand, setSelectedBrand] = useState("All Brands");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
 
-  const { addToCart, updateQuantity, items, totalItems, totalPrice } = useCart();
+  const { addToCart, updateQuantity, items } = useCart();
   const { settings } = useSiteSettings();
+
+  const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
+  const totalPrice = items.reduce((acc, item) => {
+    const dp = getDiscountPrice(
+      item.product.price,
+      item.product.hasDiscount,
+      settings.discountPercent,
+      item.product.netRate,
+      item.product.displayNetRate
+    );
+    return acc + dp * item.quantity;
+  }, 0);
 
   useEffect(() => {
     Promise.all([getProducts(), getCategories()])
@@ -105,12 +118,24 @@ const QuickEnquiry = () => {
     const existing = items.find((i) => String(i.product._id || i.product.id || '') === productId);
     return existing ? existing.quantity : 0;
   };
-
   return (
     <div className="min-h-screen flex flex-col bg-white relative font-sans">
       <UserHeader />
       
-      <main className="flex-1 w-full max-w-7xl mx-auto pb-24 px-2 md:px-6 mt-4">
+      <main className="flex-1 w-full py-12 px-0">
+        {/* Beautiful Top Banner */}
+        <div className="bg-gradient-to-br from-[#A80000] via-[#5c0a0b] to-[#1A1A1A] text-center py-12 px-6 rounded-none mb-10 relative overflow-hidden border-y border-[#F4C542]/20 shadow-xl">
+          <div className="absolute top-0 left-10 w-24 h-24 bg-[#F4C542]/10 rounded-full blur-xl"></div>
+          <div className="absolute bottom-0 right-10 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+          <span className="text-[#F4C542] text-xs font-black tracking-widest uppercase mb-2 inline-block">✨ Direct Wholesale Orders ✨</span>
+          <h1 className="text-3xl md:text-5xl font-black text-white uppercase tracking-wider mb-4 font-display">Quick Enquiry List</h1>
+          <p className="text-gray-200 text-xs md:text-sm max-w-lg mx-auto leading-relaxed">
+            Browse our premium crackers range, click the images to view previews, adjust quantities, and instantly add them to your inquiry sheet.
+          </p>
+        </div>
+
+        <div className="w-full bg-white/85 backdrop-blur-md shadow-2xl border-y border-gray-150 rounded-none overflow-hidden mb-8">
+          <div className="flex-1 container mx-auto px-0 md:px-4 py-8">
         
         {/* Filters & Cart Row */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 sticky top-[60px] md:top-[80px] z-40 bg-white py-4 border-b border-gray-100 shadow-sm md:shadow-none md:border-none">
@@ -295,27 +320,12 @@ const QuickEnquiry = () => {
             ))
           )}
         </div>
-      </main>
-
-      {activeImage && (
-        <div 
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-xs" 
-          onClick={() => setActiveImage(null)}
-        >
-          <div className="relative max-w-2xl max-h-[85vh] bg-white rounded-2xl p-2 shadow-2xl border border-gray-700" onClick={(e) => e.stopPropagation()}>
-            <img src={activeImage} alt="Product Preview" className="max-w-full max-h-[80vh] object-contain rounded-xl" />
-            <button 
-              className="absolute -top-3 -right-3 bg-[#A80000] text-white p-2 rounded-full hover:bg-red-700 transition-colors shadow-lg cursor-pointer" 
-              onClick={() => setActiveImage(null)}
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      <UserFooter />
+      </div>
     </div>
+  </main>
+
+<UserFooter />
+</div>
   );
 };
 

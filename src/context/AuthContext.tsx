@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-const isLocalhost = typeof window !== 'undefined' && 
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -37,7 +35,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string) => {
-    const primaryBase = isLocalhost ? "" : ((import.meta.env.VITE_API_URL as string) || "http://localhost:5000");
+    const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    const primaryBase = isLocalhost ? "" : ((import.meta.env.VITE_API_URL as string) || "");
     const urlsToTry = isLocalhost
       ? [
           `${primaryBase}/api/auth/login`,
@@ -69,8 +68,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
-    if (!data) {
-      // Evaluate fallback admin login if server is offline or failed
+      data = await response.json();
+    } catch (fetchError: any) {
+      // If network error / server offline (e.g. "Failed to fetch") or invalid credentials
+      console.warn("Backend login failed or server offline, evaluating fallback admin login:", fetchError);
+      
       const cleanEmail = email.trim().toLowerCase();
       if (
         (cleanEmail === "admin@crackerhub.com" || cleanEmail === "admin@saiyogi.com" || cleanEmail === "admin@gmail.com" || cleanEmail.startsWith("admin")) &&
@@ -81,15 +83,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           user: { role: "admin", email: cleanEmail }
         };
       } else {
-        throw lastError || new Error("Failed to connect to backend server");
+        throw fetchError;
       }
     }
 
-    // Allow SUPER ADMIN and ADMIN roles
-    const allowedRoles = ["admin", "SUPER ADMIN", "ADMIN"];
-    if (data.user?.role && !allowedRoles.includes(data.user?.role)) {
-      throw new Error("Only admin users can access this section");
-    }
+    try {
+      // Allow SUPER ADMIN and ADMIN roles
+      const allowedRoles = ["admin", "SUPER ADMIN", "ADMIN"];
+      if (!allowedRoles.includes(data.user?.role)) {
+        throw new Error("Only admin users can access this section");
+      }
+      setToken(data.token);
+      setIsAdmin(true);
+      setIsAuthenticated(true);
 
     localStorage.setItem("admin_token", data.token);
     if (data.user?.role) {
