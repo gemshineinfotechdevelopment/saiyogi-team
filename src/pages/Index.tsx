@@ -361,12 +361,12 @@ const Index = () => {
         </div>
 
         <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-            {(categories.length > 0 ? categories : premiumCategories).slice(0, 6).map((cat: any, i: number) => (
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+            {(categories.length > 0 ? categories : premiumCategories).map((cat: any, i: number) => (
               <div 
                 key={cat.id || cat._id || i} 
                 onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id || cat.categoryId || 'all'}`} 
-                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-amber-100 flex flex-col items-center p-4 cursor-pointer group hover:-translate-y-1"
+                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-amber-100 flex flex-col items-center p-4 cursor-pointer group hover:-translate-y-1 w-[calc(50%-8px)] sm:w-[170px] lg:w-[175px] shrink-0"
               >
                 <div className="w-full aspect-square flex items-center justify-center bg-gradient-to-b from-amber-50/50 to-orange-50/20 rounded-xl p-3 mb-3 group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
                   <img src={cat.image || "/sky_rocket_box.png"} alt={cat.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
@@ -427,7 +427,7 @@ const Index = () => {
         </div>
 
         <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
             {(brands.length > 0
               ? brands
               : shopByBrands
@@ -435,17 +435,17 @@ const Index = () => {
               <div 
                 key={brand._id || brand.id || i} 
                 onClick={() => window.location.href=`/catalog?search=${encodeURIComponent(brand.name)}`}
-                className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-2xl p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1"
+                className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-2xl p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[calc(50%-8px)] sm:w-[170px] lg:w-[175px] shrink-0"
               >
                 <span className="text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full mb-2 font-mono">
-                  {brand.brandId || brand.tag || "BRAND"}
+                  {brand.tag || "BRAND"}
                 </span>
                 <div className="w-full aspect-square flex items-center justify-center p-2 mb-2 group-hover:scale-105 transition-transform duration-300">
                   <img src={brand.logo || brand.image || "/sky_rocket_box.png"} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-sm" />
                 </div>
                 <div>
                   <h3 className="font-black text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors">{brand.name}</h3>
-                  <p className="text-[10px] text-gray-500 font-medium mt-0.5">{brand.phone ? `Ph: ${brand.phone}` : brand.subtitle || brand.description || "Original Sivakasi"}</p>
+                  <p className="text-[10px] text-gray-500 font-medium mt-0.5">{brand.subtitle || brand.description || "Original Sivakasi"}</p>
                 </div>
               </div>
             ))}
