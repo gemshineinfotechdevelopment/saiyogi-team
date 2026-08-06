@@ -24,13 +24,13 @@ const staticBestSellers = [
   { id: 6, name: "Chakkra Special", price: 280, image: "/flower_pots.png" },
 ];
 
-const staticFamilyPacks: Product[] = [
-  { id: "7", name: "Mega Family Pack", oldPrice: 4500, price: 3200, image: "/sky_rocket_box.png", category: "Combo", hasDiscount: true, brand: "Standard", stock: 10, rating: 5, reviews: 10, description: "Mega Family Pack", quantity: "1 Box" },
-  { id: "8", name: "Grand Celebration Combo", oldPrice: 6000, price: 4500, image: "/flower_pots.png", category: "Combo", hasDiscount: true, brand: "Standard", stock: 10, rating: 5, reviews: 10, description: "Grand Celebration Combo", quantity: "1 Box" },
-  { id: "9", name: "Sky Show Magic", oldPrice: 7500, price: 5500, image: "/sky_rocket_box.png", category: "Combo", hasDiscount: true, brand: "Standard", stock: 10, rating: 5, reviews: 10, description: "Sky Show Magic", quantity: "1 Box" },
-  { id: "10", name: "Classic Family Pack", oldPrice: 3000, price: 2100, image: "/flower_pots.png", category: "Combo", hasDiscount: true, brand: "Standard", stock: 10, rating: 5, reviews: 10, description: "Classic Family Pack", quantity: "1 Box" },
-  { id: "11", name: "Royal Festival Pack", oldPrice: 10000, price: 7200, image: "/sky_rocket_box.png", category: "Combo", hasDiscount: true, brand: "Standard", stock: 10, rating: 5, reviews: 10, description: "Royal Festival Pack", quantity: "1 Box" },
-  { id: "12", name: "Kids Joy Cracker", oldPrice: 2000, price: 1500, image: "/flower_pots.png", category: "Combo", hasDiscount: true, brand: "Standard", stock: 10, rating: 5, reviews: 10, description: "Kids Joy Cracker", quantity: "1 Box" },
+const staticFamilyPacks = [
+  { id: 7, name: "Mega Family Pack", oldPrice: 4500, price: 3200, image: "/sky_rocket_box.png" },
+  { id: 8, name: "Grand Celebration Combo", oldPrice: 6000, price: 4500, image: "/flower_pots.png" },
+  { id: 9, name: "Sky Show Magic", oldPrice: 7500, price: 5500, image: "/sky_rocket_box.png" },
+  { id: 10, name: "Classic Family Pack", oldPrice: 3000, price: 2100, image: "/flower_pots.png" },
+  { id: 11, name: "Royal Festival Pack", oldPrice: 10000, price: 7200, image: "/sky_rocket_box.png" },
+  { id: 12, name: "Kids Joy Cracker", oldPrice: 2000, price: 1500, image: "/flower_pots.png" },
 ];
 
 const premiumCategories = [
@@ -358,90 +358,30 @@ const Index = () => {
             <button
               onClick={() => setVideoIndex((prev) => (prev - 1 + demoVideos.length) % demoVideos.length)}
               className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
-      <section className="relative overflow-hidden bg-black text-white min-h-[300px] sm:min-h-[420px] md:min-h-[500px] lg:min-h-[580px] flex items-center justify-center">
-        <div className="absolute inset-0 z-0">
-          {heroImages.map((img, index) => (
-            <div
-              key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
-              }`}
             >
-              <img
-                key={`${index}-${slideKey}`}
-                src={img}
-                alt={`Diwali Banner ${index + 1}`}
-                className={`w-full h-full object-cover sm:object-contain object-center ${
-                  index === currentSlide ? "animate-hero-slide-rtl" : ""
-                }`}
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            {/* Video Card Showcase */}
+            <div className="w-full max-w-xl bg-black rounded-3xl overflow-hidden shadow-2xl border-4 border-[#F4C542]/30 relative aspect-video flex items-center justify-center">
+              <video
+                src={demoVideos[videoIndex].url}
+                poster={demoVideos[videoIndex].thumbnail}
+                controls
+                className="w-full h-full object-cover"
               />
             </div>
-          ))}
 
-          <div className="absolute inset-0 bg-black/20 z-15 pointer-events-none" />
-
-          {/* Dots Indicator */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-            {heroImages.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => {
-                  setCurrentSlide(i);
-                  setSlideKey((k) => k + 1);
-                }}
-                className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                  i === currentSlide
-                    ? "bg-[#F4C542] w-8 shadow-[0_0_10px_#F4C542]"
-                    : "bg-white/50 hover:bg-white"
-                }`}
-              />
-            ))}
+            {/* Right Button */}
+            <button
+              onClick={() => setVideoIndex((prev) => (prev + 1) % demoVideos.length)}
+              className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </section>
-
-      {/* Premium Categories */}
-      <section className="py-16 bg-[#FFF6E5] overflow-hidden">
-        <div className="text-center mb-10">
-          <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2 font-display">Premium Categories</h2>
-          <p className="text-black font-bold uppercase text-sm">Shop By Category</p>
-          <p className="text-gray-500 text-xs mt-2 max-w-md mx-auto">Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.</p>
-        </div>
-        
-        {/* Infinite scrolling categories marquee from right to left */}
-        <div className="relative w-full overflow-hidden py-4">
-          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
-            {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i) => (
-              <div 
-                key={`${cat.id || cat._id || 'cat'}-${i}`} 
-                onClick={() => window.location.href=`/catalog?category=${cat.id || cat._id}`} 
-                className="bg-white border border-gray-200 p-4 flex flex-col items-center text-center shadow-md rounded-2xl min-w-[200px] max-w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
-              >
-                <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative border border-gray-100/50">
-                  <img 
-                    src={cat.image || "/sky_rocket_box.png"} 
-                    alt={cat.name} 
-                    className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110" 
-                  />
-                  <span className="absolute top-2 left-2 bg-[#A80000] text-[#F4C542] font-black text-[9px] px-2.5 py-0.5 rounded-full shadow uppercase">
-                    SHOP
-                  </span>
-                </div>
-                <h3 className="font-bold text-xs text-gray-800 uppercase text-center min-h-[32px] line-clamp-2 transition-colors group-hover:text-[#A80000] mb-3">{cat.name}</h3>
-                
-                <div className="w-full mt-auto">
-                  <button className="w-full bg-[#A80000] text-white py-1.5 rounded-lg text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase">
-                    View Products
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Shop By Category */}
-      <section className="py-16 bg-[#FDF5E6] border-b border-amber-100">
       {/* Categories Grid */}
       <section className="py-16 bg-[#FFF8EE] border-b border-amber-100/50">
         <div className="text-center mb-10 container mx-auto px-4">
