@@ -7,7 +7,7 @@ import { Product, Category } from "@/data/products";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -170,6 +170,9 @@ const AdminProducts = () => {
                     <DialogTitle className="font-display flex justify-between items-center">
                       <span>{editing ? 'Edit Product' : 'Add New Product'}</span>
                     </DialogTitle>
+                    <DialogDescription className="text-xs text-muted-foreground">
+                      {editing ? 'Update product details and inventory' : 'Create a new product in the store catalog'}
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 max-h-[85vh] overflow-y-auto pr-2 custom-scrollbar">
                     <div className="grid grid-cols-2 gap-4">
@@ -463,7 +466,7 @@ const AdminProducts = () => {
                       <td className="p-3 text-right">
                         <div className="flex justify-end gap-1">
                           <button className="p-1.5 rounded hover:bg-secondary transition-colors text-muted-foreground hover:text-primary" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></button>
-                          <button className="p-1.5 rounded hover:bg-secondary transition-colors text-muted-foreground hover:text-destructive" onClick={() => handleDelete(p.id)}><Trash2 className="h-4 w-4" /></button>
+                          <button className="p-1.5 rounded hover:bg-secondary transition-colors text-muted-foreground hover:text-destructive" onClick={() => handleDelete(String(p._id || p.id))}><Trash2 className="h-4 w-4" /></button>
                         </div>
                       </td>
                     </tr>

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -81,6 +82,7 @@ export function SupplierModal({ open, onOpenChange, onSuccess, supplier }: Suppl
       <DialogContent className="sm:max-w-[500px] max-h-[85vh] flex flex-col p-0 overflow-hidden">
         <DialogHeader className="p-6 pb-2">
           <DialogTitle>{supplier ? "Edit Supplier" : "Add New Supplier"}</DialogTitle>
+          <DialogDescription>{supplier ? "Update supplier details and contact information." : "Add a new vendor or supplier."}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
           <ScrollArea className="flex-1 px-6 py-4">

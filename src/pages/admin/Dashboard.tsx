@@ -70,7 +70,7 @@ const Dashboard = () => {
   const topSelling = [...products]
     .map(p => ({
       ...p,
-      soldCount: productSalesMap.get(p._id || p.id || "") || 0
+      soldCount: productSalesMap.get(String(p._id || p.id || "")) || 0
     }))
     .sort((a, b) => b.soldCount - a.soldCount)
     .slice(0, 5);
