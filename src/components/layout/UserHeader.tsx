@@ -151,9 +151,6 @@ const UserHeader = () => {
             <Link to="/combo-packs" className={getLinkClass('/combo-packs') + " flex items-center gap-1"}>
               COMBO PACKS <ChevronDown className="h-3 w-3" />
             </Link>
-            <Link to="/chit-scheme" className={getLinkClass('/chit-scheme')}>
-              CHIT SCHEME
-            </Link>
             <Link to="/about-us" className={getLinkClass('/about-us')}>
               ABOUT US
             </Link>
@@ -186,7 +183,6 @@ const UserHeader = () => {
             <Link to="/quick-enquiry" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/quick-enquiry') + " flex items-center gap-2"}>QUICK ENQUIRY <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded">NEW</span></Link>
             <Link to="/safety-tips" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/safety-tips')}>SAFETY TIPS</Link>
             <Link to="/combo-packs" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/combo-packs')}>COMBO PACKS</Link>
-            <Link to="/chit-scheme" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/chit-scheme')}>CHIT SCHEME</Link>
             <Link to="/catalog" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/catalog')}>ALL PRODUCTS</Link>
             <Link to="/about-us" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/about-us')}>ABOUT US</Link>
             <Link to="/contact" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/contact')}>CONTACT US</Link>

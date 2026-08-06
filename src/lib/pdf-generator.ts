@@ -230,8 +230,8 @@ function generateReceiptHTML(order: OrderData): string {
 
   const netAmount1 = totalValue - totalDiscountAmount - totalNetRateAmount;
   const netAmount2 = netAmount1 + totalNetRateAmount;
-  const packingCharge = order.packingCharge ?? Math.round(netAmount2 * 0.03);
-  const packingPct = netAmount2 > 0 ? Math.round((packingCharge / netAmount2) * 100) : 3;
+  const packingCharge = order.packingCharge ?? (netAmount2 <= 3999 ? 120 : Math.round(netAmount2 * 0.03));
+  const packingPct = netAmount2 > 0 ? (netAmount2 <= 3999 ? "Flat" : Math.round((packingCharge / netAmount2) * 100).toString()) : "3";
   const grandTotal = netAmount2 + packingCharge;
   const inWords = numberToWords(grandTotal);
 
@@ -437,7 +437,7 @@ table.main-table {
           <span style="width: 45%; text-align: right;">${formatAmt(netAmount2)}</span>
         </div>
         <div class="totals-row">
-          <span style="width: 45%;">Packing <span style="display:inline-block; width: 30px; text-align: right;">${packingPct} %</span></span>
+          <span style="width: 45%;">Packing <span style="display:inline-block; width: 40px; text-align: right;">${packingPct === "Flat" ? "" : packingPct + " %"}</span></span>
           <span style="width: 10%; text-align: center;">:</span>
           <span style="width: 45%; text-align: right;">${formatAmt(packingCharge)}</span>
         </div>

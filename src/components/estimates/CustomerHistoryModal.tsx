@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -101,6 +102,7 @@ export function CustomerHistoryModal({
             <span>Customer History - {mobNo}</span>
             <Badge variant="outline" className="ml-2">{estimates.length} Estimates</Badge>
           </DialogTitle>
+          <DialogDescription>Past estimates and order history for customer {mobNo}.</DialogDescription>
         </DialogHeader>
 
         <div className="px-6 py-2">

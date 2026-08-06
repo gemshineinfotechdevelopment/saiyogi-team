@@ -6,18 +6,18 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-// allow Render host for preview/dev when deployed on Render
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+    },
+    // allow Render host for preview/dev when deployed on Render
     allowedHosts: ["narandiraa-enterprises-1.onrender.com"],
     host: "::",
     port: 8080,
     hmr: {
       overlay: false,
-    },
-    proxy: {
-      "/api": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-      },
     },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),

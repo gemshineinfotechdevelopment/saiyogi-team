@@ -8,7 +8,8 @@ import {
   getUserOrders,
   approveOrder,
   updatePackingStatus,
-  updateHoldDays
+  updateHoldDays,
+  deleteOrder
 } from '../controllers/orderController.js';
 import { auth, adminOnly } from '../middleware/auth.js';
 import { validate, validateOrder } from '../middleware/validation.js';
@@ -25,5 +26,6 @@ router.put('/:id/cancel', auth, adminOnly, cancelOrder);
 router.put('/:orderId/approve', auth, adminOnly, approveOrder);
 router.put('/:orderId/packing-status', auth, adminOnly, updatePackingStatus);
 router.put('/:orderId/hold-days', auth, adminOnly, updateHoldDays);
+router.delete('/:id', auth, adminOnly, deleteOrder);
 
 export default router;
