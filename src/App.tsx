@@ -16,6 +16,7 @@ import SafetyTips from "./pages/SafetyTips";
 import Contact from "./pages/Contact";
 import QuickEnquiry from "./pages/QuickEnquiry";
 import AboutUs from "./pages/AboutUs";
+import ChitScheme from "./pages/ChitScheme";
 import AdminLogin from "./pages/admin/AdminLogin";
 import Dashboard from "./pages/admin/Dashboard";
 import AdminBrands from "./pages/admin/AdminBrands";
@@ -49,6 +50,7 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/combo-packs" element={<ComboPacks />} />
+                  <Route path="/chit-scheme" element={<ChitScheme />} />
                   <Route path="/catalog" element={<Catalog />} />
                   <Route path="/product/:id" element={<ProductDetail />} />
                   <Route path="/safety-tips" element={<SafetyTips />} />

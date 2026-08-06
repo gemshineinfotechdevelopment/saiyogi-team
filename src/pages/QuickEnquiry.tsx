@@ -16,7 +16,7 @@ const QuickEnquiry = () => {
   const [loading, setLoading] = useState(true);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [activeImage, setActiveImage] = useState<string | null>(null);
-  const { addToCart, updateQuantity, items, totalItems, totalPrice } = useCart();
+  const { addToCart, updateQuantity, items } = useCart();
   const { settings } = useSiteSettings();
 
   useEffect(() => {
@@ -111,9 +111,8 @@ const QuickEnquiry = () => {
           </p>
         </div>
 
-        {/* Product Table Card wrapper */}
         <div className="w-full bg-white/85 backdrop-blur-md shadow-2xl border-y border-gray-150 rounded-none overflow-hidden mb-8">
-
+          <div className="flex-1 container mx-auto px-0 md:px-4 py-8">
         
         {/* Floating Estimate Bar (similar to combo packs) */}
         <div className="flex justify-end mb-6 px-4 md:px-0">
@@ -260,9 +259,12 @@ const QuickEnquiry = () => {
             ))
           )}
         </div>
-      </main>
-      <UserFooter />
+      </div>
     </div>
+  </main>
+
+  <UserFooter />
+</div>
   );
 };
 

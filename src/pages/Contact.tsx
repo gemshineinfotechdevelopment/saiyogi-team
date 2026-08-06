@@ -335,10 +335,10 @@ const Contact = () => {
                 03. Confirmation
               </p>
               <h4 className="text-sm font-black text-gray-900 mb-2 uppercase tracking-wider">
-                Order Invoice
+                Order Enquiry
               </h4>
               <p className="text-xs text-gray-500 font-semibold leading-relaxed max-w-[220px]">
-                Receive a detailed invoice containing bulk discounts, special festival offers, and direct bank details.
+                Receive a detailed enquiry summary containing bulk discounts, special festival offers, and direct bank details.
               </p>
             </div>
 
