@@ -103,7 +103,7 @@ const shopByBrands = [
 
 const Index = () => {
   const { settings } = useSiteSettings();
-  const { items: cartItems, addToCart } = useCart();
+  const { items: cartItems, addToCart, updateQuantity } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -478,8 +478,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Trusted Manufacturers & Shop By Brand */}
-      <section className="py-16 bg-white border-b border-gray-100">
       {/* Categories Grid */}
       <section className="py-16 bg-[#FFF8EE] border-b border-amber-100/50">
         <div className="text-center mb-10 container mx-auto px-4">
@@ -550,6 +548,9 @@ const Index = () => {
                   ? products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack'))
                   : staticFamilyPacks;
                 const item = comboPacksList[(comboIndex + offset) % comboPacksList.length];
+                const itemId = String(item._id || item.id);
+                const cartItem = cartItems.find((i) => String(i.product._id || i.product.id) === itemId);
+                const quantity = cartItem?.quantity || 0;
 
                 return (
                   <div 
@@ -569,20 +570,9 @@ const Index = () => {
                     <div className="flex gap-3 items-center mb-5">
                       {item.oldPrice && (
                         <span className="text-gray-400 line-through text-xs font-bold">₹{item.oldPrice}</span>
-                    <h3 className="font-black text-sm text-gray-900 uppercase mb-2 group-hover:text-[#A80000] transition-colors">{item.name}</h3>
-                    <div className="flex gap-2 items-center mb-6">
-                      {(item as any).oldPrice && (
-                        <span className="text-gray-400 line-through text-xs font-bold">₹{(item as any).oldPrice}</span>
                       )}
                       <span className="text-[#A80000] font-black text-xl">₹{item.price}</span>
                     </div>
-
-                    <button 
-                      onClick={() => addToCart(item)}
-                      className="w-full bg-[#A80000] text-white py-3 rounded-xl font-black text-xs tracking-wider hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all uppercase shadow-md flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <ShoppingCart className="w-4 h-4" /> Add Combo To Cart
-                    </button>
                     {quantity > 0 ? (
                       <div className="flex items-center justify-between bg-red-50/50 border border-red-200/50 rounded-xl p-1.5 w-full mt-auto" onClick={(e) => e.stopPropagation()}>
                         <button
