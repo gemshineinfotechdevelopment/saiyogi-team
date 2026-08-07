@@ -8,6 +8,7 @@ import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
 import { toast } from "sonner";
 import { Plus, Minus, ShoppingCart, Sparkles, ShoppingBag, Search, LogIn } from "lucide-react";
+import QuickEnquiryFilters from "@/components/QuickEnquiryFilters";
 
 const QuickEnquiry = () => {
   const navigate = useNavigate();
@@ -188,15 +189,6 @@ const QuickEnquiry = () => {
 
         <div className="w-full bg-white/85 backdrop-blur-md shadow-2xl border-y border-gray-150 rounded-none mb-8">
           <div className="flex-1 container mx-auto px-0 md:px-4 py-8">
-
-        <div className="hidden md:grid md:grid-cols-12 gap-4 bg-[#f8f9fa] rounded-t-xl py-3 px-6 text-[11px] font-black text-gray-500 uppercase tracking-wider items-center mb-2">
-          <div className="col-span-4 pl-2">PRODUCT NAME</div>
-          <div className="col-span-2 text-center">ITEM CODE</div>
-          <div className="col-span-2 text-center">CONTENT</div>
-          <div className="col-span-1 text-center">UNIT PRICE</div>
-          <div className="col-span-2 text-center">QUANTITY</div>
-          <div className="col-span-1 text-right pr-4">TOTAL</div>
-        </div>
 
         <div className="space-y-6 md:space-y-4">
           {loading ? (
