@@ -123,9 +123,9 @@ const QuickEnquiry = () => {
     <div className="min-h-screen flex flex-col bg-white relative font-sans">
       <UserHeader />
       
-      <main className="flex-1 w-full py-12 px-0">
+      <main className="flex-1 w-full pt-[115px] md:pt-[110px] pb-12 px-0">
         {/* Beautiful Top Banner */}
-        <div className="bg-gradient-to-br from-[#A80000] via-[#5c0a0b] to-[#1A1A1A] text-center py-12 px-6 rounded-none mb-10 relative overflow-hidden border-y border-[#F4C542]/20 shadow-xl">
+        <div className="bg-gradient-to-br from-[#A80000] via-[#5c0a0b] to-[#1A1A1A] text-center py-10 md:py-12 px-6 rounded-none mb-0 relative overflow-hidden border-y border-[#F4C542]/20 shadow-xl">
           <div className="absolute top-0 left-10 w-24 h-24 bg-[#F4C542]/10 rounded-full blur-xl"></div>
           <div className="absolute bottom-0 right-10 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
           <span className="text-[#F4C542] text-xs font-black tracking-widest uppercase mb-2 inline-block">✨ Direct Wholesale Orders ✨</span>
@@ -135,59 +135,21 @@ const QuickEnquiry = () => {
           </p>
         </div>
 
-        {/* Filters & Cart Row (Fixed at Top when scrolling the entire page) */}
-        <div className="sticky top-[68px] md:top-[140px] z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-md py-4 px-4 mb-8">
-          <div className="container mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
-            <select 
-              value={selectedBrand} 
-              onChange={e => setSelectedBrand(e.target.value)}
-              className="w-full sm:w-40 p-2.5 rounded-xl border border-gray-200 text-sm font-bold outline-none focus:border-[#A80000] text-gray-700 bg-white shadow-xs appearance-none cursor-pointer"
-              style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%238b2ce0\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1rem' }}
-            >
-              {uniqueBrands.map(b => <option key={b} value={b}>{b}</option>)}
-            </select>
-            <select 
-              value={selectedCategory} 
-              onChange={e => setSelectedCategory(e.target.value)}
-              className="w-full sm:w-48 p-2.5 rounded-xl border border-gray-200 text-sm font-bold outline-none focus:border-[#A80000] text-gray-700 bg-white shadow-xs appearance-none cursor-pointer"
-              style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%238b2ce0\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1rem' }}
-            >
-              {uniqueCategoryNames.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <div className="relative w-full sm:w-64">
-              <input 
-                type="text" 
-                placeholder="Search products..." 
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-3 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium outline-none focus:border-[#A80000] bg-white shadow-xs"
-              />
-            </div>
-          </div>
-          
-          {/* Cart Total & Checkout Box */}
-          <div 
-            onClick={() => setIsCartOpen(true)}
-            className="w-full md:w-auto bg-[#A80000] hover:bg-red-800 text-white rounded-2xl px-5 py-2.5 flex items-center justify-between md:justify-start md:gap-5 shadow-lg border border-[#8a0000] cursor-pointer hover:scale-105 active:scale-95 transition-all shrink-0"
-            title="Click to view My Cart"
-          >
-            <div className="flex flex-col text-left">
-              <span className="text-[10px] font-extrabold text-white/90 uppercase tracking-wider">Cart Total</span>
-              <span className="text-xl font-black leading-tight">₹{totalPrice.toLocaleString('en-IN')}</span>
-            </div>
-            
-            <div className="relative flex items-center justify-center pl-2">
-              <ShoppingBag className="w-6 h-6 text-white" />
-              <span className="absolute -top-1.5 -right-2 bg-[#F4C542] text-[#1A1A1A] text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-black shadow-sm border border-white">
-                {totalItems}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+        {/* Sticky Filters, Cart Total & Table Header Container Component */}
+        <QuickEnquiryFilters
+          selectedBrand={selectedBrand}
+          setSelectedBrand={setSelectedBrand}
+          uniqueBrands={uniqueBrands}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          uniqueCategoryNames={uniqueCategoryNames}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          totalPrice={totalPrice}
+          totalItems={totalItems}
+        />
 
-        <div className="w-full bg-white/85 backdrop-blur-md shadow-2xl border-y border-gray-150 rounded-none mb-8">
+        <div className="w-full bg-white shadow-xl border-y border-gray-150 rounded-none mb-8 mt-4 md:mt-6">
           <div className="flex-1 container mx-auto px-0 md:px-4 py-8">
 
         <div className="space-y-6 md:space-y-4">

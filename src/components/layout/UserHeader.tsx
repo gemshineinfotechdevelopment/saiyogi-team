@@ -173,7 +173,7 @@ const UserHeader = () => {
         )}
       </header>
       {/* Responsive layout spacer so fixed header doesn't cover top of page content */}
-      <div className={isHomePage ? "w-full shrink-0 h-[92px] md:h-[172px]" : "w-full shrink-0 h-[68px] md:h-[140px]"} />
+      <div className={isHomePage ? "w-full shrink-0 h-[92px] md:h-[172px]" : "w-full shrink-0 h-[60px] md:h-[108px]"} />
     </>
   );
 };
