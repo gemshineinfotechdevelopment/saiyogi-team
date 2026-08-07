@@ -19,7 +19,7 @@ const navItems = [
   { label: "Net Rate Bill", href: "/admin/billing/netrate" },
   { label: "Transport Bill", href: "/admin/billing/transport" },
   { label: "Invoice", href: "/admin/billing/invoice" },
-  { label: "Reports", href: "/admin/billing/reports" },
+  { label: "Reports", href: "/admin/reports" },
 ];
 
 const AdminNavbar = () => {

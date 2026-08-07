@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/context/AuthContext";
 import indiaStatesData from "@/lib/indiaStates.json";
 
 const getAllStates = () => Object.keys(indiaStatesData);
@@ -32,6 +33,7 @@ const getDistrictsByState = (state: string) => (indiaStatesData as Record<string
 const CartDrawer = () => {
   const { items, updateQuantity, removeFromCart, clearCart, totalItems, totalPrice, isCartOpen, setIsCartOpen } = useCart();
   const { settings } = useSiteSettings();
+  const { isUserLoggedIn, userPhone } = useAuth();
   const [viewMode, setViewMode] = useState<"cart" | "whatsapp-verify" | "checkout">("cart");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -73,9 +75,17 @@ const CartDrawer = () => {
       toast.error("Your cart is empty");
       return;
     }
-    if (isPhoneVerified) {
+
+    // If already logged in, no need to ask for mobile number verification
+    if (isUserLoggedIn || isPhoneVerified) {
+      const activePhone = userPhone || formData.phoneNumber || "";
+      if (activePhone) {
+        setFormData((prev) => ({ ...prev, phoneNumber: activePhone }));
+      }
+      setIsPhoneVerified(true);
       setViewMode("checkout");
     } else {
+      // If user didn't login, ask for mobile number
       setVerifyPhone(formData.phoneNumber || "");
       setOtpStep("number");
       setUserOtp("");
@@ -185,6 +195,25 @@ const CartDrawer = () => {
           gstNumber: settings.billing?.gstNumber || '',
         };
         setSavedOrderData(orderData);
+
+        // Save enquiry to user's phone-specific key in localStorage for MyEnquiry page
+        try {
+          const userPhoneKey = `user_saved_enquiries_${formData.phoneNumber.replace(/\D/g, "")}`;
+          const existing = JSON.parse(localStorage.getItem(userPhoneKey) || "[]");
+          const newEnquiry = {
+            id: String(Date.now()),
+            enquiryNumber: String(response.order.orderNumber || Math.floor(100000 + Math.random() * 900000)),
+            date: `${new Date().toLocaleDateString('en-IN')} ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`,
+            total: response.order.total || response.order.subtotal || 0,
+            status: "Pending",
+            customerName: formData.name,
+            customerPhone: formData.phoneNumber,
+            customerEmail: formData.email,
+            deliveryAddress: fullDeliveryAddress,
+            items: items.map(i => ({ productName: i.product.name, quantity: i.quantity, price: i.product.price }))
+          };
+          localStorage.setItem(userPhoneKey, JSON.stringify([newEnquiry, ...existing]));
+        } catch (_) {}
       }
 
       clearCart();
@@ -505,13 +534,13 @@ const CartDrawer = () => {
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <Label htmlFor="phoneNumber" className="text-red-900 font-semibold text-xs block">Phone Number *</Label>
-                      {isPhoneVerified && (
+                      {(isPhoneVerified || isUserLoggedIn) && (
                         <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> {isUserLoggedIn ? "Logged In" : "Verified"}
                         </span>
                       )}
                     </div>
-                    <Input id="phoneNumber" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} placeholder="10-digit mobile number" className="border-red-200 bg-white focus:border-red-500 h-9 text-xs font-bold" maxLength={10} disabled={isPhoneVerified} />
+                    <Input id="phoneNumber" name="phoneNumber" value={formData.phoneNumber || (isUserLoggedIn ? userPhone : "")} onChange={handleInputChange} placeholder="10-digit mobile number" className="border-red-200 bg-white focus:border-red-500 h-9 text-xs font-bold" maxLength={10} disabled={isPhoneVerified || isUserLoggedIn} />
                   </div>
                 </div>
               </div>

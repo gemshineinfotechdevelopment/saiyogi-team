@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { UserLoginModal } from "@/components/auth/UserLoginModal";
 
 const isLocalhost = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -8,8 +9,15 @@ interface AuthContextType {
   isAdmin: boolean;
   token: string | null;
   loading: boolean;
+  userPhone: string | null;
+  isUserLoggedIn: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithPhone: (phone: string) => void;
   logout: () => void;
+  logoutUser: () => void;
+  isLoginModalOpen: boolean;
+  openLoginModal: () => void;
+  closeLoginModal: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,9 +28,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // Customer User Phone Login
+  const [userPhone, setUserPhone] = useState<string | null>(localStorage.getItem("user_phone"));
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+
   useEffect(() => {
     const storedToken = localStorage.getItem("admin_token");
     const storedRole = localStorage.getItem("admin_role");
+    const storedPhone = localStorage.getItem("user_phone");
+
+    if (storedPhone) {
+      setUserPhone(storedPhone);
+    }
 
     if (storedToken && ["admin", "SUPER ADMIN", "ADMIN"].includes(storedRole || "")) {
       setToken(storedToken);
@@ -31,10 +48,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       setToken(null);
       setIsAdmin(false);
-      setIsAuthenticated(false);
+      setIsAuthenticated(!!storedPhone);
     }
     setLoading(false);
   }, []);
+
+  const loginWithPhone = (phone: string) => {
+    setUserPhone(phone);
+    localStorage.setItem("user_phone", phone);
+    setIsAuthenticated(true);
+  };
+
+  const openLoginModal = () => setIsLoginModalOpen(true);
+  const closeLoginModal = () => setIsLoginModalOpen(false);
+
+  const logoutUser = () => {
+    setUserPhone(null);
+    localStorage.removeItem("user_phone");
+    if (!isAdmin) {
+      setIsAuthenticated(false);
+    }
+  };
 
   const login = async (email: string, password: string) => {
     const primaryBase = isLocalhost ? "" : ((import.meta.env.VITE_API_URL as string) || "http://localhost:5000");
@@ -106,13 +140,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAuthenticated(false);
     setIsAdmin(false);
     setToken(null);
+    setUserPhone(null);
     localStorage.removeItem("admin_token");
     localStorage.removeItem("admin_role");
+    localStorage.removeItem("user_phone");
   };
 
+  const isUserLoggedIn = !!userPhone;
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isAdmin, token, loading, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        isAdmin,
+        token,
+        loading,
+        userPhone,
+        isUserLoggedIn,
+        login,
+        loginWithPhone,
+        logout,
+        logoutUser,
+        isLoginModalOpen,
+        openLoginModal,
+        closeLoginModal,
+      }}
+    >
       {children}
+      <UserLoginModal
+        isOpen={isLoginModalOpen}
+        onClose={closeLoginModal}
+        onSuccess={(phone) => loginWithPhone(phone)}
+      />
     </AuthContext.Provider>
   );
 };
