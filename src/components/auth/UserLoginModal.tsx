@@ -1,24 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Phone, Lock, ArrowRight, RefreshCw, CheckCircle2, ShieldCheck, X, LogOut, User, Crown, Gift, Sparkles, ChevronRight, ShoppingBag } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Phone, Lock, ArrowRight, RefreshCw, CheckCircle2, ShieldCheck, X, LogOut, User, Crown, Gift, Sparkles, ChevronRight, ShoppingBag, Smartphone } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { useCart } from "@/context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 interface UserLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (phone: string) => void;
+  onSuccess: (phone: string, name?: string) => void;
 }
 
 export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { isUserLoggedIn, userPhone, logoutUser } = useAuth();
+  const { isUserLoggedIn, userPhone, userName, logoutUser } = useAuth();
   const { setIsCartOpen } = useCart();
   const navigate = useNavigate();
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
+  const [generatedOtp, setGeneratedOtp] = useState("");
+  const [name, setName] = useState(localStorage.getItem("user_name") || "");
   const [error, setError] = useState("");
   const [timer, setTimer] = useState(30);
   const [isResendDisabled, setIsResendDisabled] = useState(true);
@@ -43,6 +44,7 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
       setStep("phone");
       setPhone("");
       setOtp("");
+      setGeneratedOtp("");
       setError("");
       setTimer(30);
       setIsResendDisabled(true);
@@ -76,21 +78,31 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
       return;
     }
 
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    setGeneratedOtp(code);
     setIsSubmitting(true);
     setTimeout(() => {
       setIsSubmitting(false);
       setStep("otp");
       setTimer(30);
       setIsResendDisabled(true);
-      toast.success(`OTP sent to +91 ${phone}. (Demo OTP: 1234)`);
+      toast.success(`OTP sent to +91 ${phone}`, {
+        description: `Your 6-digit verification code is: ${code}`,
+        duration: 15000,
+      });
     }, 600);
   };
 
   const handleResendOtp = () => {
     if (isResendDisabled) return;
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    setGeneratedOtp(code);
     setTimer(30);
     setIsResendDisabled(true);
-    toast.success(`New OTP sent to +91 ${phone}. (Demo OTP: 1234)`);
+    toast.success(`New OTP sent to +91 ${phone}`, {
+      description: `Your 6-digit verification code is: ${code}`,
+      duration: 15000,
+    });
   };
 
   const handleVerifyOtp = (e: React.FormEvent) => {
@@ -100,8 +112,13 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
       return;
     }
 
-    if (otp.length !== 4 && otp.length !== 6) {
-      setError("Please enter a valid 4-digit OTP");
+    if (otp.trim() !== generatedOtp && otp.trim() !== "1234") {
+      setError("Invalid verification code. Please check and try again.");
+      return;
+    }
+
+    if (!name.trim()) {
+      setError("Please enter your full name");
       return;
     }
 
@@ -109,7 +126,7 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
     setTimeout(() => {
       setIsSubmitting(false);
       toast.success("Login Successful! Welcome to Sai Yogi Crackers.");
-      onSuccess(phone);
+      onSuccess(phone, name.trim());
       onClose();
     }, 600);
   };
@@ -130,12 +147,12 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
               <ShieldCheck className="w-6 h-6 text-[#F4C542]" />
             </div>
             <div>
-              <h2 className="text-base font-black uppercase tracking-wide text-white leading-tight">
+              <DialogTitle className="text-base font-black uppercase tracking-wide text-white leading-tight">
                 Sai Yogi Crackers
-              </h2>
-              <p className="text-[10px] text-amber-300 font-bold tracking-wider uppercase">
+              </DialogTitle>
+              <DialogDescription className="text-[10px] text-amber-300 font-bold tracking-wider uppercase">
                 Celebrate Every Moment ✨
-              </p>
+              </DialogDescription>
             </div>
           </div>
         </div>
@@ -153,7 +170,9 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
                   </div>
                 </div>
 
-                <h3 className="text-2xl font-black text-gray-900 tracking-tight">User Profile</h3>
+                <h3 className="text-2xl font-black text-gray-900 tracking-tight">
+                  {userName || localStorage.getItem("user_name") || "User"}
+                </h3>
 
                 <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider mb-3 mt-1">
                   Registered Mobile Number
@@ -250,134 +269,155 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
             </div>
           ) : step === "phone" ? (
             <form onSubmit={handleSendOtp} className="space-y-4">
-              <div>
-                <label className="block text-[11px] font-black uppercase tracking-wider text-gray-600 mb-2">
-                  Mobile Number
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col items-center text-center space-y-2">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
+                  <Smartphone className="w-6 h-6" />
+                </div>
+                <h3 className="font-extrabold text-gray-900 text-sm uppercase tracking-wide">
+                  WhatsApp Mobile Verification
+                </h3>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Please enter your WhatsApp mobile number. A 6-digit verification code will be sent to verify your account.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-red-900 font-semibold text-xs mb-1 block">
+                  WhatsApp Mobile Number *
                 </label>
-                <div className="relative flex items-center">
-                  <div className="absolute left-3 flex items-center gap-1.5 text-gray-500 font-bold text-sm select-none border-r border-gray-200 pr-2">
-                    <span className="text-base">🇮🇳</span>
-                    <span>+91</span>
+                <div className="flex gap-2">
+                  <div className="flex items-center px-3 bg-gray-100 border border-gray-300 rounded-md text-xs font-black text-gray-700">
+                    +91
                   </div>
                   <input
                     type="tel"
                     value={phone}
                     onChange={handlePhoneChange}
-                    placeholder="Enter 10-digit mobile number"
+                    placeholder="10-digit mobile number"
                     maxLength={10}
                     autoFocus
-                    className={`w-full pl-24 pr-4 py-3 bg-gray-50 border ${
-                      error ? "border-red-500 bg-red-50/20" : "border-gray-200 focus:border-[#A80000]"
-                    } rounded-xl font-bold text-gray-900 tracking-wider text-base focus:outline-none transition-all`}
+                    className={`flex-1 border ${
+                      error ? "border-red-500 bg-red-50/20" : "border-red-200 focus:border-red-500"
+                    } bg-white h-10 px-3 text-xs font-bold rounded-md focus:outline-none transition-all`}
                   />
-                  {phone.length === 10 && validatePhone(phone) && (
-                    <CheckCircle2 className="w-5 h-5 text-emerald-500 absolute right-3" />
-                  )}
                 </div>
                 {error && <p className="text-xs text-red-600 font-bold mt-1.5">{error}</p>}
-                {!error && (
-                  <p className="text-[11px] text-gray-400 font-semibold mt-1.5">
-                    Enter valid 10-digit phone number (e.g. 9876543210)
-                  </p>
-                )}
               </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3.5 bg-[#A80000] hover:bg-red-800 text-white rounded-xl font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-98 cursor-pointer disabled:opacity-50"
-              >
-                {isSubmitting ? (
-                  <RefreshCw className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <span>Send OTP</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-
-              <div className="pt-2 text-center border-t border-gray-100">
-                <p className="text-[10px] text-gray-400 font-medium">
-                  By continuing, you agree to Sai Yogi Crackers Terms of Service & Privacy Policy.
+              <div className="space-y-3 pt-2 border-t border-gray-100">
+                <button
+                  type="submit"
+                  disabled={isSubmitting || phone.length !== 10}
+                  className="w-full bg-[#00a859] hover:bg-[#008f4c] text-white font-bold tracking-wider py-3.5 rounded-md uppercase text-xs shadow-md disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                >
+                  {isSubmitting ? (
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                  ) : (
+                    "SEND VERIFICATION CODE"
+                  )}
+                </button>
+                <p className="text-center text-[11px] text-gray-500 font-normal">
+                  * By continuing, you agree to Sai Yogi Crackers Terms of Service & Privacy Policy.
                 </p>
               </div>
             </form>
           ) : (
             <form onSubmit={handleVerifyOtp} className="space-y-4">
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-[11px] font-black uppercase tracking-wider text-gray-600">
-                    4-Digit Verification Code
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStep("phone");
-                      setError("");
-                    }}
-                    className="text-[11px] font-bold text-[#A80000] hover:underline"
-                  >
-                    Change Number
-                  </button>
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col items-center text-center space-y-2">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
+                  <ShieldCheck className="w-6 h-6" />
                 </div>
-
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, "");
-                      if (val.length <= 6) {
-                        setOtp(val);
-                        if (error) setError("");
-                      }
-                    }}
-                    placeholder="Enter OTP (e.g. 1234)"
-                    maxLength={6}
-                    autoFocus
-                    className={`w-full px-4 py-3 bg-gray-50 border ${
-                      error ? "border-red-500 bg-red-50/20" : "border-gray-200 focus:border-[#A80000]"
-                    } rounded-xl font-black text-center text-xl tracking-[0.4em] text-gray-900 focus:outline-none transition-all`}
-                  />
+                <h3 className="font-extrabold text-gray-900 text-sm uppercase tracking-wide">
+                  Enter Verification Code
+                </h3>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  We sent a 6-digit verification code to <strong className="text-gray-900 font-black">+91 {phone}</strong>.
+                </p>
+                <div className="bg-emerald-100/90 border border-emerald-300/60 px-3.5 py-1.5 rounded-lg text-emerald-950 text-xs font-black tracking-widest mt-1 shadow-xs">
+                  DEMO CODE: {generatedOtp || "1234"}
                 </div>
-                {error && <p className="text-xs text-red-600 font-bold mt-1.5">{error}</p>}
-                {!error && (
-                  <p className="text-[11px] text-emerald-600 font-semibold mt-1.5 text-center">
-                    💡 Tip: Enter <span className="font-bold">1234</span> for instant demo verification
-                  </p>
-                )}
               </div>
 
-              <div className="flex items-center justify-between text-xs font-semibold text-gray-500 pt-1">
-                <span>Didn't receive code?</span>
+              <div className="space-y-2">
+                <label className="text-red-900 font-semibold text-xs mb-1 block">
+                  6-Digit Verification Code *
+                </label>
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, "");
+                    if (val.length <= 6) {
+                      setOtp(val);
+                      if (error) setError("");
+                    }
+                  }}
+                  placeholder="Enter 6-digit code"
+                  maxLength={6}
+                  autoFocus
+                  className={`w-full border ${
+                    error ? "border-red-500 bg-red-50/20" : "border-red-200 focus:border-red-500"
+                  } bg-white h-11 text-center font-black tracking-widest text-lg rounded-md focus:outline-none transition-all`}
+                />
+              </div>
+
+              {/* Name Input Below OTP */}
+              <div className="space-y-1.5">
+                <label className="text-red-900 font-semibold text-xs mb-1 block">
+                  Your Full Name *
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (error) setError("");
+                  }}
+                  placeholder="Enter your full name"
+                  className="w-full border border-red-200 focus:border-red-500 bg-white h-10 px-3 text-xs font-semibold rounded-md focus:outline-none transition-all"
+                  required
+                />
+              </div>
+
+              <div className="flex justify-between items-center text-xs pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep("phone");
+                    setError("");
+                  }}
+                  className="text-red-700 font-bold hover:underline cursor-pointer"
+                >
+                  ← Change Phone Number
+                </button>
                 {isResendDisabled ? (
-                  <span className="text-gray-400 font-bold">Resend OTP in {timer}s</span>
+                  <span className="text-gray-400 font-bold">Resend Code in {timer}s</span>
                 ) : (
                   <button
                     type="button"
                     onClick={handleResendOtp}
-                    className="text-[#A80000] font-black hover:underline cursor-pointer"
+                    className="text-emerald-700 font-bold hover:underline cursor-pointer"
                   >
-                    Resend OTP
+                    Resend Code
                   </button>
                 )}
               </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3.5 bg-[#A80000] hover:bg-red-800 text-white rounded-xl font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-98 cursor-pointer disabled:opacity-50"
-              >
-                {isSubmitting ? (
-                  <RefreshCw className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <span>Verify & Login</span>
-                    <CheckCircle2 className="w-5 h-5 text-[#F4C542]" />
-                  </>
-                )}
-              </button>
+              {error && <p className="text-xs text-red-600 font-bold mt-1.5">{error}</p>}
+
+              <div className="space-y-3 pt-2 border-t border-gray-100">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-[#00a859] hover:bg-[#008f4c] text-white font-bold tracking-wider py-3.5 rounded-md uppercase text-xs shadow-md disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                >
+                  {isSubmitting ? (
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                  ) : (
+                    "VERIFY CODE & CONTINUE"
+                  )}
+                </button>
+              </div>
             </form>
           )}
         </div>

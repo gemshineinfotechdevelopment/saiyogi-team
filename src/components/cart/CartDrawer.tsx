@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose, SheetDescription } from "@/components/ui/sheet";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
-import { Minus, Plus, Trash2, X, User, MapPin, ArrowLeft, CheckCircle2, Check, MessageSquare, Smartphone, ShieldCheck } from "lucide-react";
+import { Minus, Plus, Trash2, X, User, MapPin, ArrowLeft, CheckCircle2, Check, MessageSquare, Smartphone, ShieldCheck, ArrowRight, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -33,7 +33,7 @@ const getDistrictsByState = (state: string) => (indiaStatesData as Record<string
 const CartDrawer = () => {
   const { items, updateQuantity, removeFromCart, clearCart, totalItems, totalPrice, isCartOpen, setIsCartOpen } = useCart();
   const { settings } = useSiteSettings();
-  const { isUserLoggedIn, userPhone } = useAuth();
+  const { isUserLoggedIn, userPhone, userName, loginWithPhone, openLoginModal } = useAuth();
   const [viewMode, setViewMode] = useState<"cart" | "whatsapp-verify" | "checkout">("cart");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -110,9 +110,14 @@ const CartDrawer = () => {
   };
 
   const handleVerifyOtp = () => {
-    if (userOtp.trim() === generatedOtp || userOtp.trim() === "123456") {
+    if (!formData.name.trim()) {
+      toast.error("Please enter your full name");
+      return;
+    }
+    if (userOtp.trim() === generatedOtp || userOtp.trim() === "123456" || userOtp.trim() === "1234") {
       setIsPhoneVerified(true);
       setFormData((prev) => ({ ...prev, phoneNumber: verifyPhone }));
+      loginWithPhone(verifyPhone, formData.name.trim());
       toast.success("WhatsApp number verified successfully! 🎉");
       setViewMode("checkout");
     } else {
@@ -401,7 +406,7 @@ const CartDrawer = () => {
                       WhatsApp Mobile Verification
                     </h3>
                     <p className="text-xs text-gray-600 leading-relaxed">
-                      Please enter your WhatsApp mobile number. A 6-digit verification code will be sent to verify your inquiry.
+                      Please enter your WhatsApp mobile number. A verification code will be sent to verify your inquiry.
                     </p>
                   </div>
 
@@ -450,25 +455,41 @@ const CartDrawer = () => {
                       Enter Verification Code
                     </h3>
                     <p className="text-xs text-gray-600 leading-relaxed">
-                      We sent a 6-digit verification code to <strong className="text-gray-900 font-black">+91 {verifyPhone}</strong>.
+                      We sent a verification code to <strong className="text-gray-900 font-black">+91 {verifyPhone}</strong>.
                     </p>
                     <div className="bg-emerald-100/90 border border-emerald-300/60 px-3.5 py-1.5 rounded-lg text-emerald-950 text-xs font-black tracking-widest mt-1 shadow-xs">
-                      DEMO CODE: {generatedOtp}
+                      DEMO CODE: {generatedOtp || "1234"}
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="userOtp" className="text-red-900 font-semibold text-xs mb-1 block">
-                      6-Digit Verification Code *
+                      Verification Code *
                     </Label>
                     <Input 
                       id="userOtp" 
                       type="text"
                       value={userOtp} 
                       onChange={(e) => setUserOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                      placeholder="Enter 6-digit code" 
+                      placeholder="Enter verification code (e.g. 1234)" 
                       className="border-red-200 bg-white focus:border-red-500 h-11 text-center font-black tracking-widest text-lg" 
                       maxLength={6}
+                    />
+                  </div>
+
+                  {/* Name Field below OTP */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="checkoutName" className="text-red-900 font-semibold text-xs mb-1 block">
+                      Your Full Name *
+                    </Label>
+                    <Input
+                      id="checkoutName"
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Enter your full name"
+                      className="border-red-200 bg-white focus:border-red-500 h-10 text-xs font-semibold"
+                      required
                     />
                   </div>
 
@@ -493,8 +514,8 @@ const CartDrawer = () => {
                 <div className="space-y-3 pt-4 border-t border-gray-100">
                   <Button 
                     onClick={handleVerifyOtp}
-                    disabled={userOtp.length !== 6}
-                    className="w-full bg-[#900000] hover:bg-[#700000] text-white font-bold tracking-wider py-5 rounded-md uppercase text-xs shadow-md disabled:opacity-50"
+                    disabled={!userOtp}
+                    className="w-full bg-[#00a859] hover:bg-[#008f4c] text-white font-bold tracking-wider py-5 rounded-md uppercase text-xs shadow-md disabled:opacity-50"
                   >
                     VERIFY CODE & CONTINUE
                   </Button>

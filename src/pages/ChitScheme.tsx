@@ -118,7 +118,7 @@ const ChitScheme: React.FC = () => {
                     key={img.id}
                     className="group bg-white rounded-3xl border border-gray-200/90 overflow-hidden shadow-sm hover:shadow-md transition-all relative"
                   >
-                    <div className="aspect-4/3 w-full overflow-hidden bg-gray-100 relative">
+                    <div className="aspect-[16/9] w-full overflow-hidden bg-gray-100 relative flex items-center justify-center">
                       <img
                         src={img.url}
                         alt={img.title || "Chit Scheme Image"}

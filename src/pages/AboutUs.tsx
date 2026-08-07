@@ -64,23 +64,23 @@ const AboutUs = () => {
             </div>
 
             {/* Right Stat Cards */}
-            <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
-              <div className="bg-[#A80000] text-white p-8 rounded-2xl flex flex-col justify-end shadow-xl min-h-[220px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl border border-red-500/20 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-xl transition-all group-hover:scale-125"></div>
-                <div className="font-display text-5xl font-black text-[#F4C542] tracking-tight mb-2">
+            <div className="lg:col-span-5 grid grid-cols-2 gap-3 sm:gap-6 w-full">
+              <div className="bg-[#A80000] text-white p-4 sm:p-8 rounded-2xl flex flex-col justify-end shadow-xl min-h-[110px] sm:min-h-[220px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl border border-red-500/20 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-16 sm:w-24 h-16 sm:h-24 bg-white/5 rounded-full blur-xl transition-all group-hover:scale-125"></div>
+                <div className="font-display text-3xl sm:text-5xl font-black text-[#F4C542] tracking-tight mb-1 sm:mb-2">
                   35+
                 </div>
-                <p className="text-xs sm:text-sm font-black uppercase tracking-widest text-red-100">
+                <p className="text-[10px] sm:text-sm font-black uppercase tracking-wider sm:tracking-widest text-red-100 leading-tight">
                   Years of Excellence
                 </p>
               </div>
 
-              <div className="bg-white/80 border border-gray-200/50 text-gray-950 p-8 rounded-2xl flex flex-col justify-end shadow-xl min-h-[220px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-[#F4C542]/10 rounded-full blur-xl transition-all group-hover:scale-125"></div>
-                <div className="font-display text-5xl font-black text-[#A80000] tracking-tight mb-2">
+              <div className="bg-white/80 border border-gray-200/50 text-gray-950 p-4 sm:p-8 rounded-2xl flex flex-col justify-end shadow-xl min-h-[110px] sm:min-h-[220px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-16 sm:w-24 h-16 sm:h-24 bg-[#F4C542]/10 rounded-full blur-xl transition-all group-hover:scale-125"></div>
+                <div className="font-display text-3xl sm:text-5xl font-black text-[#A80000] tracking-tight mb-1 sm:mb-2">
                   500+
                 </div>
-                <p className="text-xs sm:text-sm font-black uppercase tracking-widest text-gray-500">
+                <p className="text-[10px] sm:text-sm font-black uppercase tracking-wider sm:tracking-widest text-gray-500 leading-tight">
                   Product Varieties
                 </p>
               </div>

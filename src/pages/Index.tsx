@@ -540,7 +540,7 @@ const Index = () => {
       
       {/* Trusted Manufacturers */}
       <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5]">
-        <div className="text-center mb-10">
+        <div className="text-center mb-10 px-4">
           <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
             ⭐ AUTHENTIC PARTNERS ⭐
           </span>
@@ -548,12 +548,13 @@ const Index = () => {
           <p className="text-gray-500 text-xs mt-1">We are supplying high quality fireworks from top brands in Sivakasi.</p>
         </div>
 
-        <div className="container mx-auto px-4 max-w-5xl">
-          <div className="flex flex-wrap justify-center gap-6">
-            {manufacturers.map((brand, i) => (
+        {/* Infinite horizontal scrolling marquee for mobile and desktop */}
+        <div className="relative w-full overflow-hidden py-4">
+          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+            {[...manufacturers, ...manufacturers, ...manufacturers, ...manufacturers].map((brand, i) => (
               <div
-                key={i}
-                className="bg-white border-2 border-gray-100/80 rounded-2xl px-6 py-4 flex items-center gap-4 min-w-[200px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-xl hover:border-[#A80000]/30 transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br hover:from-[#A80000] hover:to-[#8a0000] hover:text-white group cursor-pointer"
+                key={`${brand.name}-${i}`}
+                className="bg-white border-2 border-gray-100/80 rounded-2xl px-6 py-4 flex items-center gap-4 min-w-[220px] shrink-0 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-xl hover:border-[#A80000]/30 transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br hover:from-[#A80000] hover:to-[#8a0000] hover:text-white group cursor-pointer"
               >
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#A80000] to-[#750000] text-white flex items-center justify-center font-black text-xs tracking-wider shrink-0 transition-all duration-300 group-hover:from-[#F4C542] group-hover:to-[#d4a215] group-hover:text-[#1A1A1A]">
                   {brand.logo}
@@ -562,7 +563,7 @@ const Index = () => {
                   <span className="font-black text-[9px] text-[#A80000]/80 tracking-widest uppercase transition-colors duration-300 group-hover:text-[#F4C542]">
                     PARTNER
                   </span>
-                  <span className="font-black text-sm text-gray-800 tracking-wider uppercase transition-colors duration-300 group-hover:text-white">
+                  <span className="font-black text-sm text-gray-800 tracking-wider uppercase transition-colors duration-300 group-hover:text-white whitespace-nowrap">
                     {brand.name}
                   </span>
                 </div>
@@ -654,38 +655,40 @@ const Index = () => {
                 return (
                   <div
                     key={`combo-${offset}-${item._id || item.id || offset}`}
-                    className="bg-[#FFFFFF] border-2 border-amber-100 rounded-3xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center relative group hover:-translate-y-1 overflow-hidden"
+                    className={`bg-[#FFFFFF] border-2 border-amber-100 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-md hover:shadow-2xl transition-all duration-300 flex-col items-center text-center relative group hover:-translate-y-1 overflow-hidden max-w-[290px] sm:max-w-none mx-auto w-full ${
+                      offset > 0 ? "hidden md:flex" : "flex"
+                    }`}
                   >
-                    <div className="absolute top-4 right-4 bg-gradient-to-r from-[#A80000] to-[#5c0a0b] text-[#F4C542] font-black text-[10px] px-3 py-1 rounded-full uppercase shadow-md">
+                    <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-gradient-to-r from-[#A80000] to-[#5c0a0b] text-[#F4C542] font-black text-[9px] sm:text-[10px] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full uppercase shadow-md">
                       SAVE BIG
                     </div>
 
-                    <div className="w-full aspect-[4/3] bg-gray-50 flex items-center justify-center p-4 mb-4 rounded-2xl overflow-hidden">
+                    <div className="w-full aspect-[4/3] bg-gray-50 flex items-center justify-center p-2 sm:p-4 mb-2.5 sm:mb-4 rounded-xl sm:rounded-2xl overflow-hidden">
                       <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" />
                     </div>
 
-                    <h3 className="font-extrabold text-base text-gray-900 uppercase mb-2 line-clamp-1">{item.name}</h3>
+                    <h3 className="font-extrabold text-sm sm:text-base text-gray-900 uppercase mb-1.5 sm:mb-2 line-clamp-1">{item.name}</h3>
 
-                    <div className="flex gap-3 items-center mb-5">
+                    <div className="flex gap-2 sm:gap-3 items-center mb-3 sm:mb-5">
                       {item.oldPrice && (
                         <span className="text-gray-400 line-through text-xs font-bold">₹{item.oldPrice}</span>
                       )}
-                      <span className="text-[#A80000] font-black text-xl">₹{item.price}</span>
+                      <span className="text-[#A80000] font-black text-lg sm:text-xl">₹{item.price}</span>
                     </div>
                     {quantity > 0 ? (
                       <div className="flex items-center justify-between bg-red-50/50 border border-red-200/50 rounded-xl p-1.5 w-full mt-auto" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => updateQuantity(itemId, quantity - 1)}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-white text-[#A80000] font-black hover:bg-red-50 transition-colors shadow-sm"
+                          className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-white text-[#A80000] font-black hover:bg-red-50 transition-colors shadow-sm text-xs sm:text-base"
                         >
                           -
                         </button>
-                        <span className="font-black text-sm text-[#A80000] px-2">
+                        <span className="font-black text-xs sm:text-sm text-[#A80000] px-2">
                           {quantity}
                         </span>
                         <button
                           onClick={() => updateQuantity(itemId, quantity + 1)}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#A80000] text-white font-black hover:bg-red-800 transition-colors shadow-sm"
+                          className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-[#A80000] text-white font-black hover:bg-red-800 transition-colors shadow-sm text-xs sm:text-base"
                         >
                           +
                         </button>
@@ -696,9 +699,9 @@ const Index = () => {
                           e.stopPropagation();
                           addToCart(item as Product);
                         }}
-                        className="w-full bg-[#A80000] hover:bg-[#F4C542] hover:text-[#1A1A1A] text-white font-black text-xs py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 uppercase tracking-widest shadow-md hover:scale-[1.02] active:scale-[0.98] mt-auto"
+                        className="w-full bg-[#A80000] hover:bg-[#F4C542] hover:text-[#1A1A1A] text-white font-black text-[10px] sm:text-xs py-2.5 sm:py-3.5 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 transition-all duration-300 uppercase tracking-widest shadow-md hover:scale-[1.02] active:scale-[0.98] mt-auto"
                       >
-                        <ShoppingCart className="w-4 h-4" />
+                        <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         <span>Add To Cart</span>
                       </button>
                     )}
@@ -737,9 +740,8 @@ const Index = () => {
                   Best Quality from Verified Manufacturers
                 </h3>
               </div>
-              <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none">
-                <span className="text-[9px] font-black text-[#A80000] tracking-wider uppercase font-display leading-none">SAI YOGI</span>
-                <span className="text-[7px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">CRACKERS</span>
+              <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none overflow-hidden p-2">
+                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
 
@@ -753,9 +755,8 @@ const Index = () => {
                   We collab with Top Partners from Sivakasi
                 </h3>
               </div>
-              <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none">
-                <span className="text-[9px] font-black text-[#A80000] tracking-wider uppercase font-display leading-none">SAI YOGI</span>
-                <span className="text-[7px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">CRACKERS</span>
+              <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none overflow-hidden p-2">
+                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
 
@@ -769,9 +770,8 @@ const Index = () => {
                   We are Selling Crackers from Authentic Brands
                 </h3>
               </div>
-              <div className="relative border-4 border-white rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-lg shrink-0 select-none">
-                <span className="text-[9px] font-black text-[#A80000] tracking-wider uppercase font-display leading-none">SAI YOGI</span>
-                <span className="text-[7px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">CRACKERS</span>
+              <div className="relative border-4 border-white rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-lg shrink-0 select-none overflow-hidden p-2">
+                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
           </div>
