@@ -342,8 +342,27 @@ const AdminCategories = () => {
                   <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Fancy Lights" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Image (Max 5MB, optional)</Label>
-                  <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} />
+                  <Label>Image (Max 1200x1600px, 5MB)</Label>
+                  <input type="file" accept="image/*" onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) {
+                      setImageFile(null);
+                      return;
+                    }
+                    const img = new Image();
+                    const url = URL.createObjectURL(file);
+                    img.onload = () => {
+                      if (img.width > 1200 || img.height > 1600) {
+                        toast.error("Image dimensions must not exceed 1200x1600 pixels");
+                        setImageFile(null);
+                        e.target.value = '';
+                      } else {
+                        setImageFile(file);
+                      }
+                      URL.revokeObjectURL(url);
+                    };
+                    img.src = url;
+                  }} />
                 </div>
               </div>
               <DialogFooter>

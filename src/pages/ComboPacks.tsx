@@ -11,7 +11,7 @@ import { useCart } from "@/context/CartContext";
 const ComboPacks = () => {
   const [email, setEmail] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
-  const { items, totalItems, totalPrice } = useCart();
+  const { items, totalItems, totalPrice, setIsCartOpen } = useCart();
 
   useEffect(() => {
     getProducts().then((prods) => {
@@ -138,7 +138,7 @@ const ComboPacks = () => {
               <span className="text-[9px] text-red-200 tracking-wider font-semibold uppercase">CURRENT ESTIMATE</span>
               <span className="font-extrabold text-sm text-white leading-tight">₹{totalPrice.toLocaleString()}</span>
             </div>
-            <button className="bg-[#EAB308] hover:bg-yellow-400 text-black text-xs font-extrabold px-3.5 py-1.5 rounded-full transition-colors ml-2 shadow-xs cursor-pointer" onClick={() => document.getElementById('cart-trigger')?.click()}>
+            <button className="bg-[#EAB308] hover:bg-yellow-400 text-black text-xs font-extrabold px-3.5 py-1.5 rounded-full transition-colors ml-2 shadow-xs cursor-pointer" onClick={() => setIsCartOpen(true)}>
               Checkout Now
             </button>
           </div>

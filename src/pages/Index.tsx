@@ -7,6 +7,7 @@ import { useSiteSettings } from "@/context/SiteSettingsContext";
 import banner1 from "@/assets/banner1.png";
 import banner2 from "@/assets/banner2.png";
 import banner3 from "@/assets/banner3.png";
+import companyLogo from "@/assets/saiyogi-logo-1.png";
 import { useState, useEffect } from "react";
 import { getProducts, getCategories, getBrands, Brand } from "@/lib/api";
 import { Product, Category } from "@/data/products";
@@ -690,9 +691,8 @@ const Index = () => {
                   Best Quality from Verified Manufacturers
                 </h3>
               </div>
-              <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none">
-                <span className="text-[9px] font-black text-[#A80000] tracking-wider uppercase font-display leading-none">SAI YOGI</span>
-                <span className="text-[7px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">CRACKERS</span>
+              <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none overflow-hidden p-2">
+                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
 
@@ -706,9 +706,8 @@ const Index = () => {
                   We collab with Top Partners from Sivakasi
                 </h3>
               </div>
-              <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none">
-                <span className="text-[9px] font-black text-[#A80000] tracking-wider uppercase font-display leading-none">SAI YOGI</span>
-                <span className="text-[7px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">CRACKERS</span>
+              <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none overflow-hidden p-2">
+                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
 
@@ -722,9 +721,8 @@ const Index = () => {
                   We are Selling Crackers from Authentic Brands
                 </h3>
               </div>
-              <div className="relative border-4 border-white rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-lg shrink-0 select-none">
-                <span className="text-[9px] font-black text-[#A80000] tracking-wider uppercase font-display leading-none">SAI YOGI</span>
-                <span className="text-[7px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">CRACKERS</span>
+              <div className="relative border-4 border-white rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-lg shrink-0 select-none overflow-hidden p-2">
+                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
           </div>
