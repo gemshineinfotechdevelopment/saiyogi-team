@@ -10,6 +10,7 @@ interface ChitSchemeImage {
   id: string;
   url: string;
   title?: string;
+  description?: string;
 }
 
 const DEFAULT_IMAGES: ChitSchemeImage[] = [
@@ -133,9 +134,10 @@ const ChitScheme: React.FC = () => {
                       </button>
                     </div>
 
-                    {img.title && (
-                      <div className="p-4 bg-white border-t border-gray-100">
-                        <h3 className="font-bold text-gray-900 text-sm">{img.title}</h3>
+                    {(img.title || img.description) && (
+                      <div className="p-4 bg-white border-t border-gray-100 space-y-1">
+                        {img.title && <h3 className="font-bold text-gray-900 text-sm leading-snug">{img.title}</h3>}
+                        {img.description && <p className="text-xs text-gray-600 font-medium leading-relaxed">{img.description}</p>}
                       </div>
                     )}
                   </div>
