@@ -3,30 +3,48 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import { getProducts, getCategories } from "@/lib/api";
 import { Product, Category } from "@/data/products";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
+import { useCart } from "@/context/CartContext";
 import ProductCard from "@/components/ProductCard";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
+import QuickEnquiryFilters from "@/components/QuickEnquiryFilters";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Search, X, Filter } from "lucide-react";
 
 const Catalog = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeCategory = searchParams.get("category") || "all";
-  const searchQuery = searchParams.get("search") || "";
+  
+  // Filter States
+  const [selectedBrand, setSelectedBrand] = useState<string>("All Brands");
+  const [selectedCategory, setSelectedCategory] = useState<string>("All Categories");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("default");
+
   const { settings } = useSiteSettings();
+  const { items } = useCart();
   const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
 
+  // Cart totals calculation
+  const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
+  const totalPrice = items.reduce((acc, item) => {
+    const dp = getDiscountPrice(
+      item.product.price,
+      item.product.hasDiscount,
+      settings.discountPercent,
+      item.product.netRate,
+      item.product.displayNetRate
+    );
+    return acc + dp * item.quantity;
+  }, 0);
+
   useEffect(() => {
     getProducts()
       .then((data) => {
-        console.log('Products loaded (Catalog):', data, Array.isArray(data));
         setProducts(Array.isArray(data) ? data : []);
       })
       .catch((err) => {
@@ -36,7 +54,6 @@ const Catalog = () => {
 
     getCategories()
       .then((data) => {
-        console.log('Categories loaded (Catalog):', data, Array.isArray(data));
         setCategories(Array.isArray(data) ? data : []);
       })
       .catch((err) => {
@@ -45,20 +62,64 @@ const Catalog = () => {
       });
   }, []);
 
+  // Sync state from searchParams on mount or param change
+  useEffect(() => {
+    const catParam = searchParams.get("category");
+    const searchParam = searchParams.get("search");
+    const brandParam = searchParams.get("brand");
+
+    if (searchParam !== null) {
+      setSearchQuery(searchParam);
+    }
+    if (brandParam !== null) {
+      setSelectedBrand(brandParam);
+    }
+    if (catParam !== null && catParam !== "all") {
+      // Find category name by id or slug
+      const found = categories.find(c => {
+        const cId = c._id || c.id;
+        const slug = c.name.toLowerCase().replace(/\s+/g, '-');
+        return cId === catParam || slug === catParam.toLowerCase() || c.name.toLowerCase() === catParam.toLowerCase();
+      });
+      if (found) {
+        setSelectedCategory(found.name);
+      } else {
+        setSelectedCategory(catParam);
+      }
+    } else if (catParam === "all") {
+      setSelectedCategory("All Categories");
+    }
+  }, [searchParams, categories]);
+
+  // Derived filter options
+  const uniqueBrands = useMemo(() => {
+    const brands = new Set(products.map(p => p.brand).filter(Boolean));
+    return ["All Brands", ...Array.from(brands)];
+  }, [products]);
+
+  const uniqueCategoryNames = useMemo(() => {
+    return ["All Categories", ...categories.map(c => c.name)];
+  }, [categories]);
+
+  // Filtered and Sorted products
   const filtered = useMemo(() => {
     let result = products;
-    if (activeCategory !== "all") {
+
+    if (selectedBrand !== "All Brands") {
+      result = result.filter(p => p.brand === selectedBrand);
+    }
+
+    if (selectedCategory !== "All Categories") {
       result = result.filter((p) => {
         const cat = p.category as any;
         const catId = typeof cat === 'object' && cat !== null ? (cat._id || cat.id || cat) : cat;
         const catName = typeof cat === 'object' && cat !== null ? cat.name : (categories.find(c => (c._id || c.id) === catId)?.name || String(catId || ''));
-        const slug = catName ? catName.toLowerCase().replace(/\s+/g, '-') : '';
-        return catId === activeCategory || slug === activeCategory.toLowerCase() || String(catId).toLowerCase() === activeCategory.toLowerCase();
+        return catName.toLowerCase() === selectedCategory.toLowerCase() || String(catId).toLowerCase() === selectedCategory.toLowerCase();
       });
     }
-    if (searchQuery) {
+
+    if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      // Prioritize products that start with the query, then those that include it
       result = result.filter((p) => {
         const cat = p.category as any;
         const catName = typeof cat === 'object' && cat !== null ? (cat.name || '') : (cat || '');
@@ -76,23 +137,50 @@ const Catalog = () => {
       });
     }
 
-    if (sortBy === "price-low") result = [...result].sort((a, b) => getDiscountPrice(a.price, a.hasDiscount, settings.discountPercent, a.netRate, a.displayNetRate) - getDiscountPrice(b.price, b.hasDiscount, settings.discountPercent, b.netRate, b.displayNetRate));
-    if (sortBy === "price-high") result = [...result].sort((a, b) => getDiscountPrice(b.price, b.hasDiscount, settings.discountPercent, b.netRate, b.displayNetRate) - getDiscountPrice(a.price, a.hasDiscount, settings.discountPercent, a.netRate, a.displayNetRate));
-    return result;
-  }, [products, activeCategory, searchQuery, sortBy, settings.discountPercent]);
+    if (sortBy === "price-low") {
+      result = [...result].sort((a, b) => getDiscountPrice(a.price, a.hasDiscount, settings.discountPercent, a.netRate, a.displayNetRate) - getDiscountPrice(b.price, b.hasDiscount, settings.discountPercent, b.netRate, b.displayNetRate));
+    } else if (sortBy === "price-high") {
+      result = [...result].sort((a, b) => getDiscountPrice(b.price, b.hasDiscount, settings.discountPercent, b.netRate, b.displayNetRate) - getDiscountPrice(a.price, a.hasDiscount, settings.discountPercent, a.netRate, a.displayNetRate));
+    }
 
-  const setCategory = (cat: string) => {
+    return result;
+  }, [products, categories, selectedBrand, selectedCategory, searchQuery, sortBy, settings.discountPercent]);
+
+  const handleCategorySelect = (catName: string) => {
+    setSelectedCategory(catName);
     const params = new URLSearchParams(searchParams);
-    if (cat === "all") params.delete("category");
-    else params.set("category", cat);
+    if (catName === "All Categories") {
+      params.delete("category");
+    } else {
+      const foundCat = categories.find(c => c.name === catName);
+      if (foundCat) {
+        params.set("category", foundCat._id || foundCat.id || catName);
+      } else {
+        params.set("category", catName);
+      }
+    }
     setSearchParams(params);
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
+  const handleBrandSelect = (brand: string) => {
+    setSelectedBrand(brand);
     const params = new URLSearchParams(searchParams);
-    if (val) params.set("search", val);
-    else params.delete("search");
+    if (brand === "All Brands") {
+      params.delete("brand");
+    } else {
+      params.set("brand", brand);
+    }
+    setSearchParams(params);
+  };
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+    const params = new URLSearchParams(searchParams);
+    if (query) {
+      params.set("search", query);
+    } else {
+      params.delete("search");
+    }
     setSearchParams(params, { replace: true });
   };
 
@@ -107,6 +195,21 @@ const Catalog = () => {
     <div className="min-h-screen flex flex-col relative" style={{ backgroundColor: '#EFF6FF' }}>
       <UserHeader />
 
+      {/* Shared Fixed Filter Component */}
+      <QuickEnquiryFilters
+        selectedBrand={selectedBrand}
+        setSelectedBrand={handleBrandSelect}
+        uniqueBrands={uniqueBrands}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={handleCategorySelect}
+        uniqueCategoryNames={uniqueCategoryNames}
+        searchQuery={searchQuery}
+        setSearchQuery={handleSearchChange}
+        totalPrice={totalPrice}
+        totalItems={totalItems}
+        showTableHeader={false}
+      />
+
       {/* Search Overlay for "Search without scrolling" */}
       <div className={cn(
         "fixed inset-0 z-[60] flex items-start justify-center pt-20 bg-black/40 backdrop-blur-sm transition-all duration-300",
@@ -116,7 +219,6 @@ const Catalog = () => {
           "w-full max-w-2xl mx-4 transition-all duration-300 transform",
           isQuickSearchOpen ? "translate-y-0 scale-100" : "-translate-y-8 scale-95"
         )}>
-          {/* External Close Button for Mobile Accessibility */}
           <div className="flex justify-end mb-3">
             <button
               onClick={() => setIsQuickSearchOpen(false)}
@@ -135,7 +237,7 @@ const Catalog = () => {
                 type="text"
                 placeholder="Search products..."
                 value={searchQuery}
-                onChange={handleSearchChange}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="flex-1 bg-transparent border-none outline-none text-xl text-red-900 placeholder:text-red-300 font-display font-medium"
               />
               <Button variant="ghost" size="icon" onClick={() => setIsQuickSearchOpen(false)} className="rounded-full hover:bg-red-100 text-red-600">
@@ -178,61 +280,7 @@ const Catalog = () => {
         <Search className="h-6 w-6 group-hover:rotate-12 transition-transform" />
       </button>
 
-      <main className="container py-8 flex-1">
-        <h1 className="font-display text-4xl font-bold mb-8 text-secondary animate-in fade-in slide-in-from-left duration-500">
-          {searchQuery ? `Search: "${searchQuery}"` : activeCategory !== "all" ? categories.find(c => (c._id || c.id) === activeCategory)?.name || "Shop" : "Our Collection"}
-        </h1>
-
-        <div className="space-y-6 mb-10">
-          <div className="flex flex-wrap gap-2">
-            <Button variant={activeCategory === "all" ? "default" : "outline"} size="sm" onClick={() => setCategory("all")} className={cn("rounded-full h-9 px-6 transition-all", activeCategory === "all" ? "bg-red-600 hover:bg-red-700 text-white shadow-md" : "bg-white border-2 border-red-200 text-red-700 hover:bg-red-50")}>All Products</Button>
-            {categories.map((cat) => {
-              const catId = cat._id || cat.id;
-              return (
-                <Button key={catId} variant={activeCategory === catId ? "default" : "outline"} size="sm" onClick={() => setCategory(catId!)} className={cn("rounded-full h-9 px-6 transition-all", activeCategory === catId ? "bg-red-600 hover:bg-red-700 text-white shadow-md" : "bg-white border-2 border-red-200 text-red-700 hover:bg-red-50")}>
-                  {cat.name}
-                </Button>
-              );
-            })}
-          </div>
-
-          <div className="flex flex-col md:flex-row md:items-center gap-4 border-t border-red-200 pt-6">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-secondary font-bold flex items-center gap-1"><Filter className="h-4 w-4" /> Sort By:</span>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { value: "default", label: "Recommended" },
-                  { value: "price-low", label: "Price: Low to High" },
-                  { value: "price-high", label: "Price: High to Low" },
-                ].map((s) => (
-                  <button key={`sort-${s.value}`} onClick={() => setSortBy(s.value)} className={cn("px-4 py-1.5 rounded-full transition-all text-xs font-bold border-2", sortBy === s.value ? "bg-red-600 border-red-600 text-white shadow-sm" : "bg-white text-red-700 border-red-100 hover:border-red-300 hover:bg-red-50")}>{s.label}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* Premium Search Bar below sort */}
-            <div className="relative flex-1 md:max-w-md ml-auto">
-              <div className="relative group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-red-400 group-focus-within:text-red-600 transition-colors" />
-                <Input
-                  placeholder="Search products by name or brand..."
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  className="pl-12 pr-10 py-6 bg-white/80 backdrop-blur-sm border-2 border-red-100 rounded-2xl focus:brand-red-600 focus:bg-white text-red-950 placeholder:text-red-200 shadow-sm transition-all"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => handleSearchChange({ target: { value: "" } } as any)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-red-300 hover:text-red-500 transition-colors"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                )}
-              </div>
-              <p className="mt-2 text-[10px] text-red-400 font-medium px-4">Showing {filtered.length} products</p>
-            </div>
-          </div>
-        </div>
+      <main className="container pb-12 pt-[75px] md:pt-[75px] flex-1">
         {filtered.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-in fade-in duration-700">
             {filtered.map((p) => {
@@ -255,7 +303,7 @@ const Catalog = () => {
             </div>
             <p className="text-2xl font-display font-bold text-red-900">No products found</p>
             <p className="text-red-600 mt-2 mb-8">Try adjusting your search or filters</p>
-            <Button className="bg-red-600 hover:bg-red-700 text-white px-8 h-12 rounded-xl shadow-lg transition-all hover:-translate-y-1" onClick={() => { setCategory("all"); setSearchParams({}); }}>Clear All Filters</Button>
+            <Button className="bg-red-600 hover:bg-red-700 text-white px-8 h-12 rounded-xl shadow-lg transition-all hover:-translate-y-1" onClick={() => { handleCategorySelect("All Categories"); handleBrandSelect("All Brands"); handleSearchChange(""); }}>Clear All Filters</Button>
           </div>
         )}
       </main>
