@@ -16,33 +16,43 @@ const UserFooter = () => {
   return (
     <footer className="mt-auto font-body flex flex-col">
       {/* Features Bar */}
-      <div className="bg-[#F9F6F0] py-8 border-t border-b border-gray-200">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 text-center divide-x divide-gray-200">
-            <div className="flex flex-col items-center justify-center gap-2">
-              <ShieldCheck className="h-8 w-8 text-[#A80000]" />
-              <h4 className="font-bold text-sm text-gray-800">Premium Quality</h4>
-              <p className="text-[10px] text-gray-500 hidden md:block">100% safe & certified</p>
+      <div className="bg-[#F9F6F0] py-4 md:py-8 border-t border-b border-gray-200">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="flex flex-col md:grid md:grid-cols-5 gap-3 md:gap-6 text-center md:divide-x divide-gray-200">
+            {/* Top Row for Mobile: 2 Items */}
+            <div className="grid grid-cols-2 gap-2 divide-x divide-gray-200 md:contents">
+              <div className="flex flex-col items-center justify-center gap-1.5 px-2">
+                <ShieldCheck className="h-6 w-6 md:h-8 md:w-8 text-[#A80000]" />
+                <h4 className="font-bold text-xs md:text-sm text-gray-800 leading-tight">Premium Quality</h4>
+                <p className="text-[10px] text-gray-500 hidden md:block">100% safe & certified</p>
+              </div>
+              <div className="flex flex-col items-center justify-center gap-1.5 px-2 md:pl-6">
+                <Tag className="h-6 w-6 md:h-8 md:w-8 text-[#A80000]" />
+                <h4 className="font-bold text-xs md:text-sm text-gray-800 leading-tight">Best Price & Discounts</h4>
+                <p className="text-[10px] text-gray-500 hidden md:block">Direct from Sivakasi</p>
+              </div>
             </div>
-            <div className="flex flex-col items-center justify-center gap-2 pl-6">
-              <Tag className="h-8 w-8 text-[#A80000]" />
-              <h4 className="font-bold text-sm text-gray-800">Best Price & Discounts</h4>
-              <p className="text-[10px] text-gray-500 hidden md:block">Direct from Sivakasi</p>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-2 pl-6">
-              <Truck className="h-8 w-8 text-[#A80000]" />
-              <h4 className="font-bold text-sm text-gray-800">Fast Shipping</h4>
-              <p className="text-[10px] text-gray-500 hidden md:block">Pan India delivery</p>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-2 pl-6">
-              <CreditCard className="h-8 w-8 text-[#A80000]" />
-              <h4 className="font-bold text-sm text-gray-800">Secure Payments</h4>
-              <p className="text-[10px] text-gray-500 hidden md:block">100% secure checkout</p>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-2 pl-6">
-              <HeadphonesIcon className="h-8 w-8 text-[#A80000]" />
-              <h4 className="font-bold text-sm text-gray-800">Customer Support</h4>
-              <p className="text-[10px] text-gray-500 hidden md:block">24/7 dedicated support</p>
+
+            {/* Subtle Divider for Mobile */}
+            <div className="border-t border-gray-200/80 my-0.5 md:hidden"></div>
+
+            {/* Bottom Row for Mobile: 3 Items */}
+            <div className="grid grid-cols-3 gap-2 divide-x divide-gray-200 md:contents">
+              <div className="flex flex-col items-center justify-center gap-1.5 px-1 md:pl-6">
+                <Truck className="h-6 w-6 md:h-8 md:w-8 text-[#A80000]" />
+                <h4 className="font-bold text-[11px] md:text-sm text-gray-800 leading-tight">Fast Shipping</h4>
+                <p className="text-[10px] text-gray-500 hidden md:block">Pan India delivery</p>
+              </div>
+              <div className="flex flex-col items-center justify-center gap-1.5 px-1 md:pl-6">
+                <CreditCard className="h-6 w-6 md:h-8 md:w-8 text-[#A80000]" />
+                <h4 className="font-bold text-[11px] md:text-sm text-gray-800 leading-tight">Secure Payments</h4>
+                <p className="text-[10px] text-gray-500 hidden md:block">100% secure checkout</p>
+              </div>
+              <div className="flex flex-col items-center justify-center gap-1.5 px-1 md:pl-6">
+                <HeadphonesIcon className="h-6 w-6 md:h-8 md:w-8 text-[#A80000]" />
+                <h4 className="font-bold text-[11px] md:text-sm text-gray-800 leading-tight">Customer Support</h4>
+                <p className="text-[10px] text-gray-500 hidden md:block">24/7 dedicated support</p>
+              </div>
             </div>
           </div>
         </div>
