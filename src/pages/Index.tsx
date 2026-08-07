@@ -4,10 +4,11 @@ import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
-import banner1 from "@/assets/banner1.png";
-import banner2 from "@/assets/banner2.png";
-import banner3 from "@/assets/banner3.png";
 import companyLogo from "@/assets/saiyogi-logo-1.png";
+import heroBanner1 from "@/assets/hero_banner_1.jpg";
+import heroBanner2 from "@/assets/hero_banner_2.jpg";
+import heroBanner3 from "@/assets/hero_banner_3.jpg";
+import heroBanner4 from "@/assets/hero_banner_4.jpg";
 import { useState, useEffect } from "react";
 import { getProducts, getCategories, getBrands, Brand } from "@/lib/api";
 import { Product, Category } from "@/data/products";
@@ -117,12 +118,12 @@ const Index = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [playingVideo, setPlayingVideo] = useState<number | null>(null);
+  const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [videoIndex, setVideoIndex] = useState(0);
   const [comboIndex, setComboIndex] = useState(0);
 
   // Hero image slideshow (right-to-left slide)
-  const heroImages = [banner1, banner2, banner3];
+  const heroImages = [heroBanner1, heroBanner2, heroBanner3, heroBanner4];
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideKey, setSlideKey] = useState(0);
 
@@ -257,20 +258,47 @@ const Index = () => {
       <UserHeader />
 
       {/* Hero Section */}
-      <section className="relative w-full overflow-hidden bg-black flex flex-col">
-        <div className="relative w-full aspect-[21/9] min-h-[300px] md:min-h-[480px] max-h-[600px] overflow-hidden bg-gradient-to-r from-red-950 via-black to-red-950 flex items-center justify-center">
+      <section className="relative w-full overflow-hidden bg-black flex flex-col select-none">
+        <div className="relative w-full h-[320px] sm:h-[450px] md:h-[550px] lg:h-[620px] overflow-hidden bg-black flex items-center justify-center group">
+          {/* Full Width & Height Banner Image */}
           <div key={slideKey} className="absolute inset-0 w-full h-full animate-slide-left">
             <img 
               src={heroImages[currentSlide]} 
-              alt="Hero Banner" 
-              className="w-full h-full object-cover object-center scale-105 filter brightness-95" 
+              alt={`Sai Yogi Crackers Banner ${currentSlide + 1}`} 
+              className={`w-full h-full object-cover filter brightness-105 transition-all duration-500 ${
+                currentSlide === 0 ? "object-[center_15%]" : "object-center"
+              }`} 
             />
           </div>
           
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none z-10" />
+
+          {/* Left Arrow Navigation */}
+          <button
+            onClick={() => {
+              setCurrentSlide((prev) => (prev === 0 ? heroImages.length - 1 : prev - 1));
+              setSlideKey((k) => k + 1);
+            }}
+            className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-30 p-2.5 md:p-3 rounded-full bg-black/50 hover:bg-[#A80000] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
+            aria-label="Previous Slide"
+          >
+            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+          </button>
+
+          {/* Right Arrow Navigation */}
+          <button
+            onClick={() => {
+              setCurrentSlide((prev) => (prev + 1) % heroImages.length);
+              setSlideKey((k) => k + 1);
+            }}
+            className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 z-30 p-2.5 md:p-3 rounded-full bg-black/50 hover:bg-[#A80000] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
+            aria-label="Next Slide"
+          >
+            <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+          </button>
 
           {/* Dots Indicator */}
-          <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center gap-2">
+          <div className="absolute bottom-4 md:bottom-6 left-0 right-0 z-30 flex justify-center items-center gap-2.5">
             {heroImages.map((_, idx) => (
               <button
                 key={idx}
@@ -278,8 +306,8 @@ const Index = () => {
                   setCurrentSlide(idx);
                   setSlideKey((k) => k + 1);
                 }}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  currentSlide === idx ? "bg-[#F4C542] w-8 shadow-lg shadow-yellow-500/50" : "bg-white/40 hover:bg-white/70"
+                className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
+                  currentSlide === idx ? "bg-[#F4C542] w-8 shadow-lg shadow-yellow-500/50" : "bg-white/50 w-2.5 hover:bg-white"
                 }`}
                 aria-label={`Slide ${idx + 1}`}
               />
@@ -400,7 +428,10 @@ const Index = () => {
           <div className="relative flex items-center justify-center">
             {/* Left Button */}
             <button
-              onClick={() => setVideoIndex((prev) => (prev - 1 + demoVideos.length) % demoVideos.length)}
+              onClick={() => {
+                const videos = settings.youtubeVideos && settings.youtubeVideos.length > 0 ? settings.youtubeVideos : demoVideos;
+                setVideoIndex((prev) => (prev - 1 + videos.length) % videos.length);
+              }}
               className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
 
             >
@@ -410,48 +441,74 @@ const Index = () => {
             {/* Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full px-4">
               {[0, 1, 2].map((offset) => {
-                const idx = (videoIndex + offset) % demoVideos.length;
-                const video = demoVideos[idx];
-                const isPlaying = playingVideo === video.id;
+                const videos = settings.youtubeVideos && settings.youtubeVideos.length > 0 ? settings.youtubeVideos : demoVideos;
+                if (videos.length === 0) return null;
+                const idx = (videoIndex + offset) % videos.length;
+                const video = videos[idx] as any;
+                
+                // Helper to extract YouTube ID
+                const getYouTubeId = (url: string) => {
+                  if (!url) return null;
+                  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+                  const match = url.match(regExp);
+                  return (match && match[2].length === 11) ? match[2] : null;
+                };
+
+                const isYouTube = video.url && video.url.includes('youtu');
+                const ytId = isYouTube ? getYouTubeId(video.url) : null;
+                const videoId = isYouTube ? ytId : video.id;
+                const isPlaying = playingVideo === videoId;
+                const thumbnail = (isYouTube && ytId) ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : (video.thumbnail || "/fireworks_bg.png");
 
                 return (
                   <div
-                    key={video.id}
+                    key={`${videoId || 'video'}-${offset}`}
                     className="relative rounded-2xl overflow-hidden aspect-video bg-black group cursor-pointer shadow-lg transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl border border-white/40"
-                    onClick={() => setPlayingVideo(isPlaying ? null : video.id)}
+                    onClick={() => setPlayingVideo(isPlaying ? null : videoId)}
                   >
                     {isPlaying ? (
-                      <video
-                        src={video.url}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        className="w-full h-full object-cover"
-                      />
+                      isYouTube && ytId ? (
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
+                          title={video.title}
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          className="w-full h-full"
+                        ></iframe>
+                      ) : (
+                        <video
+                          src={video.url}
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          className="w-full h-full object-cover"
+                        />
+                      )
                     ) : (
                       <img
-                        src={video.thumbnail}
+                        src={thumbnail}
                         alt={video.title}
                         className="w-full h-full object-cover opacity-70 group-hover:opacity-85 transition-opacity"
                       />
                     )}
 
                     {/* Button overlay */}
-                    <div className="absolute inset-0 flex flex-col justify-between p-4 bg-gradient-to-t from-black/60 via-transparent to-black/20">
-                      <span className="text-white font-bold text-xs bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm self-start">
-                        {video.title}
-                      </span>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-[#A80000] group-hover:border-red-500">
-                          {isPlaying ? (
-                            <Pause className="text-white fill-white w-5 h-5" />
-                          ) : (
+                    {!isPlaying && (
+                      <div className="absolute inset-0 flex flex-col justify-between p-4 bg-gradient-to-t from-black/60 via-transparent to-black/20">
+                        <span className="text-white font-bold text-xs bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm self-start">
+                          {video.title}
+                        </span>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-[#A80000] group-hover:border-red-500">
                             <Play className="text-white fill-white w-5 h-5 ml-0.5" />
-                          )}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 );
               })}
@@ -459,7 +516,10 @@ const Index = () => {
 
             {/* Right Button */}
             <button
-              onClick={() => setVideoIndex((prev) => (prev + 1) % demoVideos.length)}
+              onClick={() => {
+                const videos = settings.youtubeVideos && settings.youtubeVideos.length > 0 ? settings.youtubeVideos : demoVideos;
+                setVideoIndex((prev) => (prev + 1) % videos.length);
+              }}
               className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
             >
               <ChevronRight className="h-5 w-5" />
@@ -714,7 +774,7 @@ const Index = () => {
                 </h3>
               </div>
               <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none overflow-hidden p-2">
-                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
+                <img src={settings?.logo || companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
 
@@ -729,7 +789,7 @@ const Index = () => {
                 </h3>
               </div>
               <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none overflow-hidden p-2">
-                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
+                <img src={settings?.logo || companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
 
@@ -744,7 +804,7 @@ const Index = () => {
                 </h3>
               </div>
               <div className="relative border-4 border-white rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-lg shrink-0 select-none overflow-hidden p-2">
-                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
+                <img src={settings?.logo || companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
           </div>

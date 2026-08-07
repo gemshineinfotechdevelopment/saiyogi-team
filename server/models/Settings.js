@@ -85,7 +85,11 @@ const settingsSchema = new mongoose.Schema(
         type: Boolean,
         default: false
       }
-    }
+    },
+    youtubeVideos: [{
+      title: String,
+      url: String
+    }]
   },
   { timestamps: true }
 );

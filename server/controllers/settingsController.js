@@ -61,7 +61,8 @@ export const getSiteInfo = async (req, res, next) => {
       maintenanceMessage: settings.maintenanceMessage || '',
       news: settings.news || '',
       billing: settings.billing || {},
-      enablePackingCharge: settings.enablePackingCharge !== undefined ? settings.enablePackingCharge : true
+      enablePackingCharge: settings.enablePackingCharge !== undefined ? settings.enablePackingCharge : true,
+      youtubeVideos: settings.youtubeVideos || []
     };
 
     res.json(info);
