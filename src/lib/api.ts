@@ -362,6 +362,7 @@ export async function deleteOrder(orderId: string): Promise<any> {
 export interface SiteSettings {
   siteName: string;
   siteDescription: string;
+  logo?: string;
   discountPercent: number;
   minimumPurchaseAmount: number;
   minPurchaseOutsideTN: number;
