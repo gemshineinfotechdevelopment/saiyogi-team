@@ -4,6 +4,7 @@ import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
+import companyLogo from "@/assets/saiyogi-logo-1.png";
 import heroBanner1 from "@/assets/hero_banner_1.jpg";
 import heroBanner2 from "@/assets/hero_banner_2.jpg";
 import heroBanner3 from "@/assets/hero_banner_3.jpg";
@@ -741,7 +742,7 @@ const Index = () => {
                 </h3>
               </div>
               <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none overflow-hidden p-2">
-                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
+                <img src={settings?.logo || companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
 
@@ -756,7 +757,7 @@ const Index = () => {
                 </h3>
               </div>
               <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none overflow-hidden p-2">
-                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
+                <img src={settings?.logo || companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
 
@@ -771,7 +772,7 @@ const Index = () => {
                 </h3>
               </div>
               <div className="relative border-4 border-white rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-lg shrink-0 select-none overflow-hidden p-2">
-                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
+                <img src={settings?.logo || companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
           </div>

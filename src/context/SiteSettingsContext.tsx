@@ -4,6 +4,7 @@ import { getSiteInfo } from "@/lib/api";
 export interface SiteSettings {
   siteName: string;
   siteDescription: string;
+  logo?: string;
   discountPercent: number;
   minimumPurchaseAmount: number;
   minPurchaseOutsideTN: number;
