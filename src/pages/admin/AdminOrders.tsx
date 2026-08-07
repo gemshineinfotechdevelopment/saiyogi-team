@@ -14,7 +14,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { generateOrderReceiptPDF } from "@/lib/pdf-generator";
+import { downloadOrderReceiptPDF, printOrderReceipt } from "@/lib/pdf-generator";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { Input } from "@/components/ui/input";
 
@@ -52,35 +52,43 @@ const AdminOrders = () => {
   const [isApproving, setIsApproving] = useState(false);
   const { settings } = useSiteSettings();
 
-  const downloadPDF = (order: any) => {
-    const orderData = {
-      orderNumber: order.orderNumber || order._id,
-      customerName: order.customerName,
-      customerEmail: order.customerEmail,
-      customerPhone: order.customerPhone,
-      deliveryAddress: order.deliveryAddress?.fullAddress || order.shippingAddress?.fullAddress || '',
-      state: order.deliveryAddress?.state || '',
-      district: order.deliveryAddress?.district || '',
-      items: order.items.map((i: any) => ({
-        ...i,
-        productName: i.product?.name || i.productName || 'Product',
-        originalPrice: i.originalPrice !== undefined ? i.originalPrice : (i.product?.price || i.price),
-        hasDiscount: i.hasDiscount !== undefined ? i.hasDiscount : (i.product?.hasDiscount !== undefined ? i.product.hasDiscount : true),
-        netRate: i.netRate !== undefined ? i.netRate : i.product?.netRate,
-        displayNetRate: i.displayNetRate !== undefined ? i.displayNetRate : i.product?.displayNetRate
-      })),
-      subtotal: order.subtotal,
-      packingCharge: order.packingCharge || (order.subtotal <= 3999 ? 120 : Math.round(order.subtotal * 0.03)),
-      total: order.total || (order.subtotal + (order.packingCharge || (order.subtotal <= 3999 ? 120 : Math.round(order.subtotal * 0.03)))),
-      date: new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN'),
-      discountPercent: settings.discountPercent,
-      siteName: settings.siteName,
-      siteAddress: settings.contact?.address || '',
-      sitePhone: settings.contact?.phone || '',
-      siteEmail: settings.contact?.email || '',
-    };
-    generateOrderReceiptPDF(orderData);
+  const getOrderData = (order: any) => ({
+    orderNumber: order.orderNumber || order._id,
+    customerName: order.customerName,
+    customerEmail: order.customerEmail,
+    customerPhone: order.customerPhone,
+    deliveryAddress: order.deliveryAddress?.fullAddress || order.shippingAddress?.fullAddress || '',
+    state: order.deliveryAddress?.state || '',
+    district: order.deliveryAddress?.district || '',
+    items: order.items.map((i: any) => ({
+      ...i,
+      productName: i.product?.name || i.productName || 'Product',
+      originalPrice: i.originalPrice !== undefined ? i.originalPrice : (i.product?.price || i.price),
+      hasDiscount: i.hasDiscount !== undefined ? i.hasDiscount : (i.product?.hasDiscount !== undefined ? i.product.hasDiscount : true),
+      netRate: i.netRate !== undefined ? i.netRate : i.product?.netRate,
+      displayNetRate: i.displayNetRate !== undefined ? i.displayNetRate : i.product?.displayNetRate
+    })),
+    subtotal: order.subtotal,
+    packingCharge: order.packingCharge || (order.subtotal <= 3999 ? 120 : Math.round(order.subtotal * 0.03)),
+    total: order.total || (order.subtotal + (order.packingCharge || (order.subtotal <= 3999 ? 120 : Math.round(order.subtotal * 0.03)))),
+    date: new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN'),
+    discountPercent: settings.discountPercent,
+    siteName: settings.siteName,
+    companyName: settings.billing?.companyName || settings.siteName,
+    siteAddress: settings.contact?.address || '',
+    sitePhone: settings.contact?.phone || '',
+    siteEmail: settings.contact?.email || '',
+    gstNumber: settings.billing?.gstNumber || '',
+  });
+
+  const handleDownloadPDF = (order: any) => {
+    downloadOrderReceiptPDF(getOrderData(order));
     toast.success("Downloading PDF...");
+  };
+
+  const handlePrintPDF = (order: any) => {
+    printOrderReceipt(getOrderData(order));
+    toast.success("Preparing Print...");
   };
   const [phoneFilter, setPhoneFilter] = useState("");
   type StatusFilter = 'all' | 'approved' | 'packing' | 'hold';
@@ -553,10 +561,17 @@ const AdminOrders = () => {
                   </Button>
                   <Button
                     variant="secondary"
-                    onClick={() => downloadPDF(selectedOrder)}
+                    onClick={() => handleDownloadPDF(selectedOrder)}
                     className="flex-1"
                   >
                     Download PDF
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => handlePrintPDF(selectedOrder)}
+                    className="flex-1"
+                  >
+                    Print
                   </Button>
                   {!selectedOrder.approved && (
                     <Button
