@@ -1,6 +1,7 @@
 import React from "react";
 import { ShoppingBag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useCart } from "@/context/CartContext";
 
 interface QuickEnquiryFiltersProps {
   selectedBrand: string;
@@ -13,6 +14,7 @@ interface QuickEnquiryFiltersProps {
   setSearchQuery: (query: string) => void;
   totalPrice: number;
   totalItems: number;
+  showTableHeader?: boolean;
 }
 
 export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
@@ -26,14 +28,16 @@ export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
   setSearchQuery,
   totalPrice,
   totalItems,
+  showTableHeader = true,
 }) => {
   const navigate = useNavigate();
+  const { setIsCartOpen } = useCart();
 
   return (
-    <div className="fixed top-[68px] md:top-[108px] left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-b border-gray-200 shadow-md py-3 px-4">
+    <div className="fixed top-[60px] md:top-[108px] left-0 right-0 z-40 bg-white border-b border-gray-200 shadow-md py-3 px-4">
       <div className="container mx-auto">
         {/* Filters & Cart Summary Row */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-3">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
             <select 
               value={selectedBrand} 
@@ -57,14 +61,14 @@ export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
                 placeholder="Search products..." 
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-3 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium outline-none focus:border-[#A80000] bg-white shadow-xs"
+                className="w-full pl-3 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium outline-none focus:border-[#A80000] bg-white shadow-xs text-gray-800"
               />
             </div>
           </div>
           
           {/* Cart Total & Checkout Box */}
           <div 
-            onClick={() => navigate('/cart')}
+            onClick={() => setIsCartOpen(true)}
             className="w-full md:w-auto bg-[#A80000] hover:bg-red-800 text-white rounded-2xl px-5 py-2.5 flex items-center justify-between md:justify-start md:gap-5 shadow-lg border border-[#8a0000] cursor-pointer hover:scale-105 active:scale-95 transition-all shrink-0"
             title="Click to view Cart & Checkout"
           >
@@ -83,14 +87,16 @@ export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
         </div>
 
         {/* Table Header Row */}
-        <div className="hidden md:grid md:grid-cols-12 gap-4 bg-[#f8f9fa] border border-gray-200 rounded-xl py-3 px-6 text-[11px] font-black text-gray-600 uppercase tracking-wider items-center shadow-xs">
-          <div className="col-span-4 pl-2">PRODUCT NAME</div>
-          <div className="col-span-2 text-center">ITEM CODE</div>
-          <div className="col-span-2 text-center">CONTENT</div>
-          <div className="col-span-1 text-center">UNIT PRICE</div>
-          <div className="col-span-2 text-center">QUANTITY</div>
-          <div className="col-span-1 text-right pr-4">TOTAL</div>
-        </div>
+        {showTableHeader && (
+          <div className="hidden md:grid md:grid-cols-12 gap-4 bg-[#f8f9fa] border border-gray-200 rounded-xl py-3 px-6 text-[11px] font-black text-gray-600 uppercase tracking-wider items-center shadow-xs mt-3">
+            <div className="col-span-4 pl-2">PRODUCT NAME</div>
+            <div className="col-span-2 text-center">ITEM CODE</div>
+            <div className="col-span-2 text-center">CONTENT</div>
+            <div className="col-span-1 text-center">UNIT PRICE</div>
+            <div className="col-span-2 text-center">QUANTITY</div>
+            <div className="col-span-1 text-right pr-4">TOTAL</div>
+          </div>
+        )}
       </div>
     </div>
   );

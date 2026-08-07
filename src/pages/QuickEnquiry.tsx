@@ -123,9 +123,9 @@ const QuickEnquiry = () => {
     <div className="min-h-screen flex flex-col bg-white relative font-sans">
       <UserHeader />
       
-      <main className="flex-1 w-full py-12 px-0">
+      <main className="flex-1 w-full pt-[115px] md:pt-[110px] pb-12 px-0">
         {/* Beautiful Top Banner */}
-        <div className="bg-gradient-to-br from-[#A80000] via-[#5c0a0b] to-[#1A1A1A] text-center py-12 px-6 rounded-none mb-10 relative overflow-hidden border-y border-[#F4C542]/20 shadow-xl">
+        <div className="bg-gradient-to-br from-[#A80000] via-[#5c0a0b] to-[#1A1A1A] text-center py-10 md:py-12 px-6 rounded-none mb-0 relative overflow-hidden border-y border-[#F4C542]/20 shadow-xl">
           <div className="absolute top-0 left-10 w-24 h-24 bg-[#F4C542]/10 rounded-full blur-xl"></div>
           <div className="absolute bottom-0 right-10 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
           <span className="text-[#F4C542] text-xs font-black tracking-widest uppercase mb-2 inline-block">✨ Direct Wholesale Orders ✨</span>
@@ -149,7 +149,7 @@ const QuickEnquiry = () => {
           totalItems={totalItems}
         />
 
-        <div className="w-full bg-white/85 backdrop-blur-md shadow-2xl border-y border-gray-150 rounded-none mb-8 mt-[180px] md:mt-[120px]">
+        <div className="w-full bg-white shadow-xl border-y border-gray-150 rounded-none mb-8 mt-4 md:mt-6">
           <div className="flex-1 container mx-auto px-0 md:px-4 py-8">
 
         <div className="space-y-6 md:space-y-4">
