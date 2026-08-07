@@ -24,9 +24,7 @@ import AdminProducts from "./pages/admin/AdminProducts";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminCustomers from "./pages/admin/AdminCustomers";
-import InventoryManagement from "./pages/admin/inventory/InventoryManagement";
-import StockTransfer from "./pages/admin/inventory/StockTransfer";
-import TransferHistory from "./pages/admin/inventory/TransferHistory";
+import AdminReports from "./pages/admin/AdminReports";
 import AdminContent from "./pages/admin/AdminContent";
 
 import NotFound from "./pages/NotFound";
@@ -118,10 +116,10 @@ const App = () => (
                     }
                   />
                   <Route
-                    path="/admin/inventory"
+                    path="/admin/reports"
                     element={
                       <ProtectedRoute>
-                        <InventoryManagement />
+                        <AdminReports />
                       </ProtectedRoute>
                     }
                   />
