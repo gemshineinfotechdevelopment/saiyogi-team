@@ -10,9 +10,10 @@ interface AuthContextType {
   token: string | null;
   loading: boolean;
   userPhone: string | null;
+  userName: string | null;
   isUserLoggedIn: boolean;
   login: (email: string, password: string) => Promise<void>;
-  loginWithPhone: (phone: string) => void;
+  loginWithPhone: (phone: string, name?: string) => void;
   logout: () => void;
   logoutUser: () => void;
   isLoginModalOpen: boolean;
@@ -28,17 +29,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Customer User Phone Login
+  // Customer User Phone & Name Login
   const [userPhone, setUserPhone] = useState<string | null>(localStorage.getItem("user_phone"));
+  const [userName, setUserName] = useState<string | null>(localStorage.getItem("user_name"));
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("admin_token");
     const storedRole = localStorage.getItem("admin_role");
     const storedPhone = localStorage.getItem("user_phone");
+    const storedName = localStorage.getItem("user_name");
 
     if (storedPhone) {
       setUserPhone(storedPhone);
+      setUserName(storedName || null);
     }
 
     if (storedToken && ["admin", "SUPER ADMIN", "ADMIN"].includes(storedRole || "")) {
@@ -53,9 +57,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(false);
   }, []);
 
-  const loginWithPhone = (phone: string) => {
+  const loginWithPhone = (phone: string, name?: string) => {
     setUserPhone(phone);
     localStorage.setItem("user_phone", phone);
+    if (name) {
+      setUserName(name);
+      localStorage.setItem("user_name", name);
+    }
     setIsAuthenticated(true);
   };
 
@@ -141,9 +149,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAdmin(false);
     setToken(null);
     setUserPhone(null);
+    setUserName(null);
     localStorage.removeItem("admin_token");
     localStorage.removeItem("admin_role");
     localStorage.removeItem("user_phone");
+    localStorage.removeItem("user_name");
   };
 
   const isUserLoggedIn = !!userPhone;
@@ -156,6 +166,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         token,
         loading,
         userPhone,
+        userName,
         isUserLoggedIn,
         login,
         loginWithPhone,
@@ -170,7 +181,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       <UserLoginModal
         isOpen={isLoginModalOpen}
         onClose={closeLoginModal}
-        onSuccess={(phone) => loginWithPhone(phone)}
+        onSuccess={(phone, name) => loginWithPhone(phone, name)}
       />
     </AuthContext.Provider>
   );
