@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Phone, Lock, ArrowRight, RefreshCw, CheckCircle2, ShieldCheck, X, LogOut, User, Crown, Gift, Sparkles, ChevronRight, ShoppingBag, Smartphone } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { useCart } from "@/context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -13,7 +12,7 @@ interface UserLoginModalProps {
 }
 
 export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { isUserLoggedIn, userPhone, logoutUser } = useAuth();
+  const { isUserLoggedIn, userPhone, userName, logoutUser } = useAuth();
   const { setIsCartOpen } = useCart();
   const navigate = useNavigate();
   const [step, setStep] = useState<"phone" | "otp">("phone");
@@ -171,7 +170,9 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
                   </div>
                 </div>
 
-                <h3 className="text-2xl font-black text-gray-900 tracking-tight">User Profile</h3>
+                <h3 className="text-2xl font-black text-gray-900 tracking-tight">
+                  {userName || localStorage.getItem("user_name") || "User"}
+                </h3>
 
                 <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider mb-3 mt-1">
                   Registered Mobile Number
