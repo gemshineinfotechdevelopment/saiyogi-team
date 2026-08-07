@@ -21,7 +21,7 @@ export const ReportPrintTemplate: React.FC<ReportPrintTemplateProps> = ({
     <div className="bg-white p-[15mm] font-sans text-slate-900 w-[210mm] min-h-[297mm] box-border">
       {/* Header */}
       <div className="text-center border-b-2 border-slate-900 pb-4 mb-6">
-        <h1 className="text-2xl font-black uppercase">{settings?.shopName || "AVINASH BALA CRACKERS SHOP"}</h1>
+        <h1 className="text-2xl font-black uppercase">{settings?.shopName || "SAI YOGI CRACKERS"}</h1>
         <p className="text-xs font-bold uppercase">{settings?.address}</p>
         <p className="text-xs font-bold">GST: {settings?.gstin}</p>
         <div className="mt-4 bg-slate-900 text-white py-1 px-4 inline-block font-bold rounded uppercase tracking-widest">

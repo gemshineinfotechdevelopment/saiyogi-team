@@ -244,11 +244,11 @@ function generateReceiptHTML(order: OrderData): string {
   const grandTotal = netAmount2 + packingCharge;
   const inWords = numberToWords(grandTotal);
 
-  const shopName = order.companyName || order.siteName || 'NARENDIRAA ENTERPRISES';
-  const shopPhone = order.sitePhone || '+91 95859 75756';
-  const shopAddress = order.siteAddress || 'Sattur, Virudhunagar District, Tamil Nadu';
-  const shopEmail = order.siteEmail || 'contact@narendiraa-enterprises.com';
-  const shopWebsite = order.siteWebsite || 'www.narendiraa-enterprises.com';
+  const shopName = (order.companyName?.trim() || order.siteName?.trim()) ? (order.companyName || order.siteName) : 'NARENDIRAA ENTERPRISES';
+  const shopPhone = (order.sitePhone && order.sitePhone.trim()) ? order.sitePhone : '+91 95859 75756';
+  const shopAddress = (order.siteAddress && order.siteAddress.trim()) ? order.siteAddress : 'Sattur, Virudhunagar District, Tamil Nadu';
+  const shopEmail = (order.siteEmail && order.siteEmail.trim()) ? order.siteEmail : 'contact@narendiraa-enterprises.com';
+  const shopWebsite = (order.siteWebsite && order.siteWebsite.trim()) ? order.siteWebsite : 'www.narendiraa-enterprises.com';
   const shopGst = order.gstNumber || '';
 
   return `
