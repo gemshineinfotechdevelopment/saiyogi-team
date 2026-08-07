@@ -4,9 +4,10 @@ import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
-import banner1 from "@/assets/banner1.png";
-import banner2 from "@/assets/banner2.png";
-import banner3 from "@/assets/banner3.png";
+import heroBanner1 from "@/assets/hero_banner_1.jpg";
+import heroBanner2 from "@/assets/hero_banner_2.jpg";
+import heroBanner3 from "@/assets/hero_banner_3.jpg";
+import heroBanner4 from "@/assets/hero_banner_4.jpg";
 import { useState, useEffect } from "react";
 import { getProducts, getCategories, getBrands, Brand } from "@/lib/api";
 import { Product, Category } from "@/data/products";
@@ -121,7 +122,7 @@ const Index = () => {
   const [comboIndex, setComboIndex] = useState(0);
 
   // Hero image slideshow (right-to-left slide)
-  const heroImages = [banner1, banner2, banner3];
+  const heroImages = [heroBanner1, heroBanner2, heroBanner3, heroBanner4];
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideKey, setSlideKey] = useState(0);
 
@@ -256,20 +257,47 @@ const Index = () => {
       <UserHeader />
 
       {/* Hero Section */}
-      <section className="relative w-full overflow-hidden bg-black flex flex-col">
-        <div className="relative w-full aspect-[21/9] min-h-[300px] md:min-h-[480px] max-h-[600px] overflow-hidden bg-gradient-to-r from-red-950 via-black to-red-950 flex items-center justify-center">
+      <section className="relative w-full overflow-hidden bg-black flex flex-col select-none">
+        <div className="relative w-full h-[320px] sm:h-[450px] md:h-[550px] lg:h-[620px] overflow-hidden bg-black flex items-center justify-center group">
+          {/* Full Width & Height Banner Image */}
           <div key={slideKey} className="absolute inset-0 w-full h-full animate-slide-left">
             <img 
               src={heroImages[currentSlide]} 
-              alt="Hero Banner" 
-              className="w-full h-full object-cover object-center scale-105 filter brightness-95" 
+              alt={`Sai Yogi Crackers Banner ${currentSlide + 1}`} 
+              className={`w-full h-full object-cover filter brightness-105 transition-all duration-500 ${
+                currentSlide === 0 ? "object-[center_15%]" : "object-center"
+              }`} 
             />
           </div>
           
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none z-10" />
+
+          {/* Left Arrow Navigation */}
+          <button
+            onClick={() => {
+              setCurrentSlide((prev) => (prev === 0 ? heroImages.length - 1 : prev - 1));
+              setSlideKey((k) => k + 1);
+            }}
+            className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-30 p-2.5 md:p-3 rounded-full bg-black/50 hover:bg-[#A80000] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
+            aria-label="Previous Slide"
+          >
+            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+          </button>
+
+          {/* Right Arrow Navigation */}
+          <button
+            onClick={() => {
+              setCurrentSlide((prev) => (prev + 1) % heroImages.length);
+              setSlideKey((k) => k + 1);
+            }}
+            className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 z-30 p-2.5 md:p-3 rounded-full bg-black/50 hover:bg-[#A80000] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
+            aria-label="Next Slide"
+          >
+            <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+          </button>
 
           {/* Dots Indicator */}
-          <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center gap-2">
+          <div className="absolute bottom-4 md:bottom-6 left-0 right-0 z-30 flex justify-center items-center gap-2.5">
             {heroImages.map((_, idx) => (
               <button
                 key={idx}
@@ -277,8 +305,8 @@ const Index = () => {
                   setCurrentSlide(idx);
                   setSlideKey((k) => k + 1);
                 }}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  currentSlide === idx ? "bg-[#F4C542] w-8 shadow-lg shadow-yellow-500/50" : "bg-white/40 hover:bg-white/70"
+                className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
+                  currentSlide === idx ? "bg-[#F4C542] w-8 shadow-lg shadow-yellow-500/50" : "bg-white/50 w-2.5 hover:bg-white"
                 }`}
                 aria-label={`Slide ${idx + 1}`}
               />

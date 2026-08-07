@@ -1,247 +1,156 @@
-import { useState } from "react";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
-import { MapPin, MessageSquare, Mail, Phone, Calendar, User, FileText, Send } from "lucide-react";
-
+import { MapPin, MessageSquare, Phone, Navigation } from "lucide-react";
 import contactImg from "@/assets/contact.png";
 
 const Contact = () => {
   const { settings } = useSiteSettings();
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    eventDate: "",
-    message: "",
-  });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-    alert("Thank you for your enquiry! Our team will get back to you within 4 hours.");
-    setFormData({
-      fullName: "",
-      email: "",
-      phone: "",
-      eventDate: "",
-      message: "",
-    });
-  };
+  const phoneNum = settings.contact?.phone || "+91 94880 73004";
+  const cleanPhone = phoneNum.replace(/[^0-9]/g, "");
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FFF6E5] font-sans text-gray-900 antialiased">
       <UserHeader />
 
       {/* ──────────────── Premium Hero Banner ──────────────── */}
-      <section className="relative w-full py-24 md:py-32 px-4 overflow-hidden bg-black flex items-center justify-center">
-        {/* Background image with mix-blend opacity */}
+      <section className="relative w-full py-20 md:py-28 px-4 overflow-hidden bg-black flex items-center justify-center">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 mix-blend-luminosity scale-105"
           style={{ backgroundImage: `url(${contactImg})` }}
         />
-        {/* Elegant Dark Vignette Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/50 to-black/90" />
         
-        <div className="relative max-w-4xl mx-auto text-center z-10 space-y-6">
-          <span className="inline-flex items-center px-4 py-1.5 rounded-full border border-[#F4C542] bg-black/40 text-[#F4C542] text-[10px] font-black tracking-widest uppercase mb-2 shadow-sm">
-            ⚡ GET IN TOUCH WITH US ⚡
+        <div className="relative max-w-4xl mx-auto text-center z-10 space-y-4">
+          <span className="inline-flex items-center px-4 py-1.5 rounded-full border border-[#F4C542] bg-black/40 text-[#F4C542] text-[10px] font-black tracking-widest uppercase mb-1 shadow-sm">
+            ⚡ REACH OUR SIVAKASI HEADQUARTERS ⚡
           </span>
           <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white drop-shadow-md uppercase">
-            Let's Light Up Your <br className="hidden sm:inline" /> Next Celebration
+            Visit &amp; Contact Us
           </h1>
           <p className="text-gray-200 text-xs sm:text-sm md:text-base max-w-2xl mx-auto leading-relaxed opacity-95">
-            Have questions about our crackers, bulk packages, or customized festival estimates? Reach out and our Sivakasi experts will guide you.
+            Located directly in the heart of Sivakasi, Tamil Nadu. Find our location on the map below or contact our experts directly.
           </p>
         </div>
       </section>
 
-      {/* ──────────────── Form + Headquarters Info ──────────────── */}
-      <section className="w-full py-16 px-4">
+      {/* ──────────────── Map + Headquarters Info ──────────────── */}
+      <section className="w-full py-12 md:py-16 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
-            {/* ─── Left: Premium Form ─── */}
-            <div className="lg:col-span-7 bg-white/60 backdrop-blur-md border border-white/80 rounded-3xl p-6 md:p-10 shadow-xl text-left">
-              <h2 className="font-display text-2xl sm:text-3xl font-black text-gray-900 mb-2 uppercase tracking-wide">
-                Start Your Enquiry
-              </h2>
-              <p className="text-xs text-gray-500 font-semibold mb-8 uppercase tracking-wider">
-                Fill in the details below to receive a personalized quote.
-              </p>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Row 1 */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-xs font-black uppercase text-gray-700 tracking-wider mb-2 flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5 text-[#A80000]" />
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      name="fullName"
-                      required
-                      placeholder="e.g. Ramesh Kumar"
-                      value={formData.fullName}
-                      onChange={handleChange}
-                      className="w-full border border-gray-250 rounded-xl px-4 py-3 text-xs font-bold text-gray-800 outline-none focus:border-[#A80000] focus:ring-2 focus:ring-[#A80000]/10 transition-all bg-white"
-                    />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-stretch">
+            
+            {/* ─── Left: Embedded Google Map ─── */}
+            <div className="lg:col-span-7 bg-white border border-gray-200/80 rounded-3xl p-4 md:p-6 shadow-xl flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-4 px-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#A80000] text-white flex items-center justify-center shadow-md">
+                    <Navigation className="w-5 h-5" />
                   </div>
                   <div>
-                    <label className="block text-xs font-black uppercase text-gray-700 tracking-wider mb-2 flex items-center gap-1.5">
-                      <Mail className="w-3.5 h-3.5 text-[#A80000]" />
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      required
-                      placeholder="ramesh@example.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="w-full border border-gray-250 rounded-xl px-4 py-3 text-xs font-bold text-gray-800 outline-none focus:border-[#A80000] focus:ring-2 focus:ring-[#A80000]/10 transition-all bg-white"
-                    />
-                  </div>
-                </div>
-
-                {/* Row 2 */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-xs font-black uppercase text-gray-700 tracking-wider mb-2 flex items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5 text-[#A80000]" />
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      required
-                      placeholder="e.g. +91 94880 73004"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="w-full border border-gray-250 rounded-xl px-4 py-3 text-xs font-bold text-gray-800 outline-none focus:border-[#A80000] focus:ring-2 focus:ring-[#A80000]/10 transition-all bg-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black uppercase text-gray-700 tracking-wider mb-2 flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-[#A80000]" />
-                      Festival / Event Date
-                    </label>
-                    <input
-                      type="date"
-                      name="eventDate"
-                      required
-                      value={formData.eventDate}
-                      onChange={handleChange}
-                      className="w-full border border-gray-250 rounded-xl px-4 py-3 text-xs font-bold text-gray-800 outline-none focus:border-[#A80000] focus:ring-2 focus:ring-[#A80000]/10 transition-all bg-white"
-                    />
-                  </div>
-                </div>
-
-                {/* Message */}
-                <div>
-                  <label className="block text-xs font-black uppercase text-gray-700 tracking-wider mb-2 flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-[#A80000]" />
-                    Message &amp; Requirements
-                  </label>
-                  <textarea
-                    name="message"
-                    required
-                    rows={5}
-                    placeholder="Tell us about the scale of your event, crackers requirements, or custom packages..."
-                    value={formData.message}
-                    onChange={handleChange}
-                    className="w-full border border-gray-250 rounded-xl px-4 py-3 text-xs font-bold text-gray-800 outline-none focus:border-[#A80000] focus:ring-2 focus:ring-[#A80000]/10 transition-all resize-none bg-white"
-                  />
-                </div>
-
-                {/* Submit */}
-                <button
-                  type="submit"
-                  className="bg-[#A80000] hover:bg-[#F4C542] hover:text-gray-900 text-white font-black text-xs px-8 py-3.5 rounded-xl transition-all duration-300 shadow-md hover:scale-[1.02] active:scale-[0.98] uppercase tracking-widest flex items-center gap-2 cursor-pointer"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>Send Enquiry</span>
-                </button>
-              </form>
-            </div>
-
-            {/* ─── Right: Global Headquarters Card ─── */}
-            <div className="lg:col-span-5 w-full">
-              <div className="bg-white/80 border border-gray-200/50 rounded-3xl p-6 md:p-8 shadow-xl text-left space-y-6">
-                <div>
-                  <h3 className="font-display text-xl sm:text-2xl font-black text-[#A80000] mb-2 uppercase tracking-wide">
-                    Global Headquarters
-                  </h3>
-                  <p className="text-xs text-gray-500 font-semibold leading-relaxed">
-                    Our master pyrotechnicians operate directly from the heart of the Sivakasi fireworks industry, ensuring safety and precision.
-                  </p>
-                </div>
-
-                {/* Physical Office Info */}
-                <div className="flex items-start gap-4 p-5 rounded-2xl bg-amber-50/50 border border-amber-100/50">
-                  <div className="w-10 h-10 bg-[#A80000] rounded-xl flex items-center justify-center shrink-0 shadow-md text-white">
-                    <MapPin className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase tracking-widest text-[#A80000] font-black mb-1">
-                      Physical Office
+                    <h2 className="font-display text-lg sm:text-xl font-black text-gray-900 uppercase tracking-wide">
+                      Interactive Location Map
+                    </h2>
+                    <p className="text-[11px] text-gray-500 font-semibold uppercase">
+                      Sivakasi, Tamil Nadu - 626123
                     </p>
-                    <p className="text-xs font-black text-gray-900 uppercase">
-                      Sai Yogi Crackers
-                    </p>
-                    <p className="text-xs text-gray-600 font-semibold mt-0.5">
-                      Sivakasi Main Road, Virudhunagar District, Tamil Nadu – 626123
-                    </p>
-                    <a
-                      href={`tel:${settings.contact?.phone?.replace(/[^0-9+]/g, "") || "+919488073004"}`}
-                      className="text-xs text-[#A80000] font-black mt-2 inline-block hover:underline"
-                    >
-                      📞 {settings.contact?.phone || "+91 94880 73004"}
-                    </a>
                   </div>
                 </div>
 
-                {/* WhatsApp Support Box */}
                 <a
-                  href={`https://wa.me/${(settings.contact?.phone || "+919488073004").replace(/[^0-9]/g, "")}`}
+                  href="https://maps.google.com/?q=Sivakasi,+Tamil+Nadu"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-4 bg-white border border-green-200/80 rounded-2xl px-5 py-4 hover:bg-green-50/50 hover:border-green-300 transition-all shadow-md group"
+                  className="hidden sm:inline-flex items-center gap-1.5 bg-[#A80000] hover:bg-red-800 text-white text-xs font-black px-4 py-2 rounded-xl shadow-sm transition-all hover:scale-105"
                 >
-                  <div className="w-10 h-10 bg-[#25D366] rounded-xl flex items-center justify-center shrink-0 shadow-md">
-                    <MessageSquare className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-black text-[#25D366] uppercase tracking-wider group-hover:text-green-700 transition-colors">
-                      WhatsApp Support
-                    </p>
-                    <p className="text-[10px] text-gray-500 font-semibold mt-0.5">
-                      Chat directly with our Sales Team
-                    </p>
-                  </div>
+                  <span>Get Directions</span>
                 </a>
+              </div>
 
-                {/* Map Embed */}
-                <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-md h-[200px]">
-                  <iframe
-                    title="Sai Yogi Crackers Location"
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3937.5!2d77.8!3d9.45!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zOcKwMjcnMDAuMCJOIDc3wrA0OCcwMC4wIkU!5e0!3m2!1sen!2sin!4v1234567890"
-                    width="100%"
-                    height="100%"
-                    style={{ border: "none" }}
-                    allowFullScreen
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  />
-                </div>
+              {/* Responsive Map iFrame */}
+              <div className="w-full flex-1 min-h-[380px] md:min-h-[460px] rounded-2xl overflow-hidden border border-gray-200 shadow-inner relative bg-gray-100">
+                <iframe
+                  title="Sai Yogi Crackers Map Location"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3937.554628461746!2d77.79720431478887!3d9.453289993227443!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b06cee4be8a29b5%3A0x6b801a61c360a80d!2sSivakasi%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="w-full h-full absolute inset-0"
+                />
               </div>
             </div>
+
+            {/* ─── Right: Global Headquarters & Support Cards ─── */}
+            <div className="lg:col-span-5 bg-white border border-gray-200/80 rounded-3xl p-6 md:p-8 shadow-xl flex flex-col justify-between space-y-6">
+              <div>
+                <h3 className="font-display text-2xl font-black text-[#A80000] mb-2 uppercase tracking-wide">
+                  Global Headquarters
+                </h3>
+                <p className="text-xs text-gray-600 font-semibold leading-relaxed">
+                  Our master pyrotechnicians operate directly from the heart of the Sivakasi fireworks industry, ensuring maximum safety, quality control, and factory-direct pricing.
+                </p>
+              </div>
+
+              {/* Physical Office Card */}
+              <div className="flex items-start gap-4 p-5 rounded-2xl bg-amber-50/70 border border-amber-200/60 shadow-xs">
+                <div className="w-11 h-11 bg-[#A80000] rounded-xl flex items-center justify-center shrink-0 shadow-md text-white">
+                  <MapPin className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-[#A80000] font-black mb-1">
+                    Physical Office &amp; Factory
+                  </p>
+                  <p className="text-xs font-black text-gray-900 uppercase">
+                    Sai Yogi Crackers
+                  </p>
+                  <p className="text-xs text-gray-600 font-semibold mt-0.5 leading-relaxed">
+                    Sivakasi Main Road, Virudhunagar District, Tamil Nadu – 626123
+                  </p>
+                </div>
+              </div>
+
+              {/* Call Support Card */}
+              <a
+                href={`tel:${cleanPhone}`}
+                className="flex items-center gap-4 bg-white border border-red-200 rounded-2xl px-5 py-4 hover:bg-red-50/60 hover:border-red-300 transition-all shadow-md group cursor-pointer"
+              >
+                <div className="w-11 h-11 bg-[#A80000] rounded-xl flex items-center justify-center shrink-0 shadow-md">
+                  <Phone className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-[#A80000] uppercase tracking-wider group-hover:text-red-900 transition-colors">
+                    Direct Phone Call
+                  </p>
+                  <p className="text-xs font-black text-gray-900 mt-0.5">
+                    {phoneNum}
+                  </p>
+                </div>
+              </a>
+
+              {/* WhatsApp Support Box */}
+              <a
+                href={`https://wa.me/${cleanPhone}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 bg-white border border-green-200/80 rounded-2xl px-5 py-4 hover:bg-green-50/60 hover:border-green-300 transition-all shadow-md group cursor-pointer"
+              >
+                <div className="w-11 h-11 bg-[#25D366] rounded-xl flex items-center justify-center shrink-0 shadow-md">
+                  <MessageSquare className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-[#25D366] uppercase tracking-wider group-hover:text-green-700 transition-colors">
+                    WhatsApp Sales Support
+                  </p>
+                  <p className="text-[11px] text-gray-500 font-semibold mt-0.5">
+                    Instant response for bulk inquiries &amp; estimates
+                  </p>
+                </div>
+              </a>
+            </div>
+
           </div>
         </div>
       </section>
