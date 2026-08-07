@@ -7,6 +7,7 @@ import { useSiteSettings } from "@/context/SiteSettingsContext";
 import banner1 from "@/assets/banner1.png";
 import banner2 from "@/assets/banner2.png";
 import banner3 from "@/assets/banner3.png";
+import companyLogo from "@/assets/saiyogi-logo-1.png";
 import { useState, useEffect } from "react";
 import { getProducts, getCategories, getBrands, Brand } from "@/lib/api";
 import { Product, Category } from "@/data/products";
@@ -340,27 +341,43 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {(products.length > 0 ? products.slice(0, 6) : staticBestSellers).map((item: any, idx: number) => (
-              <div
-                key={`bestseller-${item._id || item.id || idx}`}
-                className="bg-white border border-gray-200 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
-              >
-                <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative">
-                  <img src={item.image || "/sky_rocket_box.png"} alt={item.name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" />
-                  <span className="absolute top-1.5 left-1.5 bg-[#A80000] text-[#F4C542] font-black text-[8px] px-2 py-0.5 rounded-full uppercase">
-                    HOT
-                  </span>
-                </div>
-                <h3 className="font-bold text-xs text-gray-800 uppercase text-center line-clamp-2 min-h-[32px] mb-2">{item.name}</h3>
-                <div className="text-[#A80000] font-black text-sm mb-3">₹{item.price}</div>
-                <button
-                  onClick={() => addToCart(item)}
-                  className="w-full bg-[#A80000] text-white py-1.5 rounded-lg text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase flex items-center justify-center gap-1 cursor-pointer"
+            {(products.length > 0 ? products.slice(0, 6) : staticBestSellers).map((item: any, idx: number) => {
+              const stockVal = item.storeStockPieces !== undefined ? item.storeStockPieces : (item.stock !== undefined ? item.stock : 0);
+              const isOutOfStock = stockVal <= 0;
+              const displayImg = isOutOfStock ? '/saiyogi-logo-1.png' : (item.image || "/sky_rocket_box.png");
+              return (
+                <div
+                  key={`bestseller-${item._id || item.id || idx}`}
+                  className="bg-white border border-gray-200 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative"
                 >
-                  <ShoppingCart className="w-3 h-3" /> Add
-                </button>
-              </div>
-            ))}
+                  <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative">
+                    <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" />
+                    {isOutOfStock ? (
+                      <span className="absolute top-1.5 left-1.5 bg-gray-900 text-white font-black text-[8px] px-2 py-0.5 rounded-full uppercase">
+                        Sold Out
+                      </span>
+                    ) : (
+                      <span className="absolute top-1.5 left-1.5 bg-[#A80000] text-[#F4C542] font-black text-[8px] px-2 py-0.5 rounded-full uppercase">
+                        HOT
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="font-bold text-xs text-gray-800 uppercase text-center line-clamp-2 min-h-[32px] mb-2">{item.name}</h3>
+                  <div className="text-[#A80000] font-black text-sm mb-3">₹{item.price}</div>
+                  <button
+                    onClick={() => !isOutOfStock && addToCart(item)}
+                    disabled={isOutOfStock}
+                    className={`w-full py-1.5 rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-1 ${
+                      isOutOfStock
+                        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        : "bg-[#A80000] text-white hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+                    }`}
+                  >
+                    <ShoppingCart className="w-3 h-3" /> {isOutOfStock ? "Sold Out" : "Add"}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -603,6 +620,9 @@ const Index = () => {
                 const itemId = item.id || item._id;
                 const cartItem = cartItems.find((i) => (i.product._id || i.product.id) === itemId);
                 const quantity = cartItem?.quantity || 0;
+                const stockVal = item.storeStockPieces !== undefined ? item.storeStockPieces : (item.stock !== undefined ? item.stock : 0);
+                const isOutOfStock = stockVal <= 0;
+                const displayImg = isOutOfStock ? '/saiyogi-logo-1.png' : (item.image || "/sky_rocket_box.png");
 
                 return (
                   <div
@@ -614,7 +634,7 @@ const Index = () => {
                     </div>
 
                     <div className="w-full aspect-[4/3] bg-gray-50 flex items-center justify-center p-4 mb-4 rounded-2xl overflow-hidden">
-                      <img src={item.image || "/sky_rocket_box.png"} alt={item.name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" />
+                      <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" />
                     </div>
 
                     <h3 className="font-extrabold text-base text-gray-900 uppercase mb-2 line-clamp-1">{item.name}</h3>
@@ -690,9 +710,8 @@ const Index = () => {
                   Best Quality from Verified Manufacturers
                 </h3>
               </div>
-              <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none">
-                <span className="text-[9px] font-black text-[#A80000] tracking-wider uppercase font-display leading-none">SAI YOGI</span>
-                <span className="text-[7px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">CRACKERS</span>
+              <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none overflow-hidden p-2">
+                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
 
@@ -706,9 +725,8 @@ const Index = () => {
                   We collab with Top Partners from Sivakasi
                 </h3>
               </div>
-              <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none">
-                <span className="text-[9px] font-black text-[#A80000] tracking-wider uppercase font-display leading-none">SAI YOGI</span>
-                <span className="text-[7px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">CRACKERS</span>
+              <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none overflow-hidden p-2">
+                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
 
@@ -722,9 +740,8 @@ const Index = () => {
                   We are Selling Crackers from Authentic Brands
                 </h3>
               </div>
-              <div className="relative border-4 border-white rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-lg shrink-0 select-none">
-                <span className="text-[9px] font-black text-[#A80000] tracking-wider uppercase font-display leading-none">SAI YOGI</span>
-                <span className="text-[7px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">CRACKERS</span>
+              <div className="relative border-4 border-white rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-lg shrink-0 select-none overflow-hidden p-2">
+                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
           </div>

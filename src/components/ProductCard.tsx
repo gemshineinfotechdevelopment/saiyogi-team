@@ -72,7 +72,7 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
             onClick={() => setShowDetails(true)}
           >
             <img
-              src={(product.storeStockPieces || 0) <= 0 ? '/1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
+              src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
               alt={product.name}
               className="w-full h-full object-contain p-1 sm:p-2 group-hover:scale-110 transition-transform duration-700 ease-out"
               loading="lazy"
@@ -170,7 +170,7 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
 
             <div className="w-full md:w-1/2 aspect-square md:aspect-auto bg-white p-4 md:p-8 flex items-center justify-center">
               <img
-                src={(product.storeStockPieces || 0) <= 0 ? '/1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
+                src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
                 alt={product.name}
                 className="w-full h-full object-contain max-h-[350px] md:max-h-[400px]"
               />

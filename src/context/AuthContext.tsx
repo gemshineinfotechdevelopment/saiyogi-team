@@ -1,8 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { UserLoginModal } from "@/components/auth/UserLoginModal";
+import { setCookie, getCookie, deleteCookie } from "@/lib/cookieUtils";
+import { toast } from "sonner";
 
 const isLocalhost = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const SESSION_COOKIE_NAME = "saiyogi_user_session";
+
+interface SessionInfo {
+  phone: string;
+  loginTime: number;
+  lastActiveTime: number;
+}
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -52,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       setToken(null);
       setIsAdmin(false);
-      setIsAuthenticated(!!storedPhone);
+      setIsAuthenticated(!!validPhone);
     }
     setLoading(false);
   }, []);
@@ -72,7 +83,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logoutUser = () => {
     setUserPhone(null);
+    deleteCookie(SESSION_COOKIE_NAME);
     localStorage.removeItem("user_phone");
+    localStorage.removeItem("saiyogi_user_session");
     if (!isAdmin) {
       setIsAuthenticated(false);
     }

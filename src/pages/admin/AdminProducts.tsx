@@ -288,8 +288,27 @@ const AdminProducts = () => {
                       </select>
                     </div>
                     <div>
-                      <Label>Image (Max 5MB, optional)</Label>
-                      <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} className="mt-1 block w-full text-xs text-gray-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer" />
+                      <Label>Image (Max 1200x1600px, 5MB)</Label>
+                      <input type="file" accept="image/*" onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) {
+                          setImageFile(null);
+                          return;
+                        }
+                        const img = new Image();
+                        const url = URL.createObjectURL(file);
+                        img.onload = () => {
+                          if (img.width > 1200 || img.height > 1600) {
+                            toast.error("Image dimensions must not exceed 1200x1600 pixels");
+                            setImageFile(null);
+                            e.target.value = '';
+                          } else {
+                            setImageFile(file);
+                          }
+                          URL.revokeObjectURL(url);
+                        };
+                        img.src = url;
+                      }} className="mt-1 block w-full text-xs text-gray-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer" />
                     </div>
                     <div>
                       <Label>Description</Label>

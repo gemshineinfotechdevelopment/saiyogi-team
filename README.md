@@ -1,6 +1,6 @@
-# Narandiraa Enterprises
+# Sai Yogi Crackers
 
-Narandiraa Enterprises is a comprehensive e-commerce platform built for the online sale of firecrackers. The project is split into a robust Node.js/Express backend powered by Firebase and a modern, responsive React frontend.
+Sai Yogi Crackers is a comprehensive e-commerce platform built for the online sale of firecrackers. The project is split into a robust Node.js/Express backend powered by Firebase and a modern, responsive React frontend.
 
 ## 🌟 Key Features
 
