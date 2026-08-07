@@ -85,11 +85,8 @@ const CartDrawer = () => {
       setIsPhoneVerified(true);
       setViewMode("checkout");
     } else {
-      // If user didn't login, ask for mobile number
-      setVerifyPhone(formData.phoneNumber || "");
-      setOtpStep("number");
-      setUserOtp("");
-      setViewMode("whatsapp-verify");
+      toast.info("Please log in with your mobile number to proceed to checkout.");
+      openLoginModal();
     }
   };
 

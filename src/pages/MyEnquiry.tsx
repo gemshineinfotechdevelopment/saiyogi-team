@@ -62,7 +62,7 @@ const DEFAULT_ENQUIRIES: EnquiryItem[] = [
 ];
 
 const MyEnquiry: React.FC = () => {
-  const { userPhone, isUserLoggedIn } = useAuth();
+  const { userPhone, isUserLoggedIn, openLoginModal } = useAuth();
   const [enquiries, setEnquiries] = useState<EnquiryItem[]>([]);
   const [selectedEnquiry, setSelectedEnquiry] = useState<EnquiryItem | null>(null);
 
@@ -134,8 +134,16 @@ const MyEnquiry: React.FC = () => {
         </h1>
 
         {!isUserLoggedIn && (
-          <div className="mb-6 bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded-xl text-xs font-semibold">
-            ℹ️ You are viewing sample enquiries. Log in with your registered phone number to track your active enquiries.
+          <div className="mb-6 bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-2xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+            <div>
+              <span>ℹ️ Log in with your mobile number to view and track your active inquiries and download PDF receipts.</span>
+            </div>
+            <button
+              onClick={openLoginModal}
+              className="bg-[#A80000] hover:bg-red-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-md shrink-0 cursor-pointer uppercase tracking-wider"
+            >
+              Login with Mobile
+            </button>
           </div>
         )}
 

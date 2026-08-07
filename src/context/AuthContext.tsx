@@ -1,8 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { UserLoginModal } from "@/components/auth/UserLoginModal";
+import { setCookie, getCookie, deleteCookie } from "@/lib/cookieUtils";
+import { toast } from "sonner";
 
 const isLocalhost = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const SESSION_COOKIE_NAME = "saiyogi_user_session";
+
+interface SessionInfo {
+  phone: string;
+  loginTime: number;
+  lastActiveTime: number;
+}
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -28,17 +39,74 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Customer User Phone Login
-  const [userPhone, setUserPhone] = useState<string | null>(localStorage.getItem("user_phone"));
+  // Customer User Phone Login & Cookie Session
+  const [userPhone, setUserPhone] = useState<string | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("admin_token");
     const storedRole = localStorage.getItem("admin_role");
-    const storedPhone = localStorage.getItem("user_phone");
 
-    if (storedPhone) {
-      setUserPhone(storedPhone);
+    // Check Cookie Session
+    const sessionCookie = getCookie(SESSION_COOKIE_NAME);
+    let validPhone: string | null = null;
+
+    if (sessionCookie) {
+      try {
+        const sessionData: SessionInfo = JSON.parse(sessionCookie);
+        const now = Date.now();
+        if (now - (sessionData.lastActiveTime || sessionData.loginTime) < SEVEN_DAYS_MS) {
+          validPhone = sessionData.phone;
+          const updatedSession: SessionInfo = {
+            ...sessionData,
+            lastActiveTime: now
+          };
+          setCookie(SESSION_COOKIE_NAME, JSON.stringify(updatedSession), 7);
+          localStorage.setItem("user_phone", validPhone);
+          localStorage.setItem("saiyogi_user_session", JSON.stringify(updatedSession));
+        } else {
+          // Expired (> 7 Days): only log out active mobile session, preserve all cart & site data
+          deleteCookie(SESSION_COOKIE_NAME);
+          localStorage.removeItem("user_phone");
+          localStorage.removeItem("saiyogi_user_session");
+          toast.info("Your 7-day login session expired. Please log in again with your mobile number.");
+        }
+      } catch (err) {
+        console.error("Failed to parse session cookie", err);
+      }
+    } else {
+      // Check localStorage backup
+      const storedSessionStr = localStorage.getItem("saiyogi_user_session");
+      const storedPhone = localStorage.getItem("user_phone");
+
+      if (storedSessionStr) {
+        try {
+          const sessionData: SessionInfo = JSON.parse(storedSessionStr);
+          const now = Date.now();
+          if (now - (sessionData.lastActiveTime || sessionData.loginTime) < SEVEN_DAYS_MS) {
+            validPhone = sessionData.phone;
+            const updatedSession: SessionInfo = { ...sessionData, lastActiveTime: now };
+            setCookie(SESSION_COOKIE_NAME, JSON.stringify(updatedSession), 7);
+            localStorage.setItem("saiyogi_user_session", JSON.stringify(updatedSession));
+          } else {
+            localStorage.removeItem("user_phone");
+            localStorage.removeItem("saiyogi_user_session");
+          }
+        } catch (_) {}
+      } else if (storedPhone) {
+        validPhone = storedPhone;
+        const newSession: SessionInfo = {
+          phone: storedPhone,
+          loginTime: Date.now(),
+          lastActiveTime: Date.now()
+        };
+        setCookie(SESSION_COOKIE_NAME, JSON.stringify(newSession), 7);
+        localStorage.setItem("saiyogi_user_session", JSON.stringify(newSession));
+      }
+    }
+
+    if (validPhone) {
+      setUserPhone(validPhone);
     }
 
     if (storedToken && ["admin", "SUPER ADMIN", "ADMIN"].includes(storedRole || "")) {
@@ -48,14 +116,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       setToken(null);
       setIsAdmin(false);
-      setIsAuthenticated(!!storedPhone);
+      setIsAuthenticated(!!validPhone);
     }
     setLoading(false);
   }, []);
 
   const loginWithPhone = (phone: string) => {
-    setUserPhone(phone);
-    localStorage.setItem("user_phone", phone);
+    const cleanPhone = phone.replace(/\D/g, "");
+    setUserPhone(cleanPhone);
+    const sessionInfo: SessionInfo = {
+      phone: cleanPhone,
+      loginTime: Date.now(),
+      lastActiveTime: Date.now()
+    };
+    setCookie(SESSION_COOKIE_NAME, JSON.stringify(sessionInfo), 7);
+    localStorage.setItem("user_phone", cleanPhone);
+    localStorage.setItem("saiyogi_user_session", JSON.stringify(sessionInfo));
     setIsAuthenticated(true);
   };
 
@@ -64,7 +140,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logoutUser = () => {
     setUserPhone(null);
+    deleteCookie(SESSION_COOKIE_NAME);
     localStorage.removeItem("user_phone");
+    localStorage.removeItem("saiyogi_user_session");
     if (!isAdmin) {
       setIsAuthenticated(false);
     }
@@ -167,11 +245,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }}
     >
       {children}
-      <UserLoginModal
-        isOpen={isLoginModalOpen}
-        onClose={closeLoginModal}
-        onSuccess={(phone) => loginWithPhone(phone)}
-      />
     </AuthContext.Provider>
   );
 };
