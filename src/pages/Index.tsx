@@ -4,10 +4,11 @@ import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
-import banner1 from "@/assets/banner1.png";
-import banner2 from "@/assets/banner2.png";
-import banner3 from "@/assets/banner3.png";
 import companyLogo from "@/assets/saiyogi-logo-1.png";
+import heroBanner1 from "@/assets/hero_banner_1.jpg";
+import heroBanner2 from "@/assets/hero_banner_2.jpg";
+import heroBanner3 from "@/assets/hero_banner_3.jpg";
+import heroBanner4 from "@/assets/hero_banner_4.jpg";
 import { useState, useEffect } from "react";
 import { getProducts, getCategories, getBrands, Brand } from "@/lib/api";
 import { Product, Category } from "@/data/products";
@@ -122,7 +123,7 @@ const Index = () => {
   const [comboIndex, setComboIndex] = useState(0);
 
   // Hero image slideshow (right-to-left slide)
-  const heroImages = [banner1, banner2, banner3];
+  const heroImages = [heroBanner1, heroBanner2, heroBanner3, heroBanner4];
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideKey, setSlideKey] = useState(0);
 
@@ -257,20 +258,47 @@ const Index = () => {
       <UserHeader />
 
       {/* Hero Section */}
-      <section className="relative w-full overflow-hidden bg-black flex flex-col">
-        <div className="relative w-full aspect-[21/9] min-h-[300px] md:min-h-[480px] max-h-[600px] overflow-hidden bg-gradient-to-r from-red-950 via-black to-red-950 flex items-center justify-center">
+      <section className="relative w-full overflow-hidden bg-black flex flex-col select-none">
+        <div className="relative w-full h-[320px] sm:h-[450px] md:h-[550px] lg:h-[620px] overflow-hidden bg-black flex items-center justify-center group">
+          {/* Full Width & Height Banner Image */}
           <div key={slideKey} className="absolute inset-0 w-full h-full animate-slide-left">
             <img 
               src={heroImages[currentSlide]} 
-              alt="Hero Banner" 
-              className="w-full h-full object-cover object-center scale-105 filter brightness-95" 
+              alt={`Sai Yogi Crackers Banner ${currentSlide + 1}`} 
+              className={`w-full h-full object-cover filter brightness-105 transition-all duration-500 ${
+                currentSlide === 0 ? "object-[center_15%]" : "object-center"
+              }`} 
             />
           </div>
           
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none z-10" />
+
+          {/* Left Arrow Navigation */}
+          <button
+            onClick={() => {
+              setCurrentSlide((prev) => (prev === 0 ? heroImages.length - 1 : prev - 1));
+              setSlideKey((k) => k + 1);
+            }}
+            className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-30 p-2.5 md:p-3 rounded-full bg-black/50 hover:bg-[#A80000] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
+            aria-label="Previous Slide"
+          >
+            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+          </button>
+
+          {/* Right Arrow Navigation */}
+          <button
+            onClick={() => {
+              setCurrentSlide((prev) => (prev + 1) % heroImages.length);
+              setSlideKey((k) => k + 1);
+            }}
+            className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 z-30 p-2.5 md:p-3 rounded-full bg-black/50 hover:bg-[#A80000] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
+            aria-label="Next Slide"
+          >
+            <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+          </button>
 
           {/* Dots Indicator */}
-          <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center gap-2">
+          <div className="absolute bottom-4 md:bottom-6 left-0 right-0 z-30 flex justify-center items-center gap-2.5">
             {heroImages.map((_, idx) => (
               <button
                 key={idx}
@@ -278,8 +306,8 @@ const Index = () => {
                   setCurrentSlide(idx);
                   setSlideKey((k) => k + 1);
                 }}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  currentSlide === idx ? "bg-[#F4C542] w-8 shadow-lg shadow-yellow-500/50" : "bg-white/40 hover:bg-white/70"
+                className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
+                  currentSlide === idx ? "bg-[#F4C542] w-8 shadow-lg shadow-yellow-500/50" : "bg-white/50 w-2.5 hover:bg-white"
                 }`}
                 aria-label={`Slide ${idx + 1}`}
               />
@@ -341,27 +369,43 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {(products.length > 0 ? products.slice(0, 6) : staticBestSellers).map((item: any, idx: number) => (
-              <div
-                key={`bestseller-${item._id || item.id || idx}`}
-                className="bg-white border border-gray-200 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
-              >
-                <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative">
-                  <img src={item.image || "/sky_rocket_box.png"} alt={item.name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" />
-                  <span className="absolute top-1.5 left-1.5 bg-[#A80000] text-[#F4C542] font-black text-[8px] px-2 py-0.5 rounded-full uppercase">
-                    HOT
-                  </span>
-                </div>
-                <h3 className="font-bold text-xs text-gray-800 uppercase text-center line-clamp-2 min-h-[32px] mb-2">{item.name}</h3>
-                <div className="text-[#A80000] font-black text-sm mb-3">₹{item.price}</div>
-                <button
-                  onClick={() => addToCart(item)}
-                  className="w-full bg-[#A80000] text-white py-1.5 rounded-lg text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase flex items-center justify-center gap-1 cursor-pointer"
+            {(products.length > 0 ? products.slice(0, 6) : staticBestSellers).map((item: any, idx: number) => {
+              const stockVal = item.storeStockPieces !== undefined ? item.storeStockPieces : (item.stock !== undefined ? item.stock : 0);
+              const isOutOfStock = stockVal <= 0;
+              const displayImg = isOutOfStock ? '/saiyogi-logo-1.png' : (item.image || "/sky_rocket_box.png");
+              return (
+                <div
+                  key={`bestseller-${item._id || item.id || idx}`}
+                  className="bg-white border border-gray-200 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative"
                 >
-                  <ShoppingCart className="w-3 h-3" /> Add
-                </button>
-              </div>
-            ))}
+                  <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative">
+                    <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" />
+                    {isOutOfStock ? (
+                      <span className="absolute top-1.5 left-1.5 bg-gray-900 text-white font-black text-[8px] px-2 py-0.5 rounded-full uppercase">
+                        Sold Out
+                      </span>
+                    ) : (
+                      <span className="absolute top-1.5 left-1.5 bg-[#A80000] text-[#F4C542] font-black text-[8px] px-2 py-0.5 rounded-full uppercase">
+                        HOT
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="font-bold text-xs text-gray-800 uppercase text-center line-clamp-2 min-h-[32px] mb-2">{item.name}</h3>
+                  <div className="text-[#A80000] font-black text-sm mb-3">₹{item.price}</div>
+                  <button
+                    onClick={() => !isOutOfStock && addToCart(item)}
+                    disabled={isOutOfStock}
+                    className={`w-full py-1.5 rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-1 ${
+                      isOutOfStock
+                        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        : "bg-[#A80000] text-white hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+                    }`}
+                  >
+                    <ShoppingCart className="w-3 h-3" /> {isOutOfStock ? "Sold Out" : "Add"}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -529,7 +573,7 @@ const Index = () => {
       
       {/* Trusted Manufacturers */}
       <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5]">
-        <div className="text-center mb-10">
+        <div className="text-center mb-10 px-4">
           <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
             ⭐ AUTHENTIC PARTNERS ⭐
           </span>
@@ -537,12 +581,13 @@ const Index = () => {
           <p className="text-gray-500 text-xs mt-1">We are supplying high quality fireworks from top brands in Sivakasi.</p>
         </div>
 
-        <div className="container mx-auto px-4 max-w-5xl">
-          <div className="flex flex-wrap justify-center gap-6">
-            {manufacturers.map((brand, i) => (
+        {/* Infinite horizontal scrolling marquee for mobile and desktop */}
+        <div className="relative w-full overflow-hidden py-4">
+          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+            {[...manufacturers, ...manufacturers, ...manufacturers, ...manufacturers].map((brand, i) => (
               <div
-                key={i}
-                className="bg-white border-2 border-gray-100/80 rounded-2xl px-6 py-4 flex items-center gap-4 min-w-[200px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-xl hover:border-[#A80000]/30 transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br hover:from-[#A80000] hover:to-[#8a0000] hover:text-white group cursor-pointer"
+                key={`${brand.name}-${i}`}
+                className="bg-white border-2 border-gray-100/80 rounded-2xl px-6 py-4 flex items-center gap-4 min-w-[220px] shrink-0 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-xl hover:border-[#A80000]/30 transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br hover:from-[#A80000] hover:to-[#8a0000] hover:text-white group cursor-pointer"
               >
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#A80000] to-[#750000] text-white flex items-center justify-center font-black text-xs tracking-wider shrink-0 transition-all duration-300 group-hover:from-[#F4C542] group-hover:to-[#d4a215] group-hover:text-[#1A1A1A]">
                   {brand.logo}
@@ -551,7 +596,7 @@ const Index = () => {
                   <span className="font-black text-[9px] text-[#A80000]/80 tracking-widest uppercase transition-colors duration-300 group-hover:text-[#F4C542]">
                     PARTNER
                   </span>
-                  <span className="font-black text-sm text-gray-800 tracking-wider uppercase transition-colors duration-300 group-hover:text-white">
+                  <span className="font-black text-sm text-gray-800 tracking-wider uppercase transition-colors duration-300 group-hover:text-white whitespace-nowrap">
                     {brand.name}
                   </span>
                 </div>
@@ -636,42 +681,47 @@ const Index = () => {
                 const itemId = item.id || item._id;
                 const cartItem = cartItems.find((i) => (i.product._id || i.product.id) === itemId);
                 const quantity = cartItem?.quantity || 0;
+                const stockVal = item.storeStockPieces !== undefined ? item.storeStockPieces : (item.stock !== undefined ? item.stock : 0);
+                const isOutOfStock = stockVal <= 0;
+                const displayImg = isOutOfStock ? '/saiyogi-logo-1.png' : (item.image || "/sky_rocket_box.png");
 
                 return (
                   <div
                     key={`combo-${offset}-${item._id || item.id || offset}`}
-                    className="bg-[#FFFFFF] border-2 border-amber-100 rounded-3xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center relative group hover:-translate-y-1 overflow-hidden"
+                    className={`bg-[#FFFFFF] border-2 border-amber-100 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-md hover:shadow-2xl transition-all duration-300 flex-col items-center text-center relative group hover:-translate-y-1 overflow-hidden max-w-[290px] sm:max-w-none mx-auto w-full ${
+                      offset > 0 ? "hidden md:flex" : "flex"
+                    }`}
                   >
-                    <div className="absolute top-4 right-4 bg-gradient-to-r from-[#A80000] to-[#5c0a0b] text-[#F4C542] font-black text-[10px] px-3 py-1 rounded-full uppercase shadow-md">
+                    <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-gradient-to-r from-[#A80000] to-[#5c0a0b] text-[#F4C542] font-black text-[9px] sm:text-[10px] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full uppercase shadow-md">
                       SAVE BIG
                     </div>
 
-                    <div className="w-full aspect-[4/3] bg-gray-50 flex items-center justify-center p-4 mb-4 rounded-2xl overflow-hidden">
-                      <img src={item.image || "/sky_rocket_box.png"} alt={item.name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" />
+                    <div className="w-full aspect-[4/3] bg-gray-50 flex items-center justify-center p-2 sm:p-4 mb-2.5 sm:mb-4 rounded-xl sm:rounded-2xl overflow-hidden">
+                      <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" />
                     </div>
 
-                    <h3 className="font-extrabold text-base text-gray-900 uppercase mb-2 line-clamp-1">{item.name}</h3>
+                    <h3 className="font-extrabold text-sm sm:text-base text-gray-900 uppercase mb-1.5 sm:mb-2 line-clamp-1">{item.name}</h3>
 
-                    <div className="flex gap-3 items-center mb-5">
+                    <div className="flex gap-2 sm:gap-3 items-center mb-3 sm:mb-5">
                       {item.oldPrice && (
                         <span className="text-gray-400 line-through text-xs font-bold">₹{item.oldPrice}</span>
                       )}
-                      <span className="text-[#A80000] font-black text-xl">₹{item.price}</span>
+                      <span className="text-[#A80000] font-black text-lg sm:text-xl">₹{item.price}</span>
                     </div>
                     {quantity > 0 ? (
                       <div className="flex items-center justify-between bg-red-50/50 border border-red-200/50 rounded-xl p-1.5 w-full mt-auto" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => updateQuantity(itemId, quantity - 1)}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-white text-[#A80000] font-black hover:bg-red-50 transition-colors shadow-sm"
+                          className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-white text-[#A80000] font-black hover:bg-red-50 transition-colors shadow-sm text-xs sm:text-base"
                         >
                           -
                         </button>
-                        <span className="font-black text-sm text-[#A80000] px-2">
+                        <span className="font-black text-xs sm:text-sm text-[#A80000] px-2">
                           {quantity}
                         </span>
                         <button
                           onClick={() => updateQuantity(itemId, quantity + 1)}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#A80000] text-white font-black hover:bg-red-800 transition-colors shadow-sm"
+                          className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-[#A80000] text-white font-black hover:bg-red-800 transition-colors shadow-sm text-xs sm:text-base"
                         >
                           +
                         </button>
@@ -682,9 +732,9 @@ const Index = () => {
                           e.stopPropagation();
                           addToCart(item as Product);
                         }}
-                        className="w-full bg-[#A80000] hover:bg-[#F4C542] hover:text-[#1A1A1A] text-white font-black text-xs py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 uppercase tracking-widest shadow-md hover:scale-[1.02] active:scale-[0.98] mt-auto"
+                        className="w-full bg-[#A80000] hover:bg-[#F4C542] hover:text-[#1A1A1A] text-white font-black text-[10px] sm:text-xs py-2.5 sm:py-3.5 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 transition-all duration-300 uppercase tracking-widest shadow-md hover:scale-[1.02] active:scale-[0.98] mt-auto"
                       >
-                        <ShoppingCart className="w-4 h-4" />
+                        <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         <span>Add To Cart</span>
                       </button>
                     )}
@@ -724,7 +774,7 @@ const Index = () => {
                 </h3>
               </div>
               <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none overflow-hidden p-2">
-                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
+                <img src={settings?.logo || companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
 
@@ -739,7 +789,7 @@ const Index = () => {
                 </h3>
               </div>
               <div className="relative border-4 border-[#F4C542] rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-[0_0_20px_rgba(244,197,66,0.3)] shrink-0 select-none overflow-hidden p-2">
-                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
+                <img src={settings?.logo || companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
 
@@ -754,7 +804,7 @@ const Index = () => {
                 </h3>
               </div>
               <div className="relative border-4 border-white rounded-full bg-white flex flex-col items-center justify-center text-center w-24 h-24 shadow-lg shrink-0 select-none overflow-hidden p-2">
-                <img src={companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
+                <img src={settings?.logo || companyLogo} alt="Sai Yogi Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
           </div>

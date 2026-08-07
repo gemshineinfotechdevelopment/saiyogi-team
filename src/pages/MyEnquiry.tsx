@@ -25,44 +25,8 @@ interface EnquiryItem {
   }>;
 }
 
-const DEFAULT_ENQUIRIES: EnquiryItem[] = [
-  {
-    id: "1",
-    enquiryNumber: "103671",
-    date: "06/08/2026 12:06 PM",
-    total: 12100.00,
-    status: "Pending",
-    customerName: "Kumar",
-    customerPhone: "9092548347",
-    customerEmail: "kumar@example.com",
-    deliveryAddress: "Main Road, Sivakasi, Tamil Nadu - 626123",
-    items: [
-      { productName: "Ground Chakkkar Deluxe (10 Pcs)", quantity: 5, price: 450 },
-      { productName: "Flower Pots Special (10 Pcs)", quantity: 4, price: 620 },
-      { productName: "Multi Color Sky Shot (12 Shot)", quantity: 3, price: 1800 },
-      { productName: "Sparklers 15cm Electric (10 Pcs)", quantity: 10, price: 195 },
-    ]
-  },
-  {
-    id: "2",
-    enquiryNumber: "103670",
-    date: "06/08/2026 11:28 AM",
-    total: 8050.00,
-    status: "Pending",
-    customerName: "Kumar",
-    customerPhone: "9092548347",
-    customerEmail: "kumar@example.com",
-    deliveryAddress: "Main Road, Sivakasi, Tamil Nadu - 626123",
-    items: [
-      { productName: "Deluxe Garland 1000 Crackers", quantity: 2, price: 1650 },
-      { productName: "7 Color Rockets (10 Pcs)", quantity: 3, price: 850 },
-      { productName: "Twinkling Star Sparklers 30cm", quantity: 5, price: 440 },
-    ]
-  }
-];
-
 const MyEnquiry: React.FC = () => {
-  const { userPhone, isUserLoggedIn } = useAuth();
+  const { userPhone, isUserLoggedIn, openLoginModal } = useAuth();
   const [enquiries, setEnquiries] = useState<EnquiryItem[]>([]);
   const [selectedEnquiry, setSelectedEnquiry] = useState<EnquiryItem | null>(null);
 
@@ -74,22 +38,21 @@ const MyEnquiry: React.FC = () => {
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          setEnquiries(parsed);
-          return;
+          if (Array.isArray(parsed)) {
+            setEnquiries(parsed);
+            return;
+          }
         } catch (_) {}
       }
-      // If user is logged in but hasn't placed an enquiry yet, show sample for their number
-      setEnquiries(DEFAULT_ENQUIRIES.map(e => ({ ...e, customerPhone: cleanPhone })));
-    } else {
-      setEnquiries(DEFAULT_ENQUIRIES);
     }
+    setEnquiries([]);
   }, [userPhone]);
 
   const handleDownloadEstimate = (enquiry: EnquiryItem) => {
     const pdfData: OrderData = {
       orderNumber: enquiry.enquiryNumber,
       customerName: enquiry.customerName || "Customer",
-      customerPhone: enquiry.customerPhone || userPhone || "9092548347",
+      customerPhone: enquiry.customerPhone || userPhone || "",
       customerEmail: enquiry.customerEmail || "customer@example.com",
       deliveryAddress: enquiry.deliveryAddress || "Sivakasi, Tamil Nadu",
       date: enquiry.date,
@@ -134,11 +97,18 @@ const MyEnquiry: React.FC = () => {
         </h1>
 
         {!isUserLoggedIn && (
-          <div className="mb-6 bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded-xl text-xs font-semibold">
-            ℹ️ You are viewing sample enquiries. Log in with your registered phone number to track your active enquiries.
+          <div className="mb-6 bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-2xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+            <div>
+              <span>ℹ️ Log in with your mobile number to view and track your active inquiries and download PDF receipts.</span>
+            </div>
+            <button
+              onClick={openLoginModal}
+              className="bg-[#A80000] hover:bg-red-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-md shrink-0 cursor-pointer uppercase tracking-wider"
+            >
+              Login with Mobile
+            </button>
           </div>
         )}
-
         {/* Enquiry Table */}
         <div className="overflow-x-auto bg-white rounded-lg border-b border-gray-200">
           <table className="w-full text-left border-collapse min-w-[600px]">

@@ -255,7 +255,7 @@ export async function getProducts(): Promise<Product[]> {
     if (list.length > 0) {
       return list.map(p => ({
         ...p,
-        storeStockPieces: p.storeStockPieces !== undefined ? p.storeStockPieces : 100
+        storeStockPieces: p.storeStockPieces !== undefined ? p.storeStockPieces : (p.stock !== undefined ? p.stock : 0)
       }));
     }
     return FALLBACK_PRODUCTS;
@@ -362,6 +362,7 @@ export async function deleteOrder(orderId: string): Promise<any> {
 export interface SiteSettings {
   siteName: string;
   siteDescription: string;
+  logo?: string;
   discountPercent: number;
   minimumPurchaseAmount: number;
   minPurchaseOutsideTN: number;
