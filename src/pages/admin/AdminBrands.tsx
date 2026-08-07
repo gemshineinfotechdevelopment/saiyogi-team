@@ -110,6 +110,12 @@ const AdminBrands = () => {
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
+        if (img.width > 1200 || img.height > 1600) {
+          toast.error("Image dimensions must not exceed 1200x1600 pixels");
+          e.target.value = '';
+          return;
+        }
+
         const targetWidth = 1024;
         const targetHeight = 1024;
 
@@ -380,7 +386,7 @@ const AdminBrands = () => {
             <div className="space-y-2">
               <Label className="text-xs font-bold text-gray-700 uppercase flex items-center justify-between">
                 <span>Brand Logo / Image</span>
-                <span className="text-[10px] text-gray-400 font-normal">Intrinsic size: 1024x1024px</span>
+                <span className="text-[10px] text-gray-400 font-normal">Max: 1200x1600px (Auto-scales to 1024x1024px)</span>
               </Label>
               
               {/* File upload input */}
