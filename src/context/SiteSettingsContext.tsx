@@ -48,7 +48,7 @@ interface SiteSettingsContextType {
 }
 
 const defaultSettings: SiteSettings = {
-  siteName: "Narendiraa Enterprises",
+  siteName: "Sai Yogi Crackers",
   siteDescription: "Premium crackers and fireworks store",
   discountPercent: 10,
   minimumPurchaseAmount: 500,
@@ -57,7 +57,7 @@ const defaultSettings: SiteSettings = {
   deliveryCharge: 99,
   currency: "₹",
   contact: {
-    email: "contact@narendiraa-enterprises.com",
+    email: "contact@saiyogicrackers.com",
     phone: "+91 95859 75756",
     address: "Sattur, Virudhunagar District, Tamil Nadu",
   },
@@ -73,7 +73,7 @@ const defaultSettings: SiteSettings = {
     enableGuestCheckout: true,
     enableNotifications: true,
   },
-  news: "Welcome to Narendiraa Enterprises! Get the best deals on festival crackers here.",
+  news: "Welcome to Sai Yogi Crackers! Get the best deals on festival crackers here.",
   billing: {
     companyName: "",
     phone: "",

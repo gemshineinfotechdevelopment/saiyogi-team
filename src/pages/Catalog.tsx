@@ -150,9 +150,11 @@ const Catalog = () => {
                   const catId = typeof cat === 'object' && cat !== null ? (cat._id || cat.id) : cat;
                   const catFallbackName = typeof cat === 'object' && cat !== null ? cat.name : cat;
                   const categoryName = categories.find(c => (c._id || c.id) === catId)?.name || catFallbackName;
+                  const stockVal = p.storeStockPieces !== undefined ? p.storeStockPieces : (p.stock !== undefined ? p.stock : 0);
+                  const displayImg = stockVal <= 0 ? '/saiyogi-logo-1.png' : (p.image || '/saiyogi-logo-1.png');
                   return (
                     <div key={p._id || p.id} className="flex items-center gap-3 p-2 hover:bg-red-50 rounded-lg cursor-pointer transition-colors" onClick={() => setIsQuickSearchOpen(false)}>
-                      <img src={p.image} alt={p.name} className="h-10 w-10 object-cover rounded" />
+                      <img src={displayImg} alt={p.name} className="h-10 w-10 object-cover rounded" />
                       <div>
                         <div className="font-semibold text-red-900">{p.name}</div>
                         <div className="text-xs text-red-600">{categoryName}</div>

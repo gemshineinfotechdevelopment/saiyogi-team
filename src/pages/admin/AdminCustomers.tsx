@@ -70,7 +70,7 @@ const generateInvoiceHTML = (order: any) => {
     h1{color:#FFD700;margin-bottom:4px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #ddd;padding:8px;text-align:left;font-size:12px}th{background:#f5f5f5}
     .total{font-size:18px;font-weight:bold;margin-top:20px}.header{display:flex;justify-content:space-between}
     </style></head><body>
-    <h1>🎆 Narendiraa Enterprises</h1><p>Tax Invoice</p>
+    <h1>🎆 Sai Yogi Crackers</h1><p>Tax Invoice</p>
     <hr/>
     <div class="header"><div><strong>Invoice:</strong> ${order.orderNumber || order._id?.slice(-8)}<br/><strong>Date:</strong> ${order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "N/A"}</div>
     <div><strong>Customer:</strong> ${order.customerName}<br/><strong>Email:</strong> ${order.customerEmail}</div></div>

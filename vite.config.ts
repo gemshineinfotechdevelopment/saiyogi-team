@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => ({
       },
     },
     // allow Render host for preview/dev when deployed on Render
-    allowedHosts: ["narandiraa-enterprises-1.onrender.com"],
+    allowedHosts: true,
     host: "::",
     port: 8080,
     hmr: {
