@@ -33,7 +33,7 @@ const getDistrictsByState = (state: string) => (indiaStatesData as Record<string
 const CartDrawer = () => {
   const { items, updateQuantity, removeFromCart, clearCart, totalItems, totalPrice, isCartOpen, setIsCartOpen } = useCart();
   const { settings } = useSiteSettings();
-  const { isUserLoggedIn, userPhone, userName, loginWithPhone } = useAuth();
+  const { isUserLoggedIn, userPhone, userName, loginWithPhone, openLoginModal } = useAuth();
   const [viewMode, setViewMode] = useState<"cart" | "whatsapp-verify" | "checkout">("cart");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);

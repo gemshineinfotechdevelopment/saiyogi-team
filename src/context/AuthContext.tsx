@@ -191,11 +191,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }}
     >
       {children}
-      <UserLoginModal
-        isOpen={isLoginModalOpen}
-        onClose={closeLoginModal}
-        onSuccess={(phone, name) => loginWithPhone(phone, name)}
-      />
     </AuthContext.Provider>
   );
 };
