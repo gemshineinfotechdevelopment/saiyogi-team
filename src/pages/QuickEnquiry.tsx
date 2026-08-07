@@ -22,7 +22,7 @@ const QuickEnquiry = () => {
   const [selectedBrand, setSelectedBrand] = useState("All Brands");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
 
-  const { addToCart, updateQuantity, items } = useCart();
+  const { addToCart, updateQuantity, items, setIsCartOpen } = useCart();
   const { settings } = useSiteSettings();
 
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
@@ -167,9 +167,9 @@ const QuickEnquiry = () => {
           
           {/* Cart Total & Checkout Box */}
           <div 
-            onClick={() => navigate('/cart')}
+            onClick={() => setIsCartOpen(true)}
             className="w-full md:w-auto bg-[#A80000] hover:bg-red-800 text-white rounded-2xl px-5 py-2.5 flex items-center justify-between md:justify-start md:gap-5 shadow-lg border border-[#8a0000] cursor-pointer hover:scale-105 active:scale-95 transition-all shrink-0"
-            title="Click to view Cart & Checkout"
+            title="Click to view My Cart"
           >
             <div className="flex flex-col text-left">
               <span className="text-[10px] font-extrabold text-white/90 uppercase tracking-wider">Cart Total</span>
@@ -345,12 +345,15 @@ const QuickEnquiry = () => {
         </div>
 
         {/* Proceed to Checkout Button */}
-        <Link to="/cart" className="block w-full mb-5">
-          <button className="w-full bg-[#A80000] hover:bg-[#F4C542] hover:text-[#1A1A1A] text-white font-extrabold py-4 px-6 rounded-2xl shadow-lg shadow-red-900/20 transition-all flex items-center justify-center gap-2 text-base uppercase tracking-wider cursor-pointer active:scale-[0.99]">
+        <div className="w-full mb-5">
+          <button 
+            onClick={() => setIsCartOpen(true)}
+            className="w-full bg-[#A80000] hover:bg-[#F4C542] hover:text-[#1A1A1A] text-white font-extrabold py-4 px-6 rounded-2xl shadow-lg shadow-red-900/20 transition-all flex items-center justify-center gap-2 text-base uppercase tracking-wider cursor-pointer active:scale-[0.99]"
+          >
             <ShoppingCart className="w-5 h-5 fill-current" />
             <span>Proceed to Checkout</span>
           </button>
-        </Link>
+        </div>
 
         {/* Minimum Order Warning Box */}
         <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-2xl p-4 text-center">
