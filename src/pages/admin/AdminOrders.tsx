@@ -280,7 +280,7 @@ const AdminOrders = () => {
           {([
             { key: 'all',      label: 'All Orders',  icon: '📋', activeClass: 'bg-primary text-primary-foreground border-primary' },
             { key: 'approved', label: 'Approved',     icon: '✅', activeClass: 'bg-green-600 text-white border-green-600' },
-            { key: 'packing',  label: 'Packed',       icon: '📦', activeClass: 'bg-red-600 text-white border-red-600' },
+            { key: 'packing',  label: 'Shipped',      icon: '🚚', activeClass: 'bg-red-600 text-white border-red-600' },
             { key: 'hold',     label: 'On Hold',      icon: '🔒', activeClass: 'bg-amber-500 text-white border-amber-500' },
           ] as { key: StatusFilter; label: string; icon: string; activeClass: string }[]).map(({ key, label, icon, activeClass }) => (
             <button
@@ -333,7 +333,7 @@ const AdminOrders = () => {
                   <th className="text-left p-3">Phone</th>
                   <th className="text-right p-3 hidden sm:table-cell">Items</th>
                   <th className="text-right p-3">Total</th>
-                  <th className="text-center p-3">Packing</th>
+                  <th className="text-center p-3">Shipping</th>
                   <th className="text-center p-3">Approved</th>
                   <th className="text-center p-3">Hold Status</th>
                   <th className="text-right p-3 hidden md:table-cell">Date</th>
@@ -365,7 +365,7 @@ const AdminOrders = () => {
                     <td className="p-3 text-right font-bold text-primary">₹{Number(o.subtotal) + (Number(o.packingCharge) || 0)}</td>
                     <td className="p-3 text-center">
                       <Badge variant={o.packingStatus === 'packed' ? 'default' : 'secondary'} className={o.packingStatus === 'packed' ? 'bg-red-600' : ''}>
-                        {o.packingStatus ? (o.packingStatus === 'packed' ? '📦 Packed' : '🔹 Unpacked') : 'N/A'}
+                        {o.packingStatus ? (o.packingStatus === 'packed' ? '🚚 Shipped' : '🔹 Unshipped') : 'N/A'}
                       </Badge>
                     </td>
                     <td className="p-3 text-center">
@@ -490,7 +490,7 @@ const AdminOrders = () => {
                       <p className="text-green-600 text-xs italic"><strong>Delivery Charges:</strong> Excluded</p>
                       <p className="font-bold"><strong>Total:</strong> ₹{Number(selectedOrder.subtotal) + (Number(selectedOrder.packingCharge) || (Number(selectedOrder.subtotal) <= 3999 ? 120 : Math.round(Number(selectedOrder.subtotal) * 0.03)))}</p>
                       <p><strong>Status:</strong> {selectedOrder.status}</p>
-                      <p><strong>Packing Status:</strong> {selectedOrder.packingStatus ? (selectedOrder.packingStatus === 'packed' ? '📦 Packed' : '🔹 Unpacked') : 'Not set'}</p>
+                      <p><strong>Shipping Status:</strong> {selectedOrder.packingStatus ? (selectedOrder.packingStatus === 'packed' ? '🚚 Shipped' : '🔹 Unshipped') : 'Not set'}</p>
                     </div>
                   </div>
                 </div>
@@ -578,7 +578,7 @@ const AdminOrders = () => {
                       disabled={isUpdatingPacking}
                       className={`flex-1 ${selectedOrder.packingStatus === 'packed' ? 'bg-red-600 hover:bg-red-700' : 'bg-orange-600 hover:bg-orange-700'} text-white`}
                     >
-                      {isUpdatingPacking ? "Updating..." : selectedOrder.packingStatus === 'packed' ? '📦 Mark Unpacked' : '🔹 Mark Packed'}
+                      {isUpdatingPacking ? "Updating..." : selectedOrder.packingStatus === 'packed' ? '🚚 Mark Unshipped' : '🚚 Mark Shipped'}
                     </Button>
                   )}
                   <Button
