@@ -28,6 +28,7 @@ import AdminCategories from "./pages/admin/AdminCategories";
 import AdminCustomers from "./pages/admin/AdminCustomers";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminContent from "./pages/admin/AdminContent";
+import AdminChitScheme from "./pages/admin/AdminChitScheme";
 
 import NotFound from "./pages/NotFound";
 

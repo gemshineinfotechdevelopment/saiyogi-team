@@ -117,7 +117,7 @@ const Index = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [playingVideo, setPlayingVideo] = useState<number | null>(null);
+  const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [videoIndex, setVideoIndex] = useState(0);
   const [comboIndex, setComboIndex] = useState(0);
 
@@ -384,7 +384,10 @@ const Index = () => {
           <div className="relative flex items-center justify-center">
             {/* Left Button */}
             <button
-              onClick={() => setVideoIndex((prev) => (prev - 1 + demoVideos.length) % demoVideos.length)}
+              onClick={() => {
+                const videos = settings.youtubeVideos && settings.youtubeVideos.length > 0 ? settings.youtubeVideos : demoVideos;
+                setVideoIndex((prev) => (prev - 1 + videos.length) % videos.length);
+              }}
               className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
 
             >
@@ -394,48 +397,74 @@ const Index = () => {
             {/* Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full px-4">
               {[0, 1, 2].map((offset) => {
-                const idx = (videoIndex + offset) % demoVideos.length;
-                const video = demoVideos[idx];
-                const isPlaying = playingVideo === video.id;
+                const videos = settings.youtubeVideos && settings.youtubeVideos.length > 0 ? settings.youtubeVideos : demoVideos;
+                if (videos.length === 0) return null;
+                const idx = (videoIndex + offset) % videos.length;
+                const video = videos[idx] as any;
+                
+                // Helper to extract YouTube ID
+                const getYouTubeId = (url: string) => {
+                  if (!url) return null;
+                  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+                  const match = url.match(regExp);
+                  return (match && match[2].length === 11) ? match[2] : null;
+                };
+
+                const isYouTube = video.url && video.url.includes('youtu');
+                const ytId = isYouTube ? getYouTubeId(video.url) : null;
+                const videoId = isYouTube ? ytId : video.id;
+                const isPlaying = playingVideo === videoId;
+                const thumbnail = (isYouTube && ytId) ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : (video.thumbnail || "/fireworks_bg.png");
 
                 return (
                   <div
-                    key={video.id}
+                    key={`${videoId || 'video'}-${offset}`}
                     className="relative rounded-2xl overflow-hidden aspect-video bg-black group cursor-pointer shadow-lg transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl border border-white/40"
-                    onClick={() => setPlayingVideo(isPlaying ? null : video.id)}
+                    onClick={() => setPlayingVideo(isPlaying ? null : videoId)}
                   >
                     {isPlaying ? (
-                      <video
-                        src={video.url}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        className="w-full h-full object-cover"
-                      />
+                      isYouTube && ytId ? (
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
+                          title={video.title}
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          className="w-full h-full"
+                        ></iframe>
+                      ) : (
+                        <video
+                          src={video.url}
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          className="w-full h-full object-cover"
+                        />
+                      )
                     ) : (
                       <img
-                        src={video.thumbnail}
+                        src={thumbnail}
                         alt={video.title}
                         className="w-full h-full object-cover opacity-70 group-hover:opacity-85 transition-opacity"
                       />
                     )}
 
                     {/* Button overlay */}
-                    <div className="absolute inset-0 flex flex-col justify-between p-4 bg-gradient-to-t from-black/60 via-transparent to-black/20">
-                      <span className="text-white font-bold text-xs bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm self-start">
-                        {video.title}
-                      </span>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-[#A80000] group-hover:border-red-500">
-                          {isPlaying ? (
-                            <Pause className="text-white fill-white w-5 h-5" />
-                          ) : (
+                    {!isPlaying && (
+                      <div className="absolute inset-0 flex flex-col justify-between p-4 bg-gradient-to-t from-black/60 via-transparent to-black/20">
+                        <span className="text-white font-bold text-xs bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm self-start">
+                          {video.title}
+                        </span>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-[#A80000] group-hover:border-red-500">
                             <Play className="text-white fill-white w-5 h-5 ml-0.5" />
-                          )}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 );
               })}
@@ -443,7 +472,10 @@ const Index = () => {
 
             {/* Right Button */}
             <button
-              onClick={() => setVideoIndex((prev) => (prev + 1) % demoVideos.length)}
+              onClick={() => {
+                const videos = settings.youtubeVideos && settings.youtubeVideos.length > 0 ? settings.youtubeVideos : demoVideos;
+                setVideoIndex((prev) => (prev + 1) % videos.length);
+              }}
               className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
             >
               <ChevronRight className="h-5 w-5" />
