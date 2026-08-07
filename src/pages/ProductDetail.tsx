@@ -95,7 +95,7 @@ const ProductDetail = () => {
 
         <div className="grid md:grid-cols-2 gap-8 mb-16">
           <div className="rounded-lg overflow-hidden bg-white border-2 border-red-300 aspect-square cursor-pointer" onClick={handleImageClick}>
-            <img src={(product.storeStockPieces || 0) <= 0 ? '/1.png' : product.image} alt={product.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+            <img src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : product.image} alt={product.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
           </div>
 
           <div className="space-y-4">
@@ -155,7 +155,7 @@ const ProductDetail = () => {
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="relative max-w-4xl w-full">
             <img
-              src={(product.storeStockPieces || 0) <= 0 ? '/1.png' : product.image}
+              src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : product.image}
               alt={product.name}
               className="w-full h-auto rounded-lg"
             />

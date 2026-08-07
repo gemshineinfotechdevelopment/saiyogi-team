@@ -26,6 +26,7 @@ import AdminProducts from "./pages/admin/AdminProducts";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminCustomers from "./pages/admin/AdminCustomers";
+import AdminChitScheme from "./pages/admin/AdminChitScheme";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminContent from "./pages/admin/AdminContent";
 
@@ -33,6 +34,7 @@ import NotFound from "./pages/NotFound";
 
 import { SettingsProvider } from "@/context/SettingsContext";
 import ScrollToTop from "@/components/ScrollToTop";
+import { GlobalLoginModal } from "@/components/auth/GlobalLoginModal";
 
 const queryClient = new QueryClient();
 
@@ -41,12 +43,13 @@ const App = () => (
     <TooltipProvider>
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <SiteSettingsProvider>
-          <CartProvider>
-            <AuthProvider>
+          <AuthProvider>
+            <CartProvider>
               <SettingsProvider>
                 <Toaster />
                 <Sonner />
                 <ScrollToTop />
+                <GlobalLoginModal />
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/combo-packs" element={<ComboPacks />} />
@@ -138,8 +141,8 @@ const App = () => (
                 </Routes>
                 <CartDrawer />
               </SettingsProvider>
-            </AuthProvider>
-          </CartProvider>
+            </CartProvider>
+          </AuthProvider>
         </SiteSettingsProvider>
       </BrowserRouter>
     </TooltipProvider>
