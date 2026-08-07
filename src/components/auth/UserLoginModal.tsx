@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Phone, Lock, ArrowRight, RefreshCw, CheckCircle2, ShieldCheck, X, LogOut, User, Crown, Gift, Sparkles, ChevronRight, ShoppingBag, Smartphone } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
@@ -148,12 +148,12 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
               <ShieldCheck className="w-6 h-6 text-[#F4C542]" />
             </div>
             <div>
-              <h2 className="text-base font-black uppercase tracking-wide text-white leading-tight">
+              <DialogTitle className="text-base font-black uppercase tracking-wide text-white leading-tight">
                 Sai Yogi Crackers
-              </h2>
-              <p className="text-[10px] text-amber-300 font-bold tracking-wider uppercase">
+              </DialogTitle>
+              <DialogDescription className="text-[10px] text-amber-300 font-bold tracking-wider uppercase">
                 Celebrate Every Moment ✨
-              </p>
+              </DialogDescription>
             </div>
           </div>
         </div>
