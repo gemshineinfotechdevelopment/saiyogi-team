@@ -49,6 +49,7 @@ const App = () => (
                 <Toaster />
                 <Sonner />
                 <ScrollToTop />
+                <GlobalLoginModal />
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/combo-packs" element={<ComboPacks />} />
