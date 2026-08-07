@@ -101,17 +101,22 @@ const UserHeader = () => {
 
           {/* Right Corner Buttons: Login & Cart Logo Button */}
           <div className="flex items-center gap-3 shrink-0">
-            {/* User Symbol Button */}
+            {/* User Symbol Button / Phone Badge */}
             <button
               onClick={openLoginModal}
-              className={`p-2.5 rounded-xl border transition-all flex items-center justify-center shadow-md hover:scale-105 active:scale-95 cursor-pointer ${
+              className={`p-2 sm:p-2.5 rounded-xl border transition-all flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95 cursor-pointer ${
                 isUserLoggedIn
-                  ? "bg-red-50 border-[#A80000] text-[#A80000]"
+                  ? "bg-red-50 border-[#A80000] text-[#A80000] font-bold"
                   : "bg-gray-50 border-gray-200 text-gray-700 hover:text-[#A80000] hover:border-[#A80000]"
               }`}
               title={isUserLoggedIn ? `User Account (+91 ${userPhone || ""})` : "Login"}
             >
               <User className="h-5 w-5" />
+              {isUserLoggedIn && userPhone && (
+                <span className="hidden lg:inline text-xs font-black tracking-tight">
+                  +91 {userPhone}
+                </span>
+              )}
             </button>
 
             {/* Cart Logo Button */}

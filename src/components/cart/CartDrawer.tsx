@@ -85,11 +85,8 @@ const CartDrawer = () => {
       setIsPhoneVerified(true);
       setViewMode("checkout");
     } else {
-      // If user didn't login, ask for mobile number
-      setVerifyPhone(formData.phoneNumber || "");
-      setOtpStep("number");
-      setUserOtp("");
-      setViewMode("whatsapp-verify");
+      toast.info("Please log in with your mobile number to proceed to checkout.");
+      openLoginModal();
     }
   };
 
@@ -326,7 +323,7 @@ const CartDrawer = () => {
                   const dp = getDiscountPrice(product.price, product.hasDiscount, settings.discountPercent, product.netRate, product.displayNetRate);
                   return (
                     <div key={productId} className="py-3.5 flex gap-3 items-start">
-                      <img src={(product.storeStockPieces || 0) <= 0 ? '/1.png' : product.image} alt={product.name} className="w-14 h-14 rounded-md object-contain shrink-0 border border-gray-100 p-0.5" />
+                      <img src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : product.image} alt={product.name} className="w-14 h-14 rounded-md object-contain shrink-0 border border-gray-100 p-0.5" />
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2">
                           <h4 className="font-bold text-sm text-gray-900 truncate">{product.name}</h4>
