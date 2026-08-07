@@ -494,42 +494,7 @@ const Index = () => {
           </div>
         </div>
       </section>
-      {/* Categories Grid */}
-      <section className="py-16 bg-[#FFF8EE] border-b border-amber-100/50">
-        <div className="text-center mb-10 container mx-auto px-4">
-          <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs">
-            Shop By Category
-          </h2>
-          <div className="w-24 h-1 bg-[#7A1416] mx-auto rounded-full mb-3"></div>
-          <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto font-medium">
-            Explore our wide selection of premium fireworks crafted for the most spectacular and joyful moments.
-          </p>
-        </div>
-
-        {/* Infinite scrolling categories marquee from right to left */}
-        <div className="relative w-full overflow-hidden py-4">
-          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
-            {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i: number) => {
-              const catId = cat.id || cat._id || cat.categoryId || 'all';
-              return (
-                <div
-                  key={`${catId}-${i}`}
-                  onClick={() => window.location.href = `/catalog?category=${catId}`}
-                  className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-amber-100 flex flex-col items-center p-4 cursor-pointer group hover:-translate-y-1 w-[180px] shrink-0"
-                >
-                  <div className="w-full aspect-square flex items-center justify-center bg-gradient-to-b from-amber-50/50 to-orange-50/20 rounded-xl p-3 mb-3 group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
-                    <img src={cat.image || "/sky_rocket_box.png"} alt={cat.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
-                    <span className="absolute top-2 right-2 bg-[#7A1416] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full opacity-90">Hot</span>
-                  </div>
-                  <h3 className="font-extrabold text-xs sm:text-sm text-gray-800 uppercase text-center group-hover:text-[#7A1416] transition-colors min-h-[36px] line-clamp-2 flex items-center justify-center">{cat.name}</h3>
-                  <p className="text-[11px] text-amber-700 font-semibold mt-1">Explore →</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
+      
       {/* Trusted Manufacturers */}
       <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5]">
         <div className="text-center mb-10">

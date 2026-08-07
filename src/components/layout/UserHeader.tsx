@@ -9,7 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 const UserHeader = () => {
   const { totalItems, setIsCartOpen } = useCart();
   const { settings } = useSiteSettings();
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isUserLoggedIn, userPhone, openLoginModal, logoutUser } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,10 +25,10 @@ const UserHeader = () => {
       return currentPath === '/about-us' || currentPath === '/about';
     }
     if (path === '/catalog') {
-      return (currentPath === '/catalog' && !currentSearch.includes('category=combo-packs')) || currentPath.startsWith('/product/');
+      return currentPath === '/catalog' || currentPath.startsWith('/product/');
     }
-    if (path === '/combo-packs') {
-      return currentPath === '/combo-packs' || (currentPath === '/catalog' && currentSearch.includes('category=combo-packs'));
+    if (path === '/chit-scheme') {
+      return currentPath === '/chit-scheme';
     }
     return currentPath === path;
   };
@@ -85,8 +85,8 @@ const UserHeader = () => {
               QUICK ENQUIRY
               <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded animate-pulse absolute -right-6 -top-2">NEW</span>
             </Link>
-            <Link to="/combo-packs" className={getLinkClass('/combo-packs') + " flex items-center gap-1"}>
-              COMBO PACKS <ChevronDown className="h-3 w-3" />
+            <Link to="/chit-scheme" className={getLinkClass('/chit-scheme')}>
+              CHIT SCHEME
             </Link>
             <Link to="/about-us" className={getLinkClass('/about-us')}>
               ABOUT US
@@ -101,13 +101,17 @@ const UserHeader = () => {
 
           {/* Right Corner Buttons: Login & Cart Logo Button */}
           <div className="flex items-center gap-3 shrink-0">
-            {/* Login Button */}
+            {/* User Symbol Button */}
             <button
-              className="flex items-center gap-1.5 text-gray-700 hover:text-[#A80000] font-extrabold text-xs lg:text-sm px-3.5 py-2 rounded-xl border border-gray-200 hover:border-[#A80000] bg-gray-50 hover:bg-red-50/50 transition-all uppercase tracking-wider cursor-pointer shadow-xs"
-              title="Login"
+              onClick={openLoginModal}
+              className={`p-2.5 rounded-xl border transition-all flex items-center justify-center shadow-md hover:scale-105 active:scale-95 cursor-pointer ${
+                isUserLoggedIn
+                  ? "bg-red-50 border-[#A80000] text-[#A80000]"
+                  : "bg-gray-50 border-gray-200 text-gray-700 hover:text-[#A80000] hover:border-[#A80000]"
+              }`}
+              title={isUserLoggedIn ? `User Account (+91 ${userPhone || ""})` : "Login"}
             >
-              <User className="h-4 w-4 text-[#A80000]" />
-              <span>Login</span>
+              <User className="h-5 w-5" />
             </button>
 
             {/* Cart Logo Button */}
@@ -160,7 +164,7 @@ const UserHeader = () => {
               <Link to="/quick-enquiry" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/quick-enquiry') + " flex items-center gap-2"}>
                 QUICK ENQUIRY <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded">NEW</span>
               </Link>
-              <Link to="/combo-packs" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/combo-packs')}>COMBO PACKS</Link>
+              <Link to="/chit-scheme" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/chit-scheme')}>CHIT SCHEME</Link>
               <Link to="/about-us" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/about-us')}>ABOUT US</Link>
               <Link to="/safety-tips" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/safety-tips')}>SAFETY TIPS</Link>
               <Link to="/contact" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/contact')}>CONTACT US</Link>

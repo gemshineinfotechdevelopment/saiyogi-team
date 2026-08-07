@@ -17,6 +17,8 @@ import Contact from "./pages/Contact";
 import QuickEnquiry from "./pages/QuickEnquiry";
 import AboutUs from "./pages/AboutUs";
 import ChitScheme from "./pages/ChitScheme";
+import MyEnquiry from "./pages/MyEnquiry";
+import MyAccount from "./pages/MyAccount";
 import AdminLogin from "./pages/admin/AdminLogin";
 import Dashboard from "./pages/admin/Dashboard";
 import AdminBrands from "./pages/admin/AdminBrands";
@@ -37,18 +39,20 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <SiteSettingsProvider>
-        <AuthProvider>
-          <SettingsProvider>
-            <CartProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <SiteSettingsProvider>
+          <CartProvider>
+            <AuthProvider>
+              <SettingsProvider>
+                <Toaster />
+                <Sonner />
                 <ScrollToTop />
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/combo-packs" element={<ComboPacks />} />
                   <Route path="/chit-scheme" element={<ChitScheme />} />
+                  <Route path="/my-enquiry" element={<MyEnquiry />} />
+                  <Route path="/my-account" element={<MyAccount />} />
                   <Route path="/catalog" element={<Catalog />} />
                   <Route path="/product/:id" element={<ProductDetail />} />
                   <Route path="/safety-tips" element={<SafetyTips />} />
@@ -57,7 +61,6 @@ const App = () => (
                   <Route path="/quick-enquery" element={<Navigate to="/quick-enquiry" replace />} />
                   <Route path="/about" element={<AboutUs />} />
                   <Route path="/about-us" element={<AboutUs />} />
-                  <Route path="/chit-scheme" element={<Navigate to="/quick-enquiry" replace />} />
                   <Route path="/admin/login" element={<AdminLogin />} />
                   <Route
                     path="/admin"
@@ -108,6 +111,14 @@ const App = () => (
                     }
                   />
                   <Route
+                    path="/admin/chit-scheme"
+                    element={
+                      <ProtectedRoute>
+                        <AdminChitScheme />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/admin/content"
                     element={
                       <ProtectedRoute>
@@ -126,11 +137,11 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <CartDrawer />
-              </BrowserRouter>
-            </CartProvider>
-          </SettingsProvider>
-        </AuthProvider>
-      </SiteSettingsProvider>
+              </SettingsProvider>
+            </AuthProvider>
+          </CartProvider>
+        </SiteSettingsProvider>
+      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
