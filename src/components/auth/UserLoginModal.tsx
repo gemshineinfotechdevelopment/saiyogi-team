@@ -13,7 +13,6 @@ interface UserLoginModalProps {
 
 export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const { isUserLoggedIn, userPhone, userName, logoutUser } = useAuth();
-  const { setIsCartOpen } = useCart();
   const navigate = useNavigate();
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phone, setPhone] = useState("");

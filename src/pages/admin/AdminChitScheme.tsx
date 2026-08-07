@@ -40,9 +40,13 @@ const AdminChitScheme: React.FC = () => {
   }, []);
 
   const saveImagesToStorage = (updated: ChitSchemeImage[]) => {
-    setImages(updated);
-    localStorage.setItem("chit_scheme_images", JSON.stringify(updated));
-    toast.success("Chit Scheme images updated successfully!");
+    try {
+      setImages(updated);
+      localStorage.setItem("chit_scheme_images", JSON.stringify(updated));
+      toast.success("Chit Scheme images updated successfully!");
+    } catch (err) {
+      toast.error("Failed to save: Storage quota exceeded. Please delete some existing images first.");
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,21 +55,66 @@ const AdminChitScheme: React.FC = () => {
 
     const newUploaded: ChitSchemeImage[] = [];
     let processed = 0;
+    const fileList = Array.from(files);
 
-    Array.from(files).forEach((file, index) => {
+    fileList.forEach((file, index) => {
       const reader = new FileReader();
       reader.onload = (event) => {
-        if (event.target?.result) {
-          newUploaded.push({
-            id: `${Date.now()}-${index}`,
-            url: event.target.result as string,
-            title: file.name.replace(/\.[^/.]+$/, "")
-          });
-        }
-        processed++;
-        if (processed === files.length) {
-          const updated = [...images, ...newUploaded];
-          saveImagesToStorage(updated);
+        const img = new Image();
+        img.onload = () => {
+          // Scale image down to max width 1000px maintaining aspect ratio
+          const maxWidth = 1000;
+          const scale = Math.min(1, maxWidth / img.width);
+          const targetWidth = Math.round(img.width * scale);
+          const targetHeight = Math.round(img.height * scale);
+
+          const canvas = document.createElement("canvas");
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+          const ctx = canvas.getContext("2d");
+
+          if (ctx) {
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(0, 0, targetWidth, targetHeight);
+            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+
+            newUploaded.push({
+              id: `${Date.now()}-${index}-${Math.random().toString(36).substring(2, 6)}`,
+              url: dataUrl,
+              title: file.name.replace(/\.[^/.]+$/, "")
+            });
+          } else {
+            newUploaded.push({
+              id: `${Date.now()}-${index}`,
+              url: event.target?.result as string,
+              title: file.name.replace(/\.[^/.]+$/, "")
+            });
+          }
+
+          processed++;
+          if (processed === fileList.length) {
+            setImages(prev => {
+              const updated = [...prev, ...newUploaded];
+              saveImagesToStorage(updated);
+              return updated;
+            });
+          }
+        };
+
+        img.onerror = () => {
+          processed++;
+          if (processed === fileList.length && newUploaded.length > 0) {
+            setImages(prev => {
+              const updated = [...prev, ...newUploaded];
+              saveImagesToStorage(updated);
+              return updated;
+            });
+          }
+        };
+
+        if (typeof event.target?.result === "string") {
+          img.src = event.target.result;
         }
       };
       reader.readAsDataURL(file);
@@ -117,7 +166,7 @@ const AdminChitScheme: React.FC = () => {
                 <span>Browse Files</span>
                 <input
                   type="file"
-                  accept="image/png, image/jpeg, image/webp"
+                  accept="image/*"
                   multiple
                   onChange={handleFileUpload}
                   className="hidden"
