@@ -166,61 +166,75 @@ const AdminChitScheme: React.FC = () => {
             </div>
           </div>
 
-          {/* Upload Card with Title & Description inputs */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs mb-8 space-y-5">
+          {/* Upload Card with Left Upload Option & Right Image Details */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs mb-8 space-y-4">
             <h2 className="text-base font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
               <Upload className="w-5 h-5 text-primary" />
-              Upload New Chit Scheme Image
+              Add Chit Scheme Image & Details
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Scheme Title (Optional)
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+              {/* Left Side: Image Upload Option */}
+              <div className="border-2 border-dashed border-gray-200 hover:border-primary/50 rounded-2xl p-6 text-center transition-colors bg-gray-50/50 flex flex-col items-center justify-center min-h-[220px]">
+                <ImageIcon className="w-12 h-12 text-gray-400 mb-3" />
+                <p className="text-base font-bold text-gray-800 mb-1">
+                  Select Image File
+                </p>
+                <p className="text-xs text-gray-500 mb-5 font-medium">
+                  PNG, JPG, WEBP formats supported
+                </p>
+                <label className="bg-primary text-white text-xs font-bold px-6 py-3 rounded-xl cursor-pointer hover:bg-primary/90 transition-all shadow-xs flex items-center gap-2 active:scale-95">
+                  <Upload className="w-4 h-4" />
+                  <span>Browse & Upload Image</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
                 </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Diwali Mega Savings Scheme 2026"
-                  value={uploadTitle}
-                  onChange={(e) => setUploadTitle(e.target.value)}
-                  className="w-full text-xs p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Scheme Description (Optional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Save ₹1000/month & get bonus 50% fireworks free!"
-                  value={uploadDescription}
-                  onChange={(e) => setUploadDescription(e.target.value)}
-                  className="w-full text-xs p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                />
-              </div>
-            </div>
+              {/* Right Side: Image Details */}
+              <div className="bg-gray-50/60 border border-gray-200/80 rounded-2xl p-5 flex flex-col justify-between space-y-4">
+                <div className="space-y-3">
+                  <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <FileText className="w-4 h-4 text-primary" />
+                    <span>Image Details</span>
+                  </h3>
 
-            {/* File Upload Drop Zone */}
-            <div className="border-2 border-dashed border-gray-200 hover:border-primary/50 rounded-2xl p-8 text-center transition-colors bg-gray-50/50 flex flex-col items-center justify-center">
-              <ImageIcon className="w-12 h-12 text-gray-400 mb-3" />
-              <p className="text-base font-bold text-gray-800 mb-1">
-                Upload image files
-              </p>
-              <p className="text-xs text-gray-500 mb-5 font-medium">
-                PNG, JPG, WEBP formats supported
-              </p>
-              <label className="bg-primary text-white text-xs font-bold px-6 py-3 rounded-xl cursor-pointer hover:bg-primary/90 transition-all shadow-xs flex items-center gap-2 active:scale-95">
-                <Upload className="w-4 h-4" />
-                <span>Browse & Upload Files</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-              </label>
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                      Scheme Title
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Diwali Mega Savings Scheme 2026"
+                      value={uploadTitle}
+                      onChange={(e) => setUploadTitle(e.target.value)}
+                      className="w-full text-xs p-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                      Scheme Description
+                    </label>
+                    <textarea
+                      rows={3}
+                      placeholder="e.g. Save ₹1000/month & get bonus 50% fireworks free!"
+                      value={uploadDescription}
+                      onChange={(e) => setUploadDescription(e.target.value)}
+                      className="w-full text-xs p-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none"
+                    />
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-gray-500 font-medium italic bg-amber-50/80 border border-amber-200/60 p-2.5 rounded-xl text-amber-900">
+                  💡 Fill in Title & Description, then click <strong>Browse & Upload Image</strong> on the left. You can also edit details later anytime.
+                </p>
+              </div>
             </div>
           </div>
 
