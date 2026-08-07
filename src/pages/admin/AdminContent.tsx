@@ -55,6 +55,7 @@ const AdminContent = () => {
         socialLinks: form.socialLinks,
         news: form.news,
         enablePackingCharge: form.enablePackingCharge,
+        youtubeVideos: form.youtubeVideos,
       });
 
       // Update global context state immediately
@@ -229,6 +230,77 @@ const AdminContent = () => {
                     </label>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* YouTube Promotional Videos */}
+            <div className="bg-card border border-border rounded-lg p-6 space-y-4">
+              <h2 className="font-display font-bold text-lg flex items-center gap-2">
+                Promotional YouTube Videos
+              </h2>
+              <div className="space-y-4">
+                {(form.youtubeVideos || []).map((video, index) => (
+                  <div key={index} className="flex gap-4 items-end bg-secondary/50 p-4 rounded-lg border border-border flex-wrap md:flex-nowrap">
+                    <div className="flex-1 space-y-2 w-full min-w-[200px]">
+                      <Label>Title</Label>
+                      <Input
+                        placeholder="e.g. Grand Celebration Video"
+                        value={video.title}
+                        onChange={(e) => {
+                          const newVideos = [...(form.youtubeVideos || [])];
+                          newVideos[index].title = e.target.value;
+                          setForm({ ...form, youtubeVideos: newVideos });
+                        }}
+                        disabled={!isEditing}
+                        className={!isEditing ? "bg-muted cursor-not-allowed" : ""}
+                      />
+                    </div>
+                    <div className="flex-1 space-y-2 w-full min-w-[200px]">
+                      <Label>YouTube URL</Label>
+                      <Input
+                        placeholder="e.g. https://www.youtube.com/watch?v=..."
+                        value={video.url}
+                        onChange={(e) => {
+                          const newVideos = [...(form.youtubeVideos || [])];
+                          newVideos[index].url = e.target.value;
+                          setForm({ ...form, youtubeVideos: newVideos });
+                        }}
+                        disabled={!isEditing}
+                        className={!isEditing ? "bg-muted cursor-not-allowed" : ""}
+                      />
+                    </div>
+                    {isEditing && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => {
+                          const newVideos = [...(form.youtubeVideos || [])];
+                          newVideos.splice(index, 1);
+                          setForm({ ...form, youtubeVideos: newVideos });
+                        }}
+                        className="shrink-0"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                
+                {isEditing && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full gap-2 border-dashed"
+                    onClick={() => {
+                      const newVideos = [...(form.youtubeVideos || []), { title: '', url: '' }];
+                      setForm({ ...form, youtubeVideos: newVideos });
+                    }}
+                  >
+                    <Plus className="h-4 w-4" /> Add Video
+                  </Button>
+                )}
+                <p className="text-[10px] text-muted-foreground italic">These videos will be displayed in the Fireworks Showcase section on the Home page.</p>
               </div>
             </div>
 
