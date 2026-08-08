@@ -9,7 +9,7 @@ export const GlobalLoginModal: React.FC = () => {
     <UserLoginModal
       isOpen={isLoginModalOpen}
       onClose={closeLoginModal}
-      onSuccess={(phone) => loginWithPhone(phone)}
+      onSuccess={(phone, name) => loginWithPhone(phone, name)}
     />
   );
 };
