@@ -9,20 +9,31 @@ export const FloatingCartTotal: React.FC = () => {
   const location = useLocation();
 
   // Hide on admin routes
-  if (location.pathname.startsWith("/admin")) {
+  if (location?.pathname?.startsWith("/admin")) {
     return null;
   }
 
-  const totalPrice = items.reduce((acc, item) => {
+  const validItems = Array.isArray(items) ? items.filter((i) => i && i.product) : [];
+  if (validItems.length === 0) return null;
+
+  const totalPrice = validItems.reduce((acc, item) => {
+    const price = item.product?.price || 0;
+    const hasDiscount = !!item.product?.hasDiscount;
+    const discountPercent = settings?.discountPercent || 0;
+    const netRate = item.product?.netRate;
+    const displayNetRate = !!item.product?.displayNetRate;
+
     const dp = getDiscountPrice(
-      item.product.price,
-      item.product.hasDiscount,
-      settings.discountPercent,
-      item.product.netRate,
-      item.product.displayNetRate
+      price,
+      hasDiscount,
+      discountPercent,
+      netRate,
+      displayNetRate
     );
-    return acc + dp * item.quantity;
+    return acc + dp * (item.quantity || 0);
   }, 0);
+
+  if (totalPrice <= 0) return null;
 
   return (
     <div
