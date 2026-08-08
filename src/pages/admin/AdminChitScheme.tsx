@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminNavbar from "@/components/layout/AdminNavbar";
-import { Image as ImageIcon, Upload, Trash2, AlertCircle, Edit2, Check, X, FileText } from "lucide-react";
+import { Image as ImageIcon, Upload, Trash2, AlertCircle, Edit2, Check, X, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { uploadImageToCloudinary } from "@/lib/api";
 
 export interface ChitSchemeImage {
   id: string;
@@ -31,6 +32,7 @@ const AdminChitScheme: React.FC = () => {
   const [images, setImages] = useState<ChitSchemeImage[]>([]);
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadDescription, setUploadDescription] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
 
   // Edit Modal State
   const [editingImage, setEditingImage] = useState<ChitSchemeImage | null>(null);
@@ -60,66 +62,37 @@ const AdminChitScheme: React.FC = () => {
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    setIsUploading(true);
     const newUploaded: ChitSchemeImage[] = [];
-    let processed = 0;
     const fileList = Array.from(files);
 
-    fileList.forEach((file, index) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          // Scale image down to max width 1000px maintaining aspect ratio
-          const maxWidth = 1000;
-          const scale = Math.min(1, maxWidth / img.width);
-          const targetWidth = Math.round(img.width * scale);
-          const targetHeight = Math.round(img.height * scale);
+    for (let index = 0; index < fileList.length; index++) {
+      const file = fileList[index];
+      try {
+        const cloudinaryUrl = await uploadImageToCloudinary(file, "chit_schemes");
+        const autoTitle = uploadTitle.trim() || file.name.replace(/\.[^/.]+$/, "");
+        newUploaded.push({
+          id: `${Date.now()}-${index}-${Math.random().toString(36).substring(2, 6)}`,
+          url: cloudinaryUrl,
+          title: autoTitle,
+          description: uploadDescription.trim() || ""
+        });
+      } catch (err: any) {
+        toast.error(`Failed to upload ${file.name} to Cloudinary: ${err.message || err}`);
+      }
+    }
 
-          const canvas = document.createElement("canvas");
-          canvas.width = targetWidth;
-          canvas.height = targetHeight;
-          const ctx = canvas.getContext("2d");
-
-          if (ctx) {
-            ctx.fillStyle = "#FFFFFF";
-            ctx.fillRect(0, 0, targetWidth, targetHeight);
-            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-            const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-
-            const autoTitle = uploadTitle.trim() || file.name.replace(/\.[^/.]+$/, "");
-
-            newUploaded.push({
-              id: `${Date.now()}-${index}-${Math.random().toString(36).substring(2, 6)}`,
-              url: dataUrl,
-              title: autoTitle,
-              description: uploadDescription.trim() || ""
-            });
-          }
-
-          processed++;
-          if (processed === fileList.length) {
-            const updated = [...images, ...newUploaded];
-            saveImagesToStorage(updated);
-            setUploadTitle("");
-            setUploadDescription("");
-          }
-        };
-
-        img.onerror = () => {
-          processed++;
-        };
-
-        if (typeof event.target?.result === "string") {
-          img.src = event.target.result;
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-
+    if (newUploaded.length > 0) {
+      const updated = [...images, ...newUploaded];
+      saveImagesToStorage(updated);
+      setUploadTitle("");
+      setUploadDescription("");
+    }
+    setIsUploading(false);
     e.target.value = "";
   };
 
@@ -181,15 +154,16 @@ const AdminChitScheme: React.FC = () => {
                   Select Image File
                 </p>
                 <p className="text-xs text-gray-500 mb-5 font-medium">
-                  PNG, JPG, WEBP formats supported
+                  PNG, JPG, WEBP formats supported (Uploads to Cloudinary)
                 </p>
-                <label className="bg-primary text-white text-xs font-bold px-6 py-3 rounded-xl cursor-pointer hover:bg-primary/90 transition-all shadow-xs flex items-center gap-2 active:scale-95">
-                  <Upload className="w-4 h-4" />
-                  <span>Browse & Upload Image</span>
+                <label className={`bg-primary text-white text-xs font-bold px-6 py-3 rounded-xl cursor-pointer hover:bg-primary/90 transition-all shadow-xs flex items-center gap-2 active:scale-95 ${isUploading ? 'opacity-70 pointer-events-none' : ''}`}>
+                  {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                  <span>{isUploading ? 'Uploading to Cloudinary...' : 'Browse & Upload Image'}</span>
                   <input
                     type="file"
                     accept="image/*"
                     multiple
+                    disabled={isUploading}
                     onChange={handleFileUpload}
                     className="hidden"
                   />
