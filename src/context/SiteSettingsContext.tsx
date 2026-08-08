@@ -40,6 +40,7 @@ export interface SiteSettings {
     applyGst?: boolean;
   };
   enablePackingCharge?: boolean;
+  youtubeVideos?: { title: string; url: string }[];
 }
 
 interface SiteSettingsContextType {
@@ -84,6 +85,7 @@ const defaultSettings: SiteSettings = {
     applyGst: false
   },
   enablePackingCharge: true,
+  youtubeVideos: [],
 };
 
 const SiteSettingsContext = createContext<SiteSettingsContextType | undefined>(undefined);
@@ -113,6 +115,7 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
             news: siteInfo.news !== undefined ? siteInfo.news : prev.news,
             billing: siteInfo.billing !== undefined ? siteInfo.billing : prev.billing,
             enablePackingCharge: siteInfo.enablePackingCharge !== undefined ? siteInfo.enablePackingCharge : prev.enablePackingCharge,
+            youtubeVideos: siteInfo.youtubeVideos !== undefined ? siteInfo.youtubeVideos : prev.youtubeVideos,
           }));
         }
       } catch (error) {
