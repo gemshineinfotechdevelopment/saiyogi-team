@@ -9,7 +9,7 @@ import heroBanner1 from "@/assets/hero_banner_1.jpg";
 import heroBanner2 from "@/assets/hero_banner_2.jpg";
 import heroBanner3 from "@/assets/hero_banner_3.jpg";
 import heroBanner4 from "@/assets/hero_banner_4.jpg";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getProducts, getCategories, getBrands, Brand } from "@/lib/api";
 import { Product, Category } from "@/data/products";
 import { getUpcomingDiwaliInfo, calculateTimeLeft, UpcomingDiwaliInfo } from "@/lib/diwaliCountdown";
@@ -120,6 +120,19 @@ const Index = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [videoIndex, setVideoIndex] = useState(0);
+  const [isHoveringVideos, setIsHoveringVideos] = useState(false);
+
+  // Automatic horizontal sliding for YouTube Fireworks Showcase videos
+  useEffect(() => {
+    if (playingVideo || isHoveringVideos) return;
+    const timer = setInterval(() => {
+      const videosList = settings.youtubeVideos && settings.youtubeVideos.length > 0 ? settings.youtubeVideos : demoVideos;
+      if (videosList.length > 0) {
+        setVideoIndex((prev) => (prev + 1) % videosList.length);
+      }
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [playingVideo, isHoveringVideos, settings.youtubeVideos]);
   const [comboIndex, setComboIndex] = useState(0);
 
   // Hero image slideshow (right-to-left slide)
@@ -425,15 +438,19 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="relative flex items-center justify-center">
+          <div 
+            className="relative flex items-center justify-center"
+            onMouseEnter={() => setIsHoveringVideos(true)}
+            onMouseLeave={() => setIsHoveringVideos(false)}
+          >
             {/* Left Button */}
             <button
               onClick={() => {
                 const videos = settings.youtubeVideos && settings.youtubeVideos.length > 0 ? settings.youtubeVideos : demoVideos;
                 setVideoIndex((prev) => (prev - 1 + videos.length) % videos.length);
               }}
-              className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
-
+              className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all cursor-pointer"
+              aria-label="Previous Video"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -456,15 +473,15 @@ const Index = () => {
 
                 const isYouTube = video.url && video.url.includes('youtu');
                 const ytId = isYouTube ? getYouTubeId(video.url) : null;
-                const videoId = isYouTube ? ytId : video.id;
-                const isPlaying = playingVideo === videoId;
+                const videoId = isYouTube ? (ytId || `yt-${idx}`) : (video.id || `vid-${idx}`);
+                const isPlaying = playingVideo === `${videoId}-${offset}`;
                 const thumbnail = (isYouTube && ytId) ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : (video.thumbnail || "/fireworks_bg.png");
 
                 return (
                   <div
-                    key={`${videoId || 'video'}-${offset}`}
-                    className="relative rounded-2xl overflow-hidden aspect-video bg-black group cursor-pointer shadow-lg transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl border border-white/40"
-                    onClick={() => setPlayingVideo(isPlaying ? null : videoId)}
+                    key={`${videoIndex}-${offset}`}
+                    className="relative rounded-2xl overflow-hidden aspect-video bg-black group cursor-pointer shadow-lg transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl border border-white/40 animate-fade-in"
+                    onClick={() => setPlayingVideo(isPlaying ? null : `${videoId}-${offset}`)}
                   >
                     {isPlaying ? (
                       isYouTube && ytId ? (
@@ -499,7 +516,7 @@ const Index = () => {
                     {/* Button overlay */}
                     {!isPlaying && (
                       <div className="absolute inset-0 flex flex-col justify-between p-4 bg-gradient-to-t from-black/60 via-transparent to-black/20">
-                        <span className="text-white font-bold text-xs bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm self-start">
+                        <span className="text-white font-bold text-xs bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm self-start truncate max-w-[85%]">
                           {video.title}
                         </span>
                         <div className="absolute inset-0 flex items-center justify-center">
@@ -520,9 +537,10 @@ const Index = () => {
                 const videos = settings.youtubeVideos && settings.youtubeVideos.length > 0 ? settings.youtubeVideos : demoVideos;
                 setVideoIndex((prev) => (prev + 1) % videos.length);
               }}
-              className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
+              className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all cursor-pointer"
+              aria-label="Next Video"
             >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         </div>
