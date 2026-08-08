@@ -398,6 +398,7 @@ export interface SiteSettings {
     applyGst?: boolean;
   };
   enablePackingCharge?: boolean;
+  youtubeVideos?: { title: string; url: string }[];
 }
 
 export async function getSettings(): Promise<SiteSettings> {
