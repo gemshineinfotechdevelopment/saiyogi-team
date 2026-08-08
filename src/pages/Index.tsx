@@ -211,6 +211,22 @@ const Index = () => {
       });
     };
 
+    let chakkarAngle = 0;
+    const createChakkarParticle = (x: number, y: number) => {
+      chakkarAngle += 0.8; // Spin speed
+      const isMobile = window.innerWidth < 768;
+      const speed = isMobile ? (Math.random() * 6 + 4) : (Math.random() * 10 + 5);
+      const angle = chakkarAngle + (Math.random() * 0.5 - 0.25);
+      particles.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: (Math.sin(angle) * speed * 0.5) - (isMobile ? 1 : 2), // Elliptical spin + slight upward drift
+        life: 1,
+        decay: Math.random() * 0.02 + 0.01,
+        color: Math.random() > 0.5 ? '255, 255, 255' : '150, 255, 150' // Silver & Green sparks
+      });
+    };
+
     let animationId: number;
     let isActive = true;
     let lastToggleTime = performance.now();
@@ -227,17 +243,25 @@ const Index = () => {
         lastToggleTime = time;
       }
 
-      const leftPotX = canvas.width * 0.1;
-      const rightPotX = canvas.width * 0.9;
-      const potY = canvas.height; // Emit from bottom
-      
       const isMobile = window.innerWidth < 768;
-      const particleCount = isMobile ? 2 : 5; // Less particles on mobile
+      // Move them more inward on mobile so they don't get cut off at the edges
+      const leftPotX = canvas.width * (isMobile ? 0.2 : 0.1);
+      const rightPotX = canvas.width * (isMobile ? 0.8 : 0.9);
+      const centerX = canvas.width * 0.5;
+      
+      // Move the Y position slightly up on mobile to avoid bottom UI / notch covering it
+      const potY = canvas.height - (isMobile ? 40 : 10);
+      
+      const particleCount = isMobile ? 3 : 5; // Slightly increased for better visibility
+      const chakkarCount = isMobile ? 3 : 6;
 
       if (isActive) {
         for (let i = 0; i < particleCount; i++) {
           createFlowerPotParticle(leftPotX, potY);
           createFlowerPotParticle(rightPotX, potY);
+        }
+        for (let i = 0; i < chakkarCount; i++) {
+          createChakkarParticle(centerX, potY);
         }
       }
 
@@ -346,16 +370,17 @@ const Index = () => {
         options={{
           rocketsPoint: { min: 0, max: 100 },
           hue: { min: 0, max: 360 },
-          delay: isMobileView ? { min: 60, max: 120 } : { min: 30, max: 60 },
+          // Balanced multi-shot: moderate delay, lower speed
+          delay: isMobileView ? { min: 30, max: 50 } : { min: 30, max: 60 },
 
           acceleration: 1.05,
           friction: 0.97,
           gravity: 1.5,
-          particles: isMobileView ? 20 : 50,
+          particles: isMobileView ? 30 : 50,
           traceLength: 3,
-          traceSpeed: isMobileView ? 5 : 10,
-          explosion: isMobileView ? 3 : 5,
-          intensity: isMobileView ? 10 : 30,
+          traceSpeed: isMobileView ? 4 : 10, // Reduced speed
+          explosion: isMobileView ? 4 : 5,
+          intensity: isMobileView ? 15 : 30, // Reduced intensity slightly to prevent chaos
           flickering: 50,
           lineStyle: 'round',
           lineWidth: { explosion: { min: 1, max: 3 }, trace: { min: 1, max: 2 } },
