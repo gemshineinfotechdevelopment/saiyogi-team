@@ -11,16 +11,16 @@ const AdminLogin = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, isAdmin } = useAuth();
 
-  // Redirect if already logged in
+  // Redirect if already logged in as admin
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && isAdmin) {
       navigate("/admin");
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isAdmin, navigate]);
 
-  if (isAuthenticated) {
+  if (isAuthenticated && isAdmin) {
     return null;
   }
 
