@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminNavbar from "@/components/layout/AdminNavbar";
-import { Image as ImageIcon, Upload, Trash2, AlertCircle, Edit2, FileText, Loader2 } from "lucide-react";
+import { Image as ImageIcon, Upload, Trash2, AlertCircle, Edit2, FileText, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { uploadImageToCloudinary, getChitSchemes, createChitScheme, updateChitScheme, deleteChitScheme, ChitSchemeItem } from "@/lib/api";
@@ -16,6 +16,8 @@ export interface ChitSchemeImage {
 const AdminChitScheme: React.FC = () => {
   const [images, setImages] = useState<ChitSchemeImage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadDescription, setUploadDescription] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -57,41 +59,58 @@ const AdminChitScheme: React.FC = () => {
     };
   }, []);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+    const file = files[0];
+    setSelectedFile(file);
+    if (filePreview) {
+      URL.revokeObjectURL(filePreview);
+    }
+    setFilePreview(URL.createObjectURL(file));
+    if (!uploadTitle) {
+      setUploadTitle(file.name.replace(/\.[^/.]+$/, ""));
+    }
+  };
 
-    setIsUploading(true);
-    const fileList = Array.from(files);
+  const handleClearSelectedFile = () => {
+    setSelectedFile(null);
+    if (filePreview) {
+      URL.revokeObjectURL(filePreview);
+      setFilePreview(null);
+    }
+  };
 
-    for (let index = 0; index < fileList.length; index++) {
-      const file = fileList[index];
-      if (file.size > 1 * 1024 * 1024) {
-        toast.error(`File ${file.name} exceeds 1MB limit`);
-        continue;
-      }
-      try {
-        toast.loading(`Uploading ${file.name} to Cloudinary...`, { id: "upload-toast" });
-        const cloudinaryUrl = await uploadImageToCloudinary(file, "chit_schemes");
-        const autoTitle = uploadTitle.trim() || file.name.replace(/\.[^/.]+$/, "");
-        
-        await createChitScheme({
-          title: autoTitle,
-          description: uploadDescription.trim() || "",
-          url: cloudinaryUrl
-        });
-
-        toast.success(`Uploaded & saved to MongoDB!`, { id: "upload-toast" });
-      } catch (err: any) {
-        toast.error(`Failed to upload ${file.name}: ${err.message || err}`, { id: "upload-toast" });
-      }
+  const handleUploadSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFile) {
+      toast.error("Please select an image file first");
+      return;
     }
 
-    setUploadTitle("");
-    setUploadDescription("");
-    setIsUploading(false);
-    e.target.value = "";
-    loadChitSchemes();
+    setIsUploading(true);
+    try {
+      toast.loading(`Uploading ${selectedFile.name}...`, { id: "upload-toast" });
+      const cloudinaryUrl = await uploadImageToCloudinary(selectedFile, "chit_schemes");
+      const titleToSave = uploadTitle.trim() || selectedFile.name.replace(/\.[^/.]+$/, "");
+
+      await createChitScheme({
+        title: titleToSave,
+        description: uploadDescription.trim() || "",
+        url: cloudinaryUrl
+      });
+
+      toast.success("Chit Scheme image uploaded & saved successfully!", { id: "upload-toast" });
+      
+      handleClearSelectedFile();
+      setUploadTitle("");
+      setUploadDescription("");
+      loadChitSchemes();
+    } catch (err: any) {
+      toast.error(`Upload failed: ${err.message || err}`, { id: "upload-toast" });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleOpenEditModal = (img: ChitSchemeImage) => {
@@ -142,48 +161,72 @@ const AdminChitScheme: React.FC = () => {
                 Chit Scheme Management
               </h1>
               <p className="text-sm text-muted-foreground mt-0.5">
-                Upload images to Cloudinary with titles and descriptions saved in MongoDB for Chit Scheme view
+                Select image, add title & description, then click upload to save to Cloudinary & MongoDB
               </p>
             </div>
           </div>
 
-          {/* Upload Card with Left Upload Option & Right Image Details */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs mb-8 space-y-4">
+          {/* Upload Form Card */}
+          <form onSubmit={handleUploadSubmit} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs mb-8 space-y-4">
             <h2 className="text-base font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
               <Upload className="w-5 h-5 text-primary" />
-              Add Chit Scheme Image & Details
+              Add New Chit Scheme Image & Details
             </h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-              {/* Left Side: Image Upload Option */}
-              <div className="border-2 border-dashed border-gray-200 hover:border-primary/50 rounded-2xl p-6 text-center transition-colors bg-gray-50/50 flex flex-col items-center justify-center min-h-[220px]">
-                <ImageIcon className="w-12 h-12 text-gray-400 mb-3" />
-                <p className="text-base font-bold text-gray-800 mb-1">
-                  Select Image File
-                </p>
-                <p className="text-xs text-gray-500 mb-5 font-medium">
-                  Max: 1200x1600px, Max 1MB (PNG, JPG, WEBP)
-                </p>
-                <label className={`bg-primary text-white text-xs font-bold px-6 py-3 rounded-xl cursor-pointer hover:bg-primary/90 transition-all shadow-xs flex items-center gap-2 active:scale-95 ${isUploading ? 'opacity-70 pointer-events-none' : ''}`}>
-                  {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                  <span>{isUploading ? 'Uploading to Cloudinary & Saving...' : 'Browse & Upload Image'}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    disabled={isUploading}
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
+              {/* Left Side: Image File Selection & Preview */}
+              <div className="flex flex-col">
+                <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1.5">
+                  1. Select Image File *
                 </label>
+                {filePreview ? (
+                  <div className="relative border border-gray-200 rounded-2xl p-3 bg-gray-50 flex-1 flex flex-col items-center justify-center min-h-[220px]">
+                    <img
+                      src={filePreview}
+                      alt="Selected preview"
+                      className="max-h-44 w-full object-contain rounded-xl"
+                    />
+                    <div className="mt-3 flex items-center justify-between w-full px-2 pt-2 border-t border-gray-200/60">
+                      <span className="text-xs font-semibold text-gray-700 truncate max-w-[200px]">
+                        {selectedFile?.name}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleClearSelectedFile}
+                        className="text-xs text-rose-600 hover:text-rose-700 font-bold flex items-center gap-1 p-1 cursor-pointer"
+                      >
+                        <X className="w-4 h-4" /> Remove File
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <label className="border-2 border-dashed border-gray-200 hover:border-primary/50 rounded-2xl p-6 text-center transition-colors bg-gray-50/50 flex flex-col items-center justify-center min-h-[220px] cursor-pointer flex-1">
+                    <ImageIcon className="w-12 h-12 text-gray-400 mb-3" />
+                    <p className="text-sm font-bold text-gray-800 mb-1">
+                      Click to Select Image
+                    </p>
+                    <p className="text-xs text-gray-500 mb-4 font-medium">
+                      PNG, JPG, WEBP formats supported
+                    </p>
+                    <span className="bg-white border border-gray-300 text-gray-700 text-xs font-bold px-4 py-2 rounded-xl shadow-2xs">
+                      Choose File
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                  </label>
+                )}
               </div>
 
-              {/* Right Side: Image Details */}
+              {/* Right Side: Image Details & Submit Button */}
               <div className="bg-gray-50/60 border border-gray-200/80 rounded-2xl p-5 flex flex-col justify-between space-y-4">
                 <div className="space-y-3">
                   <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
                     <FileText className="w-4 h-4 text-primary" />
-                    <span>Image Details</span>
+                    <span>2. Scheme Details</span>
                   </h3>
 
                   <div>
@@ -195,7 +238,7 @@ const AdminChitScheme: React.FC = () => {
                       placeholder="e.g. Diwali Mega Savings Scheme 2026"
                       value={uploadTitle}
                       onChange={(e) => setUploadTitle(e.target.value)}
-                      className="w-full text-xs p-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                      className="w-full text-xs p-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold"
                     />
                   </div>
 
@@ -213,12 +256,28 @@ const AdminChitScheme: React.FC = () => {
                   </div>
                 </div>
 
-                <p className="text-[11px] text-gray-500 font-medium italic bg-amber-50/80 border border-amber-200/60 p-2.5 rounded-xl text-amber-900">
-                  💡 Fill in Title & Description, then click <strong>Browse & Upload Image</strong> on the left.
-                </p>
+                <div className="pt-2 border-t border-gray-200/60">
+                  <button
+                    type="submit"
+                    disabled={isUploading || !selectedFile}
+                    className="w-full bg-primary hover:bg-primary/90 text-white font-bold text-xs py-3.5 px-6 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Uploading & Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4" />
+                        <span>Upload & Save Chit Scheme</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          </form>
 
           {/* Uploaded Images Gallery */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs">

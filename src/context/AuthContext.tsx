@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { UserLoginModal } from "@/components/auth/UserLoginModal";
 import { setCookie, getCookie, deleteCookie } from "@/lib/cookieUtils";
 import { toast } from "sonner";
+import { trackCustomerAction } from "@/lib/api";
 
 const isLocalhost = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -71,8 +72,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithPhone = (phone: string, name?: string) => {
     setUserPhone(phone);
     localStorage.setItem("user_phone", phone);
+    let cleanName: string | undefined = undefined;
     if (name && name.trim()) {
-      const cleanName = name.trim();
+      cleanName = name.trim();
       setUserName(cleanName);
       localStorage.setItem("user_name", cleanName);
     } else {
@@ -80,6 +82,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem("user_name");
     }
     setIsAuthenticated(true);
+
+    trackCustomerAction({
+      phone,
+      name: cleanName,
+      source: "normal_login"
+    }).catch((err) => console.warn("Failed to track login action:", err));
   };
 
   const openLoginModal = () => setIsLoginModalOpen(true);
