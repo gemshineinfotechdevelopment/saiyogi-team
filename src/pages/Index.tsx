@@ -449,7 +449,7 @@ const Index = () => {
               className="w-full overflow-x-auto no-scrollbar scroll-smooth py-4 px-2 select-none"
             >
               <div 
-                className={`flex flex-nowrap gap-6 w-max animate-marquee ${
+                className={`flex flex-nowrap gap-3 sm:gap-6 w-max animate-marquee ${
                   playingVideo ? "[animation-play-state:paused]" : "hover:[animation-play-state:paused]"
                 }`}
               >
@@ -474,7 +474,7 @@ const Index = () => {
                     return (
                       <div
                         key={`showcase-video-${idx}`}
-                        className="relative rounded-2xl overflow-hidden aspect-video bg-black group cursor-pointer shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl border border-white/40 min-w-[280px] sm:min-w-[320px] md:min-w-[360px] shrink-0"
+                        className="relative rounded-xl sm:rounded-2xl overflow-hidden aspect-video bg-black group cursor-pointer shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl border border-white/40 min-w-[210px] sm:min-w-[280px] md:min-w-[360px] shrink-0"
                         onClick={() => setPlayingVideo(isPlaying ? null : `${videoId}-${idx}`)}
                       >
                         {isPlaying ? (
@@ -509,13 +509,13 @@ const Index = () => {
 
                         {/* Button overlay */}
                         {!isPlaying && (
-                          <div className="absolute inset-0 flex flex-col justify-between p-4 bg-gradient-to-t from-black/70 via-transparent to-black/30">
-                            <span className="text-white font-bold text-xs bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm self-start truncate max-w-[85%]">
+                          <div className="absolute inset-0 flex flex-col justify-between p-2.5 sm:p-4 bg-gradient-to-t from-black/70 via-transparent to-black/30">
+                            <span className="text-white font-bold text-[10px] sm:text-xs bg-black/50 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full backdrop-blur-sm self-start truncate max-w-[85%]">
                               {video.title}
                             </span>
                             <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-[#A80000] group-hover:border-red-500">
-                                <Play className="text-white fill-white w-5 h-5 ml-0.5" />
+                              <div className="w-9 h-9 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-[#A80000] group-hover:border-red-500">
+                                <Play className="text-white fill-white w-4 h-4 sm:w-5 sm:h-5 ml-0.5" />
                               </div>
                             </div>
                           </div>
@@ -595,24 +595,39 @@ const Index = () => {
         {/* Infinite horizontal scrolling marquee for mobile and desktop */}
         <div className="relative w-full overflow-hidden py-4">
           <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
-            {[...manufacturers, ...manufacturers, ...manufacturers, ...manufacturers].map((brand, i) => (
-              <div
-                key={`${brand.name}-${i}`}
-                className="bg-white border-2 border-gray-100/80 rounded-2xl px-6 py-4 flex items-center gap-4 min-w-[220px] shrink-0 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-xl hover:border-[#A80000]/30 transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br hover:from-[#A80000] hover:to-[#8a0000] hover:text-white group cursor-pointer"
-              >
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#A80000] to-[#750000] text-white flex items-center justify-center font-black text-xs tracking-wider shrink-0 transition-all duration-300 group-hover:from-[#F4C542] group-hover:to-[#d4a215] group-hover:text-[#1A1A1A]">
-                  {brand.logo}
-                </div>
-                <div className="flex flex-col items-start text-left">
-                  <span className="font-black text-[9px] text-[#A80000]/80 tracking-widest uppercase transition-colors duration-300 group-hover:text-[#F4C542]">
-                    PARTNER
-                  </span>
-                  <span className="font-black text-sm text-gray-800 tracking-wider uppercase transition-colors duration-300 group-hover:text-white whitespace-nowrap">
-                    {brand.name}
-                  </span>
-                </div>
-              </div>
-            ))}
+            {(() => {
+              const activeBrandsList = brands.length > 0 ? brands : manufacturers;
+              const displayList = [...activeBrandsList, ...activeBrandsList, ...activeBrandsList, ...activeBrandsList];
+
+              return displayList.map((brand: any, i: number) => {
+                const logoSrc = brand.logo || brand.image;
+                const isImageLogo = logoSrc && (logoSrc.startsWith('/') || logoSrc.startsWith('http') || logoSrc.startsWith('data:'));
+
+                return (
+                  <div
+                    key={`${brand.name || 'brand'}-${i}`}
+                    onClick={() => window.location.href = `/catalog?search=${encodeURIComponent(brand.name)}`}
+                    className="bg-white border-2 border-gray-100/80 rounded-2xl px-6 py-4 flex items-center gap-4 min-w-[220px] shrink-0 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-xl hover:border-[#A80000]/30 transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br hover:from-[#A80000] hover:to-[#8a0000] hover:text-white group cursor-pointer"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#A80000] to-[#750000] text-white flex items-center justify-center font-black text-xs tracking-wider shrink-0 transition-all duration-300 group-hover:from-[#F4C542] group-hover:to-[#d4a215] group-hover:text-[#1A1A1A] overflow-hidden p-1 bg-white border border-gray-200">
+                      {isImageLogo ? (
+                        <img src={logoSrc} alt={brand.name} className="w-full h-full object-contain rounded-full" />
+                      ) : (
+                        <span className="font-black text-xs">{brand.logo || brand.name?.substring(0, 2)?.toUpperCase() || "BR"}</span>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-start text-left">
+                      <span className="font-black text-[9px] text-[#A80000]/80 tracking-widest uppercase transition-colors duration-300 group-hover:text-[#F4C542]">
+                        PARTNER
+                      </span>
+                      <span className="font-black text-sm text-gray-800 tracking-wider uppercase transition-colors duration-300 group-hover:text-white whitespace-nowrap">
+                        {brand.name}
+                      </span>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
       </section>
@@ -636,17 +651,17 @@ const Index = () => {
                 <div
                   key={`${brandId}-${i}`}
                   onClick={() => window.location.href = `/catalog?search=${encodeURIComponent(brand.name)}`}
-                  className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-2xl p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[180px] shrink-0"
+                  className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[130px] sm:w-[160px] md:w-[180px] shrink-0"
                 >
-                  <span className="text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full mb-2 font-mono">
+                  <span className="text-[8px] sm:text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-1.5 sm:px-2 py-0.5 rounded-full mb-1.5 sm:mb-2 font-mono">
                     {brand.tag || "BRAND"}
                   </span>
-                  <div className="w-full aspect-square flex items-center justify-center p-2 mb-2 group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-full aspect-square flex items-center justify-center p-1 sm:p-2 mb-1 sm:mb-2 group-hover:scale-105 transition-transform duration-300">
                     <img src={brand.logo || brand.image || "/sky_rocket_box.png"} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
                   </div>
                   <div>
-                    <h3 className="font-black text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors">{brand.name}</h3>
-                    <p className="text-[10px] text-gray-500 font-medium mt-0.5">{brand.subtitle || brand.description || "Original Sivakasi"}</p>
+                    <h3 className="font-black text-[11px] sm:text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors line-clamp-1">{brand.name}</h3>
+                    <p className="text-[9px] sm:text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-1">{brand.subtitle || brand.description || "Original Sivakasi"}</p>
                   </div>
                 </div>
               );
