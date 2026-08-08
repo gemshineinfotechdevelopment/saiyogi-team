@@ -619,3 +619,32 @@ export async function uploadImageToCloudinary(fileOrBase64: File | string, folde
   }
   throw new Error("Invalid Cloudinary upload response");
 }
+
+export interface ChitSchemeItem {
+  _id?: string;
+  id?: string;
+  title?: string;
+  description?: string;
+  url: string;
+  public_id?: string;
+  displayOrder?: number;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export async function getChitSchemes(): Promise<ChitSchemeItem[]> {
+  return fetchJSON<ChitSchemeItem[]>('/api/chit-schemes', 'GET');
+}
+
+export async function createChitScheme(data: Partial<ChitSchemeItem>): Promise<ChitSchemeItem> {
+  return fetchJSON<ChitSchemeItem>('/api/chit-schemes', 'POST', data);
+}
+
+export async function updateChitScheme(id: string, data: Partial<ChitSchemeItem>): Promise<ChitSchemeItem> {
+  return fetchJSON<ChitSchemeItem>(`/api/chit-schemes/${id}`, 'PUT', data);
+}
+
+export async function deleteChitScheme(id: string): Promise<{ message: string }> {
+  return fetchJSON<{ message: string }>(`/api/chit-schemes/${id}`, 'DELETE');
+}
