@@ -2,6 +2,7 @@ import Product from '../models/Product.js';
 import Category from '../models/Category.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { uploadToBoth, deleteFromBoth } from '../utils/upload-manager.js';
+import { uploadToCloudinary } from '../utils/cloudinary.js';
 
 export const getAllProducts = async (req, res, next) => {
   try {
@@ -77,6 +78,20 @@ export const createProduct = async (req, res, next) => {
       try {
         const uploadResult = await uploadToBoth(req.file, 'products');
         imageUrl = uploadResult.url;
+      } catch (uploadError) {
+        return next(new AppError(`Image upload failed: ${uploadError.message}`, 500));
+      }
+    } else if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('data:image')) {
+      try {
+        const matches = imageUrl.match(/^data:image\/([a-zA-Z0-9]+);base64,(.+)$/);
+        if (matches) {
+          const ext = matches[1] || 'png';
+          const base64Data = matches[2];
+          const buffer = Buffer.from(base64Data, 'base64');
+          const filename = `product_${Date.now()}.${ext}`;
+          const uploadResult = await uploadToCloudinary(buffer, filename, 'products');
+          imageUrl = uploadResult.url;
+        }
       } catch (uploadError) {
         return next(new AppError(`Image upload failed: ${uploadError.message}`, 500));
       }
@@ -165,9 +180,24 @@ export const updateProduct = async (req, res, next) => {
       } catch (uploadError) {
         return next(new AppError(`Image upload failed: ${uploadError.message}`, 500));
       }
+    } else if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('data:image')) {
+      try {
+        const matches = imageUrl.match(/^data:image\/([a-zA-Z0-9]+);base64,(.+)$/);
+        if (matches) {
+          const ext = matches[1] || 'png';
+          const base64Data = matches[2];
+          const buffer = Buffer.from(base64Data, 'base64');
+          const filename = `product_${Date.now()}.${ext}`;
+          const uploadResult = await uploadToCloudinary(buffer, filename, 'products');
+          imageUrl = uploadResult.url;
+        }
+      } catch (uploadError) {
+        return next(new AppError(`Image upload failed: ${uploadError.message}`, 500));
+      }
     }
 
     const updateData = {};
+    if (imageUrl) updateData.image = imageUrl;
     if (name) updateData.name = name;
     if (code) updateData.code = code;
     if (sku) updateData.sku = sku;
