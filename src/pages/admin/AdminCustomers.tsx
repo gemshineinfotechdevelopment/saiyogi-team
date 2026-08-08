@@ -505,26 +505,62 @@ const AdminCustomers = () => {
                     </div>
                   </div>
 
-                  {/* Purchase History Section */}
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-bold text-sm tracking-wider uppercase text-foreground">PURCHASE HISTORY</h3>
-                      <Button variant="ghost" size="sm" className="gap-1 text-xs font-bold cursor-pointer" onClick={() => setSortAsc(!sortAsc)}>
-                        <ArrowUpDown className="h-3.5 w-3.5" /> Sort ({sortAsc ? "Oldest" : "Newest"})
-                      </Button>
-                    </div>
-
-                    <div className="border border-border rounded-2xl overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="bg-muted/40">
-                            <TableHead className="text-xs font-bold">Order ID</TableHead>
-                            <TableHead className="text-xs font-bold">Date</TableHead>
-                            <TableHead className="text-xs font-bold">Items</TableHead>
-                            <TableHead className="text-xs font-bold">Total</TableHead>
-                            <TableHead className="text-xs font-bold">Status</TableHead>
-                            <TableHead className="text-xs font-bold">Approved</TableHead>
-                            <TableHead className="text-xs font-bold">Invoice</TableHead>
+                {/* Purchase History */}
+                <div>
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-semibold">Purchase History</h3>
+                    <Button variant="ghost" size="sm" className="gap-1" onClick={() => setSortAsc(!sortAsc)}>
+                      <ArrowUpDown className="h-3 w-3" /> Sort ({sortAsc ? "Oldest" : "Newest"})
+                    </Button>
+                  </div>
+                  <div className="max-h-60 overflow-auto border rounded-lg">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Order ID</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Items</TableHead>
+                          <TableHead>Total</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Approved</TableHead>
+                          <TableHead>Invoice</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {sortedPurchases.map((o) => (
+                          <TableRow key={o._id}>
+                            <TableCell className="font-semibold">{o.orderNumber || o._id?.slice(-8)}</TableCell>
+                            <TableCell className="text-xs">{o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "N/A"}</TableCell>
+                            <TableCell>
+                              <Badge variant="secondary" className="font-bold whitespace-nowrap">
+                                {o.items?.length || 0} Items
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-bold">₹{(Number(o.subtotal) + (Number(o.packingCharge) || 0)).toLocaleString()}</TableCell>
+                            <TableCell>
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                o.status === "delivered" ? "bg-green-500/20 text-green-500" :
+                                o.status === "shipped" ? "bg-red-500/20 text-red-500" :
+                                o.status === "processing" ? "bg-primary/20 text-primary" :
+                                o.status === "cancelled" ? "bg-destructive/20 text-destructive" :
+                                "bg-muted text-muted-foreground"
+                              }`}>{o.status}</span>
+                            </TableCell>
+                            <TableCell>
+                              {o.approved ? (
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-500">✓ Yes</span>
+                              ) : (
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">No</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="flex gap-1">
+                              <Button variant="ghost" size="sm" onClick={() => { handleInvoiceAction(o, settings, 'download'); toast({ title: "Downloading Invoice" }); }} title="Download PDF">
+                                <FileText className="h-4 w-4 text-blue-600" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => { handleInvoiceAction(o, settings, 'print'); toast({ title: "Printing Invoice" }); }} title="Print Invoice" className="hidden md:inline-flex">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-printer"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
