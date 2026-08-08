@@ -13,16 +13,6 @@ import { toast } from "sonner";
 import { getBrands, getNextBrandId, createBrand, updateBrand, deleteBrand, getProducts, uploadImageToCloudinary, Brand } from "@/lib/api";
 import { Product } from "@/data/products";
 
-const PRESET_LOGOS = [
-  "/sky_rocket_box.png",
-  "/flower_pots.png",
-  "/family_star_kit.png",
-  "/bestseller_pack.png",
-  "/grand_sky_delight.png",
-  "/royal_celebration.png",
-  "/1.png"
-];
-
 const AdminBrands = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -39,7 +29,7 @@ const AdminBrands = () => {
   // Form State (Phone Number and manual Items Count removed)
   const [formData, setFormData] = useState({
     name: "",
-    logo: "/sky_rocket_box.png",
+    logo: "",
     description: "",
     isActive: true
   });
@@ -83,7 +73,7 @@ const AdminBrands = () => {
     }
     setFormData({
       name: "",
-      logo: "/sky_rocket_box.png",
+      logo: "",
       description: "",
       isActive: true
     });
@@ -94,7 +84,7 @@ const AdminBrands = () => {
     setEditingBrand(brand);
     setFormData({
       name: brand.name || "",
-      logo: brand.logo || "/sky_rocket_box.png",
+      logo: brand.logo || "",
       description: brand.description || "",
       isActive: brand.isActive !== false
     });
@@ -367,10 +357,10 @@ const AdminBrands = () => {
 
       {/* Add / Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-[92vw] sm:max-w-md max-h-[85vh] overflow-y-auto p-4 sm:p-6 rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <Tag className="h-5 w-5 text-red-600" />
+            <DialogTitle className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
+              <Tag className="h-5 w-5 text-red-600 shrink-0" />
               {editingBrand ? `Edit Brand (${editingBrand.brandId})` : "Add New Brand"}
             </DialogTitle>
             <DialogDescription className="sr-only">Form to add or edit brand details</DialogDescription>
@@ -427,23 +417,6 @@ const AdminBrands = () => {
                   </div>
                 </div>
               )}
-
-              {/* Preset buttons */}
-              <div className="pt-1">
-                <span className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Preset Logos:</span>
-                <div className="flex gap-2 items-center overflow-x-auto pb-1">
-                  {PRESET_LOGOS.map((url, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, logo: url })}
-                      className={`w-10 h-10 rounded border p-1 shrink-0 bg-gray-50 overflow-hidden ${formData.logo === url ? 'border-red-600 ring-2 ring-red-200' : 'border-gray-200'}`}
-                    >
-                      <img src={url} alt="preset" className="w-full h-full object-contain" />
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
 
             <div>
