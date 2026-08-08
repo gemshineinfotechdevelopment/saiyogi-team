@@ -385,7 +385,7 @@ const AdminOrders = () => {
                     </Button>
                     <Button
                       variant="secondary"
-                      onClick={() => downloadPDF(selectedOrder)}
+                      onClick={() => handleDownloadPDF(selectedOrder)}
                       className="flex-1"
                     >
                       Download PDF
