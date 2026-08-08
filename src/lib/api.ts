@@ -648,3 +648,97 @@ export async function updateChitScheme(id: string, data: Partial<ChitSchemeItem>
 export async function deleteChitScheme(id: string): Promise<{ message: string }> {
   return fetchJSON<{ message: string }>(`/api/chit-schemes/${id}`, 'DELETE');
 }
+
+export interface ProductEnquiryItem {
+  id?: string;
+  productName: string;
+  amount: number;
+  status: string;
+  enquiryDate: string;
+}
+
+export interface CustomerItem {
+  _id?: string;
+  id?: string;
+  name: string;
+  email?: string;
+  phone: string;
+  alternatePhone?: string;
+  deliveryAddress?: string;
+  state?: string;
+  district?: string;
+  sources: ("normal_login" | "chit_scheme" | "product_enquiry")[];
+  productEnquiries: ProductEnquiryItem[];
+  totalOrders: number;
+  totalSpent: number;
+  lastOrderDate?: string;
+  purchases: any[];
+  createdAt?: string;
+}
+
+export async function trackCustomerAction(data: {
+  phone: string;
+  name?: string;
+  source: "normal_login" | "chit_scheme" | "product_enquiry";
+  enquiry?: { productName: string; amount: number; status?: string; enquiryDate?: Date | string };
+  deliveryAddress?: any;
+}): Promise<any> {
+  const cleanPhone = String(data.phone || "").replace(/\D/g, "").slice(-10);
+  if (!cleanPhone) return;
+
+  // Local Storage Fallback Sync
+  try {
+    const rawLocal = localStorage.getItem("local_customer_tracks");
+    const tracksMap = rawLocal ? JSON.parse(rawLocal) : {};
+    const existing = tracksMap[cleanPhone] || {
+      phone: cleanPhone,
+      name: data.name || "Customer",
+      sources: [],
+      productEnquiries: []
+    };
+
+    if (data.name && (existing.name === "Customer" || !existing.name)) {
+      existing.name = data.name;
+    }
+    if (data.source === "chit_scheme" || data.source === "product_enquiry" || data.enquiry) {
+      existing.sources = existing.sources.filter((s: string) => s !== "normal_login");
+      if (!existing.sources.includes(data.source)) {
+        existing.sources.push(data.source);
+      }
+    } else if (!existing.sources.includes(data.source)) {
+      existing.sources.push(data.source);
+    }
+    if (data.enquiry) {
+      existing.productEnquiries.push({
+        id: String(Math.random()),
+        productName: data.enquiry.productName,
+        amount: Number(data.enquiry.amount) || 0,
+        status: data.enquiry.status || "New",
+        enquiryDate: data.enquiry.enquiryDate || new Date().toISOString()
+      });
+    }
+    tracksMap[cleanPhone] = existing;
+    localStorage.setItem("local_customer_tracks", JSON.stringify(tracksMap));
+  } catch (e) {
+    console.warn("Could not save to local_customer_tracks:", e);
+  }
+
+  try {
+    return await fetchJSON("/api/customers/track", "POST", data);
+  } catch (err) {
+    console.warn("Failed to send customer track to backend, saved locally:", err);
+  }
+}
+
+export async function getCustomers(): Promise<CustomerItem[]> {
+  try {
+    const data = await fetchJSON<CustomerItem[]>("/api/customers");
+    if (Array.isArray(data)) {
+      return data;
+    }
+  } catch (err) {
+    console.warn("Failed to fetch customers from API, building fallback:", err);
+  }
+  return [];
+}
+
