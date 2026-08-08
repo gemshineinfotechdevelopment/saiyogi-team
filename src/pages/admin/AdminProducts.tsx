@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
 
 const AdminProducts = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -198,16 +199,18 @@ const AdminProducts = () => {
       <div className="flex min-h-screen">
         <AdminSidebar />
         <main className="flex-1 p-6 lg:p-8 overflow-auto">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="font-display text-2xl font-bold">Products</h1>
-              <p className="text-sm text-muted-foreground">{productList.length} products total</p>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div className="flex items-start justify-between w-full md:w-auto">
+              <div>
+                <h1 className="font-display text-2xl font-bold">Products</h1>
+                <p className="text-sm text-muted-foreground">{productList.length} products total</p>
+              </div>
+              <Link to="/" className="text-sm text-primary hover:underline lg:hidden mt-1">← Store</Link>
             </div>
-            <div className="flex gap-2">
-              <Link to="/" className="text-sm text-primary hover:underline lg:hidden self-center">← Store</Link>
+            <div className="flex gap-2 w-full md:w-auto">
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" /> Add Product</Button>
+                  <Button onClick={openCreate} className="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-bold gap-2"><Plus className="h-4 w-4" /> Add Product</Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-3xl">
                   <DialogHeader>
@@ -442,27 +445,37 @@ const AdminProducts = () => {
             </div>
           </div>
 
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} placeholder="Search products..." className="pl-10 bg-secondary" />
-          </div>
+          {/* Search Card */}
+          <Card className="shadow-sm border-gray-200 mb-6">
+            <CardContent className="p-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input 
+                  value={search} 
+                  onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} 
+                  placeholder="Search products..." 
+                  className="pl-9" 
+                />
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="bg-card border border-border rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-secondary/50">
-                    <th className="text-left p-3">SKU</th>
-                    <th className="text-left p-3">Product</th>
-                    <th className="text-left p-3 hidden sm:table-cell">Category</th>
-                    <th className="text-right p-3">Price</th>
-                    <th className="text-right p-3">Net Rate</th>
-                    <th className="text-center p-3 hidden md:table-cell">Discount</th>
-                    <th className="text-right p-3 hidden md:table-cell">Stock</th>
-                    <th className="text-right p-3">Actions</th>
+              <table className="w-full text-sm text-left">
+                <thead className="bg-gray-50">
+                  <tr className="border-b border-gray-200">
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4">SKU</th>
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4">Product</th>
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4 hidden sm:table-cell">Category</th>
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-right">Price</th>
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-right">Net Rate</th>
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-center hidden md:table-cell">Discount</th>
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-right hidden md:table-cell">Stock</th>
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-100">
                   {paginatedData.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="text-center p-8 text-muted-foreground">
@@ -471,14 +484,14 @@ const AdminProducts = () => {
                     </tr>
                   ) : (
                     paginatedData.map((p) => (
-                      <tr key={p.id || p._id} className="border-b border-border hover:bg-secondary/30 transition-colors">
-                        <td className="p-3 font-mono text-xs text-muted-foreground">{p.sku || p.code || 'N/A'}</td>
-                        <td className="p-3">
+                      <tr key={p.id || p._id} className="hover:bg-red-50/40 transition-colors">
+                        <td className="p-4 font-mono text-xs text-gray-500">{p.sku || p.code || 'N/A'}</td>
+                        <td className="p-4">
                           <div className="flex items-center gap-3">
-                            <img src={p.image || '/placeholder.svg'} alt={p.name || 'Product'} className="w-10 h-10 rounded object-cover" />
+                            <img src={p.image || '/placeholder.svg'} alt={p.name || 'Product'} className="w-10 h-10 rounded-lg object-cover border border-gray-200" />
                             <div>
-                              <p className="font-semibold">{p.name}</p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="font-bold text-gray-900">{p.name}</p>
+                              <p className="text-xs text-gray-500 mt-0.5">
                                 {typeof p.brand === 'object' && p.brand !== null ? (p.brand as any).name : (p.brand || 'N/A')}
                               </p>
                             </div>

@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { Users, FileText, ArrowUpDown } from "lucide-react";
+import { Link } from "react-router-dom";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminNavbar from "@/components/layout/AdminNavbar";
 import { getOrders } from "@/lib/api";
@@ -143,11 +144,14 @@ const AdminCustomers = () => {
       <div className="flex min-h-screen">
       <AdminSidebar />
       <main className="flex-1 p-6 lg:p-8 overflow-auto">
-        <div className="mb-8">
-          <h1 className="font-display text-2xl font-bold flex items-center gap-2">
-            <Users className="h-6 w-6 text-primary" /> Customers
-          </h1>
-          <p className="text-sm text-muted-foreground">{filteredCustomers.length} of {customers.length} customers</p>
+        <div className="mb-8 flex items-start justify-between w-full">
+          <div>
+            <h1 className="font-display text-2xl font-bold flex items-center gap-2">
+              <Users className="h-6 w-6 text-primary" /> Customers
+            </h1>
+            <p className="text-sm text-muted-foreground">{filteredCustomers.length} of {customers.length} customers</p>
+          </div>
+          <Link to="/" className="text-sm text-primary hover:underline lg:hidden mt-1">← Store</Link>
         </div>
 
         <div className="mb-6 flex gap-3">
@@ -318,7 +322,7 @@ const AdminCustomers = () => {
                               <Button variant="ghost" size="sm" onClick={() => { handleInvoiceAction(o, settings, 'download'); toast({ title: "Downloading Invoice" }); }} title="Download PDF">
                                 <FileText className="h-4 w-4 text-blue-600" />
                               </Button>
-                              <Button variant="ghost" size="sm" onClick={() => { handleInvoiceAction(o, settings, 'print'); toast({ title: "Printing Invoice" }); }} title="Print Invoice">
+                              <Button variant="ghost" size="sm" onClick={() => { handleInvoiceAction(o, settings, 'print'); toast({ title: "Printing Invoice" }); }} title="Print Invoice" className="hidden md:inline-flex">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-printer"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
                               </Button>
                             </TableCell>

@@ -235,50 +235,50 @@ const AdminOrders = () => {
 
           <div className="bg-card border border-border rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-secondary/50">
-                    <th className="text-left p-3">Order ID</th>
-                    <th className="text-left p-3">Customer</th>
-                    <th className="text-left p-3">Phone</th>
-                    <th className="text-right p-3 hidden sm:table-cell">Items</th>
-                    <th className="text-right p-3">Total</th>
-                    <th className="text-center p-3">Shipping</th>
-                    <th className="text-center p-3">Approved</th>
-                    <th className="text-right p-3 hidden md:table-cell">Date</th>
-                    <th className="text-right p-3">Actions</th>
+              <table className="w-full text-sm text-left">
+                <thead className="bg-gray-50">
+                  <tr className="border-b border-gray-200">
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4">Order ID</th>
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4">Customer</th>
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4">Phone</th>
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4 hidden sm:table-cell">Items</th>
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-right">Total</th>
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-center">Shipping</th>
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-center">Approved</th>
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-right hidden md:table-cell">Date</th>
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-100">
                   {paginatedData.map((o) => (
                     <tr
                       key={o._id}
-                      className="border-b border-border hover:bg-secondary/30 transition-colors"
+                      className="hover:bg-red-50/40 transition-colors"
                     >
-                      <td className="p-3 font-semibold">{o.orderNumber || o._id?.slice(-8)}</td>
-                      <td className="p-3">
-                        <p>{o.customerName}</p>
-                        <p className="text-xs text-muted-foreground">{o.customerEmail}</p>
+                      <td className="p-4 font-semibold text-gray-900">{o.orderNumber || o._id?.slice(-8)}</td>
+                      <td className="p-4">
+                        <p className="font-bold text-gray-900">{o.customerName}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{o.customerEmail}</p>
                       </td>
-                      <td className="p-3 text-sm">{o.customerPhone}</td>
-                      <td className="p-3 text-right hidden sm:table-cell">{o.items?.length || 0}</td>
-                      <td className="p-3 text-right font-bold text-primary">₹{Number(o.subtotal) + (Number(o.packingCharge) || 0)}</td>
-                      <td className="p-3 text-center">
+                      <td className="p-4 text-sm text-gray-700">{o.customerPhone}</td>
+                      <td className="p-4 hidden sm:table-cell font-medium">{o.items?.length || 0}</td>
+                      <td className="p-4 text-right font-bold text-primary">₹{Number(o.subtotal) + (Number(o.packingCharge) || 0)}</td>
+                      <td className="p-4 text-center">
                         <Badge variant={o.packingStatus === 'packed' ? 'default' : 'secondary'} className={o.packingStatus === 'packed' ? 'bg-red-600' : ''}>
                           {o.packingStatus ? (o.packingStatus === 'packed' ? '🚚 Shipped' : '🔹 Unshipped') : 'N/A'}
                         </Badge>
                       </td>
-                      <td className="p-3 text-center">
+                      <td className="p-4 text-center">
                         {o.approved ? (
                           <Badge variant="default" className="bg-green-600">✓ Approved</Badge>
                         ) : (
                           <Badge variant="secondary">Pending</Badge>
                         )}
                       </td>
-                      <td className="p-3 text-right text-muted-foreground hidden md:table-cell text-xs">
+                      <td className="p-4 text-right text-gray-500 hidden md:table-cell text-xs">
                         {o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "N/A"}
                       </td>
-                      <td className="p-3 text-right">
+                      <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <Button
                             size="sm"

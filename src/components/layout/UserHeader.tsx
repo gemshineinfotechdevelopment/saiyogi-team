@@ -160,10 +160,29 @@ const UserHeader = () => {
           </div>
         )}
 
-        {/* Mobile Menu Dropdown */}
-        {menuOpen && (
-          <div className="md:hidden border-t border-gray-100 bg-white p-4 shadow-xl absolute w-full left-0 z-50">
-            <nav className="flex flex-col gap-4 text-sm uppercase font-bold">
+        {/* Mobile Menu Drawer */}
+        <div className={`md:hidden fixed inset-0 z-[60] ${menuOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
+          {/* Backdrop overlay */}
+          <div 
+            className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+              menuOpen ? "opacity-100" : "opacity-0"
+            }`}
+            onClick={() => setMenuOpen(false)}
+          />
+          
+          {/* Drawer content */}
+          <div 
+            className={`absolute top-0 left-0 h-full w-[75vw] max-w-[300px] bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
+              menuOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+          >
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <img src={companyLogo} alt="Sai Yogi" className="h-8 object-contain" />
+              <button onClick={() => setMenuOpen(false)} className="p-2 text-gray-500 hover:text-black hover:bg-gray-200 rounded-full transition-colors">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <nav className="flex flex-col gap-6 p-6 text-sm uppercase font-bold overflow-y-auto">
               <Link to="/" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/')}>HOME</Link>
               <Link to="/catalog" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/catalog')}>ALL PRODUCTS</Link>
               <Link to="/quick-enquiry" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/quick-enquiry') + " flex items-center gap-2"}>
@@ -175,7 +194,7 @@ const UserHeader = () => {
               <Link to="/contact" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/contact')}>CONTACT US</Link>
             </nav>
           </div>
-        )}
+        </div>
       </header>
       {/* Responsive layout spacer so fixed header doesn't cover top of page content */}
       <div className={isHomePage ? "w-full shrink-0 h-[92px] md:h-[172px]" : "w-full shrink-0 h-[60px] md:h-[108px]"} />
