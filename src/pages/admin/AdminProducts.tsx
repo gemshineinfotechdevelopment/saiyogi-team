@@ -218,9 +218,12 @@ const AdminProducts = () => {
                       {editing ? 'Update product details and inventory' : 'Create a new product in the store catalog'}
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="space-y-4 max-h-[85vh] overflow-y-auto pr-2 custom-scrollbar">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div><Label>Product Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter product name" /></div>
+                  <div className="space-y-4 max-h-[85vh] overflow-y-auto p-1.5 pr-3 custom-scrollbar">
+                    <div className="grid grid-cols-2 gap-4 items-start">
+                      <div>
+                        <Label className="text-xs font-bold uppercase text-gray-700">Product Name *</Label>
+                        <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter product name" className="mt-1" />
+                      </div>
                       <div>
                         <Label className="text-xs font-bold uppercase text-gray-700">SKU / Code (Auto Generated)</Label>
                         <Input 
@@ -230,20 +233,26 @@ const AdminProducts = () => {
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div><Label>Retail Price (₹)</Label><Input value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} type="number" placeholder="0" /></div>
-                      <div><Label>Net-Rate (₹)</Label><Input value={form.netRate} onChange={(e) => setForm({ ...form, netRate: e.target.value })} type="number" placeholder="0" /></div>
+                    <div className="grid grid-cols-2 gap-4 items-start">
+                      <div>
+                        <Label className="text-xs font-bold uppercase text-gray-700">Retail Price (₹)</Label>
+                        <Input value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} type="number" placeholder="0" className="mt-1" />
+                      </div>
+                      <div>
+                        <Label className="text-xs font-bold uppercase text-gray-700">Net-Rate (₹)</Label>
+                        <Input value={form.netRate} onChange={(e) => setForm({ ...form, netRate: e.target.value })} type="number" placeholder="0" className="mt-1" />
+                      </div>
                     </div>
                     <div>
-                      <Label>Shop Stock (Pcs)</Label>
+                      <Label className="text-xs font-bold uppercase text-gray-700">Shop Stock (Pcs)</Label>
                       <Input value={form.storeStockPieces} onChange={(e) => {
                         const val = e.target.value;
                         setForm({ ...form, storeStockPieces: val, stock: val });
-                      }} type="number" placeholder="0" />
+                      }} type="number" placeholder="0" className="mt-1" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4 items-start">
                       <div>
-                        <Label>Brand</Label>
+                        <Label className="text-xs font-bold uppercase text-gray-700">Brand</Label>
                         <select
                           value={form.brand}
                           onChange={(e) => setForm({ ...form, brand: e.target.value })}
@@ -292,7 +301,7 @@ const AdminProducts = () => {
                       </div>
                     </div>
                     <div>
-                      <Label>Category</Label>
+                      <Label className="text-xs font-bold uppercase text-gray-700">Category</Label>
                       <select 
                         value={form.category} 
                         onChange={(e) => {
@@ -332,7 +341,7 @@ const AdminProducts = () => {
                       </select>
                     </div>
                     <div>
-                      <Label>Image (Max 1200x1600px, Max 1MB)</Label>
+                      <Label className="text-xs font-bold uppercase text-gray-700">Image (Max 1200x1600px, Max 1MB)</Label>
                       <input type="file" accept="image/*" onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (!file) {
@@ -361,7 +370,7 @@ const AdminProducts = () => {
                       }} className="mt-1 block w-full text-xs text-gray-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer" />
                     </div>
                     <div>
-                      <Label>Description</Label>
+                      <Label className="text-xs font-bold uppercase text-gray-700">Description</Label>
                       <textarea 
                         value={form.description} 
                         onChange={(e) => setForm({ ...form, description: e.target.value })} 
