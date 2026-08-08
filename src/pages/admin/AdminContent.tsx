@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { Save, Settings, Loader, Edit2, X, Plus, Trash2 } from "lucide-react";
+import { Save, Settings, Loader, Edit2, X, Plus, Trash2, Upload, Loader2 } from "lucide-react";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminNavbar from "@/components/layout/AdminNavbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSiteSettings, SiteSettings } from "@/context/SiteSettingsContext";
-import { updateSettings as updateSettingsAPI } from "@/lib/api";
+import { updateSettings as updateSettingsAPI, uploadImageToCloudinary } from "@/lib/api";
 import { toast } from "sonner";
 
 const AdminContent = () => {
@@ -14,6 +14,7 @@ const AdminContent = () => {
   const [form, setForm] = useState<SiteSettings>(settings);
   const [isSaving, setIsSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   useEffect(() => {
     // Only sync remote settings into the form when not actively editing
@@ -21,6 +22,22 @@ const AdminContent = () => {
       setForm(settings);
     }
   }, [settings, isEditing]);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingLogo(true);
+    try {
+      const url = await uploadImageToCloudinary(file, "site_settings");
+      setForm((prev) => ({ ...prev, logo: url }));
+      toast.success("Site logo uploaded to Cloudinary successfully!");
+    } catch (err: any) {
+      toast.error(`Failed to upload logo: ${err.message || err}`);
+    } finally {
+      setIsUploadingLogo(false);
+      e.target.value = "";
+    }
+  };
 
   const handleCancel = () => {
     setForm(settings);
@@ -47,6 +64,7 @@ const AdminContent = () => {
       await updateSettingsAPI({
         siteName: form.siteName,
         siteDescription: form.siteDescription,
+        logo: form.logo,
         discountPercent: form.discountPercent,
         minimumPurchaseAmount: form.minimumPurchaseAmount,
         minPurchaseOutsideTN: form.minPurchaseOutsideTN,
@@ -55,6 +73,7 @@ const AdminContent = () => {
         socialLinks: form.socialLinks,
         news: form.news,
         enablePackingCharge: form.enablePackingCharge,
+        youtubeVideos: form.youtubeVideos,
       });
 
       // Update global context state immediately
@@ -104,6 +123,21 @@ const AdminContent = () => {
                   maxLength={100}
                   className={!isEditing ? "bg-muted cursor-not-allowed" : ""}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label>Site Logo (Uploads to Cloudinary)</Label>
+                <div className="flex items-center gap-4">
+                  {form.logo && (
+                    <img src={form.logo} alt="Site Logo" className="h-12 w-auto object-contain border border-border rounded p-1 bg-white" />
+                  )}
+                  {isEditing && (
+                    <label className="cursor-pointer bg-secondary border border-border text-xs font-semibold px-3 py-2 rounded-md hover:bg-secondary/80 flex items-center gap-1.5">
+                      {isUploadingLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                      <span>{isUploadingLogo ? "Uploading..." : "Upload Logo"}</span>
+                      <input type="file" accept="image/*" disabled={isUploadingLogo} onChange={handleLogoUpload} className="hidden" />
+                    </label>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Site Description</Label>
@@ -229,6 +263,77 @@ const AdminContent = () => {
                     </label>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* YouTube Promotional Videos */}
+            <div className="bg-card border border-border rounded-lg p-6 space-y-4">
+              <h2 className="font-display font-bold text-lg flex items-center gap-2">
+                Promotional YouTube Videos
+              </h2>
+              <div className="space-y-4">
+                {(form.youtubeVideos || []).map((video, index) => (
+                  <div key={index} className="flex gap-4 items-end bg-secondary/50 p-4 rounded-lg border border-border flex-wrap md:flex-nowrap">
+                    <div className="flex-1 space-y-2 w-full min-w-[200px]">
+                      <Label>Title</Label>
+                      <Input
+                        placeholder="e.g. Grand Celebration Video"
+                        value={video.title}
+                        onChange={(e) => {
+                          const newVideos = [...(form.youtubeVideos || [])];
+                          newVideos[index].title = e.target.value;
+                          setForm({ ...form, youtubeVideos: newVideos });
+                        }}
+                        disabled={!isEditing}
+                        className={!isEditing ? "bg-muted cursor-not-allowed" : ""}
+                      />
+                    </div>
+                    <div className="flex-1 space-y-2 w-full min-w-[200px]">
+                      <Label>YouTube URL</Label>
+                      <Input
+                        placeholder="e.g. https://www.youtube.com/watch?v=..."
+                        value={video.url}
+                        onChange={(e) => {
+                          const newVideos = [...(form.youtubeVideos || [])];
+                          newVideos[index].url = e.target.value;
+                          setForm({ ...form, youtubeVideos: newVideos });
+                        }}
+                        disabled={!isEditing}
+                        className={!isEditing ? "bg-muted cursor-not-allowed" : ""}
+                      />
+                    </div>
+                    {isEditing && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => {
+                          const newVideos = [...(form.youtubeVideos || [])];
+                          newVideos.splice(index, 1);
+                          setForm({ ...form, youtubeVideos: newVideos });
+                        }}
+                        className="shrink-0"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                
+                {isEditing && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full gap-2 border-dashed"
+                    onClick={() => {
+                      const newVideos = [...(form.youtubeVideos || []), { title: '', url: '' }];
+                      setForm({ ...form, youtubeVideos: newVideos });
+                    }}
+                  >
+                    <Plus className="h-4 w-4" /> Add Video
+                  </Button>
+                )}
+                <p className="text-[10px] text-muted-foreground italic">These videos will be displayed in the Fireworks Showcase section on the Home page.</p>
               </div>
             </div>
 

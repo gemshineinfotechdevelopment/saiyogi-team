@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
-import { generateOrderReceiptPDF, OrderData } from "@/lib/pdf-generator";
+import { downloadOrderReceiptPDF, OrderData } from "@/lib/pdf-generator";
 import { FileText, Eye, X, CheckCircle, Package, ArrowLeft } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -71,7 +71,7 @@ const MyEnquiry: React.FC = () => {
     };
 
     toast.info("Generating estimate PDF...");
-    generateOrderReceiptPDF(pdfData);
+    downloadOrderReceiptPDF(pdfData);
   };
 
   return (

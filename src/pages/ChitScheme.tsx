@@ -6,10 +6,13 @@ import { useAuth } from "@/context/AuthContext";
 import { Lock, LogIn, Image as ImageIcon, ZoomIn, X, Gift } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
+import { getChitSchemes, ChitSchemeItem } from "@/lib/api";
+
 interface ChitSchemeImage {
   id: string;
   url: string;
   title?: string;
+  description?: string;
 }
 
 const DEFAULT_IMAGES: ChitSchemeImage[] = [
@@ -31,17 +34,24 @@ const ChitScheme: React.FC = () => {
   const [activeZoomImage, setActiveZoomImage] = useState<ChitSchemeImage | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem("chit_scheme_images");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setImages(parsed.length > 0 ? parsed : DEFAULT_IMAGES);
-      } catch {
+    getChitSchemes()
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped = data.map((item: ChitSchemeItem) => ({
+            id: item._id || item.id || '',
+            url: item.url,
+            title: item.title || '',
+            description: item.description || ''
+          }));
+          setImages(mapped);
+        } else {
+          setImages(DEFAULT_IMAGES);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch chit schemes from API:", err);
         setImages(DEFAULT_IMAGES);
-      }
-    } else {
-      setImages(DEFAULT_IMAGES);
-    }
+      });
   }, []);
 
   return (
@@ -133,9 +143,10 @@ const ChitScheme: React.FC = () => {
                       </button>
                     </div>
 
-                    {img.title && (
-                      <div className="p-4 bg-white border-t border-gray-100">
-                        <h3 className="font-bold text-gray-900 text-sm">{img.title}</h3>
+                    {(img.title || img.description) && (
+                      <div className="p-4 bg-white border-t border-gray-100 space-y-1">
+                        {img.title && <h3 className="font-bold text-gray-900 text-sm leading-snug">{img.title}</h3>}
+                        {img.description && <p className="text-xs text-gray-600 font-medium leading-relaxed">{img.description}</p>}
                       </div>
                     )}
                   </div>
