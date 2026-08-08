@@ -119,9 +119,9 @@ const AdminCategories = () => {
       fd.append('categoryCode', form.categoryCode);
     }
     if (imageFile) {
-      const maxSize = 5 * 1024 * 1024; // 5MB
+      const maxSize = 1 * 1024 * 1024; // 1MB
       if (imageFile.size > maxSize) {
-        toast.error('Image must be less than 5MB');
+        toast.error('Image must be less than 1MB');
         return;
       }
       fd.append('image', imageFile);
@@ -355,11 +355,17 @@ const AdminCategories = () => {
                   <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Fancy Lights" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Image (Max 1200x1600px, 5MB)</Label>
+                  <Label>Image (Max 1200x1600px, Max 1MB)</Label>
                   <input type="file" accept="image/*" onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (!file) {
                       setImageFile(null);
+                      return;
+                    }
+                    if (file.size > 1 * 1024 * 1024) {
+                      toast.error("Image file size must be less than 1MB");
+                      setImageFile(null);
+                      e.target.value = '';
                       return;
                     }
                     const img = new Image();
