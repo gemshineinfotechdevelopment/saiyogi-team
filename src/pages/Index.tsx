@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Play, Pause, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
+import { Play, Pause, ChevronLeft, ChevronRight, ShoppingCart, X } from "lucide-react";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useCart } from "@/context/CartContext";
@@ -9,7 +9,7 @@ import heroBanner1 from "@/assets/hero_banner_1.jpg";
 import heroBanner2 from "@/assets/hero_banner_2.jpg";
 import heroBanner3 from "@/assets/hero_banner_3.jpg";
 import heroBanner4 from "@/assets/hero_banner_4.jpg";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getProducts, getCategories, getBrands, Brand } from "@/lib/api";
 import { Product, Category } from "@/data/products";
 import { getUpcomingDiwaliInfo, calculateTimeLeft, UpcomingDiwaliInfo } from "@/lib/diwaliCountdown";
@@ -120,7 +120,22 @@ const Index = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [videoIndex, setVideoIndex] = useState(0);
+  const videoScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollVideos = (direction: 'left' | 'right') => {
+    if (videoScrollRef.current) {
+      const scrollAmount = direction === 'left' ? -380 : 380;
+      videoScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
   const [comboIndex, setComboIndex] = useState(0);
+  const [isMobileView, setIsMobileView] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobileView(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Hero image slideshow (right-to-left slide)
   const heroImages = [heroBanner1, heroBanner2, heroBanner3, heroBanner4];
@@ -166,6 +181,34 @@ const Index = () => {
     });
   }, []);
 
+  // Listen for YouTube video ENDED (0) or PAUSED (2) events to automatically resume marquee scrolling
+  useEffect(() => {
+    const handleYTMessage = (event: MessageEvent) => {
+      try {
+        const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        if (!data) return;
+
+        // YT.PlayerState: ENDED is 0, PAUSED is 2
+        const isEndedOrPaused =
+          data.info === 0 ||
+          data.info === 2 ||
+          data.info?.playerState === 0 ||
+          data.info?.playerState === 2 ||
+          (data.event === "onStateChange" && (data.info === 0 || data.info === 2)) ||
+          (data.event === "infoDelivery" && (data.info?.playerState === 0 || data.info?.playerState === 2));
+
+        if (isEndedOrPaused) {
+          setPlayingVideo(null);
+        }
+      } catch (err) {
+        // Ignore non-JSON messages
+      }
+    };
+
+    window.addEventListener("message", handleYTMessage);
+    return () => window.removeEventListener("message", handleYTMessage);
+  }, []);
+
   // Realistic Flower Pot Effect
   useEffect(() => {
     const canvas = document.getElementById('flower-pot-canvas') as HTMLCanvasElement;
@@ -183,8 +226,9 @@ const Index = () => {
     let particles: any[] = [];
     
     const createFlowerPotParticle = (x: number, y: number) => {
+      const isMobile = window.innerWidth < 768;
       const angle = (Math.random() * Math.PI) / 4 - Math.PI / 8; // Narrower angle for realistic fountain
-      const speed = Math.random() * 12 + 6; // Stronger initial thrust
+      const speed = isMobile ? (Math.random() * 8 + 4) : (Math.random() * 12 + 6); // Stronger initial thrust, less on mobile
       particles.push({
         x, y,
         vx: Math.sin(angle) * speed,
@@ -192,6 +236,22 @@ const Index = () => {
         life: 1,
         decay: Math.random() * 0.015 + 0.008,
         color: Math.random() > 0.4 ? '255, 215, 0' : '255, 140, 0' // Gold and orange
+      });
+    };
+
+    let chakkarAngle = 0;
+    const createChakkarParticle = (x: number, y: number) => {
+      chakkarAngle += 0.8; // Spin speed
+      const isMobile = window.innerWidth < 768;
+      const speed = isMobile ? (Math.random() * 6 + 4) : (Math.random() * 10 + 5);
+      const angle = chakkarAngle + (Math.random() * 0.5 - 0.25);
+      particles.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: (Math.sin(angle) * speed * 0.5) - (isMobile ? 1 : 2), // Elliptical spin + slight upward drift
+        life: 1,
+        decay: Math.random() * 0.02 + 0.01,
+        color: Math.random() > 0.5 ? '255, 255, 255' : '150, 255, 150' // Silver & Green sparks
       });
     };
 
@@ -211,14 +271,25 @@ const Index = () => {
         lastToggleTime = time;
       }
 
-      const leftPotX = canvas.width * 0.1;
-      const rightPotX = canvas.width * 0.9;
-      const potY = canvas.height; // Emit from bottom
+      const isMobile = window.innerWidth < 768;
+      // Move them more inward on mobile so they don't get cut off at the edges
+      const leftPotX = canvas.width * (isMobile ? 0.2 : 0.1);
+      const rightPotX = canvas.width * (isMobile ? 0.8 : 0.9);
+      const centerX = canvas.width * 0.5;
+      
+      // Move the Y position slightly up on mobile to avoid bottom UI / notch covering it
+      const potY = canvas.height - (isMobile ? 40 : 10);
+      
+      const particleCount = isMobile ? 3 : 5; // Slightly increased for better visibility
+      const chakkarCount = isMobile ? 3 : 6;
 
       if (isActive) {
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < particleCount; i++) {
           createFlowerPotParticle(leftPotX, potY);
           createFlowerPotParticle(rightPotX, potY);
+        }
+        for (let i = 0; i < chakkarCount; i++) {
+          createChakkarParticle(centerX, potY);
         }
       }
 
@@ -327,16 +398,17 @@ const Index = () => {
         options={{
           rocketsPoint: { min: 0, max: 100 },
           hue: { min: 0, max: 360 },
-          delay: { min: 30, max: 60 },
+          // Balanced multi-shot: moderate delay, lower speed
+          delay: isMobileView ? { min: 30, max: 50 } : { min: 30, max: 60 },
 
           acceleration: 1.05,
           friction: 0.97,
           gravity: 1.5,
-          particles: 50,
+          particles: isMobileView ? 30 : 50,
           traceLength: 3,
-          traceSpeed: 10,
-          explosion: 5,
-          intensity: 30,
+          traceSpeed: isMobileView ? 4 : 10, // Reduced speed
+          explosion: isMobileView ? 4 : 5,
+          intensity: isMobileView ? 15 : 30, // Reduced intensity slightly to prevent chaos
           flickering: 50,
           lineStyle: 'round',
           lineWidth: { explosion: { min: 1, max: 3 }, trace: { min: 1, max: 2 } },
@@ -411,118 +483,134 @@ const Index = () => {
       </section>
 
       {/* Videos Section */}
-      <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5]">
+      <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5] overflow-hidden">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center mb-10">
             <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
               ✨ Watch the Magic ✨
             </span>
-            <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2 font-display">
+            <h2 className="font-black text-[#A80000] text-2xl md:text-3xl uppercase tracking-widest mb-2 font-display">
               Fireworks Showcase
             </h2>
             <p className="text-gray-500 text-xs mt-2 max-w-md mx-auto">
-              Click on any card to watch our premium Sivakasi crackers light up the night sky!
+              Click on any video to watch our premium Sivakasi crackers light up the night sky!
             </p>
           </div>
 
           <div className="relative flex items-center justify-center">
             {/* Left Button */}
             <button
-              onClick={() => {
-                const videos = settings.youtubeVideos && settings.youtubeVideos.length > 0 ? settings.youtubeVideos : demoVideos;
-                setVideoIndex((prev) => (prev - 1 + videos.length) % videos.length);
-              }}
-              className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
-
+              onClick={() => scrollVideos('left')}
+              className="absolute -left-2 md:-left-6 z-20 w-10 h-10 rounded-full bg-white/90 text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all cursor-pointer"
+              aria-label="Scroll Left"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
 
-            {/* Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full px-4">
-              {[0, 1, 2].map((offset) => {
-                const videos = settings.youtubeVideos && settings.youtubeVideos.length > 0 ? settings.youtubeVideos : demoVideos;
-                if (videos.length === 0) return null;
-                const idx = (videoIndex + offset) % videos.length;
-                const video = videos[idx] as any;
-                
-                // Helper to extract YouTube ID
-                const getYouTubeId = (url: string) => {
-                  if (!url) return null;
-                  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
-                  const match = url.match(regExp);
-                  return (match && match[2].length === 11) ? match[2] : null;
-                };
+            {/* Continuous Horizontal Moving Videos Container */}
+            <div 
+              ref={videoScrollRef}
+              className="w-full overflow-x-auto no-scrollbar scroll-smooth py-4 px-2 select-none"
+            >
+              <div 
+                className={`flex flex-nowrap gap-3 sm:gap-6 w-max animate-marquee ${
+                  playingVideo ? "paused" : "hover:[animation-play-state:paused]"
+                }`}
+                style={playingVideo ? { animationPlayState: 'paused' } : undefined}
+              >
+                {(() => {
+                  const baseVideos = settings.youtubeVideos && settings.youtubeVideos.length > 0 ? settings.youtubeVideos : demoVideos;
+                  const allVideos = [...baseVideos, ...baseVideos, ...baseVideos];
 
-                const isYouTube = video.url && video.url.includes('youtu');
-                const ytId = isYouTube ? getYouTubeId(video.url) : null;
-                const videoId = isYouTube ? ytId : video.id;
-                const isPlaying = playingVideo === videoId;
-                const thumbnail = (isYouTube && ytId) ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : (video.thumbnail || "/fireworks_bg.png");
+                  const getYouTubeId = (url: string) => {
+                    if (!url) return null;
+                    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+                    const match = url.match(regExp);
+                    return (match && match[2].length === 11) ? match[2] : null;
+                  };
 
-                return (
-                  <div
-                    key={`${videoId || 'video'}-${offset}`}
-                    className="relative rounded-2xl overflow-hidden aspect-video bg-black group cursor-pointer shadow-lg transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl border border-white/40"
-                    onClick={() => setPlayingVideo(isPlaying ? null : videoId)}
-                  >
-                    {isPlaying ? (
-                      isYouTube && ytId ? (
-                        <iframe
-                          width="100%"
-                          height="100%"
-                          src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
-                          title={video.title}
-                          frameBorder="0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                          className="w-full h-full"
-                        ></iframe>
-                      ) : (
-                        <video
-                          src={video.url}
-                          autoPlay
-                          loop
-                          muted
-                          playsInline
-                          className="w-full h-full object-cover"
-                        />
-                      )
-                    ) : (
-                      <img
-                        src={thumbnail}
-                        alt={video.title}
-                        className="w-full h-full object-cover opacity-70 group-hover:opacity-85 transition-opacity"
-                      />
-                    )}
+                  return allVideos.map((video: any, idx: number) => {
+                    const isYouTube = video.url && video.url.includes('youtu');
+                    const ytId = isYouTube ? getYouTubeId(video.url) : null;
+                    const videoId = isYouTube ? (ytId || `yt-${idx}`) : (video.id || `vid-${idx}`);
+                    const isPlaying = playingVideo === `${videoId}-${idx}`;
+                    const thumbnail = (isYouTube && ytId) ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : (video.thumbnail || "/fireworks_bg.png");
 
-                    {/* Button overlay */}
-                    {!isPlaying && (
-                      <div className="absolute inset-0 flex flex-col justify-between p-4 bg-gradient-to-t from-black/60 via-transparent to-black/20">
-                        <span className="text-white font-bold text-xs bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm self-start">
-                          {video.title}
-                        </span>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-[#A80000] group-hover:border-red-500">
-                            <Play className="text-white fill-white w-5 h-5 ml-0.5" />
+                    return (
+                      <div
+                        key={`showcase-video-${idx}`}
+                        className="relative rounded-xl sm:rounded-2xl overflow-hidden aspect-video bg-black group cursor-pointer shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl border border-white/40 min-w-[210px] sm:min-w-[280px] md:min-w-[360px] shrink-0"
+                        onClick={() => setPlayingVideo(isPlaying ? null : `${videoId}-${idx}`)}
+                      >
+                        {isPlaying ? (
+                          <>
+                            {isYouTube && ytId ? (
+                              <iframe
+                                width="100%"
+                                height="100%"
+                                src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`}
+                                title={video.title}
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                className="w-full h-full"
+                              ></iframe>
+                            ) : (
+                              <video
+                                src={video.url}
+                                autoPlay
+                                onPause={() => setPlayingVideo(null)}
+                                onEnded={() => setPlayingVideo(null)}
+                                playsInline
+                                className="w-full h-full object-cover"
+                              />
+                            )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPlayingVideo(null);
+                              }}
+                              className="absolute top-2 right-2 z-30 w-7 h-7 bg-black/70 hover:bg-[#A80000] text-white rounded-full flex items-center justify-center backdrop-blur-sm transition-all cursor-pointer shadow-md"
+                              title="Stop Video & Resume Scroll"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </>
+                        ) : (
+                          <img
+                            src={thumbnail}
+                            alt={video.title}
+                            className="w-full h-full object-cover opacity-75 group-hover:opacity-90 transition-opacity"
+                          />
+                        )}
+
+                        {/* Button overlay */}
+                        {!isPlaying && (
+                          <div className="absolute inset-0 flex flex-col justify-between p-2.5 sm:p-4 bg-gradient-to-t from-black/70 via-transparent to-black/30">
+                            <span className="text-white font-bold text-[10px] sm:text-xs bg-black/50 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full backdrop-blur-sm self-start truncate max-w-[85%]">
+                              {video.title}
+                            </span>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-9 h-9 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-[#A80000] group-hover:border-red-500">
+                                <Play className="text-white fill-white w-4 h-4 sm:w-5 sm:h-5 ml-0.5" />
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+                    );
+                  });
+                })()}
+              </div>
             </div>
 
             {/* Right Button */}
             <button
-              onClick={() => {
-                const videos = settings.youtubeVideos && settings.youtubeVideos.length > 0 ? settings.youtubeVideos : demoVideos;
-                setVideoIndex((prev) => (prev + 1) % videos.length);
-              }}
-              className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all"
+              onClick={() => scrollVideos('right')}
+              className="absolute -right-2 md:-right-6 z-20 w-10 h-10 rounded-full bg-white/90 text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all cursor-pointer"
+              aria-label="Scroll Right"
             >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -584,24 +672,39 @@ const Index = () => {
         {/* Infinite horizontal scrolling marquee for mobile and desktop */}
         <div className="relative w-full overflow-hidden py-4">
           <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
-            {[...manufacturers, ...manufacturers, ...manufacturers, ...manufacturers].map((brand, i) => (
-              <div
-                key={`${brand.name}-${i}`}
-                className="bg-white border-2 border-gray-100/80 rounded-2xl px-6 py-4 flex items-center gap-4 min-w-[220px] shrink-0 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-xl hover:border-[#A80000]/30 transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br hover:from-[#A80000] hover:to-[#8a0000] hover:text-white group cursor-pointer"
-              >
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#A80000] to-[#750000] text-white flex items-center justify-center font-black text-xs tracking-wider shrink-0 transition-all duration-300 group-hover:from-[#F4C542] group-hover:to-[#d4a215] group-hover:text-[#1A1A1A]">
-                  {brand.logo}
-                </div>
-                <div className="flex flex-col items-start text-left">
-                  <span className="font-black text-[9px] text-[#A80000]/80 tracking-widest uppercase transition-colors duration-300 group-hover:text-[#F4C542]">
-                    PARTNER
-                  </span>
-                  <span className="font-black text-sm text-gray-800 tracking-wider uppercase transition-colors duration-300 group-hover:text-white whitespace-nowrap">
-                    {brand.name}
-                  </span>
-                </div>
-              </div>
-            ))}
+            {(() => {
+              const activeBrandsList = brands.length > 0 ? brands : manufacturers;
+              const displayList = [...activeBrandsList, ...activeBrandsList, ...activeBrandsList, ...activeBrandsList];
+
+              return displayList.map((brand: any, i: number) => {
+                const logoSrc = brand.logo || brand.image;
+                const isImageLogo = logoSrc && (logoSrc.startsWith('/') || logoSrc.startsWith('http') || logoSrc.startsWith('data:'));
+
+                return (
+                  <div
+                    key={`${brand.name || 'brand'}-${i}`}
+                    onClick={() => window.location.href = `/catalog?search=${encodeURIComponent(brand.name)}`}
+                    className="bg-white border-2 border-gray-100/80 rounded-2xl px-6 py-4 flex items-center gap-4 min-w-[220px] shrink-0 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-xl hover:border-[#A80000]/30 transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br hover:from-[#A80000] hover:to-[#8a0000] hover:text-white group cursor-pointer"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#A80000] to-[#750000] text-white flex items-center justify-center font-black text-xs tracking-wider shrink-0 transition-all duration-300 group-hover:from-[#F4C542] group-hover:to-[#d4a215] group-hover:text-[#1A1A1A] overflow-hidden p-1 bg-white border border-gray-200">
+                      {isImageLogo ? (
+                        <img src={logoSrc} alt={brand.name} className="w-full h-full object-contain rounded-full" />
+                      ) : (
+                        <span className="font-black text-xs">{brand.logo || brand.name?.substring(0, 2)?.toUpperCase() || "BR"}</span>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-start text-left">
+                      <span className="font-black text-[9px] text-[#A80000]/80 tracking-widest uppercase transition-colors duration-300 group-hover:text-[#F4C542]">
+                        PARTNER
+                      </span>
+                      <span className="font-black text-sm text-gray-800 tracking-wider uppercase transition-colors duration-300 group-hover:text-white whitespace-nowrap">
+                        {brand.name}
+                      </span>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
       </section>
@@ -625,17 +728,17 @@ const Index = () => {
                 <div
                   key={`${brandId}-${i}`}
                   onClick={() => window.location.href = `/catalog?search=${encodeURIComponent(brand.name)}`}
-                  className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-2xl p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[180px] shrink-0"
+                  className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[130px] sm:w-[160px] md:w-[180px] shrink-0"
                 >
-                  <span className="text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full mb-2 font-mono">
+                  <span className="text-[8px] sm:text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-1.5 sm:px-2 py-0.5 rounded-full mb-1.5 sm:mb-2 font-mono">
                     {brand.tag || "BRAND"}
                   </span>
-                  <div className="w-full aspect-square flex items-center justify-center p-2 mb-2 group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-full aspect-square flex items-center justify-center p-1 sm:p-2 mb-1 sm:mb-2 group-hover:scale-105 transition-transform duration-300">
                     <img src={brand.logo || brand.image || "/sky_rocket_box.png"} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
                   </div>
                   <div>
-                    <h3 className="font-black text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors">{brand.name}</h3>
-                    <p className="text-[10px] text-gray-500 font-medium mt-0.5">{brand.subtitle || brand.description || "Original Sivakasi"}</p>
+                    <h3 className="font-black text-[11px] sm:text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors line-clamp-1">{brand.name}</h3>
+                    <p className="text-[9px] sm:text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-1">{brand.subtitle || brand.description || "Original Sivakasi"}</p>
                   </div>
                 </div>
               );

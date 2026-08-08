@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Product from '../models/Product.js';
 import Category from '../models/Category.js';
 import { AppError } from '../middleware/errorHandler.js';
@@ -58,7 +59,11 @@ export const getAllProducts = async (req, res, next) => {
 
 export const getProductById = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id).populate('category', 'name slug');
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return next(new AppError('Product not found', 404));
+    }
+    const product = await Product.findById(id).populate('category', 'name slug');
     if (!product) {
       return next(new AppError('Product not found', 404));
     }
@@ -169,6 +174,9 @@ export const createProduct = async (req, res, next) => {
 export const updateProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return next(new AppError('Product not found', 404));
+    }
     const { name, code, sku, category, price, wholesalePrice, netRate, stock, minimumStock, description, isActive, brand, hasDiscount, displayNetRate, storeStockPieces, godownStockCases, piecesPerCase } = req.body;
     
     let imageUrl = req.body.image;
@@ -248,17 +256,21 @@ export const updateProduct = async (req, res, next) => {
 
 export const deleteProduct = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.json({ message: 'Product deleted permanently' });
+    }
+
+    const product = await Product.findById(id);
     if (!product) {
-      return next(new AppError('Product not found', 404));
+      return res.json({ message: 'Product deleted permanently' });
     }
 
     if (product.image) {
-      // Assuming deleteFromBoth logic can extract publicId or handle URL directly
       await deleteFromBoth(product.image, null).catch(err => console.error("Failed to delete image:", err));
     }
 
-    await Product.findByIdAndDelete(req.params.id);
+    await Product.findByIdAndDelete(id);
 
     res.json({ message: 'Product deleted permanently' });
   } catch (error) {

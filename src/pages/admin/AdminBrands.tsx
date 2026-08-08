@@ -12,16 +12,7 @@ import { Plus, Search, Edit2, Trash2, Tag, CheckCircle, XCircle, Eye, Package } 
 import { toast } from "sonner";
 import { getBrands, getNextBrandId, createBrand, updateBrand, deleteBrand, getProducts, uploadImageToCloudinary, Brand } from "@/lib/api";
 import { Product } from "@/data/products";
-
-const PRESET_LOGOS = [
-  "/sky_rocket_box.png",
-  "/flower_pots.png",
-  "/family_star_kit.png",
-  "/bestseller_pack.png",
-  "/grand_sky_delight.png",
-  "/royal_celebration.png",
-  "/1.png"
-];
+import { Link } from "react-router-dom";
 
 const AdminBrands = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -39,7 +30,7 @@ const AdminBrands = () => {
   // Form State (Phone Number and manual Items Count removed)
   const [formData, setFormData] = useState({
     name: "",
-    logo: "/sky_rocket_box.png",
+    logo: "",
     description: "",
     isActive: true
   });
@@ -62,6 +53,15 @@ const AdminBrands = () => {
 
   useEffect(() => {
     loadBrandsAndProducts();
+
+    const interval = setInterval(loadBrandsAndProducts, 15000);
+    const onFocus = () => loadBrandsAndProducts();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
   const handleOpenAddDialog = async () => {
@@ -74,7 +74,7 @@ const AdminBrands = () => {
     }
     setFormData({
       name: "",
-      logo: "/sky_rocket_box.png",
+      logo: "",
       description: "",
       isActive: true
     });
@@ -85,7 +85,7 @@ const AdminBrands = () => {
     setEditingBrand(brand);
     setFormData({
       name: brand.name || "",
-      logo: brand.logo || "/sky_rocket_box.png",
+      logo: brand.logo || "",
       description: brand.description || "",
       isActive: brand.isActive !== false
     });
@@ -101,8 +101,8 @@ const AdminBrands = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("File size must be less than 5MB");
+    if (file.size > 1 * 1024 * 1024) {
+      toast.error("File size must be less than 1MB");
       return;
     }
 
@@ -211,16 +211,19 @@ const AdminBrands = () => {
         <div className="p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6">
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <Tag className="h-6 w-6 text-red-600" />
-                Brand Management
-              </h1>
-              <p className="text-sm text-gray-500 mt-1">
-                Add and manage cracker brands. Click on any brand row or view icon to see its items.
-              </p>
+            <div className="flex items-start justify-between w-full md:w-auto">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <Tag className="h-6 w-6 text-red-600" />
+                  Brand Management
+                </h1>
+                <p className="text-sm text-gray-500 mt-1">
+                  Add and manage cracker brands. Click on any brand row or view icon to see its items.
+                </p>
+              </div>
+              <Link to="/" className="text-sm text-primary hover:underline lg:hidden mt-1">← Store</Link>
             </div>
-            <Button onClick={handleOpenAddDialog} className="bg-red-600 hover:bg-red-700 text-white font-bold gap-2">
+            <Button onClick={handleOpenAddDialog} className="bg-red-600 hover:bg-red-700 text-white font-bold gap-2 w-full md:w-auto">
               <Plus className="h-4 w-4" /> Add New Brand
             </Button>
           </div>
@@ -358,10 +361,10 @@ const AdminBrands = () => {
 
       {/* Add / Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-[92vw] sm:max-w-md max-h-[85vh] overflow-y-auto p-4 sm:p-6 rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <Tag className="h-5 w-5 text-red-600" />
+            <DialogTitle className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
+              <Tag className="h-5 w-5 text-red-600 shrink-0" />
               {editingBrand ? `Edit Brand (${editingBrand.brandId})` : "Add New Brand"}
             </DialogTitle>
             <DialogDescription className="sr-only">Form to add or edit brand details</DialogDescription>
@@ -389,11 +392,11 @@ const AdminBrands = () => {
               />
             </div>
 
-            {/* File Upload & Presets */}
+            {/* File Upload */}
             <div className="space-y-2">
               <Label className="text-xs font-bold text-gray-700 uppercase flex items-center justify-between">
                 <span>Brand Logo / Image</span>
-                <span className="text-[10px] text-gray-400 font-normal">Max: 1200x1600px (Auto-scales to 1024x1024px)</span>
+                <span className="text-[10px] text-gray-400 font-normal">Max: 1200x1600px, Max 1MB (Auto-scales to 1024x1024px)</span>
               </Label>
               
               {/* File upload input */}
@@ -418,23 +421,6 @@ const AdminBrands = () => {
                   </div>
                 </div>
               )}
-
-              {/* Preset buttons */}
-              <div className="pt-1">
-                <span className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Preset Logos:</span>
-                <div className="flex gap-2 items-center overflow-x-auto pb-1">
-                  {PRESET_LOGOS.map((url, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, logo: url })}
-                      className={`w-10 h-10 rounded border p-1 shrink-0 bg-gray-50 overflow-hidden ${formData.logo === url ? 'border-red-600 ring-2 ring-red-200' : 'border-gray-200'}`}
-                    >
-                      <img src={url} alt="preset" className="w-full h-full object-contain" />
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
 
             <div>

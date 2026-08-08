@@ -103,7 +103,10 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           setSettings((prev) => ({
             ...prev,
             siteName: siteInfo.siteName || prev.siteName,
+            siteDescription: siteInfo.siteDescription || prev.siteDescription,
+            logo: siteInfo.logo !== undefined ? siteInfo.logo : prev.logo,
             contact: siteInfo.contact || prev.contact,
+            socialLinks: siteInfo.socialLinks || prev.socialLinks,
             currency: siteInfo.currency || prev.currency,
             discountPercent: siteInfo.discountPercent !== undefined ? siteInfo.discountPercent : prev.discountPercent,
             minimumPurchaseAmount: siteInfo.minimumPurchaseAmount !== undefined ? siteInfo.minimumPurchaseAmount : prev.minimumPurchaseAmount,

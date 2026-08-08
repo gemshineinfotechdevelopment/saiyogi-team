@@ -20,6 +20,8 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
   const isNetRate = !!product.netRate && product.netRate > 0 && !!product.displayNetRate;
   const discount = (product.hasDiscount && !isNetRate) ? settings.discountPercent : 0;
 
+  const selectedAmount = quantity * discountPrice;
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -41,24 +43,29 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
   const handleDecrement = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    updateQuantity(productId!, quantity - 1);
+    if (quantity > 0) {
+      updateQuantity(productId!, quantity - 1);
+    }
   };
 
   const QuantitySelector = ({ className }: { className?: string }) => (
-    <div className={cn("flex items-center gap-0.5 sm:gap-1 bg-red-50 rounded-full border border-red-200 p-0.5", className)} onClick={e => e.stopPropagation()}>
+    <div className={cn("flex items-center justify-center gap-2 w-full", className)} onClick={e => e.stopPropagation()}>
       <button
         onClick={handleDecrement}
-        className="h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center rounded-full bg-white text-red-600 hover:bg-red-600 hover:text-white transition-all shadow-sm"
+        disabled={quantity <= 0}
+        className="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center rounded-lg bg-red-50 text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors font-bold text-base shadow-xs disabled:opacity-40 disabled:hover:bg-red-50 disabled:hover:text-[#A80000]"
       >
-        <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
+        <Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
       </button>
-      <span className="w-6 sm:w-8 text-center font-bold text-red-900 text-xs sm:text-sm">{quantity}</span>
+      <span className="w-12 sm:w-14 py-1 text-center font-extrabold text-white bg-[#A80000] rounded-lg text-xs sm:text-sm shadow-xs">
+        {quantity}
+      </span>
       <button
         onClick={handleIncrement}
-        className="h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 transition-all shadow-sm disabled:bg-gray-300 disabled:cursor-not-allowed"
-        disabled={quantity >= ((product.storeStockPieces || 0) || 999)}
+        className="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center rounded-lg bg-red-50 text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors font-bold text-base shadow-xs disabled:opacity-40"
+        disabled={(product.storeStockPieces || 0) <= 0 || quantity >= ((product.storeStockPieces || 0) || 999)}
       >
-        <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+        <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
       </button>
     </div>
   );
@@ -66,7 +73,15 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
   return (
     <>
       <div className="group h-full">
-        <div className="rounded-2xl overflow-hidden bg-white border border-gray-100 hover:border-gray-300 transition-all duration-500 hover:shadow-lg flex flex-col h-full relative">
+        <div className="rounded-2xl overflow-hidden bg-white border border-gray-200/80 hover:border-red-300 transition-all duration-300 hover:shadow-lg flex flex-col h-full relative">
+          
+          {/* Top Right Selected Amount Badge */}
+          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20">
+            <span className="bg-[#A80000] text-white text-xs sm:text-sm font-bold px-2.5 py-1 rounded-md shadow-md">
+              ₹ {selectedAmount.toFixed(2)}
+            </span>
+          </div>
+
           <div
             className="relative aspect-square overflow-hidden bg-white cursor-pointer p-2 sm:p-4 border-b border-gray-50"
             onClick={() => setShowDetails(true)}
@@ -81,10 +96,6 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
               }}
             />
             <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-
-            <span className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-primary text-white text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md shadow-sm z-10 uppercase tracking-wider">
-              HOT
-            </span>
 
             {discount > 0 && !isNetRate && (
               <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-yellow-400 text-yellow-950 text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md shadow-sm z-10">
@@ -109,43 +120,28 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
             )}
           </div>
 
-          <div className="p-3 sm:p-4 flex-1 flex flex-col">
-            <div className="flex justify-between items-start mb-0.5 sm:mb-1">
-              <p className="text-[9px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-wider">{product.brand || "Standard"}</p>
+          <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between">
+            <div>
+              <div className="flex justify-between items-start mb-0.5 sm:mb-1">
+                <p className="text-[9px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-wider">{product.brand || "Standard"}</p>
+              </div>
+
+              <h3 className="font-display font-bold text-xs sm:text-base text-gray-900 leading-tight mb-1 line-clamp-2 group-hover:text-[#A80000] transition-colors text-center">{product.name}</h3>
             </div>
 
-            <h3 className="font-display font-bold text-xs sm:text-base text-secondary leading-tight mb-1 line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] group-hover:text-primary transition-colors">{product.name}</h3>
-            <p className="text-[9px] sm:text-[10px] text-gray-400 mb-2 sm:mb-3">1 Piece / Box</p>
-
-            <div className="mt-auto pt-2 sm:pt-4 flex flex-col justify-between gap-2 sm:gap-3 border-t border-gray-100">
-              <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
-                <span className="font-display font-black text-secondary text-sm sm:text-lg leading-none">₹{discountPrice}</span>
+            <div className="pt-2 sm:pt-3 flex flex-col items-center gap-2">
+              <div className="flex items-baseline justify-center gap-2 flex-wrap">
+                <span className="font-display font-black text-gray-900 text-sm sm:text-lg leading-none">₹{discountPrice}</span>
                 {product.hasDiscount && !isNetRate && (
                   <span className="text-[8px] sm:text-[10px] text-gray-400 line-through">₹{product.price}</span>
                 )}
                 {isNetRate && (
-                  <span className="text-[8px] sm:text-[10px] text-indigo-500 font-bold uppercase tracking-tighter ml-auto">Fixed Price</span>
+                  <span className="text-[8px] sm:text-[10px] text-indigo-500 font-bold uppercase tracking-tighter">Fixed Price</span>
                 )}
               </div>
 
-              <div className="flex justify-center w-full">
-                {quantity > 0 ? (
-                  <QuantitySelector className="w-full justify-between px-1.5 py-0.5" />
-                ) : (
-                  <button
-                    onClick={handleAddToCart}
-                    disabled={(product.storeStockPieces || 0) <= 0}
-                    className={cn(
-                      "h-8 sm:h-10 w-full flex items-center justify-center rounded-lg transition-all shadow-sm active:scale-95 group/btn",
-                      (product.storeStockPieces || 0) <= 0
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-secondary text-white hover:bg-secondary/90 hover:shadow-md"
-                    )}
-                  >
-                    <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    <span className="ml-1 sm:ml-2 font-bold text-xs sm:text-sm">Add to Cart</span>
-                  </button>
-                )}
+              <div className="flex justify-center w-full pt-1">
+                <QuantitySelector />
               </div>
             </div>
           </div>

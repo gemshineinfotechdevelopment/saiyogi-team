@@ -48,6 +48,15 @@ const AdminChitScheme: React.FC = () => {
 
   useEffect(() => {
     loadChitSchemes();
+
+    const interval = setInterval(loadChitSchemes, 15000);
+    const onFocus = () => loadChitSchemes();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,10 +174,33 @@ const AdminChitScheme: React.FC = () => {
             </h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+<<<<<<< HEAD
               {/* Left Side: Image File Selection & Preview */}
               <div className="flex flex-col">
                 <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1.5">
                   1. Select Image File *
+=======
+              {/* Left Side: Image Upload Option */}
+              <div className="border-2 border-dashed border-gray-200 hover:border-primary/50 rounded-2xl p-6 text-center transition-colors bg-gray-50/50 flex flex-col items-center justify-center min-h-[220px]">
+                <ImageIcon className="w-12 h-12 text-gray-400 mb-3" />
+                <p className="text-base font-bold text-gray-800 mb-1">
+                  Select Image File
+                </p>
+                <p className="text-xs text-gray-500 mb-5 font-medium">
+                  Max: 1200x1600px, Max 1MB (PNG, JPG, WEBP)
+                </p>
+                <label className={`bg-primary text-white text-xs font-bold px-6 py-3 rounded-xl cursor-pointer hover:bg-primary/90 transition-all shadow-xs flex items-center gap-2 active:scale-95 ${isUploading ? 'opacity-70 pointer-events-none' : ''}`}>
+                  {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                  <span>{isUploading ? 'Uploading to Cloudinary & Saving...' : 'Browse & Upload Image'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    disabled={isUploading}
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+>>>>>>> 5a1840951f31f4d02411a6d3ff710e9aac6a669b
                 </label>
                 {filePreview ? (
                   <div className="relative border border-gray-200 rounded-2xl p-3 bg-gray-50 flex-1 flex flex-col items-center justify-center min-h-[220px]">

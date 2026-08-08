@@ -141,18 +141,17 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg p-0 overflow-hidden rounded-3xl border-0 shadow-2xl bg-[#F7F5F0] [&>button]:hidden">
-        <DialogTitle className="sr-only">Login / Profile Modal</DialogTitle>
         {/* Header decoration */}
         <div className="bg-gradient-to-r from-[#7A1416] via-[#A80000] to-[#7A1416] text-white p-5 relative flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20">
-              <ShieldCheck className="w-6 h-6 text-[#F4C542]" />
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20 shrink-0">
+              <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-[#F4C542]" />
             </div>
             <div>
-              <DialogTitle className="text-base font-black uppercase tracking-wide text-white leading-tight">
+              <DialogTitle className="text-sm sm:text-base font-black uppercase tracking-wide text-white leading-tight">
                 Sai Yogi Crackers
               </DialogTitle>
-              <DialogDescription className="text-[10px] text-amber-300 font-bold tracking-wider uppercase">
+              <DialogDescription className="text-[9px] sm:text-[10px] text-amber-300 font-bold tracking-wider uppercase">
                 Celebrate Every Moment ✨
               </DialogDescription>
             </div>
@@ -169,54 +168,54 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
         </div>
 
         {/* Content Body */}
-        <div className="p-5 sm:p-6 bg-[#F7F5F0]">
+        <div className="p-3.5 sm:p-6 bg-[#F7F5F0]">
           {isUserLoggedIn ? (
-            <div className="space-y-4 font-sans">
+            <div className="space-y-3 sm:space-y-4 font-sans">
               {/* Profile Card */}
-              <div className="bg-white rounded-3xl p-6 border border-gray-200/80 shadow-md text-center relative overflow-hidden">
+              <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-gray-200/80 shadow-md text-center relative overflow-hidden">
                 {/* Clean Avatar */}
-                <div className="relative inline-block mx-auto mb-2">
-                  <div className="w-20 h-20 rounded-full bg-red-50 border-4 border-red-100 flex items-center justify-center shadow-md">
-                    <User className="w-10 h-10 text-[#7A1416]" />
+                <div className="relative inline-block mx-auto mb-1 sm:mb-2">
+                  <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-red-50 border-2 sm:border-4 border-red-100 flex items-center justify-center shadow-md">
+                    <User className="w-7 h-7 sm:w-10 sm:h-10 text-[#7A1416]" />
                   </div>
                 </div>
 
-                <h3 className="text-2xl font-black text-gray-900 tracking-tight">
+                <h3 className="text-lg sm:text-2xl font-black text-gray-900 tracking-tight">
                   {userName || localStorage.getItem("user_name") || "User"}
                 </h3>
 
-                <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider mb-3 mt-1">
+                <p className="text-[10px] sm:text-[11px] text-gray-400 font-bold uppercase tracking-wider mb-2 sm:mb-3 mt-0.5">
                   Registered Mobile Number
                 </p>
 
                 {/* Mobile Number Box */}
-                <div className="bg-red-50/70 border border-red-100 rounded-2xl p-3 flex items-center justify-between shadow-2xs">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-[#7A1416] text-white flex items-center justify-center shadow-sm">
-                      <Phone className="w-4 h-4" />
+                <div className="bg-red-50/70 border border-red-100 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 flex items-center justify-between shadow-2xs">
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-[#7A1416] text-white flex items-center justify-center shadow-sm shrink-0">
+                      <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
-                    <span className="text-base sm:text-lg font-black text-gray-900 tracking-wider">
+                    <span className="text-xs sm:text-base md:text-lg font-black text-gray-900 tracking-wider">
                       +91 {userPhone || "98765 43210"}
                     </span>
                   </div>
-                  <span className="bg-emerald-100 text-emerald-800 text-[11px] font-black px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs border border-emerald-200">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span className="bg-emerald-100 text-emerald-800 text-[9px] sm:text-[11px] font-black px-2 sm:px-3 py-0.5 sm:py-1 rounded-full flex items-center gap-1 shadow-2xs border border-emerald-200 shrink-0">
+                    <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600" />
                     <span>Active Session</span>
                   </span>
                 </div>
               </div>
 
               {/* Middle Festive Banner */}
-              <div className="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-4 flex items-center justify-between shadow-2xs">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-2xl bg-red-100 text-[#7A1416] flex items-center justify-center shrink-0 shadow-2xs border border-red-200/50">
-                    <Gift className="w-6 h-6 text-[#7A1416]" />
+              <div className="bg-amber-50/90 border border-amber-200/80 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-2xs">
+                <div className="flex items-center gap-2.5 sm:gap-3.5">
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-red-100 text-[#7A1416] flex items-center justify-center shrink-0 shadow-2xs border border-red-200/50">
+                    <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-[#7A1416]" />
                   </div>
                   <div>
-                    <h4 className="font-display font-black text-gray-900 text-sm leading-snug">
+                    <h4 className="font-display font-black text-gray-900 text-xs sm:text-sm leading-snug">
                       Thank you for being with Sai Yogi Crackers!
                     </h4>
-                    <p className="text-xs text-amber-900/80 font-semibold mt-0.5">
+                    <p className="text-[10px] sm:text-xs text-amber-900/80 font-semibold mt-0.5">
                       Light up more celebrations with us
                     </p>
                   </div>
@@ -227,22 +226,22 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
               </div>
 
               {/* Action Cards Grid: My Account & My Enquiry */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5">
                 {/* My Account Card */}
                 <button
                   onClick={() => {
                     onClose();
                     navigate("/my-account");
                   }}
-                  className="bg-white hover:bg-red-50/40 border border-gray-200/80 rounded-2xl p-4 flex items-center justify-between text-left transition-all group cursor-pointer shadow-2xs"
+                  className="bg-white hover:bg-red-50/40 border border-gray-200/80 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between text-left transition-all group cursor-pointer shadow-2xs"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-red-50 text-[#7A1416] border border-red-100 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <User className="w-5 h-5 text-[#7A1416]" />
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-red-50 text-[#7A1416] border border-red-100 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <User className="w-4 h-4 sm:w-5 sm:h-5 text-[#7A1416]" />
                     </div>
                     <div>
-                      <h5 className="font-black text-gray-900 text-sm">My Account</h5>
-                      <p className="text-[11px] text-gray-500 font-medium">View & edit your details</p>
+                      <h5 className="font-black text-gray-900 text-xs sm:text-sm">My Account</h5>
+                      <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">View & edit your details</p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#7A1416] transition-colors" />
@@ -254,15 +253,15 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
                     onClose();
                     navigate("/my-enquiry");
                   }}
-                  className="bg-white hover:bg-red-50/40 border border-gray-200/80 rounded-2xl p-4 flex items-center justify-between text-left transition-all group cursor-pointer shadow-2xs"
+                  className="bg-white hover:bg-red-50/40 border border-gray-200/80 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between text-left transition-all group cursor-pointer shadow-2xs"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-red-50 text-[#7A1416] border border-red-100 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <ShoppingBag className="w-5 h-5 text-[#7A1416]" />
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-red-50 text-[#7A1416] border border-red-100 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-[#7A1416]" />
                     </div>
                     <div>
-                      <h5 className="font-black text-gray-900 text-sm">My Enquiry</h5>
-                      <p className="text-[11px] text-gray-500 font-medium">Track your enquiries</p>
+                      <h5 className="font-black text-gray-900 text-xs sm:text-sm">My Enquiry</h5>
+                      <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Track your enquiries</p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#7A1416] transition-colors" />
@@ -272,28 +271,28 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
-                className="w-full py-3 bg-white hover:bg-red-50 text-gray-700 hover:text-red-700 border border-gray-200 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs mt-2"
+                className="w-full py-2.5 sm:py-3 bg-white hover:bg-red-50 text-gray-700 hover:text-red-700 border border-gray-200 rounded-xl sm:rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs mt-1"
               >
                 <LogOut className="w-4 h-4 text-red-600" />
                 <span>Logout Account</span>
               </button>
             </div>
           ) : step === "phone" ? (
-            <form onSubmit={handleSendOtp} className="space-y-4">
-              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col items-center text-center space-y-2">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
-                  <Smartphone className="w-6 h-6" />
+            <form onSubmit={handleSendOtp} className="space-y-3 sm:space-y-4 font-sans">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex flex-col items-center text-center space-y-1.5">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-2xs">
+                  <Smartphone className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <h3 className="font-extrabold text-gray-900 text-sm uppercase tracking-wide">
+                <h3 className="font-extrabold text-gray-900 text-xs sm:text-sm uppercase tracking-wide">
                   WhatsApp Mobile Verification
                 </h3>
-                <p className="text-xs text-gray-600 leading-relaxed">
+                <p className="text-[11px] sm:text-xs text-gray-600 leading-relaxed max-w-xs">
                   Please enter your WhatsApp mobile number. A 6-digit verification code will be sent to verify your account.
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-red-900 font-semibold text-xs mb-1 block">
+              <div className="space-y-1.5">
+                <label className="text-red-900 font-semibold text-[11px] sm:text-xs mb-0.5 block">
                   WhatsApp Mobile Number *
                 </label>
                 <div className="flex gap-2">
@@ -309,48 +308,48 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
                     autoFocus
                     className={`flex-1 border ${
                       error ? "border-red-500 bg-red-50/20" : "border-red-200 focus:border-red-500"
-                    } bg-white h-10 px-3 text-xs font-bold rounded-md focus:outline-none transition-all`}
+                    } bg-white h-9 sm:h-10 px-3 text-xs font-bold rounded-md focus:outline-none transition-all`}
                   />
                 </div>
-                {error && <p className="text-xs text-red-600 font-bold mt-1.5">{error}</p>}
+                {error && <p className="text-xs text-red-600 font-bold mt-1">{error}</p>}
               </div>
 
-              <div className="space-y-3 pt-2 border-t border-gray-100">
+              <div className="space-y-2 pt-2 border-t border-gray-100">
                 <button
                   type="submit"
                   disabled={isSubmitting || phone.length !== 10}
-                  className="w-full bg-[#00a859] hover:bg-[#008f4c] text-white font-bold tracking-wider py-3.5 rounded-md uppercase text-xs shadow-md disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  className="w-full bg-[#00a859] hover:bg-[#008f4c] text-white font-bold tracking-wider py-2.5 sm:py-3 rounded-md uppercase text-xs shadow-md disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer transition-all"
                 >
                   {isSubmitting ? (
-                    <RefreshCw className="w-5 h-5 animate-spin" />
+                    <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                   ) : (
                     "SEND VERIFICATION CODE"
                   )}
                 </button>
-                <p className="text-center text-[11px] text-gray-500 font-normal">
+                <p className="text-center text-[10px] sm:text-[11px] text-gray-500 font-normal">
                   * By continuing, you agree to Sai Yogi Crackers Terms of Service & Privacy Policy.
                 </p>
               </div>
             </form>
           ) : (
-            <form onSubmit={handleVerifyOtp} className="space-y-4">
-              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col items-center text-center space-y-2">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
-                  <ShieldCheck className="w-6 h-6" />
+            <form onSubmit={handleVerifyOtp} className="space-y-2.5 sm:space-y-3 font-sans">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 sm:p-3 flex flex-col items-center text-center space-y-1">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-2xs">
+                  <ShieldCheck className="w-4 h-4" />
                 </div>
-                <h3 className="font-extrabold text-gray-900 text-sm uppercase tracking-wide">
+                <h3 className="font-extrabold text-gray-900 text-xs sm:text-sm uppercase tracking-wide">
                   Enter Verification Code
                 </h3>
-                <p className="text-xs text-gray-600 leading-relaxed">
+                <p className="text-[10px] sm:text-xs text-gray-600 leading-tight">
                   We sent a 6-digit verification code to <strong className="text-gray-900 font-black">+91 {phone}</strong>.
                 </p>
-                <div className="bg-emerald-100/90 border border-emerald-300/60 px-3.5 py-1.5 rounded-lg text-emerald-950 text-xs font-black tracking-widest mt-1 shadow-xs">
+                <div className="bg-emerald-100/90 border border-emerald-300/60 px-2.5 py-0.5 rounded-md text-emerald-950 text-[10px] sm:text-[11px] font-black tracking-widest mt-0.5 shadow-2xs">
                   DEMO CODE: {generatedOtp || "1234"}
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-red-900 font-semibold text-xs mb-1 block">
+              <div className="space-y-1">
+                <label className="text-red-900 font-semibold text-[10px] sm:text-[11px] block">
                   6-Digit Verification Code *
                 </label>
                 <input
@@ -368,13 +367,13 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
                   autoFocus
                   className={`w-full border ${
                     error ? "border-red-500 bg-red-50/20" : "border-red-200 focus:border-red-500"
-                  } bg-white h-11 text-center font-black tracking-widest text-lg rounded-md focus:outline-none transition-all`}
+                  } bg-white h-8 sm:h-9 text-center font-black tracking-widest text-sm sm:text-base rounded-md focus:outline-none transition-all`}
                 />
               </div>
 
               {/* Name Input Below OTP */}
-              <div className="space-y-1.5">
-                <label className="text-red-900 font-semibold text-xs mb-1 block">
+              <div className="space-y-1">
+                <label className="text-red-900 font-semibold text-[10px] sm:text-[11px] block">
                   Your Full Name *
                 </label>
                 <input
@@ -385,12 +384,12 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
                     if (error) setError("");
                   }}
                   placeholder="Enter your full name"
-                  className="w-full border border-red-200 focus:border-red-500 bg-white h-10 px-3 text-xs font-semibold rounded-md focus:outline-none transition-all"
+                  className="w-full border border-red-200 focus:border-red-500 bg-white h-8 sm:h-9 px-3 text-xs font-semibold rounded-md focus:outline-none transition-all"
                   required
                 />
               </div>
 
-              <div className="flex justify-between items-center text-xs pt-1">
+              <div className="flex justify-between items-center text-[10px] sm:text-[11px] pt-0.5">
                 <button
                   type="button"
                   onClick={() => {
@@ -415,16 +414,16 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
                 )}
               </div>
 
-              {error && <p className="text-xs text-red-600 font-bold mt-1.5">{error}</p>}
+              {error && <p className="text-xs text-red-600 font-bold mt-1">{error}</p>}
 
-              <div className="space-y-3 pt-2 border-t border-gray-100">
+              <div className="space-y-1.5 pt-1.5 border-t border-gray-100">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-[#00a859] hover:bg-[#008f4c] text-white font-bold tracking-wider py-3.5 rounded-md uppercase text-xs shadow-md disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  className="w-full bg-[#00a859] hover:bg-[#008f4c] text-white font-bold tracking-wider py-2 sm:py-2.5 rounded-md uppercase text-xs shadow-md disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer transition-all"
                 >
                   {isSubmitting ? (
-                    <RefreshCw className="w-5 h-5 animate-spin" />
+                    <RefreshCw className="w-4 h-4 animate-spin" />
                   ) : (
                     "VERIFY CODE & CONTINUE"
                   )}
