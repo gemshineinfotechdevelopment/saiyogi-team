@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 const AdminCategories = () => {
   const { token } = useAuth();
@@ -244,15 +245,18 @@ const AdminCategories = () => {
         <AdminSidebar />
         <main className="flex-1 p-6 lg:p-8 overflow-auto">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-            <div>
-              <h1 className="font-display text-2xl font-bold flex items-center gap-2">
-                <FolderTree className="h-6 w-6 text-primary" /> Categories
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {cats.length} categories. Click on any row or view icon to see products inside that category.
-              </p>
+            <div className="flex items-start justify-between w-full md:w-auto">
+              <div>
+                <h1 className="font-display text-2xl font-bold flex items-center gap-2">
+                  <FolderTree className="h-6 w-6 text-primary" /> Categories
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {cats.length} categories. Click on any row or view icon to see products inside that category.
+                </p>
+              </div>
+              <Link to="/" className="text-sm text-primary hover:underline lg:hidden mt-1">← Store</Link>
             </div>
-            <Button onClick={openCreate} className="gap-2 bg-red-600 hover:bg-red-700 text-white font-bold">
+            <Button onClick={openCreate} className="gap-2 bg-red-600 hover:bg-red-700 text-white font-bold w-full md:w-auto">
               <Plus className="h-4 w-4" /> New Category
             </Button>
           </div>

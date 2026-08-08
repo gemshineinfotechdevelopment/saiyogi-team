@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import companyLogo from "@/assets/saiyogi-logo-1.png";
 
 const navItems = [
   { label: "Dashboard", href: "/admin" },
@@ -14,11 +15,6 @@ const navItems = [
   { label: "Orders", href: "/admin/orders" },
   { label: "Customers", href: "/admin/customers" },
   { label: "Content", href: "/admin/content" },
-  { label: "Retail Bill", href: "/admin/billing/retail" },
-  { label: "Wholesale Bill", href: "/admin/billing/wholesale" },
-  { label: "Net Rate Bill", href: "/admin/billing/netrate" },
-  { label: "Transport Bill", href: "/admin/billing/transport" },
-  { label: "Invoice", href: "/admin/billing/invoice" },
   { label: "Reports", href: "/admin/reports" },
 ];
 
@@ -36,10 +32,10 @@ const AdminNavbar = () => {
   return (
     <nav className="lg:hidden sticky top-0 z-50 border-b border-border bg-sidebar">
       <div className="flex items-center justify-between p-4">
-        <Link to="/admin" className="flex items-center gap-2">
-          <span className="text-xl">🎆</span>
-          <span className="font-display font-bold text-sidebar-primary hidden sm:inline">Admin Panel</span>
-          <span className="font-display font-bold text-sidebar-primary sm:hidden">Admin</span>
+        <Link to="/admin" className="flex items-center gap-3">
+          <img src={companyLogo} alt="Sai Yogi" className="h-10 object-contain" />
+          <span className="font-display font-bold text-sidebar-primary hidden sm:inline text-lg leading-none">Admin Panel</span>
+          <span className="font-display font-bold text-sidebar-primary sm:hidden text-lg leading-none">Admin</span>
         </Link>
 
         <button
@@ -67,7 +63,10 @@ const AdminNavbar = () => {
           }`}
         >
           <div className="p-4 border-b border-border flex justify-between items-center bg-sidebar-accent/50">
-            <span className="font-display font-bold text-sidebar-primary">Admin Menu</span>
+            <div className="flex items-center gap-2">
+              <img src={companyLogo} alt="Sai Yogi" className="h-8 object-contain" />
+              <span className="font-display font-bold text-sidebar-primary">Admin</span>
+            </div>
             <button onClick={() => setMenuOpen(false)} className="p-2 text-sidebar-foreground hover:text-white hover:bg-sidebar-accent rounded-full transition-colors">
               <X className="h-5 w-5" />
             </button>
