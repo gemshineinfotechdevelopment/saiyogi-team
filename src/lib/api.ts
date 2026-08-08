@@ -31,10 +31,10 @@ async function fetchJSON<T>(path: string, method: string = 'GET', body?: any): P
     ? [path]
     : isLocalhost
       ? [
-          `${API_BASE_URL}${path}`,
           `http://127.0.0.1:5000${path}`,
           `http://localhost:5000${path}`,
-        ].filter((v, i, a) => a.indexOf(v) === i)
+          `${API_BASE_URL}${path}`,
+        ].filter((v, i, a) => a.indexOf(v) === i && !!v)
       : [`${API_BASE_URL}${path}`];
 
   let res: Response | null = null;
@@ -569,10 +569,10 @@ export async function uploadImageToCloudinary(fileOrBase64: File | string, folde
     ? [path]
     : isLocalhost
       ? [
-          `${API_BASE_URL}${path}`,
           `http://127.0.0.1:5000${path}`,
           `http://localhost:5000${path}`,
-        ].filter((v, i, a) => a.indexOf(v) === i)
+          `${API_BASE_URL}${path}`,
+        ].filter((v, i, a) => a.indexOf(v) === i && !!v)
       : [`${API_BASE_URL}${path}`];
 
   let res: Response | null = null;

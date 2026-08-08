@@ -71,9 +71,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithPhone = (phone: string, name?: string) => {
     setUserPhone(phone);
     localStorage.setItem("user_phone", phone);
-    if (name) {
-      setUserName(name);
-      localStorage.setItem("user_name", name);
+    if (name && name.trim()) {
+      const cleanName = name.trim();
+      setUserName(cleanName);
+      localStorage.setItem("user_name", cleanName);
+    } else {
+      setUserName(null);
+      localStorage.removeItem("user_name");
     }
     setIsAuthenticated(true);
   };
@@ -83,8 +87,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logoutUser = () => {
     setUserPhone(null);
+    setUserName(null);
     deleteCookie(SESSION_COOKIE_NAME);
     localStorage.removeItem("user_phone");
+    localStorage.removeItem("user_name");
     localStorage.removeItem("saiyogi_user_session");
     if (!isAdmin) {
       setIsAuthenticated(false);
