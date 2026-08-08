@@ -47,6 +47,7 @@ export const getSiteInfo = async (req, res, next) => {
 
     const info = {
       siteName: settings.siteName,
+      siteDescription: settings.siteDescription || '',
       logo: settings.logo || '',
       favicon: settings.favicon || '',
       contact: settings.contact || {},

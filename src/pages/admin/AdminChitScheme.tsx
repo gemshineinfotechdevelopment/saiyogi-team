@@ -46,6 +46,15 @@ const AdminChitScheme: React.FC = () => {
 
   useEffect(() => {
     loadChitSchemes();
+
+    const interval = setInterval(loadChitSchemes, 15000);
+    const onFocus = () => loadChitSchemes();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

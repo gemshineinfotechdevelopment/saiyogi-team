@@ -83,6 +83,15 @@ const AdminCategories = () => {
 
   useEffect(() => {
     loadCategoriesWithCounts();
+
+    const interval = setInterval(loadCategoriesWithCounts, 15000);
+    const onFocus = () => loadCategoriesWithCounts();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
   const openEdit = (cat: Category) => {
