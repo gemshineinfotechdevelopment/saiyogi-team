@@ -57,6 +57,10 @@ const AdminChitScheme: React.FC = () => {
 
     for (let index = 0; index < fileList.length; index++) {
       const file = fileList[index];
+      if (file.size > 1 * 1024 * 1024) {
+        toast.error(`File ${file.name} exceeds 1MB limit`);
+        continue;
+      }
       try {
         toast.loading(`Uploading ${file.name} to Cloudinary...`, { id: "upload-toast" });
         const cloudinaryUrl = await uploadImageToCloudinary(file, "chit_schemes");
@@ -149,7 +153,7 @@ const AdminChitScheme: React.FC = () => {
                   Select Image File
                 </p>
                 <p className="text-xs text-gray-500 mb-5 font-medium">
-                  PNG, JPG, WEBP formats supported (Uploads to Cloudinary)
+                  Max: 1200x1600px, Max 1MB (PNG, JPG, WEBP)
                 </p>
                 <label className={`bg-primary text-white text-xs font-bold px-6 py-3 rounded-xl cursor-pointer hover:bg-primary/90 transition-all shadow-xs flex items-center gap-2 active:scale-95 ${isUploading ? 'opacity-70 pointer-events-none' : ''}`}>
                   {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
