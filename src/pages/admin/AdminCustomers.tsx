@@ -300,7 +300,11 @@ const AdminCustomers = () => {
                           <TableRow key={o._id}>
                             <TableCell className="font-semibold">{o.orderNumber || o._id?.slice(-8)}</TableCell>
                             <TableCell className="text-xs">{o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "N/A"}</TableCell>
-                            <TableCell>{o.items?.length || 0}</TableCell>
+                            <TableCell>
+                              <Badge variant="secondary" className="font-bold whitespace-nowrap">
+                                {o.items?.length || 0} Items
+                              </Badge>
+                            </TableCell>
                             <TableCell className="font-bold">₹{(Number(o.subtotal) + (Number(o.packingCharge) || 0)).toLocaleString()}</TableCell>
                             <TableCell>
                               <span className={`text-xs px-2 py-0.5 rounded-full ${

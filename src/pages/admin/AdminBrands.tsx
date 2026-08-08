@@ -301,7 +301,7 @@ const AdminBrands = () => {
                               )}
                             </TableCell>
                             <TableCell className="py-2.5">
-                              <Badge variant="secondary" className="font-bold">
+                              <Badge variant="secondary" className="font-bold whitespace-nowrap">
                                 {itemsCount} Items
                               </Badge>
                             </TableCell>
