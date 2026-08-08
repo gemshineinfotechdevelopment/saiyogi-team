@@ -123,18 +123,18 @@ const UserFooter = () => {
           <div>
             <h4 className="font-bold text-black mb-6 text-sm uppercase">Customer Service</h4>
             <nav className="flex flex-col gap-3 text-xs text-gray-600 font-semibold">
-              <span className="hover:text-[#A80000] cursor-pointer transition-colors duration-200">
+              <Link to="/my-account" className="hover:text-[#A80000] cursor-pointer transition-colors duration-200">
                 My Account
-              </span>
-              <span className="hover:text-[#A80000] cursor-pointer transition-colors duration-200">
+              </Link>
+              <Link to="/my-account" className="hover:text-[#A80000] cursor-pointer transition-colors duration-200">
                 Track Your Order
-              </span>
-              <span className="hover:text-[#A80000] cursor-pointer transition-colors duration-200">
+              </Link>
+              <Link to="/contact" className="hover:text-[#A80000] cursor-pointer transition-colors duration-200">
                 Returns/Exchange
-              </span>
-              <span className="hover:text-[#A80000] cursor-pointer transition-colors duration-200">
+              </Link>
+              <Link to="/contact" className="hover:text-[#A80000] cursor-pointer transition-colors duration-200">
                 FAQs
-              </span>
+              </Link>
             </nav>
           </div>
 

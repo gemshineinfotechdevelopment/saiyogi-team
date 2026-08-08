@@ -3,6 +3,8 @@ import { Users, FileText, ArrowUpDown } from "lucide-react";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminNavbar from "@/components/layout/AdminNavbar";
 import { getOrders } from "@/lib/api";
+import { downloadOrderReceiptPDF, printOrderReceipt } from "@/lib/pdf-generator";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -63,32 +65,34 @@ const buildCustomers = (ordersData: any[]): Customer[] => {
   return Array.from(map.values());
 };
 
-const generateInvoiceHTML = (order: any) => {
-  return `
-    <html><head><title>Invoice ${order.orderNumber || order._id}</title>
-    <style>body{font-family:Arial,sans-serif;padding:40px;color:#333}
-    h1{color:#FFD700;margin-bottom:4px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #ddd;padding:8px;text-align:left;font-size:12px}th{background:#f5f5f5}
-    .total{font-size:18px;font-weight:bold;margin-top:20px}.header{display:flex;justify-content:space-between}
-    </style></head><body>
-    <h1>🎆 Sai Yogi Crackers</h1><p>Tax Invoice</p>
-    <hr/>
-    <div class="header"><div><strong>Invoice:</strong> ${order.orderNumber || order._id?.slice(-8)}<br/><strong>Date:</strong> ${order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "N/A"}</div>
-    <div><strong>Customer:</strong> ${order.customerName}<br/><strong>Email:</strong> ${order.customerEmail}</div></div>
-    <table><tr><th>Items</th><th>Status</th><th>Total</th></tr>
-    <tr><td>${order.items?.length || 0} item(s)</td><td>${order.status}</td><td>₹${(Number(order.subtotal) + (Number(order.packingCharge) || 0)).toLocaleString()}</td></tr></table>
-    <p class="total">Grand Total: ₹${(Number(order.subtotal) + (Number(order.packingCharge) || 0)).toLocaleString()}</p>
-    <p style="margin-top:40px;font-size:12px;color:#999">This is a computer-generated invoice.</p>
-    </body></html>`;
-};
-
-const downloadInvoicePDF = (order: any) => {
-  const html = generateInvoiceHTML(order);
-  const printWindow = window.open("", "_blank");
-  if (printWindow) {
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => printWindow.print(), 300);
+const handleInvoiceAction = (order: any, settings: any, action: 'download' | 'print') => {
+  const orderData = {
+    orderNumber: order.orderNumber || order._id?.slice(-8) || "",
+    customerName: order.customerName || "",
+    customerEmail: order.customerEmail || "",
+    customerPhone: order.customerPhone || "",
+    deliveryAddress: order.deliveryAddress?.fullAddress || (typeof order.deliveryAddress === 'string' ? order.deliveryAddress : ""),
+    state: order.deliveryAddress?.state || "",
+    district: order.deliveryAddress?.district || "",
+    items: order.items || [],
+    subtotal: Number(order.subtotal) || 0,
+    discountPercent: Number(order.discountPercent) || 0,
+    total: Number(order.total) || (Number(order.subtotal) + (Number(order.packingCharge) || 0)),
+    packingCharge: Number(order.packingCharge) || 0,
+    date: order.createdAt ? new Date(order.createdAt).toLocaleDateString() : (order.date || new Date().toLocaleDateString()),
+    siteName: settings.siteName,
+    companyName: settings.billing?.companyName || settings.siteName,
+    siteAddress: settings.contact?.address || '',
+    sitePhone: settings.contact?.phone || '',
+    siteEmail: settings.contact?.email || '',
+    siteWebsite: settings.socialLinks?.youtube || '', // or wherever website is stored
+    gstNumber: settings.billing?.gstNumber || '',
+  };
+  
+  if (action === 'download') {
+    downloadOrderReceiptPDF(orderData);
+  } else {
+    printOrderReceipt(orderData);
   }
 };
 
@@ -96,6 +100,7 @@ const AdminCustomers = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 20;
   const { toast } = useToast();
+  const { settings } = useSiteSettings();
   const [orders, setOrders] = useState<any[]>([]);
   useEffect(() => { getOrders().then(setOrders).catch(() => setOrders([])); }, []);
   const customers = useMemo(() => buildCustomers(orders), [orders]);
@@ -309,9 +314,12 @@ const AdminCustomers = () => {
                                 <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">No</span>
                               )}
                             </TableCell>
-                            <TableCell>
-                              <Button variant="ghost" size="sm" onClick={() => { downloadInvoicePDF(o); toast({ title: "Invoice opened" }); }}>
-                                <FileText className="h-4 w-4" />
+                            <TableCell className="flex gap-1">
+                              <Button variant="ghost" size="sm" onClick={() => { handleInvoiceAction(o, settings, 'download'); toast({ title: "Downloading Invoice" }); }} title="Download PDF">
+                                <FileText className="h-4 w-4 text-blue-600" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => { handleInvoiceAction(o, settings, 'print'); toast({ title: "Printing Invoice" }); }} title="Print Invoice">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-printer"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
                               </Button>
                             </TableCell>
                           </TableRow>

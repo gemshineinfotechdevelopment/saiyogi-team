@@ -2,6 +2,7 @@ import Category from '../models/Category.js';
 import Product from '../models/Product.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { uploadToBoth, deleteFromBoth } from '../utils/upload-manager.js';
+import { uploadToCloudinary } from '../utils/cloudinary.js';
 
 export const getAllCategories = async (req, res, next) => {
   try {
@@ -33,6 +34,20 @@ export const createCategory = async (req, res, next) => {
       try {
         const uploadResult = await uploadToBoth(req.file, 'categories');
         imageUrl = uploadResult.url;
+      } catch (uploadError) {
+        return next(new AppError(`Image upload failed: ${uploadError.message}`, 500));
+      }
+    } else if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('data:image')) {
+      try {
+        const matches = imageUrl.match(/^data:image\/([a-zA-Z0-9]+);base64,(.+)$/);
+        if (matches) {
+          const ext = matches[1] || 'png';
+          const base64Data = matches[2];
+          const buffer = Buffer.from(base64Data, 'base64');
+          const filename = `category_${Date.now()}.${ext}`;
+          const uploadResult = await uploadToCloudinary(buffer, filename, 'categories');
+          imageUrl = uploadResult.url;
+        }
       } catch (uploadError) {
         return next(new AppError(`Image upload failed: ${uploadError.message}`, 500));
       }
@@ -93,6 +108,20 @@ export const updateCategory = async (req, res, next) => {
       try {
         const uploadResult = await uploadToBoth(req.file, 'categories');
         imageUrl = uploadResult.url;
+      } catch (uploadError) {
+        return next(new AppError(`Image upload failed: ${uploadError.message}`, 500));
+      }
+    } else if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('data:image')) {
+      try {
+        const matches = imageUrl.match(/^data:image\/([a-zA-Z0-9]+);base64,(.+)$/);
+        if (matches) {
+          const ext = matches[1] || 'png';
+          const base64Data = matches[2];
+          const buffer = Buffer.from(base64Data, 'base64');
+          const filename = `category_${Date.now()}.${ext}`;
+          const uploadResult = await uploadToCloudinary(buffer, filename, 'categories');
+          imageUrl = uploadResult.url;
+        }
       } catch (uploadError) {
         return next(new AppError(`Image upload failed: ${uploadError.message}`, 500));
       }
