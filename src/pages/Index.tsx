@@ -181,24 +181,28 @@ const Index = () => {
     });
   }, []);
 
-  // Listen for YouTube video ENDED (0) or PAUSED (2) events to automatically resume marquee scrolling
+  // Listen for YouTube video ENDED (0), PAUSED (2), or UNSTARTED (-1) events to automatically resume marquee scrolling
   useEffect(() => {
     const handleYTMessage = (event: MessageEvent) => {
       try {
-        const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        let data = event.data;
+        if (typeof data === "string") {
+          if (!data.includes("playerState") && !data.includes("onStateChange") && !data.includes("infoDelivery")) {
+            return;
+          }
+          data = JSON.parse(data);
+        }
         if (!data) return;
 
-        // YT.PlayerState: ENDED is 0, PAUSED is 2
-        const isEndedOrPaused =
-          data.info === 0 ||
-          data.info === 2 ||
-          data.info?.playerState === 0 ||
-          data.info?.playerState === 2 ||
-          (data.event === "onStateChange" && (data.info === 0 || data.info === 2)) ||
-          (data.event === "infoDelivery" && (data.info?.playerState === 0 || data.info?.playerState === 2));
+        // YT.PlayerState: 1 = PLAYING, 2 = PAUSED, 0 = ENDED, -1 = UNSTARTED
+        const playerState = data.info?.playerState !== undefined 
+          ? data.info.playerState 
+          : (typeof data.info === 'number' ? data.info : undefined);
 
-        if (isEndedOrPaused) {
-          setPlayingVideo(null);
+        if (playerState !== undefined) {
+          if (playerState === 0 || playerState === 2 || playerState === -1) {
+            setPlayingVideo(null);
+          }
         }
       } catch (err) {
         // Ignore non-JSON messages
@@ -483,8 +487,49 @@ const Index = () => {
       </section>
 
       {/* Videos Section */}
-      <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5] overflow-hidden">
-        <div className="container mx-auto px-4 max-w-6xl">
+      <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5] relative overflow-hidden">
+        <div className="container mx-auto px-4 max-w-6xl relative">
+          
+          {/* Left Garland Crackers Bursting Animation */}
+          <div className="absolute -left-3 sm:left-0 md:-left-12 lg:-left-20 top-1/2 -translate-y-1/2 z-30 pointer-events-none hidden xs:flex flex-col items-center">
+            <div className="relative">
+              <img 
+                src="/garland_crackers.png" 
+                alt="Left Garland Crackers" 
+                className="w-14 sm:w-20 md:w-28 lg:w-36 h-auto drop-shadow-2xl animate-pulse"
+              />
+              {/* Bursting sparks effect at bottom */}
+              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-14 h-14 flex items-center justify-center">
+                <div className="absolute inset-0 bg-[#F4C542] rounded-full blur-md animate-ping opacity-90"></div>
+                <div className="absolute inset-1 bg-red-600 rounded-full blur-xs animate-pulse opacity-80"></div>
+                <div className="absolute w-5 h-5 bg-white rounded-full blur-[1px] animate-cracker-burst"></div>
+                <span className="absolute w-2.5 h-2.5 bg-yellow-300 rounded-full animate-bounce -top-2 left-1 shadow-[0_0_10px_#facc15]"></span>
+                <span className="absolute w-3 h-3 bg-red-500 rounded-full animate-ping -bottom-1 right-1 shadow-[0_0_12px_#ef4444]"></span>
+                <span className="absolute w-2 h-2 bg-orange-400 rounded-full animate-pulse top-2 -left-2 shadow-[0_0_8px_#fb923c]"></span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Garland Crackers Bursting Animation */}
+          <div className="absolute -right-3 sm:right-0 md:-right-12 lg:-right-20 top-1/2 -translate-y-1/2 z-30 pointer-events-none hidden xs:flex flex-col items-center">
+            <div className="relative">
+              <img 
+                src="/garland_crackers.png" 
+                alt="Right Garland Crackers" 
+                className="w-14 sm:w-20 md:w-28 lg:w-36 h-auto drop-shadow-2xl scale-x-[-1] animate-pulse"
+              />
+              {/* Bursting sparks effect at bottom */}
+              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-14 h-14 flex items-center justify-center">
+                <div className="absolute inset-0 bg-[#F4C542] rounded-full blur-md animate-ping opacity-90"></div>
+                <div className="absolute inset-1 bg-red-600 rounded-full blur-xs animate-pulse opacity-80"></div>
+                <div className="absolute w-5 h-5 bg-white rounded-full blur-[1px] animate-cracker-burst"></div>
+                <span className="absolute w-2.5 h-2.5 bg-yellow-300 rounded-full animate-bounce -top-2 right-1 shadow-[0_0_10px_#facc15]"></span>
+                <span className="absolute w-3 h-3 bg-red-500 rounded-full animate-ping -bottom-1 left-1 shadow-[0_0_12px_#ef4444]"></span>
+                <span className="absolute w-2 h-2 bg-orange-400 rounded-full animate-pulse top-2 -right-2 shadow-[0_0_8px_#fb923c]"></span>
+              </div>
+            </div>
+          </div>
+
           <div className="text-center mb-10">
             <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
               ✨ Watch the Magic ✨
