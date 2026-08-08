@@ -466,7 +466,7 @@ const AdminProducts = () => {
             </CardContent>
           </Card>
 
-          <div className="bg-card border border-border rounded-lg overflow-hidden">
+          <div className="bg-card border border-border rounded-lg overflow-hidden mb-24">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
                 <thead className="bg-gray-50">

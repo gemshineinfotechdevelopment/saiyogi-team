@@ -38,11 +38,11 @@ export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
       <div className="container mx-auto">
         {/* Filters & Cart Summary Row */}
         <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-2 sm:gap-4">
-          <div className="flex flex-row items-center w-full md:w-auto gap-1.5 sm:gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center w-full md:w-auto gap-2 sm:gap-3">
             <select 
               value={selectedBrand} 
               onChange={e => setSelectedBrand(e.target.value)}
-              className="flex-1 sm:flex-none sm:w-40 p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl border border-gray-200 text-[11px] sm:text-sm font-bold outline-none focus:border-[#A80000] text-gray-700 bg-white shadow-xs appearance-none cursor-pointer truncate pr-6 sm:pr-8"
+              className="w-full sm:w-40 p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-gray-200 text-[11px] sm:text-sm font-bold outline-none focus:border-[#A80000] text-gray-700 bg-white shadow-xs appearance-none cursor-pointer truncate pr-6 sm:pr-8"
               style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%238b2ce0\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.4rem center', backgroundSize: '0.8rem' }}
             >
               {uniqueBrands.map(b => <option key={b} value={b}>{b}</option>)}
@@ -51,13 +51,13 @@ export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
             <select 
               value={selectedCategory} 
               onChange={e => setSelectedCategory(e.target.value)}
-              className="flex-1 sm:flex-none sm:w-48 p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl border border-gray-200 text-[11px] sm:text-sm font-bold outline-none focus:border-[#A80000] text-gray-700 bg-white shadow-xs appearance-none cursor-pointer truncate pr-6 sm:pr-8"
+              className="w-full sm:w-48 p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-gray-200 text-[11px] sm:text-sm font-bold outline-none focus:border-[#A80000] text-gray-700 bg-white shadow-xs appearance-none cursor-pointer truncate pr-6 sm:pr-8"
               style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%238b2ce0\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.4rem center', backgroundSize: '0.8rem' }}
             >
               {uniqueCategoryNames.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
 
-            <div className="relative flex-1 sm:flex-none sm:w-64">
+            <div className="relative w-full sm:w-64">
               <input 
                 type="text" 
                 placeholder="Search..." 
