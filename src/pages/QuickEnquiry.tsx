@@ -39,15 +39,28 @@ const QuickEnquiry = () => {
   }, 0);
 
   useEffect(() => {
-    Promise.all([getProducts(), getCategories()])
-      .then(([prods, cats]) => {
-        setProducts(Array.isArray(prods) ? prods : []);
-        setCategories(Array.isArray(cats) ? cats : []);
-      })
-      .catch((err) => {
-        console.error("Failed to load products/categories:", err);
-      })
-      .finally(() => setLoading(false));
+    const loadAll = () => {
+      Promise.all([getProducts(), getCategories()])
+        .then(([prods, cats]) => {
+          setProducts(Array.isArray(prods) ? prods : []);
+          setCategories(Array.isArray(cats) ? cats : []);
+        })
+        .catch((err) => {
+          console.error("Failed to load products/categories:", err);
+        })
+        .finally(() => setLoading(false));
+    };
+
+    loadAll();
+
+    const interval = setInterval(loadAll, 15000);
+    const onFocus = () => loadAll();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
   const uniqueBrands = useMemo(() => {

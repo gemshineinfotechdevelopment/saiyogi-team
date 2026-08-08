@@ -72,12 +72,18 @@ const UserFooter = () => {
             {/* Social Links */}
             <div className="flex gap-3">
               {(Object.entries(socialIcons) as [string, React.ReactNode][]).map(([platform, icon]) => {
-                const url = settings.socialLinks?.[platform as keyof typeof settings.socialLinks];
-                if (url) {
+                const rawUrl = settings.socialLinks?.[platform as keyof typeof settings.socialLinks];
+                const formattedUrl = rawUrl && rawUrl.trim()
+                  ? (rawUrl.trim().startsWith('http://') || rawUrl.trim().startsWith('https://')
+                      ? rawUrl.trim()
+                      : `https://${rawUrl.trim()}`)
+                  : '';
+
+                if (formattedUrl) {
                   return (
                     <a
                       key={platform}
-                      href={url}
+                      href={formattedUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       title={platform.charAt(0).toUpperCase() + platform.slice(1)}
