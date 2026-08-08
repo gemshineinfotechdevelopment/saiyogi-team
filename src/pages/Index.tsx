@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Play, Pause, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
+import { Play, Pause, ChevronLeft, ChevronRight, ShoppingCart, X } from "lucide-react";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useCart } from "@/context/CartContext";
@@ -181,6 +181,34 @@ const Index = () => {
     });
   }, []);
 
+  // Listen for YouTube video ENDED (0) or PAUSED (2) events to automatically resume marquee scrolling
+  useEffect(() => {
+    const handleYTMessage = (event: MessageEvent) => {
+      try {
+        const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        if (!data) return;
+
+        // YT.PlayerState: ENDED is 0, PAUSED is 2
+        const isEndedOrPaused =
+          data.info === 0 ||
+          data.info === 2 ||
+          data.info?.playerState === 0 ||
+          data.info?.playerState === 2 ||
+          (data.event === "onStateChange" && (data.info === 0 || data.info === 2)) ||
+          (data.event === "infoDelivery" && (data.info?.playerState === 0 || data.info?.playerState === 2));
+
+        if (isEndedOrPaused) {
+          setPlayingVideo(null);
+        }
+      } catch (err) {
+        // Ignore non-JSON messages
+      }
+    };
+
+    window.addEventListener("message", handleYTMessage);
+    return () => window.removeEventListener("message", handleYTMessage);
+  }, []);
+
   // Realistic Flower Pot Effect
   useEffect(() => {
     const canvas = document.getElementById('flower-pot-canvas') as HTMLCanvasElement;
@@ -211,6 +239,22 @@ const Index = () => {
       });
     };
 
+    let chakkarAngle = 0;
+    const createChakkarParticle = (x: number, y: number) => {
+      chakkarAngle += 0.8; // Spin speed
+      const isMobile = window.innerWidth < 768;
+      const speed = isMobile ? (Math.random() * 6 + 4) : (Math.random() * 10 + 5);
+      const angle = chakkarAngle + (Math.random() * 0.5 - 0.25);
+      particles.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: (Math.sin(angle) * speed * 0.5) - (isMobile ? 1 : 2), // Elliptical spin + slight upward drift
+        life: 1,
+        decay: Math.random() * 0.02 + 0.01,
+        color: Math.random() > 0.5 ? '255, 255, 255' : '150, 255, 150' // Silver & Green sparks
+      });
+    };
+
     let animationId: number;
     let isActive = true;
     let lastToggleTime = performance.now();
@@ -227,17 +271,25 @@ const Index = () => {
         lastToggleTime = time;
       }
 
-      const leftPotX = canvas.width * 0.1;
-      const rightPotX = canvas.width * 0.9;
-      const potY = canvas.height; // Emit from bottom
-      
       const isMobile = window.innerWidth < 768;
-      const particleCount = isMobile ? 2 : 5; // Less particles on mobile
+      // Move them more inward on mobile so they don't get cut off at the edges
+      const leftPotX = canvas.width * (isMobile ? 0.2 : 0.1);
+      const rightPotX = canvas.width * (isMobile ? 0.8 : 0.9);
+      const centerX = canvas.width * 0.5;
+      
+      // Move the Y position slightly up on mobile to avoid bottom UI / notch covering it
+      const potY = canvas.height - (isMobile ? 40 : 10);
+      
+      const particleCount = isMobile ? 3 : 5; // Slightly increased for better visibility
+      const chakkarCount = isMobile ? 3 : 6;
 
       if (isActive) {
         for (let i = 0; i < particleCount; i++) {
           createFlowerPotParticle(leftPotX, potY);
           createFlowerPotParticle(rightPotX, potY);
+        }
+        for (let i = 0; i < chakkarCount; i++) {
+          createChakkarParticle(centerX, potY);
         }
       }
 
@@ -346,16 +398,17 @@ const Index = () => {
         options={{
           rocketsPoint: { min: 0, max: 100 },
           hue: { min: 0, max: 360 },
-          delay: isMobileView ? { min: 60, max: 120 } : { min: 30, max: 60 },
+          // Balanced multi-shot: moderate delay, lower speed
+          delay: isMobileView ? { min: 30, max: 50 } : { min: 30, max: 60 },
 
           acceleration: 1.05,
           friction: 0.97,
           gravity: 1.5,
-          particles: isMobileView ? 20 : 50,
+          particles: isMobileView ? 30 : 50,
           traceLength: 3,
-          traceSpeed: isMobileView ? 5 : 10,
-          explosion: isMobileView ? 3 : 5,
-          intensity: isMobileView ? 10 : 30,
+          traceSpeed: isMobileView ? 4 : 10, // Reduced speed
+          explosion: isMobileView ? 4 : 5,
+          intensity: isMobileView ? 15 : 30, // Reduced intensity slightly to prevent chaos
           flickering: 50,
           lineStyle: 'round',
           lineWidth: { explosion: { min: 1, max: 3 }, trace: { min: 1, max: 2 } },
@@ -461,8 +514,9 @@ const Index = () => {
             >
               <div 
                 className={`flex flex-nowrap gap-3 sm:gap-6 w-max animate-marquee ${
-                  playingVideo ? "[animation-play-state:paused]" : "hover:[animation-play-state:paused]"
+                  playingVideo ? "paused" : "hover:[animation-play-state:paused]"
                 }`}
+                style={playingVideo ? { animationPlayState: 'paused' } : undefined}
               >
                 {(() => {
                   const baseVideos = settings.youtubeVideos && settings.youtubeVideos.length > 0 ? settings.youtubeVideos : demoVideos;
@@ -489,27 +543,39 @@ const Index = () => {
                         onClick={() => setPlayingVideo(isPlaying ? null : `${videoId}-${idx}`)}
                       >
                         {isPlaying ? (
-                          isYouTube && ytId ? (
-                            <iframe
-                              width="100%"
-                              height="100%"
-                              src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
-                              title={video.title}
-                              frameBorder="0"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                              className="w-full h-full"
-                            ></iframe>
-                          ) : (
-                            <video
-                              src={video.url}
-                              autoPlay
-                              loop
-                              muted
-                              playsInline
-                              className="w-full h-full object-cover"
-                            />
-                          )
+                          <>
+                            {isYouTube && ytId ? (
+                              <iframe
+                                width="100%"
+                                height="100%"
+                                src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`}
+                                title={video.title}
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                className="w-full h-full"
+                              ></iframe>
+                            ) : (
+                              <video
+                                src={video.url}
+                                autoPlay
+                                onPause={() => setPlayingVideo(null)}
+                                onEnded={() => setPlayingVideo(null)}
+                                playsInline
+                                className="w-full h-full object-cover"
+                              />
+                            )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPlayingVideo(null);
+                              }}
+                              className="absolute top-2 right-2 z-30 w-7 h-7 bg-black/70 hover:bg-[#A80000] text-white rounded-full flex items-center justify-center backdrop-blur-sm transition-all cursor-pointer shadow-md"
+                              title="Stop Video & Resume Scroll"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </>
                         ) : (
                           <img
                             src={thumbnail}

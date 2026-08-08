@@ -12,6 +12,7 @@ import { Plus, Search, Edit2, Trash2, Tag, CheckCircle, XCircle, Eye, Package } 
 import { toast } from "sonner";
 import { getBrands, getNextBrandId, createBrand, updateBrand, deleteBrand, getProducts, uploadImageToCloudinary, Brand } from "@/lib/api";
 import { Product } from "@/data/products";
+import { Link } from "react-router-dom";
 
 const AdminBrands = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -210,16 +211,19 @@ const AdminBrands = () => {
         <div className="p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6">
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <Tag className="h-6 w-6 text-red-600" />
-                Brand Management
-              </h1>
-              <p className="text-sm text-gray-500 mt-1">
-                Add and manage cracker brands. Click on any brand row or view icon to see its items.
-              </p>
+            <div className="flex items-start justify-between w-full md:w-auto">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <Tag className="h-6 w-6 text-red-600" />
+                  Brand Management
+                </h1>
+                <p className="text-sm text-gray-500 mt-1">
+                  Add and manage cracker brands. Click on any brand row or view icon to see its items.
+                </p>
+              </div>
+              <Link to="/" className="text-sm text-primary hover:underline lg:hidden mt-1">← Store</Link>
             </div>
-            <Button onClick={handleOpenAddDialog} className="bg-red-600 hover:bg-red-700 text-white font-bold gap-2">
+            <Button onClick={handleOpenAddDialog} className="bg-red-600 hover:bg-red-700 text-white font-bold gap-2 w-full md:w-auto">
               <Plus className="h-4 w-4" /> Add New Brand
             </Button>
           </div>
@@ -388,7 +392,7 @@ const AdminBrands = () => {
               />
             </div>
 
-            {/* File Upload & Presets */}
+            {/* File Upload */}
             <div className="space-y-2">
               <Label className="text-xs font-bold text-gray-700 uppercase flex items-center justify-between">
                 <span>Brand Logo / Image</span>
