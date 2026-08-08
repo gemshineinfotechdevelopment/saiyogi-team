@@ -392,7 +392,7 @@ const AdminBrands = () => {
               />
             </div>
 
-            {/* File Upload & Presets */}
+            {/* File Upload */}
             <div className="space-y-2">
               <Label className="text-xs font-bold text-gray-700 uppercase flex items-center justify-between">
                 <span>Brand Logo / Image</span>

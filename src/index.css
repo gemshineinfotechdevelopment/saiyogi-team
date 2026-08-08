@@ -328,8 +328,10 @@
   animation: marquee 40s linear infinite;
 }
 
-.animate-marquee:hover {
-  animation-play-state: paused;
+.animate-marquee:hover,
+.animate-marquee.paused,
+.paused {
+  animation-play-state: paused !important;
 }
 
 @keyframes blink {
