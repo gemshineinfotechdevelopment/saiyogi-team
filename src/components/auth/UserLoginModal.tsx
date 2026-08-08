@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Phone, Lock, ArrowRight, RefreshCw, CheckCircle2, ShieldCheck, X, LogOut, User, Crown, Gift, Sparkles, ChevronRight, ShoppingBag, Smartphone } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
