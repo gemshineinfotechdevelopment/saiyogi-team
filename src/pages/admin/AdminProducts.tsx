@@ -175,13 +175,13 @@ const AdminProducts = () => {
         credentials: 'include'
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        const errorMsg = data.error?.message || data.error || 'Delete failed';
+      if (!res.ok && res.status !== 404) {
+        const data = await res.json().catch(() => ({}));
+        const errorMsg = data.error?.message || data.error || data.message || 'Delete failed';
         throw new Error(errorMsg);
       }
 
-      setProductList((prev) => prev.filter((p) => p.id !== id));
+      setProductList((prev) => prev.filter((p) => p.id !== id && (p as any)._id !== id));
       toast.success("Product deleted");
     } catch (err) {
       console.error('Delete error:', err);
@@ -335,11 +335,17 @@ const AdminProducts = () => {
                       </select>
                     </div>
                     <div>
-                      <Label>Image (Max 1200x1600px, 5MB)</Label>
+                      <Label>Image (Max 1200x1600px, Max 1MB)</Label>
                       <input type="file" accept="image/*" onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (!file) {
                           setImageFile(null);
+                          return;
+                        }
+                        if (file.size > 1 * 1024 * 1024) {
+                          toast.error("Image file size must be less than 1MB");
+                          setImageFile(null);
+                          e.target.value = '';
                           return;
                         }
                         const img = new Image();
@@ -369,8 +375,8 @@ const AdminProducts = () => {
                     <Button className="w-full" onClick={async () => {
                       // basic client-side validation
                       if (!form.name.trim()) return toast.error('Name required');
-                      const maxSize = 5 * 1024 * 1024; // 5MB
-                      if (imageFile && imageFile.size > maxSize) return toast.error('Image must be less than 5MB');
+                      const maxSize = 1 * 1024 * 1024; // 1MB
+                      if (imageFile && imageFile.size > maxSize) return toast.error('Image must be less than 1MB');
 
                       const fd = new FormData();
                       fd.append('name', form.name);

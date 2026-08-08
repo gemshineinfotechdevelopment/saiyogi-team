@@ -19,7 +19,7 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [generatedOtp, setGeneratedOtp] = useState("");
-  const [name, setName] = useState(localStorage.getItem("user_name") || "");
+  const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [timer, setTimer] = useState(30);
   const [isResendDisabled, setIsResendDisabled] = useState(true);
@@ -45,6 +45,7 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
       setPhone("");
       setOtp("");
       setGeneratedOtp("");
+      setName("");
       setError("");
       setTimer(30);
       setIsResendDisabled(true);
@@ -139,10 +140,9 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[92vw] sm:max-w-lg max-h-[88vh] overflow-y-auto p-0 rounded-2xl sm:rounded-3xl border-0 shadow-2xl bg-[#F7F5F0] [&>button]:hidden">
-        <DialogTitle className="sr-only">Login / Profile Modal</DialogTitle>
-        {/* Header decoration with Close Button */}
-        <div className="bg-gradient-to-r from-[#7A1416] via-[#A80000] to-[#7A1416] text-white p-4 sm:p-5 relative flex items-center justify-between sticky top-0 z-20 shadow-sm">
+      <DialogContent className="sm:max-w-lg p-0 overflow-hidden rounded-3xl border-0 shadow-2xl bg-[#F7F5F0] [&>button]:hidden">
+        {/* Header decoration */}
+        <div className="bg-gradient-to-r from-[#7A1416] via-[#A80000] to-[#7A1416] text-white p-5 relative flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20 shrink-0">
               <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-[#F4C542]" />
@@ -156,12 +156,14 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
               </DialogDescription>
             </div>
           </div>
+
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
-            aria-label="Close Profile Modal"
+            type="button"
+            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer border border-white/20 shrink-0"
+            aria-label="Close modal"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5 text-white" />
           </button>
         </div>
 
@@ -392,6 +394,7 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
                   type="button"
                   onClick={() => {
                     setStep("phone");
+                    setName("");
                     setError("");
                   }}
                   className="text-red-700 font-bold hover:underline cursor-pointer"

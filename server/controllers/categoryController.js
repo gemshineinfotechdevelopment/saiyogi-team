@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Category from '../models/Category.js';
 import Product from '../models/Product.js';
 import { AppError } from '../middleware/errorHandler.js';
@@ -6,7 +7,7 @@ import { uploadToCloudinary } from '../utils/cloudinary.js';
 
 export const getAllCategories = async (req, res, next) => {
   try {
-    const categories = await Category.find({ isActive: true }).sort('displayOrder');
+    const categories = await Category.find({ isActive: true }).sort({ displayOrder: 1 });
     res.json(categories);
   } catch (error) {
     next(error);
@@ -15,7 +16,11 @@ export const getAllCategories = async (req, res, next) => {
 
 export const getCategoryById = async (req, res, next) => {
   try {
-    const category = await Category.findById(req.params.id);
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return next(new AppError('Category not found', 404));
+    }
+    const category = await Category.findById(id);
     if (!category) {
       return next(new AppError('Category not found', 404));
     }
@@ -151,13 +156,18 @@ export const updateCategory = async (req, res, next) => {
 
 export const deleteCategory = async (req, res, next) => {
   try {
-    const category = await Category.findById(req.params.id);
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.json({ message: 'Category deleted successfully' });
+    }
+
+    const category = await Category.findById(id);
     if (!category) {
-      return next(new AppError('Category not found', 404));
+      return res.json({ message: 'Category deleted successfully' });
     }
 
     // Delete all products in this category
-    const products = await Product.find({ category: req.params.id });
+    const products = await Product.find({ category: id });
     
     if (products.length > 0) {
       const deletePromises = products.map(async (product) => {

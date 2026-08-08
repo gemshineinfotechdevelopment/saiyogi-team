@@ -101,8 +101,8 @@ const AdminBrands = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("File size must be less than 5MB");
+    if (file.size > 1 * 1024 * 1024) {
+      toast.error("File size must be less than 1MB");
       return;
     }
 
@@ -392,11 +392,11 @@ const AdminBrands = () => {
               />
             </div>
 
-            {/* File Upload & Presets */}
+            {/* File Upload */}
             <div className="space-y-2">
               <Label className="text-xs font-bold text-gray-700 uppercase flex items-center justify-between">
                 <span>Brand Logo / Image</span>
-                <span className="text-[10px] text-gray-400 font-normal">Max: 1200x1600px (Auto-scales to 1024x1024px)</span>
+                <span className="text-[10px] text-gray-400 font-normal">Max: 1200x1600px, Max 1MB (Auto-scales to 1024x1024px)</span>
               </Label>
               
               {/* File upload input */}

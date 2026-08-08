@@ -31,10 +31,10 @@ async function fetchJSON<T>(path: string, method: string = 'GET', body?: any): P
     ? [path]
     : isLocalhost
       ? [
-          `${API_BASE_URL}${path}`,
           `http://127.0.0.1:5000${path}`,
           `http://localhost:5000${path}`,
-        ].filter((v, i, a) => a.indexOf(v) === i)
+          `${API_BASE_URL}${path}`,
+        ].filter((v, i, a) => a.indexOf(v) === i && !!v)
       : [`${API_BASE_URL}${path}`];
 
   let res: Response | null = null;
@@ -252,38 +252,27 @@ export async function getProducts(): Promise<Product[]> {
   try {
     const data = await fetchJSON<{ products: Product[] } | Product[]>('/api/products?limit=10000');
     const list = Array.isArray(data) ? data : (data?.products || []);
-    if (list.length > 0) {
-      return list.map(p => ({
-        ...p,
-        storeStockPieces: p.storeStockPieces !== undefined ? p.storeStockPieces : (p.stock !== undefined ? p.stock : 0)
-      }));
-    }
-    return FALLBACK_PRODUCTS;
+    return list.map(p => ({
+      ...p,
+      storeStockPieces: p.storeStockPieces !== undefined ? p.storeStockPieces : (p.stock !== undefined ? p.stock : 0)
+    }));
   } catch (error) {
-    console.error('Failed to fetch products, using fallback:', error);
-    return FALLBACK_PRODUCTS;
+    console.error('Failed to fetch products:', error);
+    return [];
   }
 }
 
 export async function getProductById(id: string): Promise<Product> {
-  try {
-    return await fetchJSON<Product>(`/api/products/${id}`);
-  } catch (error) {
-    const fallback = FALLBACK_PRODUCTS.find(p => p.id === id || p._id === id);
-    if (fallback) return fallback;
-    throw error;
-  }
+  return await fetchJSON<Product>(`/api/products/${id}`);
 }
 
 export async function getCategories(): Promise<Category[]> {
   try {
     const data = await fetchJSON<{ categories: Category[] } | Category[]>('/api/categories');
-    const list = Array.isArray(data) ? data : (data?.categories || []);
-    if (list.length > 0) return list;
-    return FALLBACK_CATEGORIES;
+    return Array.isArray(data) ? data : (data?.categories || []);
   } catch (error) {
-    console.error('Failed to fetch categories, using fallback:', error);
-    return FALLBACK_CATEGORIES;
+    console.error('Failed to fetch categories:', error);
+    return [];
   }
 }
 
@@ -580,10 +569,10 @@ export async function uploadImageToCloudinary(fileOrBase64: File | string, folde
     ? [path]
     : isLocalhost
       ? [
-          `${API_BASE_URL}${path}`,
           `http://127.0.0.1:5000${path}`,
           `http://localhost:5000${path}`,
-        ].filter((v, i, a) => a.indexOf(v) === i)
+          `${API_BASE_URL}${path}`,
+        ].filter((v, i, a) => a.indexOf(v) === i && !!v)
       : [`${API_BASE_URL}${path}`];
 
   let res: Response | null = null;
@@ -648,3 +637,97 @@ export async function updateChitScheme(id: string, data: Partial<ChitSchemeItem>
 export async function deleteChitScheme(id: string): Promise<{ message: string }> {
   return fetchJSON<{ message: string }>(`/api/chit-schemes/${id}`, 'DELETE');
 }
+
+export interface ProductEnquiryItem {
+  id?: string;
+  productName: string;
+  amount: number;
+  status: string;
+  enquiryDate: string;
+}
+
+export interface CustomerItem {
+  _id?: string;
+  id?: string;
+  name: string;
+  email?: string;
+  phone: string;
+  alternatePhone?: string;
+  deliveryAddress?: string;
+  state?: string;
+  district?: string;
+  sources: ("normal_login" | "chit_scheme" | "product_enquiry")[];
+  productEnquiries: ProductEnquiryItem[];
+  totalOrders: number;
+  totalSpent: number;
+  lastOrderDate?: string;
+  purchases: any[];
+  createdAt?: string;
+}
+
+export async function trackCustomerAction(data: {
+  phone: string;
+  name?: string;
+  source: "normal_login" | "chit_scheme" | "product_enquiry";
+  enquiry?: { productName: string; amount: number; status?: string; enquiryDate?: Date | string };
+  deliveryAddress?: any;
+}): Promise<any> {
+  const cleanPhone = String(data.phone || "").replace(/\D/g, "").slice(-10);
+  if (!cleanPhone) return;
+
+  // Local Storage Fallback Sync
+  try {
+    const rawLocal = localStorage.getItem("local_customer_tracks");
+    const tracksMap = rawLocal ? JSON.parse(rawLocal) : {};
+    const existing = tracksMap[cleanPhone] || {
+      phone: cleanPhone,
+      name: data.name || "Customer",
+      sources: [],
+      productEnquiries: []
+    };
+
+    if (data.name && (existing.name === "Customer" || !existing.name)) {
+      existing.name = data.name;
+    }
+    if (data.source === "chit_scheme" || data.source === "product_enquiry" || data.enquiry) {
+      existing.sources = existing.sources.filter((s: string) => s !== "normal_login");
+      if (!existing.sources.includes(data.source)) {
+        existing.sources.push(data.source);
+      }
+    } else if (!existing.sources.includes(data.source)) {
+      existing.sources.push(data.source);
+    }
+    if (data.enquiry) {
+      existing.productEnquiries.push({
+        id: String(Math.random()),
+        productName: data.enquiry.productName,
+        amount: Number(data.enquiry.amount) || 0,
+        status: data.enquiry.status || "New",
+        enquiryDate: data.enquiry.enquiryDate || new Date().toISOString()
+      });
+    }
+    tracksMap[cleanPhone] = existing;
+    localStorage.setItem("local_customer_tracks", JSON.stringify(tracksMap));
+  } catch (e) {
+    console.warn("Could not save to local_customer_tracks:", e);
+  }
+
+  try {
+    return await fetchJSON("/api/customers/track", "POST", data);
+  } catch (err) {
+    console.warn("Failed to send customer track to backend, saved locally:", err);
+  }
+}
+
+export async function getCustomers(): Promise<CustomerItem[]> {
+  try {
+    const data = await fetchJSON<CustomerItem[]>("/api/customers");
+    if (Array.isArray(data)) {
+      return data;
+    }
+  } catch (err) {
+    console.warn("Failed to fetch customers from API, building fallback:", err);
+  }
+  return [];
+}
+
