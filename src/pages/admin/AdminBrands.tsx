@@ -62,6 +62,15 @@ const AdminBrands = () => {
 
   useEffect(() => {
     loadBrandsAndProducts();
+
+    const interval = setInterval(loadBrandsAndProducts, 15000);
+    const onFocus = () => loadBrandsAndProducts();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
   const handleOpenAddDialog = async () => {

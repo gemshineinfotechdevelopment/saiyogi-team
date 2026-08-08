@@ -43,23 +43,34 @@ const Catalog = () => {
   }, 0);
 
   useEffect(() => {
-    getProducts()
-      .then((data) => {
-        setProducts(Array.isArray(data) ? data : []);
-      })
-      .catch((err) => {
-        console.error('Failed to fetch products (Catalog):', err);
-        setProducts([]);
-      });
+    const loadAll = () => {
+      getProducts()
+        .then((data) => {
+          setProducts(Array.isArray(data) ? data : []);
+        })
+        .catch((err) => {
+          console.error('Failed to fetch products (Catalog):', err);
+        });
 
-    getCategories()
-      .then((data) => {
-        setCategories(Array.isArray(data) ? data : []);
-      })
-      .catch((err) => {
-        console.error('Failed to fetch categories (Catalog):', err);
-        setCategories([]);
-      });
+      getCategories()
+        .then((data) => {
+          setCategories(Array.isArray(data) ? data : []);
+        })
+        .catch((err) => {
+          console.error('Failed to fetch categories (Catalog):', err);
+        });
+    };
+
+    loadAll();
+
+    const interval = setInterval(loadAll, 15000);
+    const onFocus = () => loadAll();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
   // Sync state from searchParams on mount or param change
