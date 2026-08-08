@@ -74,43 +74,53 @@ const AdminProducts = () => {
   };
 
   useEffect(() => {
-    getProducts()
-      .then((data) => {
-        console.log('Products loaded (AdminProducts):', data, Array.isArray(data));
-        const safeData = Array.isArray(data) ? data : [];
-        const mappedProducts = safeData.map((p: any) => ({
-          ...p,
-          id: p._id || p.id,
-        }));
-        setProductList(mappedProducts);
-      })
-      .catch((err) => {
-        console.error('Failed to fetch products (AdminProducts):', err);
-        setProductList([]);
-      });
+    const loadAll = () => {
+      getProducts()
+        .then((data) => {
+          const safeData = Array.isArray(data) ? data : [];
+          const mappedProducts = safeData.map((p: any) => ({
+            ...p,
+            id: p._id || p.id,
+          }));
+          setProductList(mappedProducts);
+        })
+        .catch((err) => {
+          console.error('Failed to fetch products (AdminProducts):', err);
+        });
 
-    getCategories()
-      .then((arr) => {
-        console.log('Categories loaded (AdminProducts):', arr, Array.isArray(arr));
-        const safeArr = Array.isArray(arr) ? arr : [];
-        setCategories(safeArr.map((c: any) => ({
-          id: c._id || c.id || c.slug,
-          name: c.name,
-          categoryCode: c.categoryCode || '',
-          productCount: c.productCount || 0,
-          image: c.image || ''
-        })));
-      })
-      .catch((err) => {
-        console.error('Failed to fetch categories (AdminProducts):', err);
-        setCategories([]);
-      });
+      getCategories()
+        .then((arr) => {
+          const safeArr = Array.isArray(arr) ? arr : [];
+          setCategories(safeArr.map((c: any) => ({
+            id: c._id || c.id || c.slug,
+            name: c.name,
+            categoryCode: c.categoryCode || '',
+            productCount: c.productCount || 0,
+            image: c.image || ''
+          })));
+        })
+        .catch((err) => {
+          console.error('Failed to fetch categories (AdminProducts):', err);
+        });
 
-    getBrands()
-      .then((arr) => {
-        setBrands(Array.isArray(arr) ? arr : []);
-      })
-      .catch(() => setBrands([]));
+      getBrands()
+        .then((arr) => {
+          setBrands(Array.isArray(arr) ? arr : []);
+        })
+        .catch(() => {});
+    };
+
+    loadAll();
+
+    // Auto sync from MongoDB Atlas every 15s or on window focus
+    const interval = setInterval(loadAll, 15000);
+    const onFocus = () => loadAll();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
   const filtered = productList.filter((p) => {
