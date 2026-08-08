@@ -555,3 +555,66 @@ export async function updateBrand(id: string, data: Partial<Brand>): Promise<Bra
 export async function deleteBrand(id: string): Promise<{ message: string }> {
   return fetchJSON<{ message: string }>(`/api/brands/${id}`, 'DELETE');
 }
+
+export async function uploadImageToCloudinary(fileOrBase64: File | string, folder: string = "admin_uploads"): Promise<string> {
+  const token = localStorage.getItem("admin_token");
+  const headers: HeadersInit = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  let body: FormData | string;
+  if (typeof fileOrBase64 === "string") {
+    headers["Content-Type"] = "application/json";
+    body = JSON.stringify({ base64: fileOrBase64, folder });
+  } else {
+    const fd = new FormData();
+    fd.append("image", fileOrBase64);
+    fd.append("folder", folder);
+    body = fd;
+  }
+
+  const path = `/api/upload?folder=${encodeURIComponent(folder)}`;
+  const urlsToTry = path.startsWith("http")
+    ? [path]
+    : isLocalhost
+      ? [
+          `${API_BASE_URL}${path}`,
+          `http://127.0.0.1:5000${path}`,
+          `http://localhost:5000${path}`,
+        ].filter((v, i, a) => a.indexOf(v) === i)
+      : [`${API_BASE_URL}${path}`];
+
+  let res: Response | null = null;
+  let lastError: any = null;
+
+  for (const url of urlsToTry) {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body,
+        credentials: "include",
+      });
+      if (response.ok) {
+        res = response;
+        break;
+      } else {
+        const errorText = await response.text();
+        lastError = new Error(errorText || response.statusText);
+      }
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  if (!res) {
+    throw new Error(lastError?.message || "Failed to upload image to Cloudinary");
+  }
+
+  const data = await res.json();
+  if (data.url) {
+    return data.url;
+  }
+  throw new Error("Invalid Cloudinary upload response");
+}

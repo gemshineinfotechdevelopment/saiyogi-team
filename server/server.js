@@ -12,6 +12,7 @@ import cartRouter from './routes/cart.js';
 import inventoryRouter from './routes/inventory.js';
 import settingsRouter from './routes/settings.js';
 import brandsRouter from './routes/brands.js';
+import uploadRouter from './routes/upload.js';
 
 import { errorHandler } from './middleware/errorHandler.js';
 import logger from './utils/logger.js';
@@ -96,6 +97,7 @@ app.use('/api/cart', cartRouter);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/settings', settingsRouter);
 app.use('/api/brands', brandsRouter);
+app.use('/api/upload', uploadRouter);
 
 
 // 404 Handler for API routes
