@@ -174,13 +174,13 @@ const AdminProducts = () => {
         credentials: 'include'
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        const errorMsg = data.error?.message || data.error || 'Delete failed';
+      if (!res.ok && res.status !== 404) {
+        const data = await res.json().catch(() => ({}));
+        const errorMsg = data.error?.message || data.error || data.message || 'Delete failed';
         throw new Error(errorMsg);
       }
 
-      setProductList((prev) => prev.filter((p) => p.id !== id));
+      setProductList((prev) => prev.filter((p) => p.id !== id && (p as any)._id !== id));
       toast.success("Product deleted");
     } catch (err) {
       console.error('Delete error:', err);

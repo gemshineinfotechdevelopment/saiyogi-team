@@ -252,38 +252,27 @@ export async function getProducts(): Promise<Product[]> {
   try {
     const data = await fetchJSON<{ products: Product[] } | Product[]>('/api/products?limit=10000');
     const list = Array.isArray(data) ? data : (data?.products || []);
-    if (list.length > 0) {
-      return list.map(p => ({
-        ...p,
-        storeStockPieces: p.storeStockPieces !== undefined ? p.storeStockPieces : (p.stock !== undefined ? p.stock : 0)
-      }));
-    }
-    return FALLBACK_PRODUCTS;
+    return list.map(p => ({
+      ...p,
+      storeStockPieces: p.storeStockPieces !== undefined ? p.storeStockPieces : (p.stock !== undefined ? p.stock : 0)
+    }));
   } catch (error) {
-    console.error('Failed to fetch products, using fallback:', error);
-    return FALLBACK_PRODUCTS;
+    console.error('Failed to fetch products:', error);
+    return [];
   }
 }
 
 export async function getProductById(id: string): Promise<Product> {
-  try {
-    return await fetchJSON<Product>(`/api/products/${id}`);
-  } catch (error) {
-    const fallback = FALLBACK_PRODUCTS.find(p => p.id === id || p._id === id);
-    if (fallback) return fallback;
-    throw error;
-  }
+  return await fetchJSON<Product>(`/api/products/${id}`);
 }
 
 export async function getCategories(): Promise<Category[]> {
   try {
     const data = await fetchJSON<{ categories: Category[] } | Category[]>('/api/categories');
-    const list = Array.isArray(data) ? data : (data?.categories || []);
-    if (list.length > 0) return list;
-    return FALLBACK_CATEGORIES;
+    return Array.isArray(data) ? data : (data?.categories || []);
   } catch (error) {
-    console.error('Failed to fetch categories, using fallback:', error);
-    return FALLBACK_CATEGORIES;
+    console.error('Failed to fetch categories:', error);
+    return [];
   }
 }
 
