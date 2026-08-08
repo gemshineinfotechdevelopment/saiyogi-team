@@ -355,7 +355,7 @@ const AdminCategories = () => {
                 <DialogTitle>{editing ? "Edit Category" : "New Category"}</DialogTitle>
                 <DialogDescription>{editing ? "Rename or update this category." : "Add a new product category."}</DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-2">
+              <div className="space-y-4 py-2 px-1">
                 <div className="space-y-2">
                   <Label className="text-xs font-bold uppercase text-gray-700">Category Code (Auto Generated)</Label>
                   <Input
