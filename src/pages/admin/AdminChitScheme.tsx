@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminNavbar from "@/components/layout/AdminNavbar";
-import { Image as ImageIcon, Upload, Trash2, AlertCircle, Edit2, Check, X, FileText, Loader2 } from "lucide-react";
+import { Image as ImageIcon, Upload, Trash2, AlertCircle, Edit2, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { uploadImageToCloudinary } from "@/lib/api";
+import { uploadImageToCloudinary, getChitSchemes, createChitScheme, updateChitScheme, deleteChitScheme, ChitSchemeItem } from "@/lib/api";
 
 export interface ChitSchemeImage {
   id: string;
@@ -13,23 +13,9 @@ export interface ChitSchemeImage {
   description?: string;
 }
 
-const DEFAULT_CHIT_IMAGES: ChitSchemeImage[] = [
-  {
-    id: "1",
-    url: "https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=1200&auto=format&fit=crop",
-    title: "Diwali Special Savings Scheme 2026",
-    description: "Save monthly and get up to 50% extra fireworks bonus on Diwali!"
-  },
-  {
-    id: "2",
-    url: "https://images.unsplash.com/photo-1543857778-c4a1a3e0b2eb?q=80&w=1200&auto=format&fit=crop",
-    title: "Monthly Firecracker Advance Booking Perks",
-    description: "Lock wholesale rates today with zero price rise guarantee."
-  }
-];
-
 const AdminChitScheme: React.FC = () => {
   const [images, setImages] = useState<ChitSchemeImage[]>([]);
+  const [loading, setLoading] = useState(true);
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadDescription, setUploadDescription] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -39,61 +25,60 @@ const AdminChitScheme: React.FC = () => {
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
 
-  useEffect(() => {
-    const saved = localStorage.getItem("chit_scheme_images");
-    if (saved) {
-      try {
-        setImages(JSON.parse(saved));
-      } catch {
-        setImages(DEFAULT_CHIT_IMAGES);
-      }
-    } else {
-      setImages(DEFAULT_CHIT_IMAGES);
-    }
-  }, []);
-
-  const saveImagesToStorage = (updated: ChitSchemeImage[]) => {
+  const loadChitSchemes = async () => {
+    setLoading(true);
     try {
-      setImages(updated);
-      localStorage.setItem("chit_scheme_images", JSON.stringify(updated));
-      toast.success("Chit Scheme updated successfully!");
+      const data = await getChitSchemes();
+      const mapped = (data || []).map((item: ChitSchemeItem) => ({
+        id: item._id || item.id || '',
+        url: item.url,
+        title: item.title || '',
+        description: item.description || ''
+      }));
+      setImages(mapped);
     } catch (err) {
-      toast.error("Failed to save: Storage quota exceeded. Please delete older images first.");
+      console.error("Failed to load chit schemes from backend:", err);
+      toast.error("Failed to load Chit Schemes from database");
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadChitSchemes();
+  }, []);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
-    const newUploaded: ChitSchemeImage[] = [];
     const fileList = Array.from(files);
 
     for (let index = 0; index < fileList.length; index++) {
       const file = fileList[index];
       try {
+        toast.loading(`Uploading ${file.name} to Cloudinary...`, { id: "upload-toast" });
         const cloudinaryUrl = await uploadImageToCloudinary(file, "chit_schemes");
         const autoTitle = uploadTitle.trim() || file.name.replace(/\.[^/.]+$/, "");
-        newUploaded.push({
-          id: `${Date.now()}-${index}-${Math.random().toString(36).substring(2, 6)}`,
-          url: cloudinaryUrl,
+        
+        await createChitScheme({
           title: autoTitle,
-          description: uploadDescription.trim() || ""
+          description: uploadDescription.trim() || "",
+          url: cloudinaryUrl
         });
+
+        toast.success(`Uploaded & saved to MongoDB!`, { id: "upload-toast" });
       } catch (err: any) {
-        toast.error(`Failed to upload ${file.name} to Cloudinary: ${err.message || err}`);
+        toast.error(`Failed to upload ${file.name}: ${err.message || err}`, { id: "upload-toast" });
       }
     }
 
-    if (newUploaded.length > 0) {
-      const updated = [...images, ...newUploaded];
-      saveImagesToStorage(updated);
-      setUploadTitle("");
-      setUploadDescription("");
-    }
+    setUploadTitle("");
+    setUploadDescription("");
     setIsUploading(false);
     e.target.value = "";
+    loadChitSchemes();
   };
 
   const handleOpenEditModal = (img: ChitSchemeImage) => {
@@ -102,23 +87,33 @@ const AdminChitScheme: React.FC = () => {
     setEditDescription(img.description || "");
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editingImage) return;
 
-    const updated = images.map((img) =>
-      img.id === editingImage.id
-        ? { ...img, title: editTitle.trim(), description: editDescription.trim() }
-        : img
-    );
-
-    saveImagesToStorage(updated);
-    setEditingImage(null);
+    try {
+      toast.loading("Updating Chit Scheme...", { id: "edit-toast" });
+      await updateChitScheme(editingImage.id, {
+        title: editTitle.trim(),
+        description: editDescription.trim()
+      });
+      toast.success("Chit Scheme updated in database!", { id: "edit-toast" });
+      setEditingImage(null);
+      loadChitSchemes();
+    } catch (err: any) {
+      toast.error(`Update failed: ${err.message || err}`, { id: "edit-toast" });
+    }
   };
 
-  const handleDeleteImage = (id: string) => {
+  const handleDeleteImage = async (id: string) => {
     if (confirm("Are you sure you want to delete this Chit Scheme image?")) {
-      const updated = images.filter((img) => img.id !== id);
-      saveImagesToStorage(updated);
+      try {
+        toast.loading("Deleting image...", { id: "delete-toast" });
+        await deleteChitScheme(id);
+        toast.success("Chit Scheme deleted from Cloudinary & database!", { id: "delete-toast" });
+        loadChitSchemes();
+      } catch (err: any) {
+        toast.error(`Delete failed: ${err.message || err}`, { id: "delete-toast" });
+      }
     }
   };
 
@@ -134,7 +129,7 @@ const AdminChitScheme: React.FC = () => {
                 Chit Scheme Management
               </h1>
               <p className="text-sm text-muted-foreground mt-0.5">
-                Upload images with titles and descriptions for logged-in user Chit Scheme view
+                Upload images to Cloudinary with titles and descriptions saved in MongoDB for Chit Scheme view
               </p>
             </div>
           </div>
@@ -158,7 +153,7 @@ const AdminChitScheme: React.FC = () => {
                 </p>
                 <label className={`bg-primary text-white text-xs font-bold px-6 py-3 rounded-xl cursor-pointer hover:bg-primary/90 transition-all shadow-xs flex items-center gap-2 active:scale-95 ${isUploading ? 'opacity-70 pointer-events-none' : ''}`}>
                   {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                  <span>{isUploading ? 'Uploading to Cloudinary...' : 'Browse & Upload Image'}</span>
+                  <span>{isUploading ? 'Uploading to Cloudinary & Saving...' : 'Browse & Upload Image'}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -206,7 +201,7 @@ const AdminChitScheme: React.FC = () => {
                 </div>
 
                 <p className="text-[11px] text-gray-500 font-medium italic bg-amber-50/80 border border-amber-200/60 p-2.5 rounded-xl text-amber-900">
-                  💡 Fill in Title & Description, then click <strong>Browse & Upload Image</strong> on the left. You can also edit details later anytime.
+                  💡 Fill in Title & Description, then click <strong>Browse & Upload Image</strong> on the left.
                 </p>
               </div>
             </div>
@@ -218,7 +213,12 @@ const AdminChitScheme: React.FC = () => {
               <span>Current Chit Scheme Images ({images.length})</span>
             </h2>
 
-            {images.length === 0 ? (
+            {loading ? (
+              <div className="py-12 text-center text-gray-400 font-medium text-sm flex justify-center items-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                Loading Chit Schemes...
+              </div>
+            ) : images.length === 0 ? (
               <div className="py-12 text-center text-gray-400 font-medium text-sm">
                 <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
                 No images uploaded yet. Upload images above to display on the Chit Scheme page.

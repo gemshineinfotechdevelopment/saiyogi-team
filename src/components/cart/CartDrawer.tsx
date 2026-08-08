@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createOrder } from "@/lib/api";
-import { generateOrderReceiptPDF } from "@/lib/pdf-generator";
+import { downloadOrderReceiptPDF } from "@/lib/pdf-generator";
 import {
   Select,
   SelectContent,
@@ -190,9 +190,11 @@ const CartDrawer = () => {
           total: response.order.total,
           date: new Date().toLocaleDateString('en-IN'),
           siteName: settings.siteName,
+          companyName: settings.billing?.companyName || settings.siteName,
           siteAddress: settings.contact?.address || '',
           sitePhone: settings.contact?.phone || '',
           siteEmail: settings.contact?.email || '',
+          gstNumber: settings.billing?.gstNumber || '',
         };
         setSavedOrderData(orderData);
 
@@ -235,7 +237,7 @@ const CartDrawer = () => {
   const handleConfirmAndSubmitTerms = () => {
     if (savedOrderData) {
       try {
-        generateOrderReceiptPDF(savedOrderData);
+        downloadOrderReceiptPDF(savedOrderData);
       } catch (pdfErr) {
         console.error("PDF download failed:", pdfErr);
       }
