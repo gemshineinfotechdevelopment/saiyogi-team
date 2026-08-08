@@ -188,16 +188,18 @@ const AdminProducts = () => {
       <div className="flex min-h-screen">
         <AdminSidebar />
         <main className="flex-1 p-6 lg:p-8 overflow-auto">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="font-display text-2xl font-bold">Products</h1>
-              <p className="text-sm text-muted-foreground">{productList.length} products total</p>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div className="flex items-start justify-between w-full md:w-auto">
+              <div>
+                <h1 className="font-display text-2xl font-bold">Products</h1>
+                <p className="text-sm text-muted-foreground">{productList.length} products total</p>
+              </div>
+              <Link to="/" className="text-sm text-primary hover:underline lg:hidden mt-1">← Store</Link>
             </div>
-            <div className="flex gap-2">
-              <Link to="/" className="text-sm text-primary hover:underline lg:hidden self-center">← Store</Link>
+            <div className="flex gap-2 w-full md:w-auto">
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" /> Add Product</Button>
+                  <Button onClick={openCreate} className="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-bold gap-2"><Plus className="h-4 w-4" /> Add Product</Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-3xl">
                   <DialogHeader>

@@ -234,7 +234,7 @@ const AdminCategories = () => {
       <div className="flex min-h-screen">
         <AdminSidebar />
         <main className="flex-1 p-6 lg:p-8 overflow-auto">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div>
               <h1 className="font-display text-2xl font-bold flex items-center gap-2">
                 <FolderTree className="h-6 w-6 text-primary" /> Categories

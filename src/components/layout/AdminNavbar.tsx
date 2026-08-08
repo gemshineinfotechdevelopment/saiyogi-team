@@ -50,48 +50,73 @@ const AdminNavbar = () => {
         </button>
       </div>
 
-      {menuOpen && (
-        <div className="border-t border-border bg-sidebar p-4 space-y-2 max-h-[70vh] overflow-y-auto scrollbar-thin">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                onClick={() => setMenuOpen(false)}
-                className={cn(
-                  "block px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent"
-                )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+      {/* Mobile Sidebar Drawer */}
+      <div className={`fixed inset-0 z-[60] ${menuOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
+        {/* Backdrop overlay */}
+        <div 
+          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+            menuOpen ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={() => setMenuOpen(false)}
+        />
+        
+        {/* Drawer content */}
+        <div 
+          className={`absolute top-0 left-0 h-full w-[75vw] max-w-[300px] bg-sidebar shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
+            menuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <div className="p-4 border-b border-border flex justify-between items-center bg-sidebar-accent/50">
+            <span className="font-display font-bold text-sidebar-primary">Admin Menu</span>
+            <button onClick={() => setMenuOpen(false)} className="p-2 text-sidebar-foreground hover:text-white hover:bg-sidebar-accent rounded-full transition-colors">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          
+          <div className="p-4 space-y-1.5 overflow-y-auto scrollbar-thin flex-1">
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  className={cn(
+                    "block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
 
-          <Link
-            to="/"
-            onClick={() => setMenuOpen(false)}
-            className="block px-3 py-2 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-          >
-            ← Back to Store
-          </Link>
+          <div className="p-4 border-t border-border mt-auto bg-sidebar">
+            <Link
+              to="/"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center justify-center px-3 py-2.5 mb-3 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+            >
+              ← Back to Store
+            </Link>
 
-          <Button
-            onClick={() => {
-              handleLogout();
-              setMenuOpen(false);
-            }}
-            variant="default"
-            className="w-full mt-4 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white border-none"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </Button>
+            <Button
+              onClick={() => {
+                handleLogout();
+                setMenuOpen(false);
+              }}
+              variant="default"
+              className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white border-none"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
+          </div>
         </div>
-      )}
+      </div>
     </nav>
   );
 };

@@ -262,7 +262,7 @@ const AdminBrands = () => {
                         <TableHead className="font-extrabold text-xs text-gray-700 uppercase">Brand ID</TableHead>
                         <TableHead className="font-extrabold text-xs text-gray-700 uppercase">Logo</TableHead>
                         <TableHead className="font-extrabold text-xs text-gray-700 uppercase">Brand Name</TableHead>
-                        <TableHead className="font-extrabold text-xs text-gray-700 uppercase">Items Count</TableHead>
+                        <TableHead className="font-extrabold text-xs text-gray-700 uppercase text-center">Items Count</TableHead>
                         <TableHead className="font-extrabold text-xs text-gray-700 uppercase">Status</TableHead>
                         <TableHead className="font-extrabold text-xs text-gray-700 uppercase text-right">Actions</TableHead>
                       </TableRow>
@@ -297,7 +297,7 @@ const AdminBrands = () => {
                                 <p className="text-xs font-normal text-gray-500 mt-0.5 line-clamp-1">{brand.description}</p>
                               )}
                             </TableCell>
-                            <TableCell className="py-2.5">
+                            <TableCell className="py-2.5 text-center">
                               <Badge variant="secondary" className="font-bold">
                                 {itemsCount} Items
                               </Badge>
