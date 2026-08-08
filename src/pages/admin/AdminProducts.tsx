@@ -28,31 +28,39 @@ const AdminProducts = () => {
   const [editing, setEditing] = useState<Product | null>(null);
 
   const getCategoryName = (category: string | any) => {
-    if (category && typeof category === 'object') {
-      return category.name || category.slug;
+    if (!category) return 'N/A';
+    if (typeof category === 'object' && category !== null) {
+      return category.name || category.slug || 'N/A';
     }
-    const cat = categories.find((c) => c.id === category);
-    return cat?.name || category;
+    const cat = categories.find((c) => c.id === category || (c as any)._id === category);
+    return cat?.name || String(category);
   };
 
   const openEdit = (product: Product) => {
     setEditing(product);
+    const brandName = typeof product.brand === 'object' && product.brand !== null 
+      ? (product.brand as any).name || "" 
+      : product.brand || "";
+    const catId = product.category && typeof product.category === 'object' 
+      ? (product.category as any)._id || (product.category as any).id || "" 
+      : product.category || "";
+
     setForm({
-      name: product.name,
+      name: product.name || "",
       sku: product.sku || product.code || "",
-      price: product.price.toString(),
-      stock: product.stock.toString(),
-      brand: product.brand,
-      category: (product.category && typeof product.category === 'object') ? (product.category as any)._id || (product.category as any).id || "" : product.category || "",
-      description: product.description,
+      price: (product.price ?? "").toString(),
+      stock: (product.stock ?? "").toString(),
+      brand: brandName,
+      category: catId,
+      description: product.description || "",
       quantity: product.quantity || "",
       hasDiscount: product.hasDiscount || false,
       displayNetRate: product.displayNetRate || false,
-      netRate: product.netRate?.toString() || "",
-      wholesalePrice: product.wholesalePrice?.toString() || "",
-      storeStockPieces: product.storeStockPieces?.toString() || "0",
-      godownStockCases: product.godownStockCases?.toString() || "0",
-      piecesPerCase: product.piecesPerCase?.toString() || "1"
+      netRate: (product.netRate ?? "").toString(),
+      wholesalePrice: (product.wholesalePrice ?? "").toString(),
+      storeStockPieces: (product.storeStockPieces ?? 0).toString(),
+      godownStockCases: (product.godownStockCases ?? 0).toString(),
+      piecesPerCase: (product.piecesPerCase ?? 1).toString()
     });
     setImageFile(null);
     setDialogOpen(true);
@@ -105,10 +113,36 @@ const AdminProducts = () => {
       .catch(() => setBrands([]));
   }, []);
 
-  const filtered = productList.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.brand.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = productList.filter((p) => {
+    if (!p) return false;
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+
+    const name = String(p.name || "").toLowerCase();
+
+    let brandStr = "";
+    if (p.brand) {
+      if (typeof p.brand === 'object' && p.brand !== null) {
+        brandStr = String((p.brand as any).name || (p.brand as any).brandId || "").toLowerCase();
+      } else {
+        brandStr = String(p.brand).toLowerCase();
+      }
+    }
+
+    const skuStr = String(p.sku || p.code || "").toLowerCase();
+
+    let catStr = "";
+    if (p.category) {
+      if (typeof p.category === 'object' && p.category !== null) {
+        catStr = String((p.category as any).name || (p.category as any).slug || "").toLowerCase();
+      } else {
+        const catObj = categories.find((c) => c.id === p.category || (c as any)._id === p.category);
+        catStr = String(catObj?.name || p.category).toLowerCase();
+      }
+    }
+
+    return name.includes(q) || brandStr.includes(q) || skuStr.includes(q) || catStr.includes(q);
+  });
 
   const handleDelete = async (id: string) => {
     console.log('Attempting to delete product with ID:', id);
@@ -419,18 +453,27 @@ const AdminProducts = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedData.map((p) => (
-                    <tr key={p.id} className="border-b border-border hover:bg-secondary/30 transition-colors">
-                      <td className="p-3 font-mono text-xs text-muted-foreground">{p.sku || p.code || 'N/A'}</td>
-                      <td className="p-3">
-                        <div className="flex items-center gap-3">
-                          <img src={p.image} alt={p.name} className="w-10 h-10 rounded object-cover" />
-                          <div>
-                            <p className="font-semibold">{p.name}</p>
-                            <p className="text-xs text-muted-foreground">{p.brand}</p>
-                          </div>
-                        </div>
+                  {paginatedData.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="text-center p-8 text-muted-foreground">
+                        {search ? `No products found matching "${search}"` : 'No products found'}
                       </td>
+                    </tr>
+                  ) : (
+                    paginatedData.map((p) => (
+                      <tr key={p.id || p._id} className="border-b border-border hover:bg-secondary/30 transition-colors">
+                        <td className="p-3 font-mono text-xs text-muted-foreground">{p.sku || p.code || 'N/A'}</td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-3">
+                            <img src={p.image || '/placeholder.svg'} alt={p.name || 'Product'} className="w-10 h-10 rounded object-cover" />
+                            <div>
+                              <p className="font-semibold">{p.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {typeof p.brand === 'object' && p.brand !== null ? (p.brand as any).name : (p.brand || 'N/A')}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
                       <td className="p-3 hidden sm:table-cell capitalize text-muted-foreground">{getCategoryName(p.category)}</td>
                       <td className="p-3 text-right">
                         <span className="font-bold text-primary">₹{p.price}</span>
@@ -489,7 +532,8 @@ const AdminProducts = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  ))
+                )}
                 </tbody>
               </table>
             </div>
