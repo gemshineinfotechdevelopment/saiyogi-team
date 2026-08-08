@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Edit2, Trash2, Tag, CheckCircle, XCircle, Eye, Package } from "lucide-react";
 import { toast } from "sonner";
-import { getBrands, getNextBrandId, createBrand, updateBrand, deleteBrand, getProducts, Brand } from "@/lib/api";
+import { getBrands, getNextBrandId, createBrand, updateBrand, deleteBrand, getProducts, uploadImageToCloudinary, Brand } from "@/lib/api";
 import { Product } from "@/data/products";
 
 const PRESET_LOGOS = [
@@ -96,7 +96,7 @@ const AdminBrands = () => {
     setViewingBrand(brand);
   };
 
-  // Image Upload handler: Resizes uploaded image to intrinsic size 1024x1024px canvas
+  // Image Upload handler: Resizes uploaded image to intrinsic size 1024x1024px canvas & uploads to Cloudinary
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -109,7 +109,7 @@ const AdminBrands = () => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
-      img.onload = () => {
+      img.onload = async () => {
         if (img.width > 1200 || img.height > 1600) {
           toast.error("Image dimensions must not exceed 1200x1600 pixels");
           e.target.value = '';
@@ -137,8 +137,15 @@ const AdminBrands = () => {
 
           ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
           const dataUrl = canvas.toDataURL("image/png");
-          setFormData((prev) => ({ ...prev, logo: dataUrl }));
-          toast.success("Image uploaded & scaled to 1024x1024px intrinsic size!");
+
+          try {
+            toast.loading("Uploading brand logo to Cloudinary...", { id: "brand-logo-upload" });
+            const cloudinaryUrl = await uploadImageToCloudinary(dataUrl, "brands");
+            setFormData((prev) => ({ ...prev, logo: cloudinaryUrl }));
+            toast.success("Logo uploaded to Cloudinary & scaled to 1024x1024px!", { id: "brand-logo-upload" });
+          } catch (uploadErr: any) {
+            toast.error(`Cloudinary upload failed: ${uploadErr.message || uploadErr}`, { id: "brand-logo-upload" });
+          }
         }
       };
       if (typeof event.target?.result === "string") {

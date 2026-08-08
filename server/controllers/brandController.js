@@ -1,6 +1,30 @@
 import Brand from '../models/Brand.js';
 import { AppError } from '../middleware/errorHandler.js';
 import logger from '../utils/logger.js';
+import { uploadToBoth } from '../utils/upload-manager.js';
+import { uploadToCloudinary } from '../utils/cloudinary.js';
+
+// Helper to handle logo upload to Cloudinary (from req.file or base64 string)
+const processLogoUpload = async (req, fallbackLogo = '/sky_rocket_box.png') => {
+  if (req.file) {
+    const uploadResult = await uploadToBoth(req.file, 'brands');
+    return uploadResult.url;
+  }
+  
+  if (req.body.logo && typeof req.body.logo === 'string' && req.body.logo.startsWith('data:image')) {
+    const matches = req.body.logo.match(/^data:image\/([a-zA-Z0-9]+);base64,(.+)$/);
+    if (matches) {
+      const ext = matches[1] || 'png';
+      const base64Data = matches[2];
+      const buffer = Buffer.from(base64Data, 'base64');
+      const filename = `brand_${Date.now()}.${ext}`;
+      const uploadResult = await uploadToCloudinary(buffer, filename, 'brands');
+      return uploadResult.url;
+    }
+  }
+
+  return req.body.logo || fallbackLogo;
+};
 
 // Helper function to generate auto brandId like B0001, B0002
 const generateBrandId = async () => {
@@ -45,22 +69,23 @@ export const getNextBrandId = async (req, res, next) => {
 // CREATE brand
 export const createBrand = async (req, res, next) => {
   try {
-    const { name, phone, logo, description, itemsCount, isActive } = req.body;
+    const { name, phone, description, itemsCount, isActive } = req.body;
 
     if (!name) {
       return next(new AppError('Brand name is required', 400));
     }
 
+    const logoUrl = await processLogoUpload(req, '/sky_rocket_box.png');
     const brandId = await generateBrandId();
 
     const brand = new Brand({
       brandId,
       name: name.trim(),
       phone: (phone || '').trim(),
-      logo: logo || '/sky_rocket_box.png',
+      logo: logoUrl,
       description: (description || '').trim(),
-      itemsCount: typeof itemsCount === 'number' ? itemsCount : 0,
-      isActive: typeof isActive === 'boolean' ? isActive : true,
+      itemsCount: typeof itemsCount === 'number' ? Number(itemsCount) : 0,
+      isActive: typeof isActive === 'boolean' ? isActive : isActive !== 'false',
     });
 
     const savedBrand = await brand.save();
@@ -74,19 +99,22 @@ export const createBrand = async (req, res, next) => {
 // UPDATE brand
 export const updateBrand = async (req, res, next) => {
   try {
-    const { name, phone, logo, description, itemsCount, isActive } = req.body;
+    const { name, phone, description, itemsCount, isActive } = req.body;
     const brand = await Brand.findById(req.params.id);
 
     if (!brand) {
       return next(new AppError('Brand not found', 404));
     }
 
+    if (req.file || (req.body.logo && req.body.logo !== brand.logo)) {
+      brand.logo = await processLogoUpload(req, brand.logo);
+    }
+
     if (name) brand.name = name.trim();
     if (phone !== undefined) brand.phone = phone.trim();
-    if (logo !== undefined) brand.logo = logo;
     if (description !== undefined) brand.description = description.trim();
-    if (itemsCount !== undefined) brand.itemsCount = itemsCount;
-    if (isActive !== undefined) brand.isActive = isActive;
+    if (itemsCount !== undefined) brand.itemsCount = Number(itemsCount);
+    if (isActive !== undefined) brand.isActive = typeof isActive === 'boolean' ? isActive : isActive !== 'false';
 
     const updatedBrand = await brand.save();
     logger.info(`Brand updated: ${updatedBrand.name} (${updatedBrand.brandId})`, { reqId: req.id });

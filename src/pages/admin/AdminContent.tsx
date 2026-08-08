@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { Save, Settings, Loader, Edit2, X, Plus, Trash2 } from "lucide-react";
+import { Save, Settings, Loader, Edit2, X, Plus, Trash2, Upload, Loader2 } from "lucide-react";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminNavbar from "@/components/layout/AdminNavbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSiteSettings, SiteSettings } from "@/context/SiteSettingsContext";
-import { updateSettings as updateSettingsAPI } from "@/lib/api";
+import { updateSettings as updateSettingsAPI, uploadImageToCloudinary } from "@/lib/api";
 import { toast } from "sonner";
 
 const AdminContent = () => {
@@ -14,6 +14,7 @@ const AdminContent = () => {
   const [form, setForm] = useState<SiteSettings>(settings);
   const [isSaving, setIsSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   useEffect(() => {
     // Only sync remote settings into the form when not actively editing
@@ -21,6 +22,22 @@ const AdminContent = () => {
       setForm(settings);
     }
   }, [settings, isEditing]);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingLogo(true);
+    try {
+      const url = await uploadImageToCloudinary(file, "site_settings");
+      setForm((prev) => ({ ...prev, logo: url }));
+      toast.success("Site logo uploaded to Cloudinary successfully!");
+    } catch (err: any) {
+      toast.error(`Failed to upload logo: ${err.message || err}`);
+    } finally {
+      setIsUploadingLogo(false);
+      e.target.value = "";
+    }
+  };
 
   const handleCancel = () => {
     setForm(settings);
@@ -47,6 +64,7 @@ const AdminContent = () => {
       await updateSettingsAPI({
         siteName: form.siteName,
         siteDescription: form.siteDescription,
+        logo: form.logo,
         discountPercent: form.discountPercent,
         minimumPurchaseAmount: form.minimumPurchaseAmount,
         minPurchaseOutsideTN: form.minPurchaseOutsideTN,
@@ -104,6 +122,21 @@ const AdminContent = () => {
                   maxLength={100}
                   className={!isEditing ? "bg-muted cursor-not-allowed" : ""}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label>Site Logo (Uploads to Cloudinary)</Label>
+                <div className="flex items-center gap-4">
+                  {form.logo && (
+                    <img src={form.logo} alt="Site Logo" className="h-12 w-auto object-contain border border-border rounded p-1 bg-white" />
+                  )}
+                  {isEditing && (
+                    <label className="cursor-pointer bg-secondary border border-border text-xs font-semibold px-3 py-2 rounded-md hover:bg-secondary/80 flex items-center gap-1.5">
+                      {isUploadingLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                      <span>{isUploadingLogo ? "Uploading..." : "Upload Logo"}</span>
+                      <input type="file" accept="image/*" disabled={isUploadingLogo} onChange={handleLogoUpload} className="hidden" />
+                    </label>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Site Description</Label>
