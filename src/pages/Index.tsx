@@ -121,6 +121,13 @@ const Index = () => {
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [videoIndex, setVideoIndex] = useState(0);
   const [comboIndex, setComboIndex] = useState(0);
+  const [isMobileView, setIsMobileView] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobileView(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Hero image slideshow (right-to-left slide)
   const heroImages = [heroBanner1, heroBanner2, heroBanner3, heroBanner4];
@@ -183,8 +190,9 @@ const Index = () => {
     let particles: any[] = [];
     
     const createFlowerPotParticle = (x: number, y: number) => {
+      const isMobile = window.innerWidth < 768;
       const angle = (Math.random() * Math.PI) / 4 - Math.PI / 8; // Narrower angle for realistic fountain
-      const speed = Math.random() * 12 + 6; // Stronger initial thrust
+      const speed = isMobile ? (Math.random() * 8 + 4) : (Math.random() * 12 + 6); // Stronger initial thrust, less on mobile
       particles.push({
         x, y,
         vx: Math.sin(angle) * speed,
@@ -214,9 +222,12 @@ const Index = () => {
       const leftPotX = canvas.width * 0.1;
       const rightPotX = canvas.width * 0.9;
       const potY = canvas.height; // Emit from bottom
+      
+      const isMobile = window.innerWidth < 768;
+      const particleCount = isMobile ? 2 : 5; // Less particles on mobile
 
       if (isActive) {
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < particleCount; i++) {
           createFlowerPotParticle(leftPotX, potY);
           createFlowerPotParticle(rightPotX, potY);
         }
@@ -327,16 +338,16 @@ const Index = () => {
         options={{
           rocketsPoint: { min: 0, max: 100 },
           hue: { min: 0, max: 360 },
-          delay: { min: 30, max: 60 },
+          delay: isMobileView ? { min: 60, max: 120 } : { min: 30, max: 60 },
 
           acceleration: 1.05,
           friction: 0.97,
           gravity: 1.5,
-          particles: 50,
+          particles: isMobileView ? 20 : 50,
           traceLength: 3,
-          traceSpeed: 10,
-          explosion: 5,
-          intensity: 30,
+          traceSpeed: isMobileView ? 5 : 10,
+          explosion: isMobileView ? 3 : 5,
+          intensity: isMobileView ? 10 : 30,
           flickering: 50,
           lineStyle: 'round',
           lineWidth: { explosion: { min: 1, max: 3 }, trace: { min: 1, max: 2 } },
