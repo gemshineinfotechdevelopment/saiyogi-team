@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Play, Pause, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
+import { Play, Pause, ChevronLeft, ChevronRight, ShoppingCart, X } from "lucide-react";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useCart } from "@/context/CartContext";
@@ -172,6 +172,34 @@ const Index = () => {
     getBrands().then((b) => {
       setBrands(Array.isArray(b) ? b.filter((brand) => brand.isActive !== false) : []);
     });
+  }, []);
+
+  // Listen for YouTube video ENDED (0) or PAUSED (2) events to automatically resume marquee scrolling
+  useEffect(() => {
+    const handleYTMessage = (event: MessageEvent) => {
+      try {
+        const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        if (!data) return;
+
+        // YT.PlayerState: ENDED is 0, PAUSED is 2
+        const isEndedOrPaused =
+          data.info === 0 ||
+          data.info === 2 ||
+          data.info?.playerState === 0 ||
+          data.info?.playerState === 2 ||
+          (data.event === "onStateChange" && (data.info === 0 || data.info === 2)) ||
+          (data.event === "infoDelivery" && (data.info?.playerState === 0 || data.info?.playerState === 2));
+
+        if (isEndedOrPaused) {
+          setPlayingVideo(null);
+        }
+      } catch (err) {
+        // Ignore non-JSON messages
+      }
+    };
+
+    window.addEventListener("message", handleYTMessage);
+    return () => window.removeEventListener("message", handleYTMessage);
   }, []);
 
   // Realistic Flower Pot Effect
@@ -450,8 +478,9 @@ const Index = () => {
             >
               <div 
                 className={`flex flex-nowrap gap-3 sm:gap-6 w-max animate-marquee ${
-                  playingVideo ? "[animation-play-state:paused]" : "hover:[animation-play-state:paused]"
+                  playingVideo ? "paused" : "hover:[animation-play-state:paused]"
                 }`}
+                style={playingVideo ? { animationPlayState: 'paused' } : undefined}
               >
                 {(() => {
                   const baseVideos = settings.youtubeVideos && settings.youtubeVideos.length > 0 ? settings.youtubeVideos : demoVideos;
@@ -478,27 +507,39 @@ const Index = () => {
                         onClick={() => setPlayingVideo(isPlaying ? null : `${videoId}-${idx}`)}
                       >
                         {isPlaying ? (
-                          isYouTube && ytId ? (
-                            <iframe
-                              width="100%"
-                              height="100%"
-                              src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
-                              title={video.title}
-                              frameBorder="0"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                              className="w-full h-full"
-                            ></iframe>
-                          ) : (
-                            <video
-                              src={video.url}
-                              autoPlay
-                              loop
-                              muted
-                              playsInline
-                              className="w-full h-full object-cover"
-                            />
-                          )
+                          <>
+                            {isYouTube && ytId ? (
+                              <iframe
+                                width="100%"
+                                height="100%"
+                                src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`}
+                                title={video.title}
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                className="w-full h-full"
+                              ></iframe>
+                            ) : (
+                              <video
+                                src={video.url}
+                                autoPlay
+                                onPause={() => setPlayingVideo(null)}
+                                onEnded={() => setPlayingVideo(null)}
+                                playsInline
+                                className="w-full h-full object-cover"
+                              />
+                            )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPlayingVideo(null);
+                              }}
+                              className="absolute top-2 right-2 z-30 w-7 h-7 bg-black/70 hover:bg-[#A80000] text-white rounded-full flex items-center justify-center backdrop-blur-sm transition-all cursor-pointer shadow-md"
+                              title="Stop Video & Resume Scroll"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </>
                         ) : (
                           <img
                             src={thumbnail}
