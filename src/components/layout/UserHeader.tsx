@@ -9,7 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 const UserHeader = () => {
   const { totalItems, setIsCartOpen } = useCart();
   const { settings } = useSiteSettings();
-  const { isUserLoggedIn, userPhone, openLoginModal, logoutUser } = useAuth();
+  const { isUserLoggedIn, userPhone, userName, openLoginModal, logoutUser } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -109,12 +109,12 @@ const UserHeader = () => {
                   ? "bg-red-50 border-[#A80000] text-[#A80000] font-bold"
                   : "bg-gray-50 border-gray-200 text-gray-700 hover:text-[#A80000] hover:border-[#A80000]"
               }`}
-              title={isUserLoggedIn ? `User Account (+91 ${userPhone || ""})` : "Login"}
+              title={isUserLoggedIn ? `User Account (${userName && userName !== "Customer" ? userName : (userPhone ? `+91 ${userPhone}` : "")})` : "Login"}
             >
               <User className="h-5 w-5" />
-              {isUserLoggedIn && userPhone && (
+              {isUserLoggedIn && (
                 <span className="hidden lg:inline text-xs font-black tracking-tight">
-                  +91 {userPhone}
+                  {userName && userName !== "Customer" ? userName : (userPhone ? `+91 ${userPhone}` : "Account")}
                 </span>
               )}
             </button>
