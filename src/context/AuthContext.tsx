@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { UserLoginModal } from "@/components/auth/UserLoginModal";
 import { setCookie, getCookie, deleteCookie } from "@/lib/cookieUtils";
 import { toast } from "sonner";
+import { trackCustomerAction } from "@/lib/api";
 
 const isLocalhost = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -81,8 +82,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCookie("saiyogi_user_phone", phone, 30);
     setCookie(SESSION_COOKIE_NAME, phone, 30);
 
+    let cleanName: string | undefined = undefined;
     if (name && name.trim()) {
-      const cleanName = name.trim();
+      cleanName = name.trim();
       setUserName(cleanName);
       localStorage.setItem("user_name", cleanName);
       setCookie("saiyogi_user_name", cleanName, 30);
@@ -92,6 +94,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       deleteCookie("saiyogi_user_name");
     }
     setIsAuthenticated(true);
+
+    trackCustomerAction({
+      phone,
+      name: cleanName,
+      source: "normal_login"
+    }).catch((err) => console.warn("Failed to track login action:", err));
   };
 
   const openLoginModal = () => setIsLoginModalOpen(true);

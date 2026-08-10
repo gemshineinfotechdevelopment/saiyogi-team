@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createOrder } from "@/lib/api";
+import { createOrder, trackCustomerAction } from "@/lib/api";
 import { downloadOrderReceiptPDF } from "@/lib/pdf-generator";
 import { setCookie, getCookie } from "@/lib/cookieUtils";
 import {
@@ -175,6 +175,18 @@ const CartDrawer = () => {
       });
 
       if (response?.order) {
+        trackCustomerAction({
+          phone: formData.phoneNumber,
+          name: formData.name,
+          source: "product_enquiry",
+          enquiry: {
+            productName: items.map(i => i.product.name).join(", ") || "Enquiry Items",
+            amount: response.order.total || estimatedTotal,
+            status: "New"
+          },
+          deliveryAddress: fullDeliveryAddress
+        }).catch(err => console.warn("Failed to track customer enquiry:", err));
+
         const orderData = {
           orderNumber: response.order.orderNumber || response.order._id,
           customerName: formData.name,

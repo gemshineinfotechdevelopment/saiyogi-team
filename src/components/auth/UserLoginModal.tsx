@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-
+import { getCustomers } from "@/lib/api";
 interface UserLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -67,7 +67,7 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
     }
   };
 
-  const handleSendOtp = (e: React.FormEvent) => {
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phone) {
       setError("Please enter your mobile number");
@@ -79,9 +79,31 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
       return;
     }
 
+    setIsSubmitting(true);
+
+    try {
+      const localTracks = JSON.parse(localStorage.getItem("local_customer_tracks") || "{}");
+      const existingLocal = localTracks[phone];
+      let foundName = "";
+      if (existingLocal && existingLocal.name && existingLocal.name !== "Customer") {
+        foundName = existingLocal.name;
+      } else {
+        const customers = await getCustomers();
+        const existingApi = customers.find(c => String(c.phone).replace(/\D/g, "").slice(-10) === phone);
+        if (existingApi && existingApi.name && existingApi.name !== "Customer") {
+          foundName = existingApi.name;
+        }
+      }
+      if (foundName) {
+        setName(foundName);
+      }
+    } catch (err) {
+      console.warn("Failed to check existing customer", err);
+    }
+
     const code = String(Math.floor(100000 + Math.random() * 900000));
     setGeneratedOtp(code);
-    setIsSubmitting(true);
+    
     setTimeout(() => {
       setIsSubmitting(false);
       setStep("otp");
@@ -91,7 +113,7 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
         description: `Your 6-digit verification code is: ${code}`,
         duration: 15000,
       });
-    }, 600);
+    }, 400);
   };
 
   const handleResendOtp = () => {

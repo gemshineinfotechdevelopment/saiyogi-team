@@ -286,7 +286,7 @@ const AdminCategories = () => {
                     </TableCell>
                     <TableCell className="font-bold text-gray-900 py-2.5">{cat.name}</TableCell>
                     <TableCell className="py-2.5">
-                      <Badge variant="secondary" className="font-bold">
+                      <Badge variant="secondary" className="font-bold whitespace-nowrap">
                         {cat.productCount} Items
                       </Badge>
                     </TableCell>

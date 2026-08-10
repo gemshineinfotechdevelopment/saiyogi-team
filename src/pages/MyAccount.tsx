@@ -3,31 +3,13 @@ import { Link, useSearchParams } from "react-router-dom";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
-import { loadUserEnquiries, EnquiryItem } from "./MyEnquiry";
+import { loadUserEnquiries, EnquiryItem, formatAddress, formatString } from "@/lib/enquiryUtils";
 import { downloadOrderReceiptPDF, OrderData } from "@/lib/pdf-generator";
 import { FileText, User, ShoppingBag } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { getCookie, setCookie } from "@/lib/cookieUtils";
 import { getOrders } from "@/lib/api";
-
-const formatAddress = (addr: any): string => {
-  if (!addr) return "Sivakasi, Tamil Nadu";
-  if (typeof addr === "string") return addr;
-  if (typeof addr === "object") {
-    if (addr.fullAddress && typeof addr.fullAddress === "string") return addr.fullAddress;
-    const parts = [addr.street, addr.district, addr.state, addr.pincode].filter(p => p && typeof p === "string");
-    if (parts.length > 0) return parts.join(", ");
-  }
-  return String(addr);
-};
-
-const formatString = (val: any, fallback: string = ""): string => {
-  if (!val) return fallback;
-  if (typeof val === "string") return val;
-  if (typeof val === "object") return val.name || val.fullAddress || val.phone || fallback;
-  return String(val);
-};
 
 const MyAccount: React.FC = () => {
   const { userPhone, userName, isUserLoggedIn, openLoginModal } = useAuth();

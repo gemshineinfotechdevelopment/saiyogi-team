@@ -64,7 +64,21 @@ const customerSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true
-    }
+    },
+    sources: {
+      type: [String],
+      enum: ['normal_login', 'chit_scheme', 'product_enquiry'],
+      default: ['normal_login']
+    },
+    productEnquiries: [
+      {
+        productName: String,
+        amount: Number,
+        status: { type: String, default: 'New' },
+        enquiryDate: { type: Date, default: Date.now },
+        items: Array
+      }
+    ]
   },
   { timestamps: true }
 );
