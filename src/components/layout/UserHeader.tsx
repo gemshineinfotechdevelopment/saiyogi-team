@@ -70,7 +70,7 @@ const UserHeader = () => {
         <div className="container mx-auto px-4 py-2.5 md:py-3 flex items-center justify-between gap-4">
           {/* Logo */}
           <Link to="/" className="flex items-center shrink-0">
-            <img src={companyLogo} alt="Sai Yogi Crackers" className="h-10 md:h-14 object-contain" />
+            <img src={companyLogo} alt="Sai Yogi Crackers" className="h-14 object-contain" />
           </Link>
 
           {/* Navigation Bar (Desktop) */}
@@ -177,7 +177,7 @@ const UserHeader = () => {
             }`}
           >
             <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <img src={companyLogo} alt="Sai Yogi" className="h-8 object-contain" />
+              <img src={companyLogo} alt="Sai Yogi" className="h-14 object-contain" />
               <button onClick={() => setMenuOpen(false)} className="p-2 text-gray-500 hover:text-black hover:bg-gray-200 rounded-full transition-colors">
                 <X className="h-5 w-5" />
               </button>
