@@ -180,7 +180,7 @@ const CartDrawer = () => {
           source: "product_enquiry",
           enquiry: {
             productName: items.map(i => i.product.name).join(", ") || "Enquiry Items",
-            amount: finalTotal,
+            amount: estimatedTotal,
             status: "New"
           },
           deliveryAddress: fullDeliveryAddress
