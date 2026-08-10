@@ -15,6 +15,7 @@ import CartDrawer from "./components/cart/CartDrawer";
 import SafetyTips from "./pages/SafetyTips";
 import Contact from "./pages/Contact";
 import QuickEnquiry from "./pages/QuickEnquiry";
+import ProductList from "./pages/ProductList";
 import AboutUs from "./pages/AboutUs";
 import ChitScheme from "./pages/ChitScheme";
 import MyEnquiry from "./pages/MyEnquiry";
@@ -29,6 +30,7 @@ import AdminCustomers from "./pages/admin/AdminCustomers";
 import AdminChitScheme from "./pages/admin/AdminChitScheme";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminContent from "./pages/admin/AdminContent";
+import AdminPriceList from "./pages/admin/AdminPriceList";
 
 import NotFound from "./pages/NotFound";
 
@@ -63,6 +65,7 @@ const App = () => (
                   <Route path="/safety-tips" element={<SafetyTips />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/quick-enquiry" element={<QuickEnquiry />} />
+                  <Route path="/price-list" element={<ProductList />} />
                   <Route path="/quick-enquery" element={<Navigate to="/quick-enquiry" replace />} />
                   <Route path="/about" element={<AboutUs />} />
                   <Route path="/about-us" element={<AboutUs />} />
@@ -128,6 +131,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <AdminContent />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/price-list"
+                    element={
+                      <ProtectedRoute>
+                        <AdminPriceList />
                       </ProtectedRoute>
                     }
                   />

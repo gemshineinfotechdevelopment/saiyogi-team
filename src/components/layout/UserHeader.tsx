@@ -85,6 +85,9 @@ const UserHeader = () => {
               QUICK ENQUIRY
               <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded animate-pulse absolute -right-6 -top-2">NEW</span>
             </Link>
+            <Link to="/price-list" className={getLinkClass('/price-list')}>
+              PRICE LIST
+            </Link>
             <Link to="/chit-scheme" className={getLinkClass('/chit-scheme')}>
               CHIT SCHEME
             </Link>
@@ -188,6 +191,7 @@ const UserHeader = () => {
               <Link to="/quick-enquiry" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/quick-enquiry') + " flex items-center gap-2"}>
                 QUICK ENQUIRY <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded">NEW</span>
               </Link>
+              <Link to="/price-list" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/price-list')}>PRICE LIST</Link>
               <Link to="/chit-scheme" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/chit-scheme')}>CHIT SCHEME</Link>
               <Link to="/about-us" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/about-us')}>ABOUT US</Link>
               <Link to="/safety-tips" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/safety-tips')}>SAFETY TIPS</Link>
