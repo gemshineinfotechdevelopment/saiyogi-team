@@ -325,7 +325,7 @@
 }
 
 .animate-marquee {
-  animation: marquee 40s linear infinite;
+  animation: marquee 80s linear infinite;
 }
 
 .animate-marquee:hover,
@@ -413,7 +413,7 @@ select.bg-secondary option {
 }
 
 .animate-category-slide {
-  animation: categorySlide 20s linear infinite;
+  animation: categorySlide 40s linear infinite;
 }
 
 .animate-category-slide:hover,
@@ -455,7 +455,7 @@ select.bg-secondary option {
 .animate-best-sellers-scroll {
   display: flex;
   gap: 1.5rem;
-  animation: bestSellersScroll 35s linear infinite;
+  animation: bestSellersScroll 70s linear infinite;
   width: max-content;
 }
 
@@ -475,6 +475,6 @@ select.bg-secondary option {
 .animate-top-marquee {
   display: flex;
   gap: 4rem;
-  animation: topMarqueeScroll 25s linear infinite;
+  animation: topMarqueeScroll 50s linear infinite;
   width: max-content;
 }

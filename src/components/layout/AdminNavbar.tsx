@@ -51,18 +51,16 @@ const AdminNavbar = () => {
       {/* Mobile Sidebar Drawer */}
       <div className={`fixed inset-0 z-[60] ${menuOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
         {/* Backdrop overlay */}
-        <div 
-          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
-            menuOpen ? "opacity-100" : "opacity-0"
-          }`}
+        <div
+          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${menuOpen ? "opacity-100" : "opacity-0"
+            }`}
           onClick={() => setMenuOpen(false)}
         />
-        
+
         {/* Drawer content */}
-        <div 
-          className={`absolute top-0 left-0 h-full w-[75vw] max-w-[300px] bg-sidebar shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
-            menuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        <div
+          className={`absolute top-0 left-0 h-full w-[75vw] max-w-[300px] bg-sidebar shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${menuOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
         >
           <div className="p-4 border-b border-border flex justify-between items-center bg-sidebar-accent/50">
             <div className="flex items-center gap-2">
@@ -73,7 +71,7 @@ const AdminNavbar = () => {
               <X className="h-5 w-5" />
             </button>
           </div>
-          
+
           <div className="p-4 space-y-1.5 overflow-y-auto scrollbar-thin flex-1">
             {navItems.map((item) => {
               const isActive = location.pathname === item.href;

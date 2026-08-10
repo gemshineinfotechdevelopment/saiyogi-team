@@ -527,8 +527,7 @@ const AdminCustomers = () => {
                           <TableHead>Invoice</TableHead>
                         </TableRow>
                       </TableHeader>
-
-                        <TableBody>
+                      <TableBody>
                           {sortedPurchases.length === 0 ? (
                             <TableRow>
                               <TableCell colSpan={7} className="text-center py-8 text-xs text-muted-foreground italic">
