@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, LayoutDashboard, Package, FolderTree, ShoppingBag, Users, Settings, Tag, BarChart3, Gift } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, Package, FolderTree, ShoppingBag, Users, Settings, Tag, BarChart3, Gift, Image } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -16,6 +16,7 @@ const navItems = [
   { label: "Customers", icon: Users, href: "/admin/customers" },
   { label: "Chit Scheme", icon: Gift, href: "/admin/chit-scheme" },
   { label: "Reports", icon: BarChart3, href: "/admin/reports" },
+  { label: "Page Content", icon: Image, href: "/admin/page-content" },
   { label: "Content", icon: Settings, href: "/admin/content" },
 ];
 

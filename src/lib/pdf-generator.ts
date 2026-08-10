@@ -115,13 +115,30 @@ export function downloadOrderReceiptPDF(orderData: OrderData) {
 }
 
 export function printOrderReceipt(orderData: OrderData) {
-  const printWindow = window.open("", "_blank");
-  if (printWindow) {
-    printWindow.document.write(generateReceiptHTML(orderData));
-    printWindow.document.close();
-    printWindow.focus();
+  const html = generateReceiptHTML(orderData);
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  document.body.appendChild(iframe);
+
+  const iframeDoc = iframe.contentWindow?.document;
+  if (iframeDoc) {
+    iframeDoc.open();
+    iframeDoc.write(html);
+    iframeDoc.close();
+    
     setTimeout(() => {
-      printWindow.print();
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      setTimeout(() => {
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
+      }, 1000);
     }, 800);
   }
 }
@@ -277,13 +294,21 @@ body {
   margin: 0 auto;
   position: relative;
 }
-.content-wrapper {
-  border: 1px solid #000000;
+.outer-wrapper {
   width: 100%;
-  height: 100%;
-  min-height: 277mm;
-  display: flex;
-  flex-direction: column;
+  border-collapse: collapse;
+}
+.outer-wrapper > thead > tr > td,
+.outer-wrapper > tbody > tr > td,
+.outer-wrapper > tfoot > tr > td {
+  border-left: 1px solid #000000;
+  border-right: 1px solid #000000;
+}
+.outer-wrapper > thead > tr > td {
+  border-top: 1px solid #000000;
+}
+.outer-wrapper > tfoot > tr > td {
+  border-bottom: 1px solid #000000;
 }
 .header {
   padding: 15px 15px 5px 15px;
@@ -310,6 +335,10 @@ table.main-table {
   color: #000000;
   text-align: center;
 }
+.main-table tr {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
 .info-section {
   display: flex;
   margin-top: 0;
@@ -318,6 +347,8 @@ table.main-table {
   display: flex;
   border-top: 1px solid #000000;
   margin-top: auto;
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 .totals-row {
   display: flex;
@@ -336,9 +367,15 @@ table.main-table {
 </style>
 </head>
 <body>
+<div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.35; z-index: -1; pointer-events: none;">
+  <img src="${saiyogiLogo}" style="width: 500px; height: auto; object-fit: contain;" />
+</div>
 <div class="page">
-  <div class="content-wrapper">
-    <div class="header" style="margin-bottom: 15px;">
+  <table class="outer-wrapper" cellpadding="0" cellspacing="0">
+    <thead>
+      <tr>
+        <td style="border-bottom: none;">
+          <div class="header" style="margin-bottom: 15px;">
       <table width="100%" border="0" cellpadding="0" cellspacing="0">
         <tr>
           <td valign="bottom" align="left">
@@ -346,7 +383,7 @@ table.main-table {
             <div style="font-size: 11px; font-weight: bold; color: #64748b; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Proforma Estimate</div>
           </td>
           <td valign="top" align="right">
-            <img src="${saiyogiLogo}" style="width: 160px; height: auto; max-height: 80px; object-fit: contain;" />
+            <img src="${saiyogiLogo}" style="height: 80px; width: auto; max-width: 250px; object-fit: contain;" />
           </td>
         </tr>
       </table>
@@ -379,9 +416,13 @@ table.main-table {
         </div>
       </div>
     </div>
-
-    <div style="flex-grow: 1; display: flex; flex-direction: column; position: relative; z-index: 1;">
-      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('${saiyogiLogo}'); background-position: center; background-repeat: no-repeat; background-size: 320px; opacity: 0.04; z-index: -1; pointer-events: none;"></div>
+        </td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="vertical-align: top; padding: 0;">
+          <div style="position: relative; z-index: 1;">
       
       <table class="main-table">
         <thead>
@@ -400,9 +441,12 @@ table.main-table {
           ${itemsHTML}
         </tbody>
       </table>
-    </div>
-
-    <div class="footer-section">
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td style="border: none; padding: 0;">
+          <div class="footer-section">
       <div style="flex: 1; border-right: 1px solid #000; display: flex; flex-direction: column; background: #ffffff;">
         <div style="padding: 10px; border-bottom: 1px solid #e2e8f0; min-height: 50px;">
           <span style="font-size: 11px; font-weight:bold; color:#900000; text-transform:uppercase;">Delivery Address:</span>
@@ -458,8 +502,17 @@ table.main-table {
           <span style="width: 45%; text-align: right; font-size: 18px;">₹ ${formatAmt(grandTotal)}</span>
         </div>
       </div>
-    </div>
-  </div>
+      </div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td style="border-top: none; padding: 0; height: 1px;"></td>
+      </tr>
+    </tfoot>
+  </table>
 </div>
 </body>
 </html>

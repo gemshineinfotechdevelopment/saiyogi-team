@@ -198,8 +198,8 @@ const AdminProducts = () => {
       <AdminNavbar />
       <div className="flex min-h-screen">
         <AdminSidebar />
-        <main className="flex-1 p-6 lg:p-8 overflow-auto">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <main className="flex-1 p-6 lg:p-8 overflow-auto pb-32">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div className="flex items-start justify-between w-full md:w-auto">
               <div>
                 <h1 className="font-display text-2xl font-bold">Products</h1>
@@ -500,13 +500,13 @@ const AdminProducts = () => {
                   ) : (
                     paginatedData.map((p) => (
                       <tr key={p.id || p._id} className="hover:bg-red-50/40 transition-colors">
-                        <td className="p-4 font-mono text-xs text-gray-500">{p.sku || p.code || 'N/A'}</td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-3">
-                            <img src={p.image || '/placeholder.svg'} alt={p.name || 'Product'} className="w-10 h-10 rounded-lg object-cover border border-gray-200" />
+                        <td className="p-4 font-mono text-xs text-gray-500 whitespace-nowrap">{p.sku || p.code || 'N/A'}</td>
+                        <td className="p-4 whitespace-nowrap">
+                          <div className="flex items-center gap-4 pr-6">
+                            <img src={p.image || '/placeholder.svg'} alt={p.name || 'Product'} className="w-12 h-12 rounded-lg object-cover border border-gray-200 shrink-0 shadow-sm" />
                             <div>
-                              <p className="font-bold text-gray-900">{p.name}</p>
-                              <p className="text-xs text-gray-500 mt-0.5">
+                              <p className="font-bold text-gray-900 text-base tracking-tight">{p.name}</p>
+                              <p className="text-xs font-medium text-gray-500 mt-0.5">
                                 {typeof p.brand === 'object' && p.brand !== null ? (p.brand as any).name : (p.brand || 'N/A')}
                               </p>
                             </div>

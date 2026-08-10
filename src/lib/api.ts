@@ -388,6 +388,7 @@ export interface SiteSettings {
   };
   enablePackingCharge?: boolean;
   youtubeVideos?: { title: string; url: string }[];
+  heroBanners?: string[];
 }
 
 export async function getSettings(): Promise<SiteSettings> {

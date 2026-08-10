@@ -43,17 +43,17 @@ const SourceBadges: React.FC<{ sources: string[] }> = ({ sources }) => {
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       {list.includes('normal_login') && (
-        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80">
+        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 whitespace-nowrap">
           🔐 Login
         </span>
       )}
       {list.includes('chit_scheme') && (
-        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200/80">
+        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200/80 whitespace-nowrap">
           🎁 Chit Scheme
         </span>
       )}
       {list.includes('product_enquiry') && (
-        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200/80">
+        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200/80 whitespace-nowrap">
           🔎 Enquiry
         </span>
       )}
@@ -527,43 +527,7 @@ const AdminCustomers = () => {
                           <TableHead>Invoice</TableHead>
                         </TableRow>
                       </TableHeader>
-                      <TableBody>
-                        {sortedPurchases.map((o) => (
-                          <TableRow key={o._id}>
-                            <TableCell className="font-semibold">{o.orderNumber || o._id?.slice(-8)}</TableCell>
-                            <TableCell className="text-xs">{o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "N/A"}</TableCell>
-                            <TableCell>
-                              <Badge variant="secondary" className="font-bold whitespace-nowrap">
-                                {o.items?.length || 0} Items
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="font-bold">₹{(Number(o.subtotal) + (Number(o.packingCharge) || 0)).toLocaleString()}</TableCell>
-                            <TableCell>
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                o.status === "delivered" ? "bg-green-500/20 text-green-500" :
-                                o.status === "shipped" ? "bg-red-500/20 text-red-500" :
-                                o.status === "processing" ? "bg-primary/20 text-primary" :
-                                o.status === "cancelled" ? "bg-destructive/20 text-destructive" :
-                                "bg-muted text-muted-foreground"
-                              }`}>{o.status}</span>
-                            </TableCell>
-                            <TableCell>
-                              {o.approved ? (
-                                <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-500">✓ Yes</span>
-                              ) : (
-                                <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">No</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="flex gap-1">
-                              <Button variant="ghost" size="sm" onClick={() => { handleInvoiceAction(o, settings, 'download'); toast({ title: "Downloading Invoice" }); }} title="Download PDF">
-                                <FileText className="h-4 w-4 text-blue-600" />
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => { handleInvoiceAction(o, settings, 'print'); toast({ title: "Printing Invoice" }); }} title="Print Invoice" className="hidden md:inline-flex">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-printer"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        </TableHeader>
+
                         <TableBody>
                           {sortedPurchases.length === 0 ? (
                             <TableRow>
