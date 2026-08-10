@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Play, Pause, ChevronLeft, ChevronRight, ShoppingCart, X } from "lucide-react";
+import { Play, Pause, ChevronLeft, ChevronRight, ShoppingCart, X, CheckCircle2 } from "lucide-react";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useCart } from "@/context/CartContext";
@@ -170,15 +170,28 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    getProducts().then((prods) => {
-      setProducts(Array.isArray(prods) ? prods : []);
-    });
-    getCategories().then((cats) => {
-      setCategories(Array.isArray(cats) ? cats : []);
-    });
-    getBrands().then((b) => {
-      setBrands(Array.isArray(b) ? b.filter((brand) => brand.isActive !== false) : []);
-    });
+    const loadAll = () => {
+      getProducts().then((prods) => {
+        setProducts(Array.isArray(prods) ? prods : []);
+      });
+      getCategories().then((cats) => {
+        setCategories(Array.isArray(cats) ? cats : []);
+      });
+      getBrands().then((b) => {
+        setBrands(Array.isArray(b) ? b.filter((brand) => brand.isActive !== false) : []);
+      });
+    };
+
+    loadAll();
+
+    const interval = setInterval(loadAll, 5000);
+    const onFocus = () => loadAll();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
   // Listen for YouTube video ENDED (0), PAUSED (2), or UNSTARTED (-1) events to automatically resume marquee scrolling
@@ -858,6 +871,13 @@ const Index = () => {
                     </div>
 
                     <h3 className="font-extrabold text-sm sm:text-base text-gray-900 uppercase mb-1.5 sm:mb-2 line-clamp-1">{item.name}</h3>
+
+                    {item.isSaiYogiVerified && (
+                      <div className="flex items-center justify-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-800 px-2 py-0.5 rounded-full mb-2 shadow-2xs">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 fill-emerald-100 shrink-0" />
+                        <span className="text-[9px] font-extrabold tracking-wide uppercase">Sai Yogi Verified</span>
+                      </div>
+                    )}
 
                     <div className="flex gap-2 sm:gap-3 items-center mb-3 sm:mb-5">
                       {item.oldPrice && (

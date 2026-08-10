@@ -100,7 +100,7 @@ const ProductDetail = () => {
 
           <div className="space-y-4">
             <p className="text-sm text-red-700 font-semibold uppercase">{product.brand}</p>
-            <h1 className="font-display text-3xl font-bold text-red-900">{product.name}</h1>
+            <h1 className="product-title-font text-3xl font-black text-red-900">{product.name}</h1>
 
 
 
@@ -119,7 +119,6 @@ const ProductDetail = () => {
             <p className="text-red-800">{product.description}</p>
 
             <div className="space-y-2 text-sm text-red-800">
-              <p><span className="font-semibold">Quantity:</span> {product.quantity}</p>
               <p><span className="font-semibold">Availability:</span> {(product.storeStockPieces || 0) > 0 ? <span className="text-green-600 font-bold">In Stock ({(product.storeStockPieces || 0)} left)</span> : <span className="text-red-600 font-bold">Out of Stock</span>}</p>
             </div>
 
