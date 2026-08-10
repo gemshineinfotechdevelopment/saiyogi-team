@@ -110,18 +110,11 @@ const ProductDetail = () => {
                 {discount > 0 && (
                   <div className="flex items-center gap-2.5">
                     <span className="text-xl text-red-600 line-through font-semibold">₹{product.price}</span>
-                    <div className="relative flex items-center justify-center">
-                      <div className="absolute inset-0 bg-[#FF5500] rounded-xl transform rotate-6 scale-105 opacity-90 shadow-md" />
-                      <div className="relative bg-gradient-to-b from-[#FFE800] via-[#FFD000] to-[#FFB700] border-2 border-white rounded-xl px-3 py-1.5 shadow-md flex flex-col items-center leading-none transform -rotate-3 border-dashed border-amber-400">
-                        <span className="font-black text-sm sm:text-base text-black tracking-tighter font-sans drop-shadow-xs">
-                          {discount}%
-                        </span>
-                        <div className="w-4/5 h-[1.5px] bg-[#FF3300] my-0.5 rounded-full" />
-                        <span className="font-black text-[9px] sm:text-[10px] text-black tracking-widest uppercase font-sans">
-                          OFF
-                        </span>
-                      </div>
-                    </div>
+                    <img
+                      src="/discount-tag.png"
+                      alt={`${discount}% OFF`}
+                      className="w-14 sm:w-16 h-auto object-contain drop-shadow-md"
+                    />
                   </div>
                 )}
               </div>

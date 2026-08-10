@@ -98,22 +98,12 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
             <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
 
             {discount > 0 && !isNetRate && (
-              <div className="absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5 z-10 hover:scale-110 transition-transform duration-300 cursor-pointer">
-                <div className="relative flex items-center justify-center">
-                  {/* Orange Backing Accent */}
-                  <div className="absolute inset-0 bg-[#FF5500] rounded-xl transform rotate-6 scale-105 opacity-90 shadow-md" />
-                  
-                  {/* Main Yellow Tag Body */}
-                  <div className="relative bg-gradient-to-b from-[#FFE800] via-[#FFD000] to-[#FFB700] border-2 border-white rounded-xl px-2 py-1 sm:px-2.5 sm:py-1.5 shadow-md flex flex-col items-center leading-none transform -rotate-3 border-dashed border-amber-400">
-                    <span className="font-black text-[11px] sm:text-[14px] text-black tracking-tighter font-sans drop-shadow-xs">
-                      {discount}%
-                    </span>
-                    <div className="w-4/5 h-[1.5px] bg-[#FF3300] my-0.5 rounded-full" />
-                    <span className="font-black text-[7.5px] sm:text-[9.5px] text-black tracking-widest uppercase font-sans">
-                      OFF
-                    </span>
-                  </div>
-                </div>
+              <div className="absolute top-1 left-1 sm:top-2 sm:left-2 z-10 hover:scale-110 transition-transform duration-300 pointer-events-none">
+                <img
+                  src="/discount-tag.png"
+                  alt={`${discount}% OFF`}
+                  className="w-12 sm:w-16 h-auto object-contain drop-shadow-md"
+                />
               </div>
             )}
 
