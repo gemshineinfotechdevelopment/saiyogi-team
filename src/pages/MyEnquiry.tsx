@@ -4,11 +4,13 @@ import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
 import { downloadOrderReceiptPDF, OrderData } from "@/lib/pdf-generator";
-import { FileText, Eye, X, CheckCircle, Package, ArrowLeft } from "lucide-react";
+import { FileText } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { getCookie, setCookie } from "@/lib/cookieUtils";
+import { getOrders } from "@/lib/api";
 
-interface EnquiryItem {
+export interface EnquiryItem {
   id: string;
   enquiryNumber: string;
   date: string;
@@ -25,49 +27,149 @@ interface EnquiryItem {
   }>;
 }
 
+const formatAddress = (addr: any): string => {
+  if (!addr) return "Sivakasi, Tamil Nadu";
+  if (typeof addr === "string") return addr;
+  if (typeof addr === "object") {
+    if (addr.fullAddress && typeof addr.fullAddress === "string") return addr.fullAddress;
+    const parts = [addr.street, addr.district, addr.state, addr.pincode].filter(p => p && typeof p === "string");
+    if (parts.length > 0) return parts.join(", ");
+  }
+  return String(addr);
+};
+
+const formatString = (val: any, fallback: string = ""): string => {
+  if (!val) return fallback;
+  if (typeof val === "string") return val;
+  if (typeof val === "object") return val.name || val.fullAddress || val.phone || fallback;
+  return String(val);
+};
+
+export function loadUserEnquiries(userPhone: string | null): EnquiryItem[] {
+  if (!userPhone) return [];
+  const cleanPhone = userPhone.replace(/\D/g, "");
+  if (!cleanPhone) return [];
+
+  const cookieKey = `saiyogi_enquiries_${cleanPhone}`;
+  const localKey = `user_saved_enquiries_${cleanPhone}`;
+
+  let items: EnquiryItem[] = [];
+
+  // 1. Try cookie
+  const cookieVal = getCookie(cookieKey);
+  if (cookieVal) {
+    try {
+      const parsed = JSON.parse(cookieVal);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        items = parsed;
+      }
+    } catch (_) { }
+  }
+
+  // 2. Fallback to localStorage
+  if (items.length === 0) {
+    const localVal = localStorage.getItem(localKey);
+    if (localVal) {
+      try {
+        const parsed = JSON.parse(localVal);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          items = parsed;
+        }
+      } catch (_) { }
+    }
+  }
+
+  // Keep cookie & localStorage synced
+  if (items.length > 0) {
+    try {
+      localStorage.setItem(localKey, JSON.stringify(items));
+      setCookie(cookieKey, JSON.stringify(items), 30);
+    } catch (_) { }
+  }
+
+  return items;
+}
+
 const MyEnquiry: React.FC = () => {
   const { userPhone, isUserLoggedIn, openLoginModal } = useAuth();
   const [enquiries, setEnquiries] = useState<EnquiryItem[]>([]);
   const [selectedEnquiry, setSelectedEnquiry] = useState<EnquiryItem | null>(null);
 
   useEffect(() => {
-    if (userPhone) {
-      const cleanPhone = userPhone.replace(/\D/g, "");
-      const savedKey = `user_saved_enquiries_${cleanPhone}`;
-      const saved = localStorage.getItem(savedKey);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) {
-            setEnquiries(parsed);
-            return;
+    const effectivePhone = userPhone || getCookie("saiyogi_user_phone") || localStorage.getItem("user_phone");
+    if (effectivePhone) {
+      const localCookieItems = loadUserEnquiries(effectivePhone);
+      setEnquiries(localCookieItems);
+
+      // Async sync with server API
+      const cleanPhone = effectivePhone.replace(/\D/g, "");
+      getOrders()
+        .then((backendOrders) => {
+          if (Array.isArray(backendOrders) && backendOrders.length > 0) {
+            const matching = backendOrders.filter((ord: any) => {
+              const ordPhone = (ord.customerPhone || "").replace(/\D/g, "");
+              return ordPhone && ordPhone === cleanPhone;
+            });
+
+            if (matching.length > 0) {
+              const convertedBackend: EnquiryItem[] = matching.map((ord: any) => ({
+                id: String(ord._id || ord.id || Date.now()),
+                enquiryNumber: String(ord.orderNumber || ord._id),
+                date: ord.createdAt
+                  ? `${new Date(ord.createdAt).toLocaleDateString('en-IN')} ${new Date(ord.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
+                  : (ord.date || new Date().toLocaleDateString('en-IN')),
+                total: ord.total || ord.subtotal || 0,
+                status: (ord.status as any) || "Pending",
+                customerName: formatString(ord.customerName, "Customer"),
+                customerPhone: formatString(ord.customerPhone, effectivePhone),
+                customerEmail: formatString(ord.customerEmail, ""),
+                deliveryAddress: formatAddress(ord.deliveryAddress || ord.shippingAddress),
+                items: Array.isArray(ord.items)
+                  ? ord.items.map((i: any) => ({
+                    productName: formatString(i.productName || i.product?.name, "Product"),
+                    quantity: i.quantity || 1,
+                    price: i.price || 0,
+                  }))
+                  : [],
+              }));
+
+              const map = new Map<string, EnquiryItem>();
+              localCookieItems.forEach((item) => map.set(item.enquiryNumber, item));
+              convertedBackend.forEach((item) => map.set(item.enquiryNumber, item));
+
+              const merged = Array.from(map.values());
+              setEnquiries(merged);
+              localStorage.setItem(`user_saved_enquiries_${cleanPhone}`, JSON.stringify(merged));
+              setCookie(`saiyogi_enquiries_${cleanPhone}`, JSON.stringify(merged), 30);
+            }
           }
-        } catch (_) {}
-      }
+        })
+        .catch(() => { });
+    } else {
+      setEnquiries([]);
     }
-    setEnquiries([]);
   }, [userPhone]);
 
   const handleDownloadEstimate = (enquiry: EnquiryItem) => {
     const pdfData: OrderData = {
       orderNumber: enquiry.enquiryNumber,
-      customerName: enquiry.customerName || "Customer",
-      customerPhone: enquiry.customerPhone || userPhone || "",
-      customerEmail: enquiry.customerEmail || "customer@example.com",
-      deliveryAddress: enquiry.deliveryAddress || "Sivakasi, Tamil Nadu",
+      customerName: formatString(enquiry.customerName, "Customer"),
+      customerPhone: formatString(enquiry.customerPhone, userPhone || ""),
+      customerEmail: formatString(enquiry.customerEmail, "customer@example.com"),
+      deliveryAddress: formatAddress(enquiry.deliveryAddress),
       date: enquiry.date,
       subtotal: enquiry.total,
       total: enquiry.total,
-      items: enquiry.items.map(item => ({
-        productName: item.productName,
-        quantity: item.quantity,
-        price: item.price,
-        originalPrice: item.price,
-      })),
+      items: Array.isArray(enquiry.items) ? enquiry.items.map((item) => ({
+        productName: formatString(item.productName, "Product"),
+        quantity: item.quantity || 1,
+        price: item.price || 0,
+        originalPrice: item.price || 0,
+      })) : [],
       siteName: "Sai Yogi Crackers",
       siteAddress: "Sivakasi, Virudhunagar District, Tamil Nadu",
       sitePhone: "+91 98765 43210",
-      siteEmail: "contact@saiyogicrackers.com"
+      siteEmail: "contact@saiyogicrackers.com",
     };
 
     toast.info("Generating estimate PDF...");
@@ -75,7 +177,7 @@ const MyEnquiry: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-white font-sans">
       {/* Header */}
       <UserHeader />
 
@@ -109,6 +211,7 @@ const MyEnquiry: React.FC = () => {
             </button>
           </div>
         )}
+
         {/* Enquiry Table */}
         <div className="overflow-x-auto bg-white rounded-lg border-b border-gray-200">
           <table className="w-full text-left border-collapse min-w-[600px]">
@@ -130,7 +233,7 @@ const MyEnquiry: React.FC = () => {
                 </tr>
               ) : (
                 enquiries.map((item, index) => (
-                  <tr key={item.id} className="hover:bg-gray-50/60 transition-colors">
+                  <tr key={item.id || index} className="hover:bg-gray-50/60 transition-colors">
                     <td className="py-4 px-2 text-center text-gray-500 font-medium">
                       {index + 1}
                     </td>
@@ -161,7 +264,7 @@ const MyEnquiry: React.FC = () => {
                           className="text-blue-600 hover:text-blue-800 font-medium cursor-pointer flex items-center gap-1 transition-colors"
                         >
                           <FileText className="w-3.5 h-3.5" />
-                          <span>Estimate</span>
+                          <span>Enquiry</span>
                         </button>
                       </div>
                     </td>
@@ -189,23 +292,27 @@ const MyEnquiry: React.FC = () => {
 
             <div className="space-y-4 py-2 text-xs">
               <div className="bg-gray-50 p-3.5 rounded-xl space-y-1.5 text-gray-700">
-                <div><strong className="text-gray-900">Name:</strong> {selectedEnquiry.customerName}</div>
-                <div><strong className="text-gray-900">Phone:</strong> {selectedEnquiry.customerPhone}</div>
-                <div><strong className="text-gray-900">Delivery Address:</strong> {selectedEnquiry.deliveryAddress}</div>
+                <div><strong className="text-gray-900">Name:</strong> {formatString(selectedEnquiry.customerName, "Customer")}</div>
+                <div><strong className="text-gray-900">Phone:</strong> {formatString(selectedEnquiry.customerPhone, "-")}</div>
+                <div><strong className="text-gray-900">Delivery Address:</strong> {formatAddress(selectedEnquiry.deliveryAddress)}</div>
               </div>
 
               <div>
                 <h4 className="font-bold text-gray-900 mb-2 uppercase text-[11px] tracking-wider">Enquired Products</h4>
                 <div className="space-y-2 border border-gray-100 rounded-xl p-3 max-h-48 overflow-y-auto">
-                  {selectedEnquiry.items.map((prod, idx) => (
-                    <div key={idx} className="flex justify-between items-center text-xs pb-1.5 border-b border-gray-50 last:border-0 last:pb-0">
-                      <div>
-                        <span className="font-semibold text-gray-800">{prod.productName}</span>
-                        <span className="text-gray-400 ml-2">x {prod.quantity}</span>
+                  {(Array.isArray(selectedEnquiry.items) ? selectedEnquiry.items : []).length === 0 ? (
+                    <div className="text-gray-400 italic py-2 text-center">No item breakdown available</div>
+                  ) : (
+                    (Array.isArray(selectedEnquiry.items) ? selectedEnquiry.items : []).map((prod, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-xs pb-1.5 border-b border-gray-50 last:border-0 last:pb-0">
+                        <div>
+                          <span className="font-semibold text-gray-800">{formatString(prod.productName, "Product")}</span>
+                          <span className="text-gray-400 ml-2">x {prod.quantity || 1}</span>
+                        </div>
+                        <span className="font-bold text-gray-900">₹ {((prod.price || 0) * (prod.quantity || 1)).toLocaleString("en-IN")}</span>
                       </div>
-                      <span className="font-bold text-gray-900">₹ {(prod.price * prod.quantity).toLocaleString("en-IN")}</span>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
 
