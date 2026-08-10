@@ -391,6 +391,15 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Supreme Court Order Disclaimer Marquee */}
+      <div className="bg-red-600 text-white py-2 overflow-hidden flex items-center relative z-20">
+        <div className="animate-marquee whitespace-nowrap text-sm md:text-base font-semibold tracking-wide flex items-center gap-4">
+          <span>⚠️ As per the 2018 Supreme Court order, online sale of firecrackers is strictly prohibited. This website is intended for inquiry and catalog browsing purposes only. We process orders through official offline channels only. ⚠️</span>
+          <span>⚠️ As per the 2018 Supreme Court order, online sale of firecrackers is strictly prohibited. This website is intended for inquiry and catalog browsing purposes only. We process orders through official offline channels only. ⚠️</span>
+          <span>⚠️ As per the 2018 Supreme Court order, online sale of firecrackers is strictly prohibited. This website is intended for inquiry and catalog browsing purposes only. We process orders through official offline channels only. ⚠️</span>
+        </div>
+      </div>
+
       {/* Realistic Flower Pot Canvas */}
       <canvas 
         id="flower-pot-canvas" 
@@ -402,17 +411,17 @@ const Index = () => {
         options={{
           rocketsPoint: { min: 0, max: 100 },
           hue: { min: 0, max: 360 },
-          // Balanced multi-shot: moderate delay, lower speed
-          delay: isMobileView ? { min: 30, max: 50 } : { min: 30, max: 60 },
+          // Reduced sky shots frequency and intensity as requested
+          delay: isMobileView ? { min: 80, max: 120 } : { min: 80, max: 150 },
 
           acceleration: 1.05,
           friction: 0.97,
           gravity: 1.5,
-          particles: isMobileView ? 30 : 50,
+          particles: isMobileView ? 20 : 35,
           traceLength: 3,
-          traceSpeed: isMobileView ? 4 : 10, // Reduced speed
-          explosion: isMobileView ? 4 : 5,
-          intensity: isMobileView ? 15 : 30, // Reduced intensity slightly to prevent chaos
+          traceSpeed: isMobileView ? 4 : 8,
+          explosion: isMobileView ? 3 : 4,
+          intensity: isMobileView ? 8 : 15, // Reduced intensity significantly
           flickering: 50,
           lineStyle: 'round',
           lineWidth: { explosion: { min: 1, max: 3 }, trace: { min: 1, max: 2 } },
