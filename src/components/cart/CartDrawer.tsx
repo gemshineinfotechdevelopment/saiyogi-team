@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
 import indiaStatesData from "@/lib/indiaStates.json";
+import { getCookie, setCookie } from "@/lib/cookieUtils";
 
 const getAllStates = () => Object.keys(indiaStatesData);
 const getDistrictsByState = (state: string) => (indiaStatesData as Record<string, string[]>)[state] || [];

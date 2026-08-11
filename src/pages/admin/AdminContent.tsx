@@ -121,7 +121,7 @@ const AdminContent = () => {
                   onChange={(e) => setForm({ ...form, siteName: e.target.value })}
                   disabled={!isEditing}
                   maxLength={100}
-                  className={!isEditing ? "bg-muted cursor-not-allowed" : ""}
+                  className={`bg-white text-gray-900 border-gray-300 ${!isEditing ? "bg-gray-100 cursor-not-allowed opacity-90" : "focus:bg-white"}`}
                 />
               </div>
               <div className="space-y-2">
@@ -131,7 +131,7 @@ const AdminContent = () => {
                     <img src={form.logo} alt="Site Logo" className="h-12 w-auto object-contain border border-border rounded p-1 bg-white" />
                   )}
                   {isEditing && (
-                    <label className="cursor-pointer bg-secondary border border-border text-xs font-semibold px-3 py-2 rounded-md hover:bg-secondary/80 flex items-center gap-1.5">
+                    <label className="cursor-pointer bg-gray-100 text-gray-900 border border-gray-300 text-xs font-semibold px-3 py-2 rounded-md hover:bg-gray-200 flex items-center gap-1.5">
                       {isUploadingLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                       <span>{isUploadingLogo ? "Uploading..." : "Upload Logo"}</span>
                       <input type="file" accept="image/*" disabled={isUploadingLogo} onChange={handleLogoUpload} className="hidden" />
@@ -142,7 +142,7 @@ const AdminContent = () => {
               <div className="space-y-2">
                 <Label>Site Description</Label>
                 <textarea
-                  className={`w-full rounded-lg border border-border bg-secondary p-2 text-sm min-h-[60px] ${!isEditing ? "bg-muted cursor-not-allowed opacity-60" : ""}`}
+                  className={`w-full rounded-lg border border-gray-300 bg-white text-gray-900 p-2.5 text-sm min-h-[60px] focus:outline-none focus:ring-2 focus:ring-red-500 ${!isEditing ? "bg-gray-100 cursor-not-allowed opacity-90" : ""}`}
                   value={form.siteDescription}
                   onChange={(e) => setForm({ ...form, siteDescription: e.target.value.slice(0, 300) })}
                   disabled={!isEditing}
@@ -158,7 +158,7 @@ const AdminContent = () => {
               <div className="space-y-2">
                 <Label>News (Marquee Text)</Label>
                 <textarea
-                  className={`w-full rounded-lg border border-border bg-secondary p-2 text-sm min-h-[80px] ${!isEditing ? "bg-muted cursor-not-allowed opacity-60" : ""}`}
+                  className={`w-full rounded-lg border border-gray-300 bg-white text-gray-900 p-2.5 text-sm min-h-[80px] focus:outline-none focus:ring-2 focus:ring-red-500 ${!isEditing ? "bg-gray-100 cursor-not-allowed opacity-90" : ""}`}
                   placeholder="Enter important news or announcements to show in the marquee..."
                   value={form.news || ""}
                   onChange={(e) => setForm({ ...form, news: e.target.value })}
@@ -180,7 +180,7 @@ const AdminContent = () => {
                   value={form.contact?.email || ""}
                   onChange={(e) => setForm({ ...form, contact: { ...form.contact!, email: e.target.value } })}
                   disabled={!isEditing}
-                  className={!isEditing ? "bg-muted cursor-not-allowed" : ""}
+                  className={`bg-white text-gray-900 border-gray-300 ${!isEditing ? "bg-gray-100 cursor-not-allowed opacity-90" : "focus:bg-white"}`}
                 />
               </div>
               <div className="space-y-2">
@@ -190,13 +190,13 @@ const AdminContent = () => {
                   onChange={(e) => setForm({ ...form, contact: { ...form.contact!, phone: e.target.value } })}
                   disabled={!isEditing}
                   maxLength={20}
-                  className={!isEditing ? "bg-muted cursor-not-allowed" : ""}
+                  className={`bg-white text-gray-900 border-gray-300 ${!isEditing ? "bg-gray-100 cursor-not-allowed opacity-90" : "focus:bg-white"}`}
                 />
               </div>
               <div className="space-y-2">
                 <Label>Address</Label>
                 <textarea
-                  className={`w-full rounded-lg border border-border bg-secondary p-2 text-sm min-h-[80px] ${!isEditing ? "bg-muted cursor-not-allowed opacity-60" : ""}`}
+                  className={`w-full rounded-lg border border-gray-300 bg-white text-gray-900 p-2.5 text-sm min-h-[80px] focus:outline-none focus:ring-2 focus:ring-red-500 ${!isEditing ? "bg-gray-100 cursor-not-allowed opacity-90" : ""}`}
                   value={form.contact?.address || ""}
                   onChange={(e) => setForm({ ...form, contact: { ...form.contact!, address: e.target.value.slice(0, 300) } })}
                   disabled={!isEditing}
@@ -217,7 +217,7 @@ const AdminContent = () => {
                     value={form.discountPercent}
                     onChange={(e) => setForm({ ...form, discountPercent: Number(e.target.value) })}
                     disabled={!isEditing}
-                    className={!isEditing ? "bg-muted cursor-not-allowed" : ""}
+                    className={`bg-white text-gray-900 border-gray-300 ${!isEditing ? "bg-gray-100 cursor-not-allowed opacity-90" : "focus:bg-white"}`}
                   />
                   <p className="text-xs text-muted-foreground">Applied to all discounted products</p>
                 </div>
@@ -229,7 +229,7 @@ const AdminContent = () => {
                     value={form.minimumPurchaseAmount}
                     onChange={(e) => setForm({ ...form, minimumPurchaseAmount: Number(e.target.value) })}
                     disabled={!isEditing}
-                    className={!isEditing ? "bg-muted cursor-not-allowed" : ""}
+                    className={`bg-white text-gray-900 border-gray-300 ${!isEditing ? "bg-gray-100 cursor-not-allowed opacity-90" : "focus:bg-white"}`}
                   />
                   <p className="text-[10px] text-muted-foreground">Minimum order value for TN customers</p>
                 </div>
@@ -241,7 +241,7 @@ const AdminContent = () => {
                     value={form.minPurchaseOutsideTN}
                     onChange={(e) => setForm({ ...form, minPurchaseOutsideTN: Number(e.target.value) })}
                     disabled={!isEditing}
-                    className={!isEditing ? "bg-muted cursor-not-allowed" : ""}
+                    className={`bg-white text-gray-900 border-gray-300 ${!isEditing ? "bg-gray-100 cursor-not-allowed opacity-90" : "focus:bg-white"}`}
                   />
                   <p className="text-[10px] text-muted-foreground">Minimum order value for Outside TN customers</p>
                 </div>
@@ -273,7 +273,7 @@ const AdminContent = () => {
               </h2>
               <div className="space-y-4">
                 {(form.youtubeVideos || []).map((video, index) => (
-                  <div key={index} className="flex gap-4 items-end bg-secondary/50 p-4 rounded-lg border border-border flex-wrap md:flex-nowrap">
+                  <div key={index} className="flex gap-4 items-end bg-gray-50 p-4 rounded-lg border border-gray-200 flex-wrap md:flex-nowrap">
                     <div className="flex-1 space-y-2 w-full min-w-[200px]">
                       <Label>Title</Label>
                       <Input
@@ -285,7 +285,7 @@ const AdminContent = () => {
                           setForm({ ...form, youtubeVideos: newVideos });
                         }}
                         disabled={!isEditing}
-                        className={!isEditing ? "bg-muted cursor-not-allowed" : ""}
+                        className={`bg-white text-gray-900 border-gray-300 ${!isEditing ? "bg-gray-100 cursor-not-allowed opacity-90" : "focus:bg-white"}`}
                       />
                     </div>
                     <div className="flex-1 space-y-2 w-full min-w-[200px]">
@@ -299,7 +299,7 @@ const AdminContent = () => {
                           setForm({ ...form, youtubeVideos: newVideos });
                         }}
                         disabled={!isEditing}
-                        className={!isEditing ? "bg-muted cursor-not-allowed" : ""}
+                        className={`bg-white text-gray-900 border-gray-300 ${!isEditing ? "bg-gray-100 cursor-not-allowed opacity-90" : "focus:bg-white"}`}
                       />
                     </div>
                     {isEditing && (
@@ -356,7 +356,7 @@ const AdminContent = () => {
                         })
                       }
                       disabled={!isEditing}
-                      className={!isEditing ? "bg-muted cursor-not-allowed" : ""}
+                      className={`bg-white text-gray-900 border-gray-300 ${!isEditing ? "bg-gray-100 cursor-not-allowed opacity-90" : "focus:bg-white"}`}
                     />
                   </div>
                 ))}

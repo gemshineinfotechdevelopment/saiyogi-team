@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { DiscountTag } from "@/components/ui/DiscountTag";
 
 const ProductCard = ({ product, categoryName, onCardClick }: { product: Product; categoryName?: string; onCardClick?: () => void }) => {
   const [showDetails, setShowDetails] = useState(false);
@@ -83,11 +84,11 @@ const ProductCard = ({ product, categoryName, onCardClick }: { product: Product;
   return (
     <>
       <div className="group h-full">
-        <div 
+        <div
           className="rounded-2xl overflow-hidden bg-white border border-gray-200/80 hover:border-red-300 transition-all duration-300 hover:shadow-lg flex flex-col h-full relative cursor-pointer"
           onClick={() => onCardClick ? onCardClick() : setShowDetails(true)}
         >
-          
+
           {/* Top Right Selected Amount Badge */}
           {quantity > 0 && (
             <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20">
@@ -114,12 +115,8 @@ const ProductCard = ({ product, categoryName, onCardClick }: { product: Product;
             </div>
 
             {discount > 0 && !isNetRate && (
-              <div className="absolute top-1 left-1 sm:top-2 sm:left-2 z-10 hover:scale-110 transition-transform duration-300 pointer-events-none">
-                <img
-                  src="/discount-tag.png"
-                  alt={`${discount}% OFF`}
-                  className="w-12 sm:w-16 h-auto object-contain drop-shadow-md"
-                />
+              <div className="absolute top-1 left-1 sm:top-2 sm:left-2 z-10">
+                <DiscountTag discount={discount} className="w-12 sm:w-16 h-auto" />
               </div>
             )}
 

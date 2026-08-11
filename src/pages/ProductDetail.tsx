@@ -7,6 +7,7 @@ import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/ProductCard";
+import { DiscountTag } from "@/components/ui/DiscountTag";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { toast } from "sonner";
@@ -110,11 +111,7 @@ const ProductDetail = () => {
                 {discount > 0 && (
                   <div className="flex items-center gap-2.5">
                     <span className="text-xl text-red-600 line-through font-semibold">₹{product.price}</span>
-                    <img
-                      src="/discount-tag.png"
-                      alt={`${discount}% OFF`}
-                      className="w-14 sm:w-16 h-auto object-contain drop-shadow-md"
-                    />
+                    <DiscountTag discount={discount} className="w-14 sm:w-16 h-auto" />
                   </div>
                 )}
               </div>
