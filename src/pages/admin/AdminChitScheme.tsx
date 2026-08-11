@@ -306,15 +306,11 @@ const AdminChitScheme: React.FC = () => {
     setIsUploadImageModalOpen(true);
   };
 
-  // Dedicated Admin Scheme Image Upload Handler
+  // Dedicated Admin Scheme Image Upload Handler (Just upload image)
   const handleUploadImageSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!uploadImageFile) {
       toast.error("Please select an image to upload");
-      return;
-    }
-    if (!uploadImageSelectedSchemeId) {
-      toast.error("Please select a scheme to attach this image to");
       return;
     }
 
@@ -323,19 +319,30 @@ const AdminChitScheme: React.FC = () => {
       toast.loading("Uploading scheme image...", { id: "img-toast" });
       const cloudinaryUrl = await uploadImageToCloudinary(uploadImageFile, "chit_schemes");
 
-      const targetScheme = schemes.find(s => String(s.id) === String(uploadImageSelectedSchemeId));
-      if (targetScheme) {
-        await updateChitScheme(targetScheme.id, {
-          url: cloudinaryUrl
-        });
-        toast.success(`Image updated for "${targetScheme.title || targetScheme.schemeName}"!`, { id: "img-toast" });
+      if (uploadImageSelectedSchemeId) {
+        const targetScheme = schemes.find(s => String(s.id) === String(uploadImageSelectedSchemeId));
+        if (targetScheme) {
+          await updateChitScheme(targetScheme.id, { url: cloudinaryUrl });
+          toast.success("Scheme image updated successfully!", { id: "img-toast" });
+        }
+      } else if (schemes.length > 0) {
+        // Update first active scheme or create scheme image entry
+        await updateChitScheme(schemes[0].id, { url: cloudinaryUrl });
+        toast.success("Scheme image uploaded successfully!", { id: "img-toast" });
       } else {
-        toast.error("Target scheme not found", { id: "img-toast" });
+        await createChitScheme({
+          title: "Sai Yogi Chit Scheme",
+          schemeName: "Sai Yogi Chit Scheme",
+          url: cloudinaryUrl,
+          status: "Active"
+        });
+        toast.success("Scheme image uploaded successfully!", { id: "img-toast" });
       }
 
       setIsUploadImageModalOpen(false);
       setUploadImageFile(null);
       setUploadImagePreview(null);
+      setUploadImageSelectedSchemeId("");
       loadChitSchemes();
     } catch (err: any) {
       toast.error("Upload failed: " + (err.message || err), { id: "img-toast" });
@@ -1402,34 +1409,6 @@ const AdminChitScheme: React.FC = () => {
             <form onSubmit={handleUploadImageSubmit} className="space-y-4 py-3 text-xs">
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Select Chit Scheme *
-                </label>
-                <select
-                  value={uploadImageSelectedSchemeId}
-                  onChange={(e) => {
-                    const selectedId = e.target.value;
-                    setUploadImageSelectedSchemeId(selectedId);
-                    const found = schemes.find(s => String(s.id) === String(selectedId));
-                    if (found?.url) {
-                      setUploadImagePreview(found.url);
-                    } else {
-                      setUploadImagePreview(null);
-                    }
-                  }}
-                  className="w-full text-xs p-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none font-semibold text-gray-800"
-                  required
-                >
-                  <option value="">-- Choose Scheme --</option>
-                  {schemes.map(sch => (
-                    <option key={sch.id} value={sch.id}>
-                      {sch.title || sch.schemeName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
                   Select Image File *
                 </label>
                 {uploadImagePreview ? (
@@ -1513,7 +1492,7 @@ const AdminChitScheme: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isUploadingImage || !uploadImageFile || !uploadImageSelectedSchemeId}
+                  disabled={isUploadingImage || !uploadImageFile}
                   className="px-5 py-2.5 bg-[#7A1416] hover:bg-[#900000] text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isUploadingImage ? (
