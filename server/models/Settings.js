@@ -89,7 +89,13 @@ const settingsSchema = new mongoose.Schema(
     youtubeVideos: [{
       title: String,
       url: String
-    }]
+    }],
+    priceListPdf: {
+      type: String,
+      default: ''
+    },
+    heroBanners: [String],
+    noticeBanners: [String]
   },
   { timestamps: true }
 );

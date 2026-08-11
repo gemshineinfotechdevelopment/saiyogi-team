@@ -6,7 +6,11 @@ import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 
-const UserHeader = () => {
+interface UserHeaderProps {
+  isHidden?: boolean;
+}
+
+const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
   const { totalItems, setIsCartOpen } = useCart();
   const { settings } = useSiteSettings();
   const { isUserLoggedIn, userPhone, userName, openLoginModal, logoutUser } = useAuth();
@@ -51,7 +55,7 @@ const UserHeader = () => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md border-b border-gray-100 transition-all duration-300 w-full">
+      <header className={`fixed top-0 left-0 right-0 z-50 bg-white shadow-md border-b border-gray-100 transition-transform duration-300 w-full ${isHidden ? "-translate-y-full" : "translate-y-0"}`}>
         {/* Top Contact Bar */}
         <div className="bg-[#A80000] text-white text-xs py-1.5 hidden md:block">
           <div className="container mx-auto px-4 flex justify-between items-center">
@@ -70,7 +74,7 @@ const UserHeader = () => {
         <div className="container mx-auto px-4 py-2.5 md:py-3 flex items-center justify-between gap-4">
           {/* Logo */}
           <Link to="/" className="flex items-center shrink-0">
-            <img src={companyLogo} alt="Sai Yogi Crackers" className="h-10 md:h-14 object-contain" />
+            <img src={companyLogo} alt="Sai Yogi Crackers" className="h-14 object-contain" />
           </Link>
 
           {/* Navigation Bar (Desktop) */}
@@ -84,6 +88,9 @@ const UserHeader = () => {
             <Link to="/quick-enquiry" className={getLinkClass('/quick-enquiry') + " relative flex items-center gap-1"}>
               QUICK ENQUIRY
               <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded animate-pulse absolute -right-6 -top-2">NEW</span>
+            </Link>
+            <Link to="/price-list" className={getLinkClass('/price-list')}>
+              PRICE LIST
             </Link>
             <Link to="/chit-scheme" className={getLinkClass('/chit-scheme')}>
               CHIT SCHEME
@@ -177,7 +184,7 @@ const UserHeader = () => {
             }`}
           >
             <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <img src={companyLogo} alt="Sai Yogi" className="h-8 object-contain" />
+              <img src={companyLogo} alt="Sai Yogi" className="h-14 object-contain" />
               <button onClick={() => setMenuOpen(false)} className="p-2 text-gray-500 hover:text-black hover:bg-gray-200 rounded-full transition-colors">
                 <X className="h-5 w-5" />
               </button>
@@ -188,6 +195,7 @@ const UserHeader = () => {
               <Link to="/quick-enquiry" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/quick-enquiry') + " flex items-center gap-2"}>
                 QUICK ENQUIRY <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded">NEW</span>
               </Link>
+              <Link to="/price-list" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/price-list')}>PRICE LIST</Link>
               <Link to="/chit-scheme" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/chit-scheme')}>CHIT SCHEME</Link>
               <Link to="/about-us" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/about-us')}>ABOUT US</Link>
               <Link to="/safety-tips" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/safety-tips')}>SAFETY TIPS</Link>

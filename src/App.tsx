@@ -15,6 +15,7 @@ import CartDrawer from "./components/cart/CartDrawer";
 import SafetyTips from "./pages/SafetyTips";
 import Contact from "./pages/Contact";
 import QuickEnquiry from "./pages/QuickEnquiry";
+import ProductList from "./pages/ProductList";
 import AboutUs from "./pages/AboutUs";
 import ChitScheme from "./pages/ChitScheme";
 import MyEnquiry from "./pages/MyEnquiry";
@@ -29,13 +30,16 @@ import AdminCustomers from "./pages/admin/AdminCustomers";
 import AdminChitScheme from "./pages/admin/AdminChitScheme";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminContent from "./pages/admin/AdminContent";
+import AdminPriceList from "./pages/admin/AdminPriceList";
+import AdminPageContent from "./pages/admin/AdminPageContent";
 
 import NotFound from "./pages/NotFound";
 
 import { SettingsProvider } from "@/context/SettingsContext";
 import ScrollToTop from "@/components/ScrollToTop";
-import { GlobalLoginModal } from "@/components/auth/GlobalLoginModal";
+import GlobalLoginModal from "@/components/auth/GlobalLoginModal";
 import FloatingCartTotal from "@/components/FloatingCartTotal";
+import FloatingQuickEnquiry from "@/components/FloatingQuickEnquiry";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +56,7 @@ const App = () => (
                 <ScrollToTop />
                 <GlobalLoginModal />
                 <FloatingCartTotal />
+                <FloatingQuickEnquiry />
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/combo-packs" element={<ComboPacks />} />
@@ -63,6 +68,7 @@ const App = () => (
                   <Route path="/safety-tips" element={<SafetyTips />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/quick-enquiry" element={<QuickEnquiry />} />
+                  <Route path="/price-list" element={<ProductList />} />
                   <Route path="/quick-enquery" element={<Navigate to="/quick-enquiry" replace />} />
                   <Route path="/about" element={<AboutUs />} />
                   <Route path="/about-us" element={<AboutUs />} />
@@ -132,10 +138,26 @@ const App = () => (
                     }
                   />
                   <Route
+                    path="/admin/price-list"
+                    element={
+                      <ProtectedRoute>
+                        <AdminPriceList />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/admin/reports"
                     element={
                       <ProtectedRoute>
                         <AdminReports />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/page-content"
+                    element={
+                      <ProtectedRoute>
+                        <AdminPageContent />
                       </ProtectedRoute>
                     }
                   />

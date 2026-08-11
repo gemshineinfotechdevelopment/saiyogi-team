@@ -28,6 +28,24 @@ const Catalog = () => {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [isNavbarHidden, setIsNavbarHidden] = useState(false);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > 50 && currentScrollY > lastScrollY) {
+        setIsNavbarHidden(true);
+      } else if (currentScrollY < lastScrollY || currentScrollY <= 20) {
+        setIsNavbarHidden(false);
+      }
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Cart totals calculation
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
@@ -63,7 +81,7 @@ const Catalog = () => {
 
     loadAll();
 
-    const interval = setInterval(loadAll, 15000);
+    const interval = setInterval(loadAll, 5000);
     const onFocus = () => loadAll();
     window.addEventListener('focus', onFocus);
 
@@ -204,7 +222,7 @@ const Catalog = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative" style={{ backgroundColor: '#EFF6FF' }}>
-      <UserHeader />
+      <UserHeader isHidden={isNavbarHidden} />
 
       {/* Shared Fixed Filter Component */}
       <QuickEnquiryFilters
@@ -219,6 +237,7 @@ const Catalog = () => {
         totalPrice={totalPrice}
         totalItems={totalItems}
         showTableHeader={false}
+        isNavbarHidden={isNavbarHidden}
       />
 
       {/* Search Overlay for "Search without scrolling" */}
@@ -291,9 +310,13 @@ const Catalog = () => {
         <Search className="h-6 w-6 group-hover:rotate-12 transition-transform" />
       </button>
 
-      <main className="container pb-12 pt-[75px] md:pt-[75px] flex-1">
+      <main className={`container pb-12 flex-1 transition-all duration-300 ${
+        isNavbarHidden
+          ? 'pt-[120px] md:pt-[80px]'
+          : 'pt-[195px] md:pt-[190px]'
+      }`}>
         {filtered.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-in fade-in duration-700">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 mt-0 animate-in fade-in duration-700">
             {filtered.map((p) => {
               const cat = p.category as any;
               const catId = typeof cat === 'object' && cat !== null ? (cat._id || cat.id) : cat;
