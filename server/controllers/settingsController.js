@@ -65,7 +65,8 @@ export const getSiteInfo = async (req, res, next) => {
       enablePackingCharge: settings.enablePackingCharge !== undefined ? settings.enablePackingCharge : true,
       youtubeVideos: settings.youtubeVideos || [],
       priceListPdf: settings.priceListPdf || '',
-      heroBanners: settings.heroBanners || []
+      heroBanners: settings.heroBanners || [],
+      noticeBanners: settings.noticeBanners || []
     };
 
     res.json(info);
