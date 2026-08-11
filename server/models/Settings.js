@@ -93,7 +93,8 @@ const settingsSchema = new mongoose.Schema(
     priceListPdf: {
       type: String,
       default: ''
-    }
+    },
+    heroBanners: [String]
   },
   { timestamps: true }
 );

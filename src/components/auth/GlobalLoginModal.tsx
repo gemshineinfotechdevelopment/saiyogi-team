@@ -13,3 +13,5 @@ export const GlobalLoginModal: React.FC = () => {
     />
   );
 };
+
+export default GlobalLoginModal;

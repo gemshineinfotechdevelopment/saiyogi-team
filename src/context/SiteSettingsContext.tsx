@@ -42,6 +42,7 @@ export interface SiteSettings {
   enablePackingCharge?: boolean;
   youtubeVideos?: { title: string; url: string }[];
   priceListPdf?: string;
+  heroBanners?: string[];
 }
 
 interface SiteSettingsContextType {
@@ -88,6 +89,7 @@ const defaultSettings: SiteSettings = {
   enablePackingCharge: true,
   youtubeVideos: [],
   priceListPdf: "",
+  heroBanners: [],
 };
 
 const SiteSettingsContext = createContext<SiteSettingsContextType | undefined>(undefined);
@@ -122,6 +124,7 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
             enablePackingCharge: siteInfo.enablePackingCharge !== undefined ? siteInfo.enablePackingCharge : prev.enablePackingCharge,
             youtubeVideos: siteInfo.youtubeVideos !== undefined ? siteInfo.youtubeVideos : prev.youtubeVideos,
             priceListPdf: siteInfo.priceListPdf !== undefined ? siteInfo.priceListPdf : prev.priceListPdf,
+            heroBanners: siteInfo.heroBanners !== undefined ? siteInfo.heroBanners : prev.heroBanners,
           }));
         }
       } catch (error) {
@@ -133,8 +136,8 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     fetchSettings();
 
-    // Poll for settings changes every 30 seconds
-    const pollInterval = setInterval(fetchSettings, 30000);
+    // Poll for settings changes every 5 seconds
+    const pollInterval = setInterval(fetchSettings, 5000);
     return () => clearInterval(pollInterval);
   }, []);
 

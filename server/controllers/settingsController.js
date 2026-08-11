@@ -64,7 +64,8 @@ export const getSiteInfo = async (req, res, next) => {
       billing: settings.billing || {},
       enablePackingCharge: settings.enablePackingCharge !== undefined ? settings.enablePackingCharge : true,
       youtubeVideos: settings.youtubeVideos || [],
-      priceListPdf: settings.priceListPdf || ''
+      priceListPdf: settings.priceListPdf || '',
+      heroBanners: settings.heroBanners || []
     };
 
     res.json(info);

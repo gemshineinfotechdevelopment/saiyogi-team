@@ -100,7 +100,7 @@ const ProductDetail = () => {
 
           <div className="space-y-4">
             <p className="text-sm text-red-700 font-semibold uppercase">{product.brand}</p>
-            <h1 className="font-display text-3xl font-bold text-red-900">{product.name}</h1>
+            <h1 className="product-title-font text-3xl font-black text-red-900">{product.name}</h1>
 
 
 
@@ -108,10 +108,14 @@ const ProductDetail = () => {
               <div className="flex items-baseline gap-3">
                 <span className="text-3xl font-bold text-red-700">₹{discountPrice}</span>
                 {discount > 0 && (
-                  <>
-                    <span className="text-lg text-red-600 line-through">₹{product.price}</span>
-                    <span className="text-sm font-bold bg-red-600 text-white px-2 py-1 rounded">{discount}% OFF</span>
-                  </>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-xl text-red-600 line-through font-semibold">₹{product.price}</span>
+                    <img
+                      src="/discount-tag.png"
+                      alt={`${discount}% OFF`}
+                      className="w-14 sm:w-16 h-auto object-contain drop-shadow-md"
+                    />
+                  </div>
                 )}
               </div>
             </div>
@@ -119,7 +123,6 @@ const ProductDetail = () => {
             <p className="text-red-800">{product.description}</p>
 
             <div className="space-y-2 text-sm text-red-800">
-              <p><span className="font-semibold">Quantity:</span> {product.quantity}</p>
               <p><span className="font-semibold">Availability:</span> {(product.storeStockPieces || 0) > 0 ? <span className="text-green-600 font-bold">In Stock ({(product.storeStockPieces || 0)} left)</span> : <span className="text-red-600 font-bold">Out of Stock</span>}</p>
             </div>
 
