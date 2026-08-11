@@ -89,6 +89,9 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
               QUICK ENQUIRY
               <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded animate-pulse absolute -right-6 -top-2">NEW</span>
             </Link>
+            <Link to="/price-list" className={getLinkClass('/price-list')}>
+              PRICE LIST
+            </Link>
             <Link to="/chit-scheme" className={getLinkClass('/chit-scheme')}>
               CHIT SCHEME
             </Link>
@@ -108,11 +111,10 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
             {/* User Symbol Button / Phone Badge */}
             <button
               onClick={openLoginModal}
-              className={`p-2 sm:p-2.5 rounded-xl border transition-all flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95 cursor-pointer ${
-                isUserLoggedIn
+              className={`p-2 sm:p-2.5 rounded-xl border transition-all flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95 cursor-pointer ${isUserLoggedIn
                   ? "bg-red-50 border-[#A80000] text-[#A80000] font-bold"
                   : "bg-gray-50 border-gray-200 text-gray-700 hover:text-[#A80000] hover:border-[#A80000]"
-              }`}
+                }`}
               title={isUserLoggedIn ? `User Account (${userName && userName !== "Customer" ? userName : (userPhone ? `+91 ${userPhone}` : "")})` : "Login"}
             >
               <User className="h-5 w-5" />
@@ -168,18 +170,16 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
       {/* Mobile Menu Drawer (outside header so fixed positioning covers full screen viewport) */}
       <div className={`md:hidden fixed inset-0 z-[100] ${menuOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
         {/* Backdrop overlay */}
-        <div 
-          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
-            menuOpen ? "opacity-100" : "opacity-0"
-          }`}
+        <div
+          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${menuOpen ? "opacity-100" : "opacity-0"
+            }`}
           onClick={() => setMenuOpen(false)}
         />
-        
+
         {/* Drawer content */}
-        <div 
-          className={`absolute top-0 left-0 h-full w-[75vw] max-w-[300px] bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
-            menuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        <div
+          className={`absolute top-0 left-0 h-full w-[75vw] max-w-[300px] bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${menuOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
         >
           <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
             <img src={companyLogo} alt="Sai Yogi" className="h-12 object-contain" />
@@ -193,6 +193,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
             <Link to="/quick-enquiry" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/quick-enquiry') + " flex items-center gap-2"}>
               QUICK ENQUIRY <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded">NEW</span>
             </Link>
+            <Link to="/price-list" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/price-list')}>PRICE LIST</Link>
             <Link to="/chit-scheme" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/chit-scheme')}>CHIT SCHEME</Link>
             <Link to="/about-us" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/about-us')}>ABOUT US</Link>
             <Link to="/safety-tips" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/safety-tips')}>SAFETY TIPS</Link>

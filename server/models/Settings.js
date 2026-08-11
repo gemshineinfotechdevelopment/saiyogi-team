@@ -90,6 +90,10 @@ const settingsSchema = new mongoose.Schema(
       title: String,
       url: String
     }],
+    priceListPdf: {
+      type: String,
+      default: ''
+    },
     heroBanners: [String]
   },
   { timestamps: true }
