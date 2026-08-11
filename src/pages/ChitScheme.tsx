@@ -44,24 +44,37 @@ const ChitScheme: React.FC = () => {
   }, [isUserLoggedIn, userPhone, userName]);
 
   useEffect(() => {
-    getChitSchemes()
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const mapped = data.map((item: ChitSchemeItem) => ({
-            id: item._id || item.id || '',
-            url: item.url,
-            title: item.title || '',
-            description: item.description || ''
-          }));
-          setImages(mapped);
-        } else {
+    const loadChit = () => {
+      getChitSchemes()
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            const mapped = data.map((item: ChitSchemeItem) => ({
+              id: item._id || item.id || '',
+              url: item.url,
+              title: item.title || '',
+              description: item.description || ''
+            }));
+            setImages(mapped);
+          } else {
+            setImages(DEFAULT_IMAGES);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to fetch chit schemes from API:", err);
           setImages(DEFAULT_IMAGES);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to fetch chit schemes from API:", err);
-        setImages(DEFAULT_IMAGES);
-      });
+        });
+    };
+
+    loadChit();
+
+    const interval = setInterval(loadChit, 5000);
+    const onFocus = () => loadChit();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
   return (

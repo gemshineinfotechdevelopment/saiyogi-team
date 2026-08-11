@@ -52,8 +52,8 @@
     --sidebar-border: 358 100% 10%;
     --sidebar-ring: 358 85% 52%;
 
-    --font-display: 'Cinzel', serif;
-    --font-body: 'Outfit', sans-serif;
+    --font-display: 'Google Sans', 'Product Sans', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-body: 'Google Sans', 'Product Sans', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   }
 
   * {
@@ -67,7 +67,7 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: var(--font-body);
+    font-family: 'Google Sans', 'Product Sans', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
     min-height: 100vh;
     overflow-x: hidden;
   }
@@ -78,7 +78,11 @@
   h4,
   h5,
   h6 {
-    font-family: var(--font-display);
+    font-family: 'Google Sans', 'Product Sans', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+  }
+
+  .product-title-font {
+    font-family: 'Google Sans', 'Product Sans', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
   }
 
   /* Hide scrollbar globally for all browsers while keeping scrolling functional */
@@ -332,6 +336,28 @@
 .animate-marquee.paused,
 .paused {
   animation-play-state: paused !important;
+}
+
+@keyframes cracker-burst {
+  0% {
+    transform: scale(0.6) rotate(0deg);
+    opacity: 0.8;
+    filter: brightness(1.2);
+  }
+  50% {
+    transform: scale(1.4) rotate(180deg);
+    opacity: 1;
+    filter: brightness(2.2);
+  }
+  100% {
+    transform: scale(0.6) rotate(360deg);
+    opacity: 0.8;
+    filter: brightness(1.2);
+  }
+}
+
+.animate-cracker-burst {
+  animation: cracker-burst 0.6s ease-in-out infinite alternate;
 }
 
 @keyframes blink {

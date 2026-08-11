@@ -133,8 +133,8 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     fetchSettings();
 
-    // Poll for settings changes every 30 seconds
-    const pollInterval = setInterval(fetchSettings, 30000);
+    // Poll for settings changes every 5 seconds
+    const pollInterval = setInterval(fetchSettings, 5000);
     return () => clearInterval(pollInterval);
   }, []);
 
