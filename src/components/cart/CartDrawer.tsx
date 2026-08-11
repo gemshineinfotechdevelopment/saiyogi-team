@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose, SheetDescription } from "@/components/ui/sheet";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
@@ -719,12 +720,17 @@ const CartDrawer = () => {
 
             <div className="space-y-4 text-gray-700 text-xs sm:text-sm">
               <p className="leading-relaxed">
-                <strong className="font-extrabold text-gray-900">1. Shipping:</strong> Direct dispatch from Sivakasi within 5–7 working days.
+                <strong className="font-extrabold text-gray-900">1. Shipping:</strong> Direct dispatch from Sivakasi warehouse within 5–7 working days.
               </p>
 
-              <p className="leading-relaxed">
-                <strong className="font-extrabold text-gray-900">2. Transport Charges:</strong> Payable by the customer directly at the transport office upon pickup.
-              </p>
+              <div className="bg-amber-50/80 border border-amber-200 rounded-xl p-3.5 space-y-1">
+                <strong className="font-extrabold text-[#900000] flex items-center gap-1.5 text-xs sm:text-sm">
+                  🚚 2. Transport Charges:
+                </strong>
+                <p className="text-gray-700 text-xs leading-relaxed">
+                  Transport charges are payable entirely by the customer directly at the transport office upon parcel collection. The transport service operates independently from our shop.
+                </p>
+              </div>
 
               <p className="leading-relaxed">
                 <strong className="font-extrabold text-gray-900">3. Payments:</strong> 100% advance payment required before dispatch.
@@ -741,6 +747,16 @@ const CartDrawer = () => {
               <p className="leading-relaxed">
                 <strong className="font-extrabold text-gray-900">6. Returns:</strong> No returns accepted once goods are dispatched.
               </p>
+
+              <div className="pt-2 border-t border-gray-100 text-center">
+                <Link 
+                  to="/terms" 
+                  onClick={() => setShowTermsModal(false)}
+                  className="text-xs font-extrabold text-[#900000] hover:underline"
+                >
+                  Read Full Transport Charges & Terms & Conditions →
+                </Link>
+              </div>
             </div>
           </div>
 

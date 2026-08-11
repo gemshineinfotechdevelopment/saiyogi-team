@@ -20,6 +20,7 @@ import AboutUs from "./pages/AboutUs";
 import ChitScheme from "./pages/ChitScheme";
 import MyEnquiry from "./pages/MyEnquiry";
 import MyAccount from "./pages/MyAccount";
+import Terms from "./pages/Terms";
 import AdminLogin from "./pages/admin/AdminLogin";
 import Dashboard from "./pages/admin/Dashboard";
 import AdminBrands from "./pages/admin/AdminBrands";
@@ -72,6 +73,9 @@ const App = () => (
                   <Route path="/quick-enquery" element={<Navigate to="/quick-enquiry" replace />} />
                   <Route path="/about" element={<AboutUs />} />
                   <Route path="/about-us" element={<AboutUs />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/terms-and-conditions" element={<Terms />} />
+                  <Route path="/privacy-policy" element={<Terms defaultTab="privacy" />} />
                   <Route path="/admin/login" element={<AdminLogin />} />
                   <Route
                     path="/admin"
