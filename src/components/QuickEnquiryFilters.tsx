@@ -36,8 +36,9 @@ export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
   const { setIsCartOpen } = useCart();
 
   return (
-    <div className={`fixed left-0 right-0 z-40 bg-white border-b border-gray-200 shadow-md py-1 sm:py-3 px-2 sm:px-4 transition-all duration-300 ${
-      isNavbarHidden ? "top-0" : "top-[76px] sm:top-[77px] md:top-[112px]"
+    <div className={`fixed left-0 right-0 z-40 bg-white border-b border-gray-200 shadow-md py-2 sm:py-3 px-2.5 sm:px-4 transition-all duration-300 ${
+      isNavbarHidden ? "top-0" : "top-[60px] md:top-[108px]"
+
     }`}>
       <div className="container mx-auto">
         {/* Filters & Cart Summary Row */}
