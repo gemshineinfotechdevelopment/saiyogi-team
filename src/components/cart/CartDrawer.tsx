@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createOrder, trackCustomerAction } from "@/lib/api";
 import { downloadOrderReceiptPDF, printOrderReceipt } from "@/lib/pdf-generator";
+import { getCookie, setCookie } from "@/lib/cookieUtils";
 import {
   Select,
   SelectContent,
@@ -403,9 +404,15 @@ const CartDrawer = () => {
                   <span>Packing Charge</span>
                   <span className="text-gray-900 font-bold">₹{packingCharge.toLocaleString('en-IN')}</span>
                 </div>
+                {Math.round(estimatedTotal) - estimatedTotal !== 0 && (
+                  <div className="flex justify-between text-xs text-gray-600 font-medium">
+                    <span>Round Off</span>
+                    <span className="text-gray-900 font-bold">{(Math.round(estimatedTotal) - estimatedTotal) > 0 ? '+' : ''}₹{(Math.round(estimatedTotal) - estimatedTotal).toLocaleString('en-IN')}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center py-2 pt-3 border-t border-gray-100">
                   <span className="font-bold text-[#a41a1c] text-sm tracking-wide">ESTIMATED TOTAL</span>
-                  <span className="font-black text-[#a41a1c] text-xl">₹{estimatedTotal.toLocaleString('en-IN')}</span>
+                  <span className="font-black text-[#a41a1c] text-xl">₹{Math.round(estimatedTotal).toLocaleString('en-IN')}</span>
                 </div>
 
                 <Button 
@@ -655,7 +662,7 @@ const CartDrawer = () => {
             <div className="p-4 bg-white border-t border-gray-100 space-y-3 sticky bottom-0 z-10 shadow-md">
               <div className="flex justify-between items-center py-1 font-bold text-[#a41a1c] text-sm">
                 <span>ESTIMATED TOTAL ({totalItems} Items)</span>
-                <span className="text-lg font-black">₹{estimatedTotal.toLocaleString('en-IN')}</span>
+                <span className="text-lg font-black">₹{Math.round(estimatedTotal).toLocaleString('en-IN')}</span>
               </div>
 
               {!canPlaceOrder && formData.state && (
