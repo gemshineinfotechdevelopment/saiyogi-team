@@ -59,6 +59,7 @@ const getMonthNameForIndex = (monthIndex: number, startDateStr?: string): { mont
 const ChitScheme: React.FC = () => {
   const { isUserLoggedIn, userPhone, userName, loginWithPhone, openLoginModal } = useAuth();
   const [images, setImages] = useState<ChitSchemeImage[]>([]);
+  const [activeZoomImage, setActiveZoomImage] = useState<ChitSchemeImage | null>(null);
   const [userSubscriptions, setUserSubscriptions] = useState<ChitSubscriptionItem[]>([]);
 
   // Form states
@@ -476,7 +477,13 @@ const ChitScheme: React.FC = () => {
                       <div className="p-6 text-center text-gray-400 text-xs">
                         {img.title || "Chit Scheme Promotional Offer"}
                       </div>
-                    )}
+                      {img.monthlyAmount ? (
+                        <div className="bg-emerald-50 border border-emerald-200/80 rounded-xl p-2.5 col-span-2 flex items-center justify-between text-emerald-950 font-medium">
+                          <span>Monthly Amount:</span>
+                          <span className="font-extrabold text-emerald-900 text-sm">₹{img.monthlyAmount.toLocaleString()} / month</span>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -769,17 +776,24 @@ const ChitScheme: React.FC = () => {
         </Dialog>
       )}
 
-      {/* Image Zoom Modal */}
+      {/* Zoom Image Modal */}
       {activeZoomImage && (
-        <Dialog open={!!activeZoomImage} onOpenChange={() => setActiveZoomImage(null)}>
-          <DialogContent className="max-w-3xl p-4 bg-white rounded-3xl">
-            <DialogHeader className="sr-only">
-              <DialogTitle>{activeZoomImage.title || "Scheme Image Preview"}</DialogTitle>
+        <Dialog open={!!activeZoomImage} onOpenChange={(open) => !open && setActiveZoomImage(null)}>
+          <DialogContent className="max-w-4xl p-4 bg-white rounded-3xl overflow-hidden font-sans border-0 shadow-2xl">
+            <DialogHeader className="p-2 border-b border-gray-100 flex flex-col items-start">
+              <DialogTitle className="text-lg font-bold text-gray-900">
+                {activeZoomImage.title || "Chit Scheme Image"}
+              </DialogTitle>
+              {activeZoomImage.description && (
+                <DialogDescription className="text-xs text-gray-600 font-medium mt-1">
+                  {activeZoomImage.description}
+                </DialogDescription>
+              )}
             </DialogHeader>
-            <div className="relative">
+            <div className="mt-3 relative w-full overflow-hidden rounded-2xl bg-gray-900 flex items-center justify-center max-h-[80vh]">
               <img
                 src={activeZoomImage.url}
-                alt={activeZoomImage.title || "Scheme Image"}
+                alt={activeZoomImage.title || "Chit Scheme Large View"}
                 className="w-full h-auto max-h-[80vh] object-contain rounded-2xl"
               />
             </div>
