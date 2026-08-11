@@ -23,6 +23,7 @@ export interface Product {
   piecesPerCase?: number;
   godownStockPieces?: number;
   minimumStock?: number;
+  isSaiYogiVerified?: boolean;
 }
 
 export interface Category {

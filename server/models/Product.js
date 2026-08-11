@@ -93,6 +93,20 @@ const productSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true
+    },
+    isSaiYogiVerified: {
+      type: Boolean,
+      default: false
+    },
+    rating: {
+      type: Number,
+      min: 0,
+      max: 5,
+      default: 5
+    },
+    quantity: {
+      type: String,
+      trim: true
     }
   },
   { timestamps: true }

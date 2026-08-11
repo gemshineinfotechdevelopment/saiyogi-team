@@ -9,6 +9,7 @@ import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 
 export interface ProductEnquiryItem {
@@ -527,64 +528,64 @@ const AdminCustomers = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                          {sortedPurchases.length === 0 ? (
-                            <TableRow>
-                              <TableCell colSpan={7} className="text-center py-8 text-xs text-muted-foreground italic">
-                                No purchase history available.
+                        {sortedPurchases.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={7} className="text-center py-8 text-xs text-muted-foreground italic">
+                              No purchase history available.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          sortedPurchases.map((o) => (
+                            <TableRow key={o._id || o.orderNumber}>
+                              <TableCell className="font-bold text-xs">{o.orderNumber || o._id?.slice(-8)}</TableCell>
+                              <TableCell className="text-xs font-medium text-muted-foreground">
+                                {o.createdAt ? new Date(o.createdAt).toLocaleDateString() : (o.date || "N/A")}
+                              </TableCell>
+                              <TableCell className="text-xs font-bold">{o.items?.length || 0}</TableCell>
+                              <TableCell className="font-bold text-xs text-foreground">
+                                ₹{(Number(o.total) || (Number(o.subtotal) + (Number(o.packingCharge) || 0))).toLocaleString()}
+                              </TableCell>
+                              <TableCell>
+                                <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                                  {o.status || "pending"}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-xs font-medium text-muted-foreground">
+                                {o.approved ? "Yes" : "No"}
+                              </TableCell>
+                              <TableCell className="flex items-center gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    handleInvoiceAction(o, settings, 'download');
+                                    toast({ title: "Downloading Invoice" });
+                                  }}
+                                  title="Download PDF Invoice"
+                                  className="h-8 w-8 p-0 cursor-pointer text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                >
+                                  <FileText className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    handleInvoiceAction(o, settings, 'print');
+                                    toast({ title: "Printing Invoice" });
+                                  }}
+                                  title="Print Invoice"
+                                  className="h-8 w-8 p-0 cursor-pointer text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-printer"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                                </Button>
                               </TableCell>
                             </TableRow>
-                          ) : (
-                            sortedPurchases.map((o) => (
-                              <TableRow key={o._id || o.orderNumber}>
-                                <TableCell className="font-bold text-xs">{o.orderNumber || o._id?.slice(-8)}</TableCell>
-                                <TableCell className="text-xs font-medium text-muted-foreground">
-                                  {o.createdAt ? new Date(o.createdAt).toLocaleDateString() : (o.date || "N/A")}
-                                </TableCell>
-                                <TableCell className="text-xs font-bold">{o.items?.length || 0}</TableCell>
-                                <TableCell className="font-bold text-xs text-foreground">
-                                  ₹{(Number(o.total) || (Number(o.subtotal) + (Number(o.packingCharge) || 0))).toLocaleString()}
-                                </TableCell>
-                                <TableCell>
-                                  <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                                    {o.status || "pending"}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="text-xs font-medium text-muted-foreground">
-                                  {o.approved ? "Yes" : "No"}
-                                </TableCell>
-                                <TableCell className="flex items-center gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      handleInvoiceAction(o, settings, 'download');
-                                      toast({ title: "Downloading Invoice" });
-                                    }}
-                                    title="Download PDF Invoice"
-                                    className="h-8 w-8 p-0 cursor-pointer text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                  >
-                                    <FileText className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      handleInvoiceAction(o, settings, 'print');
-                                      toast({ title: "Printing Invoice" });
-                                    }}
-                                    title="Print Invoice"
-                                    className="h-8 w-8 p-0 cursor-pointer text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-printer"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            ))
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
                   </div>
+                </div>
 
                   <Button
                     onClick={() => setSelectedCustomer(null)}

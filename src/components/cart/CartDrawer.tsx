@@ -359,8 +359,8 @@ const CartDrawer = () => {
                     <div key={productId} className="py-3.5 flex gap-3 items-start">
                       <img src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : product.image} alt={product.name} className="w-14 h-14 rounded-md object-contain shrink-0 border border-gray-100 p-0.5" />
                       <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start gap-2">
-                          <h4 className="font-bold text-sm text-gray-900 truncate">{product.name}</h4>
+                        <div className="flex justify-between items-start gap-2 mb-1">
+                          <h4 className="product-title-font font-bold text-sm text-gray-900 truncate">{product.name}</h4>
                           <button 
                             onClick={() => removeFromCart(productId)} 
                             className="text-gray-400 hover:text-red-500 transition-colors p-0.5 shrink-0"
@@ -369,8 +369,6 @@ const CartDrawer = () => {
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
-
-                        <p className="text-xs text-gray-400 font-medium mt-0.5 mb-2">{product.quantity || "1 Box"}</p>
                         
                         <div className="flex items-center justify-between gap-1">
                           <span className="font-bold text-[#a41a1c] text-sm shrink-0">₹{dp.toLocaleString('en-IN')}</span>

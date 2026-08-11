@@ -8,7 +8,15 @@ import { uploadToCloudinary } from '../utils/cloudinary.js';
 export const getAllCategories = async (req, res, next) => {
   try {
     const categories = await Category.find({ isActive: true }).sort({ displayOrder: 1 });
-    res.json(categories);
+    const categoriesWithCount = await Promise.all(
+      categories.map(async (cat) => {
+        const count = await Product.countDocuments({ category: cat._id, isActive: true });
+        const obj = cat.toObject();
+        obj.productCount = count;
+        return obj;
+      })
+    );
+    res.json(categoriesWithCount);
   } catch (error) {
     next(error);
   }

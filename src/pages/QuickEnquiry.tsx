@@ -7,7 +7,7 @@ import { Product, Category } from "@/data/products";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
 import { toast } from "sonner";
-import { Plus, Minus, ShoppingCart, Sparkles, ShoppingBag, Search, LogIn } from "lucide-react";
+import { Plus, Minus, ShoppingCart, Sparkles, ShoppingBag, Search, LogIn, CheckCircle2, Star, StarHalf } from "lucide-react";
 import QuickEnquiryFilters from "@/components/QuickEnquiryFilters";
 
 const QuickEnquiry = () => {
@@ -53,7 +53,7 @@ const QuickEnquiry = () => {
 
     loadAll();
 
-    const interval = setInterval(loadAll, 15000);
+    const interval = setInterval(loadAll, 5000);
     const onFocus = () => loadAll();
     window.addEventListener('focus', onFocus);
 
@@ -90,21 +90,32 @@ const QuickEnquiry = () => {
 
     const catMap: Record<string, { categoryName: string; items: Product[] }> = {};
     categories.forEach((cat) => {
-      catMap[cat._id || cat.id] = { categoryName: cat.name.toUpperCase(), items: [] };
+      const key = cat._id || cat.id;
+      if (key) {
+        catMap[key] = { categoryName: cat.name.toUpperCase(), items: [] };
+      }
+      if (cat.name) {
+        const nameKey = cat.name.toLowerCase();
+        if (!catMap[nameKey]) {
+          catMap[nameKey] = catMap[key] || { categoryName: cat.name.toUpperCase(), items: [] };
+        }
+      }
     });
     catMap["uncategorized"] = { categoryName: "OTHER PRODUCTS", items: [] };
 
     filtered.forEach((p) => {
       const cat = p.category as any;
       const catId = typeof cat === 'object' && cat !== null ? (cat._id || cat.id) : cat;
-      const catName = categories.find(c => (c._id || c.id) === catId)?.name || "OTHER PRODUCTS";
+      const catName = typeof cat === 'object' && cat !== null ? cat.name : (categories.find(c => (c._id || c.id) === catId)?.name || String(cat || "OTHER PRODUCTS"));
 
-      if (selectedCategory !== "All Categories" && catName !== selectedCategory) {
+      if (selectedCategory !== "All Categories" && catName.toLowerCase() !== selectedCategory.toLowerCase()) {
         return; // skip this product
       }
 
       if (catId && catMap[catId]) {
         catMap[catId].items.push(p);
+      } else if (catName && catMap[catName.toLowerCase()]) {
+        catMap[catName.toLowerCase()].items.push(p);
       } else {
         catMap["uncategorized"].items.push(p);
       }
@@ -162,7 +173,7 @@ const QuickEnquiry = () => {
           totalItems={totalItems}
         />
 
-        <div className="w-full bg-white shadow-xl border-y border-gray-150 rounded-none mb-8 mt-4 md:mt-6">
+        <div className="w-full bg-white shadow-xl border-y border-gray-150 rounded-none mb-8 mt-3 sm:mt-6">
           <div className="flex-1 container mx-auto px-0 md:px-4 py-8">
 
         <div className="space-y-6 md:space-y-4">
@@ -204,7 +215,15 @@ const QuickEnquiry = () => {
                         <div className="flex-1 flex flex-col justify-between py-0.5">
                           <div className="flex justify-between items-start gap-2">
                             <div>
-                              <h3 className="font-black text-gray-800 text-[13px] leading-snug uppercase">{item.name}</h3>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <h3 className="product-title-font font-black text-gray-900 text-base leading-snug">{item.name}</h3>
+                                {item.isSaiYogiVerified && (
+                                  <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-2xs">
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-600 fill-emerald-100" />
+                                    <span>Verified</span>
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-gray-400 text-[10px] font-bold mt-0.5">#{pId.substring(0, 8).toUpperCase()}</p>
                             </div>
                             <div className="text-right shrink-0">
@@ -240,7 +259,27 @@ const QuickEnquiry = () => {
                            <div className="w-12 h-12 bg-white border border-gray-200 rounded-lg overflow-hidden flex items-center justify-center shrink-0 cursor-pointer relative" onClick={() => setActiveImage(displayImg)}>
                              <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain p-1" />
                            </div>
-                           <h3 className="font-black text-gray-800 text-sm uppercase leading-tight">{item.name}</h3>
+                           <div>
+                             <h3 className="product-title-font font-black text-gray-900 text-base sm:text-lg leading-tight">{item.name}</h3>
+                             <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                <div className="flex items-center gap-0.5">
+                                  {Array.from({ length: 5 }).map((_, i) => {
+                                    const r = item.rating ?? 5;
+                                    const isFilled = i < Math.floor(r);
+                                    const isHalf = i === Math.floor(r) && r % 1 >= 0.3;
+                                    if (isFilled) return <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />;
+                                    if (isHalf) return <StarHalf key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />;
+                                    return <Star key={i} className="w-3 h-3 fill-gray-200 text-gray-200" />;
+                                  })}
+                                </div>
+                               {item.isSaiYogiVerified && (
+                                 <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-2xs">
+                                   <CheckCircle2 className="w-3 h-3 text-emerald-600 fill-emerald-100" />
+                                   <span>Verified by Sai Yogi</span>
+                                 </span>
+                               )}
+                             </div>
+                           </div>
                         </div>
 
                         <div className="col-span-2 text-center text-xs font-bold text-gray-500">
