@@ -192,7 +192,7 @@ const MyAccount: React.FC = () => {
             </h1>
 
             {!isUserLoggedIn && (
-              <div className="mb-6 bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-2xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+              <div className="mb-6 bg-white border border-gray-200 text-gray-900 p-4 rounded-2xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
                 <div>
                   <span>ℹ️ Log in with your mobile number to view and track your active inquiries and download PDF receipts.</span>
                 </div>

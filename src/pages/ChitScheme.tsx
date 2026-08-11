@@ -96,7 +96,7 @@ const ChitScheme: React.FC = () => {
       {/* Main Content */}
       <main className="flex-1 py-10 px-4 sm:px-12 max-w-6xl mx-auto w-full">
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center border border-amber-200 shadow-2xs">
+          <div className="w-10 h-10 rounded-2xl bg-white text-amber-900 flex items-center justify-center border border-gray-200 shadow-2xs">
             <Gift className="w-5 h-5" />
           </div>
           <div>
@@ -111,8 +111,8 @@ const ChitScheme: React.FC = () => {
 
         {!isUserLoggedIn ? (
           /* Locked State for Guest Users */
-          <div className="max-w-xl mx-auto my-12 bg-amber-50/80 border-2 border-amber-200/90 rounded-3xl p-8 text-center shadow-sm">
-            <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-900 mx-auto mb-4 flex items-center justify-center border border-amber-300">
+          <div className="max-w-xl mx-auto my-12 bg-white border-2 border-gray-200 rounded-3xl p-8 text-center shadow-sm">
+            <div className="w-16 h-16 rounded-2xl bg-white text-amber-900 mx-auto mb-4 flex items-center justify-center border border-gray-200">
               <Lock className="w-8 h-8" />
             </div>
 
@@ -135,7 +135,7 @@ const ChitScheme: React.FC = () => {
         ) : (
           /* Unlocked State for Logged-In Users: Displays Admin Uploaded Images ONLY */
           <div className="space-y-6">
-            <div className="bg-amber-50/90 border border-amber-200 text-amber-900 px-4 py-3 rounded-2xl text-xs font-bold flex items-center gap-2">
+            <div className="bg-white border border-gray-200 text-gray-900 px-4 py-3 rounded-2xl text-xs font-bold flex items-center gap-2">
               <span>🎉 Welcome! Here are your active Chit Scheme details & offers:</span>
             </div>
 
@@ -151,7 +151,7 @@ const ChitScheme: React.FC = () => {
                     key={img.id}
                     className="group bg-white rounded-3xl border border-gray-200/90 overflow-hidden shadow-sm hover:shadow-md transition-all relative"
                   >
-                    <div className="aspect-[16/9] w-full overflow-hidden bg-gray-100 relative flex items-center justify-center">
+                    <div className="aspect-[16/9] w-full overflow-hidden bg-white relative flex items-center justify-center">
                       <img
                         src={img.url}
                         alt={img.title || "Chit Scheme Image"}

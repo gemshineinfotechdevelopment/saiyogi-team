@@ -48,7 +48,7 @@ const ProductDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #FEF3C7 0%, #FFE4E6 50%, #FEF3C7 100%)' }}>
+      <div className="min-h-screen flex flex-col bg-white">
         <UserHeader />
         <div className="flex-1 flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
@@ -60,7 +60,7 @@ const ProductDetail = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #FEF3C7 0%, #FFE4E6 50%, #FEF3C7 100%)' }}>
+      <div className="min-h-screen flex flex-col bg-white">
         <UserHeader />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -86,7 +86,7 @@ const ProductDetail = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #FEF3C7 0%, #FFE4E6 50%, #FEF3C7 100%)' }}>
+    <div className="min-h-screen flex flex-col bg-white">
       <UserHeader />
       <main className="container py-8 flex-1">
         <Link to="/catalog" className="inline-flex items-center gap-1 text-sm text-red-700 hover:text-red-900 transition-colors mb-6 font-semibold">

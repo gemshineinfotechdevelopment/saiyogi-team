@@ -349,61 +349,107 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-white relative font-sans">
       <UserHeader />
 
-      {/* Hero Section */}
-      <section className="relative w-full overflow-hidden bg-black flex flex-col select-none">
-        <div className="relative w-full h-[320px] sm:h-[450px] md:h-[550px] lg:h-[620px] overflow-hidden bg-black flex items-center justify-center group">
-          {/* Full Width & Height Banner Image */}
-          <div key={slideKey} className="absolute inset-0 w-full h-full animate-slide-left">
-            <img 
-              src={heroImages[currentSlide]} 
-              alt={`Sai Yogi Crackers Banner ${currentSlide + 1}`} 
-              className={`w-full h-full object-cover filter brightness-105 transition-all duration-500 ${
-                currentSlide === 0 ? "object-[center_15%]" : "object-center"
-              }`} 
-            />
-          </div>
-          
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none z-10" />
 
-          {/* Left Arrow Navigation */}
-          <button
-            onClick={() => {
-              setCurrentSlide((prev) => (prev === 0 ? heroImages.length - 1 : prev - 1));
-              setSlideKey((k) => k + 1);
-            }}
-            className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-30 p-2.5 md:p-3 rounded-full bg-black/50 hover:bg-[#A80000] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
-            aria-label="Previous Slide"
-          >
-            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
-          </button>
+      {/* Hero Section (NPK Crackers Split Hero Layout) */}
+      <section className="bg-white py-4 md:py-6">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+            {/* Left Main Hero Swiper Card (7 Cols on desktop) */}
+            <div className="lg:col-span-7 relative overflow-hidden rounded-3xl shadow-lg bg-black h-[280px] sm:h-[380px] md:h-[450px] lg:h-[480px] group">
+              <div key={slideKey} className="absolute inset-0 w-full h-full animate-slide-left">
+                <img 
+                  src={heroImages[currentSlide]} 
+                  alt={`Sai Yogi Crackers Hero ${currentSlide + 1}`} 
+                  className="w-full h-full object-cover filter brightness-105" 
+                />
+              </div>
+              
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20 pointer-events-none z-10" />
 
-          {/* Right Arrow Navigation */}
-          <button
-            onClick={() => {
-              setCurrentSlide((prev) => (prev + 1) % heroImages.length);
-              setSlideKey((k) => k + 1);
-            }}
-            className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 z-30 p-2.5 md:p-3 rounded-full bg-black/50 hover:bg-[#A80000] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
-            aria-label="Next Slide"
-          >
-            <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
-          </button>
-
-          {/* Dots Indicator */}
-          <div className="absolute bottom-4 md:bottom-6 left-0 right-0 z-30 flex justify-center items-center gap-2.5">
-            {heroImages.map((_, idx) => (
+              {/* Navigation Arrows */}
               <button
-                key={idx}
                 onClick={() => {
-                  setCurrentSlide(idx);
+                  setCurrentSlide((prev) => (prev === 0 ? heroImages.length - 1 : prev - 1));
                   setSlideKey((k) => k + 1);
                 }}
-                className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
-                  currentSlide === idx ? "bg-[#F4C542] w-8 shadow-lg shadow-yellow-500/50" : "bg-white/50 w-2.5 hover:bg-white"
-                }`}
-                aria-label={`Slide ${idx + 1}`}
-              />
-            ))}
+                className="absolute left-3 top-1/2 -translate-y-1/2 z-30 p-2 md:p-2.5 rounded-full bg-black/50 hover:bg-[#7009bc] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
+                aria-label="Previous Slide"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+
+              <button
+                onClick={() => {
+                  setCurrentSlide((prev) => (prev + 1) % heroImages.length);
+                  setSlideKey((k) => k + 1);
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 z-30 p-2 md:p-2.5 rounded-full bg-black/50 hover:bg-[#7009bc] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
+                aria-label="Next Slide"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+
+              {/* Slider Dots */}
+              <div className="absolute bottom-4 left-0 right-0 z-30 flex justify-center items-center gap-2">
+                {heroImages.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setCurrentSlide(idx);
+                      setSlideKey((k) => k + 1);
+                    }}
+                    className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                      currentSlide === idx ? "bg-[#fef200] w-6 shadow-md" : "bg-white/50 w-2 hover:bg-white"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Right Side Stacked Promotional Banners (5 Cols on desktop) */}
+            <div className="lg:col-span-5 flex flex-col gap-4">
+              <div className="relative overflow-hidden rounded-3xl shadow-md bg-gradient-to-br from-purple-900 to-red-800 p-6 text-white flex flex-col justify-between h-[230px]">
+                <div className="z-10">
+                  <span className="bg-[#fef200] text-[#7009bc] font-black text-[10px] uppercase px-3 py-1 rounded-full tracking-wider inline-block mb-2 shadow">
+                    Diwali 2026 Mega Deal
+                  </span>
+                  <h3 className="text-xl sm:text-2xl font-black uppercase leading-tight tracking-wide mb-1">
+                    Direct Sivakasi Factory Crackers
+                  </h3>
+                  <p className="text-white/80 text-xs font-medium">
+                    Order online at 100% direct Sivakasi wholesale price estimates.
+                  </p>
+                </div>
+                <Link
+                  to="/quick-enquiry"
+                  className="z-10 bg-[#fef200] hover:bg-yellow-300 text-[#7009bc] font-extrabold text-xs uppercase px-5 py-2.5 rounded-xl transition-all shadow-lg w-max flex items-center gap-2 hover:scale-105"
+                >
+                  <ShoppingCart className="w-4 h-4" /> Quick Enquiry / Order Now
+                </Link>
+                <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-red-500/20 rounded-full blur-2xl pointer-events-none" />
+              </div>
+
+              <div className="relative overflow-hidden rounded-3xl shadow-md bg-gradient-to-br from-blue-950 via-slate-900 to-indigo-950 p-6 text-white flex flex-col justify-between h-[230px]">
+                <div className="z-10">
+                  <span className="bg-red-500 text-white font-black text-[10px] uppercase px-3 py-1 rounded-full tracking-wider inline-block mb-2 shadow">
+                    Kids Favourite Range
+                  </span>
+                  <h3 className="text-xl sm:text-2xl font-black uppercase leading-tight tracking-wide mb-1">
+                    Safe & Sound Celebrations 🧨
+                  </h3>
+                  <p className="text-white/80 text-xs font-medium">
+                    Sparklers, flower pots, ground chakkars, and colorful soundless fireworks.
+                  </p>
+                </div>
+                <Link
+                  to="/catalog?category=cat-1"
+                  className="z-10 bg-white hover:bg-gray-100 text-gray-900 font-extrabold text-xs uppercase px-5 py-2.5 rounded-xl transition-all shadow-lg w-max flex items-center gap-2 hover:scale-105"
+                >
+                  Explore Kids Collection →
+                </Link>
+                <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl pointer-events-none" />
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -460,7 +506,7 @@ const Index = () => {
       />
 
       {/* Best Sellers Section */}
-      <section className="py-16 bg-gradient-to-b from-[#FFF6E5] to-white border-b border-gray-100">
+      <section className="py-16 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center mb-10">
             <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
@@ -481,7 +527,7 @@ const Index = () => {
       </section>
 
       {/* Videos Section */}
-      <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5] relative overflow-hidden">
+      <section className="py-16 bg-white border-b border-gray-100 relative overflow-hidden">
         <div className="container mx-auto px-4 max-w-6xl relative">
           
           {/* Left Garland Crackers Bursting Animation */}
@@ -656,7 +702,7 @@ const Index = () => {
       </section>
 
       {/* Shop By Category */}
-      <section className="py-16 bg-[#FFF6E5]">
+      <section className="py-16 bg-white border-b border-gray-100">
         <div className="text-center mb-10 container mx-auto px-4">
           <h2 className="font-black text-[#A80000] text-3xl sm:text-4xl uppercase tracking-tight mb-2 font-display">
             Shop By Category
@@ -699,7 +745,7 @@ const Index = () => {
       </section>
       
       {/* Trusted Manufacturers */}
-      <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5]">
+      <section className="py-16 bg-white border-b border-gray-100">
         <div className="text-center mb-10 px-4">
           <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
             ⭐ AUTHENTIC PARTNERS ⭐
@@ -767,7 +813,7 @@ const Index = () => {
                 <div
                   key={`${brandId}-${i}`}
                   onClick={() => window.location.href = `/catalog?search=${encodeURIComponent(brand.name)}`}
-                  className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[130px] sm:w-[160px] md:w-[180px] shrink-0"
+                  className="bg-white border border-gray-200 hover:border-[#7A1416] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[130px] sm:w-[160px] md:w-[180px] shrink-0"
                 >
                   <span className="text-[8px] sm:text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-1.5 sm:px-2 py-0.5 rounded-full mb-1.5 sm:mb-2 font-mono">
                     {brand.tag || "BRAND"}
@@ -787,7 +833,7 @@ const Index = () => {
       </section>
 
       {/* Combo Packs */}
-      <section className="py-16 bg-[#FFF6E5]">
+      <section className="py-16 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center mb-10">
             <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
