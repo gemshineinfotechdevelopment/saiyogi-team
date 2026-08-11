@@ -75,7 +75,6 @@ const ChitScheme: React.FC = () => {
   const [showPurchasedModal, setShowPurchasedModal] = useState(false);
   const [selectedPurchasedSub, setSelectedPurchasedSub] = useState<ChitSubscriptionItem | null>(null);
   const [submittedData, setSubmittedData] = useState<any>(null);
-  const [activeZoomImage, setActiveZoomImage] = useState<ChitSchemeImage | null>(null);
 
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -483,6 +482,7 @@ const ChitScheme: React.FC = () => {
                         <span>Monthly Amount:</span>
                         <span className="font-extrabold text-emerald-900 text-sm">₹{img.monthlyAmount.toLocaleString()} / month</span>
                       </div>
+                    ) : null}
                     {img.title && (
                       <button
                         onClick={() => handleSelectSchemeToApply(img.title!)}
