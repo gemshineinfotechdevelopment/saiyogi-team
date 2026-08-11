@@ -15,6 +15,7 @@ interface QuickEnquiryFiltersProps {
   totalPrice: number;
   totalItems: number;
   showTableHeader?: boolean;
+  isNavbarHidden?: boolean;
 }
 
 export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
@@ -29,6 +30,7 @@ export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
   totalPrice,
   totalItems,
   showTableHeader = true,
+  isNavbarHidden = false,
 }) => {
   const navigate = useNavigate();
   const { setIsCartOpen } = useCart();
@@ -60,10 +62,10 @@ export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
             <div className="relative flex-1 sm:flex-none sm:w-64">
               <input 
                 type="text" 
-                placeholder="Search..." 
+                placeholder="Search products..." 
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full px-2 sm:px-3 sm:pr-4 p-1.5 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-200 text-[11px] sm:text-sm font-medium outline-none focus:border-[#A80000] bg-white shadow-xs text-gray-800"
+                className="w-full px-2.5 sm:px-3 sm:pr-4 p-1.5 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-200 text-[11px] sm:text-sm font-medium outline-none focus:border-[#A80000] bg-white shadow-xs text-gray-800 font-sans placeholder:text-gray-400"
               />
             </div>
           </div>
@@ -87,18 +89,6 @@ export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
             </div>
           </div>
         </div>
-
-        {/* Table Header Row */}
-        {showTableHeader && (
-          <div className="hidden md:grid md:grid-cols-12 gap-4 bg-[#f8f9fa] border border-gray-200 rounded-xl py-3 px-6 text-[11px] font-black text-gray-600 uppercase tracking-wider items-center shadow-xs mt-3">
-            <div className="col-span-4 pl-2">PRODUCT NAME</div>
-            <div className="col-span-2 text-center">ITEM CODE</div>
-            <div className="col-span-2 text-center">CONTENT</div>
-            <div className="col-span-1 text-center">UNIT PRICE</div>
-            <div className="col-span-2 text-center">QUANTITY</div>
-            <div className="col-span-1 text-right pr-4">TOTAL</div>
-          </div>
-        )}
       </div>
     </div>
   );

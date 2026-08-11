@@ -24,6 +24,16 @@ dotenv.config();
 
 const app = express();
 
+// Disable ETag caching for API routes so changes show immediately
+app.disable('etag');
+
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 // ===== CORS MUST BE FIRST =====
 const allowedOrigins = [
   'https://saiyogicrackers.com',

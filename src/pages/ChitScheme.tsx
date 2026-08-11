@@ -120,33 +120,50 @@ const ChitScheme: React.FC = () => {
   }, [isUserLoggedIn, userPhone, userName]);
 
   useEffect(() => {
-    getChitSchemes()
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const mapped = data.map((item: ChitSchemeItem) => ({
-            id: item._id || item.id || '',
-            url: item.url,
-            title: item.title || '',
-            description: item.description || '',
-            startDate: item.startDate || '',
-            totalMonths: item.totalMonths || 11,
-            dueDateDay: item.dueDateDay || 10,
-            monthlyAmount: item.monthlyAmount || 0
-          }));
-          setImages(mapped);
-          if (mapped.length > 0 && mapped[0].title) {
-            setSelectedScheme(mapped[0].title);
+    const loadChit = () => {
+      getChitSchemes()
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            const mapped = data.map((item: ChitSchemeItem) => ({
+              id: item._id || item.id || '',
+              url: item.url,
+              title: item.title || item.schemeName || '',
+              description: item.description || '',
+              startDate: item.startDate || '',
+              totalMonths: item.totalMonths || item.numberOfMonths || 9,
+              dueDateDay: item.dueDateDay || item.paymentDueDay || 10,
+              monthlyAmount: item.monthlyAmount || 0
+            }));
+            setImages(mapped);
+            if (mapped.length > 0 && mapped[0].title && !selectedScheme) {
+              setSelectedScheme(mapped[0].title);
+            }
+          } else {
+            setImages(DEFAULT_IMAGES);
+            if (!selectedScheme) {
+              setSelectedScheme(DEFAULT_IMAGES[0].title || "Diwali Special Savings Scheme 2026");
+            }
           }
-        } else {
+        })
+        .catch((err) => {
+          console.error("Failed to fetch chit schemes from API:", err);
           setImages(DEFAULT_IMAGES);
-          setSelectedScheme(DEFAULT_IMAGES[0].title || "Diwali Special Savings Scheme 2026");
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to fetch chit schemes from API:", err);
-        setImages(DEFAULT_IMAGES);
-        setSelectedScheme(DEFAULT_IMAGES[0].title || "Diwali Special Savings Scheme 2026");
-      });
+          if (!selectedScheme) {
+            setSelectedScheme(DEFAULT_IMAGES[0].title || "Diwali Special Savings Scheme 2026");
+          }
+        });
+    };
+
+    loadChit();
+
+    const interval = setInterval(loadChit, 10000);
+    const onFocus = () => loadChit();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
   const handleSelectSchemeToApply = (schemeTitle: string) => {

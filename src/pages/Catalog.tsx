@@ -63,7 +63,7 @@ const Catalog = () => {
 
     loadAll();
 
-    const interval = setInterval(loadAll, 15000);
+    const interval = setInterval(loadAll, 5000);
     const onFocus = () => loadAll();
     window.addEventListener('focus', onFocus);
 
@@ -291,9 +291,9 @@ const Catalog = () => {
         <Search className="h-6 w-6 group-hover:rotate-12 transition-transform" />
       </button>
 
-      <main className="container pb-12 pt-[75px] md:pt-[75px] flex-1">
+      <main className="container pb-12 pt-[100px] md:pt-[100px] flex-1">
         {filtered.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-in fade-in duration-700">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 mt-0 animate-in fade-in duration-700">
             {filtered.map((p) => {
               const cat = p.category as any;
               const catId = typeof cat === 'object' && cat !== null ? (cat._id || cat.id) : cat;

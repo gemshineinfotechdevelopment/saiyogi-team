@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, Package, FolderTree, ShoppingBag, Users, Settings, Tag, BarChart3, Gift, Image } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -8,14 +8,16 @@ import { cn } from "@/lib/utils";
 import companyLogo from "@/assets/saiyogi-logo-1.png";
 
 const navItems = [
-  { label: "Dashboard", href: "/admin" },
-  { label: "Brands", href: "/admin/brands" },
-  { label: "Products", href: "/admin/products" },
-  { label: "Categories", href: "/admin/categories" },
-  { label: "Orders", href: "/admin/orders" },
-  { label: "Customers", href: "/admin/customers" },
-  { label: "Content", href: "/admin/content" },
-  { label: "Reports", href: "/admin/reports" },
+  { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
+  { label: "Brands", icon: Tag, href: "/admin/brands" },
+  { label: "Products", icon: Package, href: "/admin/products" },
+  { label: "Categories", icon: FolderTree, href: "/admin/categories" },
+  { label: "Orders", icon: ShoppingBag, href: "/admin/orders" },
+  { label: "Customers", icon: Users, href: "/admin/customers" },
+  { label: "Chit Scheme", icon: Gift, href: "/admin/chit-scheme" },
+  { label: "Reports", icon: BarChart3, href: "/admin/reports" },
+  { label: "Page Content", icon: Image, href: "/admin/page-content" },
+  { label: "Content", icon: Settings, href: "/admin/content" },
 ];
 
 const AdminNavbar = () => {
@@ -33,7 +35,7 @@ const AdminNavbar = () => {
     <nav className="lg:hidden sticky top-0 z-50 border-b border-border bg-sidebar">
       <div className="flex items-center justify-between p-4">
         <Link to="/admin" className="flex items-center gap-3">
-          <img src={companyLogo} alt="Sai Yogi" className="h-10 object-contain" />
+          <img src={companyLogo} alt="Sai Yogi" className="h-14 object-contain" />
           <span className="font-display font-bold text-sidebar-primary hidden sm:inline text-lg leading-none">Admin Panel</span>
           <span className="font-display font-bold text-sidebar-primary sm:hidden text-lg leading-none">Admin</span>
         </Link>
@@ -62,7 +64,7 @@ const AdminNavbar = () => {
         >
           <div className="p-4 border-b border-border flex justify-between items-center bg-sidebar-accent/50">
             <div className="flex items-center gap-2">
-              <img src={companyLogo} alt="Sai Yogi" className="h-8 object-contain" />
+              <img src={companyLogo} alt="Sai Yogi" className="h-14 object-contain" />
               <span className="font-display font-bold text-sidebar-primary">Admin</span>
             </div>
             <button onClick={() => setMenuOpen(false)} className="p-2 text-sidebar-foreground hover:text-white hover:bg-sidebar-accent rounded-full transition-colors">
@@ -73,18 +75,20 @@ const AdminNavbar = () => {
           <div className="p-4 space-y-1.5 overflow-y-auto scrollbar-thin flex-1">
             {navItems.map((item) => {
               const isActive = location.pathname === item.href;
+              const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
                   to={item.href}
                   onClick={() => setMenuOpen(false)}
                   className={cn(
-                    "block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                     isActive
                       ? "bg-sidebar-primary text-sidebar-primary-foreground"
                       : "text-sidebar-foreground hover:bg-sidebar-accent"
                   )}
                 >
+                  <Icon className="h-4 w-4" />
                   {item.label}
                 </Link>
               );

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Play, Pause, ChevronLeft, ChevronRight, ShoppingCart, X } from "lucide-react";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
@@ -12,6 +12,7 @@ import heroBanner4 from "@/assets/hero_banner_4.jpg";
 import { useState, useEffect, useRef } from "react";
 import { getProducts, getCategories, getBrands, Brand } from "@/lib/api";
 import { Product, Category } from "@/data/products";
+import ProductCard from "@/components/ProductCard";
 import { getUpcomingDiwaliInfo, calculateTimeLeft, UpcomingDiwaliInfo } from "@/lib/diwaliCountdown";
 import { Fireworks } from '@fireworks-js/react';
 
@@ -113,6 +114,7 @@ const manufacturers = [
 ];
 
 const Index = () => {
+  const navigate = useNavigate();
   const { settings } = useSiteSettings();
   const { items: cartItems, addToCart, updateQuantity } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
@@ -138,7 +140,9 @@ const Index = () => {
   }, []);
 
   // Hero image slideshow (right-to-left slide)
-  const heroImages = [heroBanner1, heroBanner2, heroBanner3, heroBanner4];
+  const heroImages = settings?.heroBanners && settings.heroBanners.length > 0 
+    ? settings.heroBanners 
+    : [heroBanner1, heroBanner2, heroBanner3, heroBanner4];
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideKey, setSlideKey] = useState(0);
 
@@ -170,35 +174,52 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    getProducts().then((prods) => {
-      setProducts(Array.isArray(prods) ? prods : []);
-    });
-    getCategories().then((cats) => {
-      setCategories(Array.isArray(cats) ? cats : []);
-    });
-    getBrands().then((b) => {
-      setBrands(Array.isArray(b) ? b.filter((brand) => brand.isActive !== false) : []);
-    });
+    const loadAll = () => {
+      getProducts().then((prods) => {
+        setProducts(Array.isArray(prods) ? prods : []);
+      });
+      getCategories().then((cats) => {
+        setCategories(Array.isArray(cats) ? cats : []);
+      });
+      getBrands().then((b) => {
+        setBrands(Array.isArray(b) ? b.filter((brand) => brand.isActive !== false) : []);
+      });
+    };
+
+    loadAll();
+
+    const interval = setInterval(loadAll, 5000);
+    const onFocus = () => loadAll();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
-  // Listen for YouTube video ENDED (0) or PAUSED (2) events to automatically resume marquee scrolling
+  // Listen for YouTube video ENDED (0), PAUSED (2), or UNSTARTED (-1) events to automatically resume marquee scrolling
   useEffect(() => {
     const handleYTMessage = (event: MessageEvent) => {
       try {
-        const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        let data = event.data;
+        if (typeof data === "string") {
+          if (!data.includes("playerState") && !data.includes("onStateChange") && !data.includes("infoDelivery")) {
+            return;
+          }
+          data = JSON.parse(data);
+        }
         if (!data) return;
 
-        // YT.PlayerState: ENDED is 0, PAUSED is 2
-        const isEndedOrPaused =
-          data.info === 0 ||
-          data.info === 2 ||
-          data.info?.playerState === 0 ||
-          data.info?.playerState === 2 ||
-          (data.event === "onStateChange" && (data.info === 0 || data.info === 2)) ||
-          (data.event === "infoDelivery" && (data.info?.playerState === 0 || data.info?.playerState === 2));
+        // YT.PlayerState: 1 = PLAYING, 2 = PAUSED, 0 = ENDED, -1 = UNSTARTED
+        const playerState = data.info?.playerState !== undefined 
+          ? data.info.playerState 
+          : (typeof data.info === 'number' ? data.info : undefined);
 
-        if (isEndedOrPaused) {
-          setPlayingVideo(null);
+        if (playerState !== undefined) {
+          if (playerState === 0 || playerState === 2 || playerState === -1) {
+            setPlayingVideo(null);
+          }
         }
       } catch (err) {
         // Ignore non-JSON messages
@@ -449,51 +470,60 @@ const Index = () => {
             <p className="text-gray-600 text-xs font-bold uppercase tracking-wider">Handpicked customer favorites for grand celebrations</p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {(products.length > 0 ? products.slice(0, 6) : staticBestSellers).map((item: any, idx: number) => {
-              const stockVal = item.storeStockPieces !== undefined ? item.storeStockPieces : (item.stock !== undefined ? item.stock : 0);
-              const isOutOfStock = stockVal <= 0;
-              const displayImg = isOutOfStock ? '/saiyogi-logo-1.png' : (item.image || "/sky_rocket_box.png");
-              return (
-                <div
-                  key={`bestseller-${item._id || item.id || idx}`}
-                  className="bg-white border border-gray-200 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative"
-                >
-                  <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative">
-                    <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" />
-                    {isOutOfStock ? (
-                      <span className="absolute top-1.5 left-1.5 bg-gray-900 text-white font-black text-[8px] px-2 py-0.5 rounded-full uppercase">
-                        Sold Out
-                      </span>
-                    ) : (
-                      <span className="absolute top-1.5 left-1.5 bg-[#A80000] text-[#F4C542] font-black text-[8px] px-2 py-0.5 rounded-full uppercase">
-                        HOT
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="font-bold text-xs text-gray-800 uppercase text-center line-clamp-2 min-h-[32px] mb-2">{item.name}</h3>
-                  <div className="text-[#A80000] font-black text-sm mb-3">₹{item.price}</div>
-                  <button
-                    onClick={() => !isOutOfStock && addToCart(item)}
-                    disabled={isOutOfStock}
-                    className={`w-full py-1.5 rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-1 ${
-                      isOutOfStock
-                        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                        : "bg-[#A80000] text-white hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors cursor-pointer"
-                    }`}
-                  >
-                    <ShoppingCart className="w-3 h-3" /> {isOutOfStock ? "Sold Out" : "Add"}
-                  </button>
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
+            {(products.length > 0 ? products.slice(0, 6) : staticBestSellers).map((item) => (
+              <div key={`bestseller-${item.id || (item as any)._id}`} className="w-full">
+                <ProductCard product={item as Product} onCardClick={() => navigate(`/catalog?search=${encodeURIComponent(item.name)}`)} />
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Videos Section */}
-      <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5] overflow-hidden">
-        <div className="container mx-auto px-4 max-w-6xl">
+      <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5] relative overflow-hidden">
+        <div className="container mx-auto px-4 max-w-6xl relative">
+          
+          {/* Left Garland Crackers Bursting Animation */}
+          <div className="absolute -left-3 sm:left-0 md:-left-12 lg:-left-20 top-1/2 -translate-y-1/2 z-30 pointer-events-none hidden xs:flex flex-col items-center">
+            <div className="relative">
+              <img 
+                src="/garland_crackers.png" 
+                alt="Left Garland Crackers" 
+                className="w-14 sm:w-20 md:w-28 lg:w-36 h-auto drop-shadow-2xl animate-pulse"
+              />
+              {/* Bursting sparks effect at bottom */}
+              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-14 h-14 flex items-center justify-center">
+                <div className="absolute inset-0 bg-[#F4C542] rounded-full blur-md animate-ping opacity-90"></div>
+                <div className="absolute inset-1 bg-red-600 rounded-full blur-xs animate-pulse opacity-80"></div>
+                <div className="absolute w-5 h-5 bg-white rounded-full blur-[1px] animate-cracker-burst"></div>
+                <span className="absolute w-2.5 h-2.5 bg-yellow-300 rounded-full animate-bounce -top-2 left-1 shadow-[0_0_10px_#facc15]"></span>
+                <span className="absolute w-3 h-3 bg-red-500 rounded-full animate-ping -bottom-1 right-1 shadow-[0_0_12px_#ef4444]"></span>
+                <span className="absolute w-2 h-2 bg-orange-400 rounded-full animate-pulse top-2 -left-2 shadow-[0_0_8px_#fb923c]"></span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Garland Crackers Bursting Animation */}
+          <div className="absolute -right-3 sm:right-0 md:-right-12 lg:-right-20 top-1/2 -translate-y-1/2 z-30 pointer-events-none hidden xs:flex flex-col items-center">
+            <div className="relative">
+              <img 
+                src="/garland_crackers.png" 
+                alt="Right Garland Crackers" 
+                className="w-14 sm:w-20 md:w-28 lg:w-36 h-auto drop-shadow-2xl scale-x-[-1] animate-pulse"
+              />
+              {/* Bursting sparks effect at bottom */}
+              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-14 h-14 flex items-center justify-center">
+                <div className="absolute inset-0 bg-[#F4C542] rounded-full blur-md animate-ping opacity-90"></div>
+                <div className="absolute inset-1 bg-red-600 rounded-full blur-xs animate-pulse opacity-80"></div>
+                <div className="absolute w-5 h-5 bg-white rounded-full blur-[1px] animate-cracker-burst"></div>
+                <span className="absolute w-2.5 h-2.5 bg-yellow-300 rounded-full animate-bounce -top-2 right-1 shadow-[0_0_10px_#facc15]"></span>
+                <span className="absolute w-3 h-3 bg-red-500 rounded-full animate-ping -bottom-1 left-1 shadow-[0_0_12px_#ef4444]"></span>
+                <span className="absolute w-2 h-2 bg-orange-400 rounded-full animate-pulse top-2 -right-2 shadow-[0_0_8px_#fb923c]"></span>
+              </div>
+            </div>
+          </div>
+
           <div className="text-center mb-10">
             <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
               ✨ Watch the Magic ✨
@@ -789,67 +819,14 @@ const Index = () => {
                   : staticFamilyPacks) as any[];
 
                 const idx = (comboIndex + offset) % comboPacksList.length;
-                const item = comboPacksList[idx] as any;
-                const itemId = item.id || item._id;
-                const cartItem = cartItems.find((i) => (i.product._id || i.product.id) === itemId);
-                const quantity = cartItem?.quantity || 0;
-                const stockVal = item.storeStockPieces !== undefined ? item.storeStockPieces : (item.stock !== undefined ? item.stock : 0);
-                const isOutOfStock = stockVal <= 0;
-                const displayImg = isOutOfStock ? '/saiyogi-logo-1.png' : (item.image || "/sky_rocket_box.png");
+                const item = comboPacksList[idx] as Product;
 
                 return (
                   <div
                     key={`combo-${offset}-${item._id || item.id || offset}`}
-                    className={`bg-[#FFFFFF] border-2 border-amber-100 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-md hover:shadow-2xl transition-all duration-300 flex-col items-center text-center relative group hover:-translate-y-1 overflow-hidden max-w-[290px] sm:max-w-none mx-auto w-full ${
-                      offset > 0 ? "hidden md:flex" : "flex"
-                    }`}
+                    className={`w-full ${offset > 0 ? "hidden md:block" : "block"}`}
                   >
-                    <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-gradient-to-r from-[#A80000] to-[#5c0a0b] text-[#F4C542] font-black text-[9px] sm:text-[10px] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full uppercase shadow-md">
-                      SAVE BIG
-                    </div>
-
-                    <div className="w-full aspect-[4/3] bg-gray-50 flex items-center justify-center p-2 sm:p-4 mb-2.5 sm:mb-4 rounded-xl sm:rounded-2xl overflow-hidden">
-                      <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" />
-                    </div>
-
-                    <h3 className="font-extrabold text-sm sm:text-base text-gray-900 uppercase mb-1.5 sm:mb-2 line-clamp-1">{item.name}</h3>
-
-                    <div className="flex gap-2 sm:gap-3 items-center mb-3 sm:mb-5">
-                      {item.oldPrice && (
-                        <span className="text-gray-400 line-through text-xs font-bold">₹{item.oldPrice}</span>
-                      )}
-                      <span className="text-[#A80000] font-black text-lg sm:text-xl">₹{item.price}</span>
-                    </div>
-                    {quantity > 0 ? (
-                      <div className="flex items-center justify-between bg-red-50/50 border border-red-200/50 rounded-xl p-1.5 w-full mt-auto" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => updateQuantity(itemId, quantity - 1)}
-                          className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-white text-[#A80000] font-black hover:bg-red-50 transition-colors shadow-sm text-xs sm:text-base"
-                        >
-                          -
-                        </button>
-                        <span className="font-black text-xs sm:text-sm text-[#A80000] px-2">
-                          {quantity}
-                        </span>
-                        <button
-                          onClick={() => updateQuantity(itemId, quantity + 1)}
-                          className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-[#A80000] text-white font-black hover:bg-red-800 transition-colors shadow-sm text-xs sm:text-base"
-                        >
-                          +
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          addToCart(item as Product);
-                        }}
-                        className="w-full bg-[#A80000] hover:bg-[#F4C542] hover:text-[#1A1A1A] text-white font-black text-[10px] sm:text-xs py-2.5 sm:py-3.5 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 transition-all duration-300 uppercase tracking-widest shadow-md hover:scale-[1.02] active:scale-[0.98] mt-auto"
-                      >
-                        <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        <span>Add To Cart</span>
-                      </button>
-                    )}
+                    <ProductCard product={item} />
                   </div>
                 );
               })}
