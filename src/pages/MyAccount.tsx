@@ -39,9 +39,6 @@ const MyAccount: React.FC = () => {
   const { userPhone, userName, isUserLoggedIn, openLoginModal } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<"account" | "enquiry">("account");
-  const [subscriptions, setSubscriptions] = useState<ChitSubscriptionItem[]>([]);
-  const [schemes, setSchemes] = useState<ChitSchemeItem[]>([]);
-  const [loading, setLoading] = useState(false);
 
   const [enquiries, setEnquiries] = useState<EnquiryItem[]>([]);
   const [selectedEnquiry, setSelectedEnquiry] = useState<EnquiryItem | null>(null);
