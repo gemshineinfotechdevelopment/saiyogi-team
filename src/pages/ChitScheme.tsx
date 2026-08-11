@@ -75,7 +75,6 @@ const ChitScheme: React.FC = () => {
   const [showPurchasedModal, setShowPurchasedModal] = useState(false);
   const [selectedPurchasedSub, setSelectedPurchasedSub] = useState<ChitSubscriptionItem | null>(null);
   const [submittedData, setSubmittedData] = useState<any>(null);
-  const [activeZoomImage, setActiveZoomImage] = useState<ChitSchemeImage | null>(null);
 
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -477,13 +476,13 @@ const ChitScheme: React.FC = () => {
                       <div className="p-6 text-center text-gray-400 text-xs">
                         {img.title || "Chit Scheme Promotional Offer"}
                       </div>
-                      {img.monthlyAmount ? (
-                        <div className="bg-emerald-50 border border-emerald-200/80 rounded-xl p-2.5 col-span-2 flex items-center justify-between text-emerald-950 font-medium">
-                          <span>Monthly Amount:</span>
-                          <span className="font-extrabold text-emerald-900 text-sm">₹{img.monthlyAmount.toLocaleString()} / month</span>
-                        </div>
-                      ) : null}
-                    </div>
+                    )}
+                    {img.monthlyAmount ? (
+                      <div className="mt-3 bg-emerald-50 border border-emerald-200/80 rounded-xl p-2.5 flex items-center justify-between text-emerald-950 font-medium">
+                        <span>Monthly Amount:</span>
+                        <span className="font-extrabold text-emerald-900 text-sm">₹{img.monthlyAmount.toLocaleString()} / month</span>
+                      </div>
+                    ) : null}
                   </div>
                 ))}
               </div>
