@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
-import { getChitSubscriptions, getChitSchemes, ChitSubscriptionItem, ChitSchemeItem } from "@/lib/api";
-import { Calendar, Clock, CheckCircle2, Gift } from "lucide-react";
+import { getChitSubscriptions, getChitSchemes, ChitSubscriptionItem, ChitSchemeItem, getOrders } from "@/lib/api";
+import { Calendar, Clock, CheckCircle2, Gift, FileText } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { getCookie, setCookie } from "@/lib/cookieUtils";
+import { downloadOrderReceiptPDF, OrderData } from "@/lib/pdf-generator";
+import { EnquiryItem, loadUserEnquiries, formatAddress, formatString } from "@/lib/enquiryUtils";
 
 const getMonthNameForIndex = (monthIndex: number, startDateStr?: string): { monthName: string; dueDateStr: string } => {
   if (startDateStr && startDateStr.trim()) {
@@ -32,6 +37,8 @@ const getMonthNameForIndex = (monthIndex: number, startDateStr?: string): { mont
 
 const MyAccount: React.FC = () => {
   const { userPhone, userName, isUserLoggedIn } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<"account" | "enquiry">("account");
   const [subscriptions, setSubscriptions] = useState<ChitSubscriptionItem[]>([]);
   const [schemes, setSchemes] = useState<ChitSchemeItem[]>([]);
   const [loading, setLoading] = useState(false);
