@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
-import { Lock, LogIn, Gift, Send, CheckCircle2, MapPin, User, Mail, Phone, ChevronDown, Sparkles, Calendar, Clock, ZoomIn } from "lucide-react";
+import { Lock, LogIn, Gift, Send, CheckCircle2, MapPin, User, Mail, Phone, ChevronDown, Sparkles, Calendar, Clock, ZoomIn, ArrowLeft, ChevronRight, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { getChitSchemes, ChitSchemeItem, submitChitSubscription, trackCustomerAction, getChitSubscriptions, ChitSubscriptionItem } from "@/lib/api";
@@ -72,6 +72,7 @@ const ChitScheme: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showPurchasedModal, setShowPurchasedModal] = useState(false);
+  const [selectedPurchasedSub, setSelectedPurchasedSub] = useState<ChitSubscriptionItem | null>(null);
   const [submittedData, setSubmittedData] = useState<any>(null);
   const [activeZoomImage, setActiveZoomImage] = useState<ChitSchemeImage | null>(null);
 
@@ -121,33 +122,50 @@ const ChitScheme: React.FC = () => {
   }, [isUserLoggedIn, userPhone, userName]);
 
   useEffect(() => {
-    getChitSchemes()
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const mapped = data.map((item: ChitSchemeItem) => ({
-            id: item._id || item.id || '',
-            url: item.url,
-            title: item.title || '',
-            description: item.description || '',
-            startDate: item.startDate || '',
-            totalMonths: item.totalMonths || 11,
-            dueDateDay: item.dueDateDay || 10,
-            monthlyAmount: item.monthlyAmount || 0
-          }));
-          setImages(mapped);
-          if (mapped.length > 0 && mapped[0].title) {
-            setSelectedScheme(mapped[0].title);
+    const loadChit = () => {
+      getChitSchemes()
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            const mapped = data.map((item: ChitSchemeItem) => ({
+              id: item._id || item.id || '',
+              url: item.url,
+              title: item.title || item.schemeName || '',
+              description: item.description || '',
+              startDate: item.startDate || '',
+              totalMonths: item.totalMonths || item.numberOfMonths || 9,
+              dueDateDay: item.dueDateDay || item.paymentDueDay || 10,
+              monthlyAmount: item.monthlyAmount || 0
+            }));
+            setImages(mapped);
+            if (mapped.length > 0 && mapped[0].title && !selectedScheme) {
+              setSelectedScheme(mapped[0].title);
+            }
+          } else {
+            setImages(DEFAULT_IMAGES);
+            if (!selectedScheme) {
+              setSelectedScheme(DEFAULT_IMAGES[0].title || "Diwali Special Savings Scheme 2026");
+            }
           }
-        } else {
+        })
+        .catch((err) => {
+          console.error("Failed to fetch chit schemes from API:", err);
           setImages(DEFAULT_IMAGES);
-          setSelectedScheme(DEFAULT_IMAGES[0].title || "Diwali Special Savings Scheme 2026");
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to fetch chit schemes from API:", err);
-        setImages(DEFAULT_IMAGES);
-        setSelectedScheme(DEFAULT_IMAGES[0].title || "Diwali Special Savings Scheme 2026");
-      });
+          if (!selectedScheme) {
+            setSelectedScheme(DEFAULT_IMAGES[0].title || "Diwali Special Savings Scheme 2026");
+          }
+        });
+    };
+
+    loadChit();
+
+    const interval = setInterval(loadChit, 10000);
+    const onFocus = () => loadChit();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
   const handleSelectSchemeToApply = (schemeTitle: string) => {
@@ -430,7 +448,7 @@ const ChitScheme: React.FC = () => {
             {images.length === 0 ? (
               <div className="py-16 text-center text-gray-400 font-medium text-sm border-2 border-dashed border-gray-200 rounded-3xl bg-white p-6">
                 <Gift className="w-10 h-10 mx-auto mb-2 opacity-40 text-amber-700" />
-                No Chit Schemes currently available.
+                No promotional images uploaded yet.
               </div>
             ) : (
               <div className="space-y-5">
@@ -502,8 +520,7 @@ const ChitScheme: React.FC = () => {
                         </div>
                       ) : null}
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
           </div>
@@ -513,151 +530,232 @@ const ChitScheme: React.FC = () => {
 
       {/* Purchased Schemes & Passbook Details Modal */}
       {showPurchasedModal && (
-        <Dialog open={showPurchasedModal} onOpenChange={setShowPurchasedModal}>
+        <Dialog open={showPurchasedModal} onOpenChange={(open) => {
+          setShowPurchasedModal(open);
+          if (!open) setSelectedPurchasedSub(null);
+        }}>
           <DialogContent className="max-w-4xl p-6 sm:p-8 bg-white rounded-3xl max-h-[90vh] overflow-y-auto space-y-6 font-sans">
-            <DialogHeader className="border-b border-gray-100 pb-4">
-              <DialogTitle className="text-xl font-bold text-[#2A1B54] flex items-center gap-2">
-                <CheckCircle2 className="w-6 h-6 text-emerald-600" />
-                My Purchased Schemes & Monthwise Passbook
-              </DialogTitle>
-              <DialogDescription className="text-xs text-gray-600 font-medium">
-                Detailed scheme subscription information and real-time monthwise payment schedule.
-              </DialogDescription>
-            </DialogHeader>
+            {!selectedPurchasedSub ? (
+              /* STEP 1: LIST OF PURCHASED SCHEMES */
+              <div className="space-y-6">
+                <DialogHeader className="border-b border-gray-100 pb-4">
+                  <DialogTitle className="text-xl font-extrabold text-[#2A1B54] flex items-center gap-2">
+                    <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                    My Purchased Schemes ({userSubscriptions.length})
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-gray-600 font-medium">
+                    Click any scheme below to view its full monthwise payment passbook.
+                  </DialogDescription>
+                </DialogHeader>
 
-            <div className="space-y-8">
-              {userSubscriptions.map((sub, sIdx) => {
-                const matchedScheme = images.find(
-                  img => img.title === sub.schemeName || img.id === sub.schemeId
-                );
-                const totalMonths = matchedScheme?.totalMonths || 9;
-                const startDateStr = matchedScheme?.startDate;
-                const dueDateDay = matchedScheme?.dueDateDay || 10;
-                const monthlyAmount = matchedScheme?.monthlyAmount || 0;
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
+                  {userSubscriptions.map((sub, sIdx) => {
+                    const matchedScheme = images.find(
+                      img => img.title === sub.schemeName || img.id === sub.schemeId
+                    );
+                    const totalMonths = matchedScheme?.totalMonths || 9;
+                    const monthlyAmount = matchedScheme?.monthlyAmount || 0;
+                    const paidCount = sub.monthsPaid || 0;
 
-                const monthList = Array.from({ length: totalMonths }, (_, i) => i + 1);
+                    return (
+                      <div
+                        key={sub._id || sub.id || sIdx}
+                        onClick={() => setSelectedPurchasedSub(sub)}
+                        className="bg-white border-2 border-gray-200 hover:border-[#7A1416] rounded-3xl p-5 shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between space-y-4 group"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <h3 className="font-extrabold text-gray-900 text-base group-hover:text-[#7A1416] transition-colors">
+                              {sub.schemeName}
+                            </h3>
+                            <span className={`shrink-0 px-2.5 py-0.5 rounded-full font-extrabold text-[11px] ${
+                              sub.approvalStatus === "Approved" || sub.status === "Approved" || sub.status === "Paid"
+                                ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                : sub.approvalStatus === "Rejected" || sub.status === "Rejected"
+                                ? "bg-rose-100 text-rose-800 border border-rose-300"
+                                : "bg-amber-100 text-amber-800 border border-amber-300"
+                            }`}>
+                              {sub.approvalStatus || sub.status}
+                            </span>
+                          </div>
 
-                return (
-                  <div key={sub._id || sub.id || sIdx} className="bg-gray-50/80 border border-gray-200/90 rounded-2xl p-5 space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200/60 pb-3">
-                      <div>
-                        <h3 className="text-base font-extrabold text-[#2A1B54]">
-                          {sub.schemeName}
-                        </h3>
-                        <div className="text-xs text-gray-600 font-medium mt-1 flex flex-wrap items-center gap-3">
-                          <span>Subscriber: <strong className="text-gray-900">{sub.name}</strong></span>
-                          <span>•</span>
-                          <span>Mobile: <strong className="text-gray-900 font-mono">{sub.phone}</strong></span>
-                          <span>•</span>
-                          <span>Location: <strong className="text-gray-900">{sub.location}</strong></span>
+                          <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 text-xs space-y-1.5">
+                            <div className="flex justify-between">
+                              <span className="text-gray-500 font-medium">Subscriber Name:</span>
+                              <strong className="text-gray-900 font-semibold">{sub.name}</strong>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500 font-medium">Mobile Number:</span>
+                              <strong className="text-gray-900 font-mono">{sub.phone}</strong>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500 font-medium">Location:</span>
+                              <strong className="text-gray-900 font-semibold">{sub.location}</strong>
+                            </div>
+                            {monthlyAmount ? (
+                              <div className="flex justify-between pt-1.5 border-t border-gray-200">
+                                <span className="text-gray-500 font-medium">Monthly Installment:</span>
+                                <strong className="text-emerald-700 font-extrabold">₹{monthlyAmount.toLocaleString()} / month</strong>
+                              </div>
+                            ) : null}
+                          </div>
+
+                          <div className="flex items-center justify-between text-xs bg-amber-50/70 border border-amber-200/70 p-2.5 rounded-xl">
+                            <span className="font-medium text-amber-950">Payment Progress</span>
+                            <span className="bg-[#7A1416] text-white font-extrabold px-2.5 py-0.5 rounded-lg text-[11px]">
+                              {paidCount} / {totalMonths} Months Paid
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedPurchasedSub(sub);
+                          }}
+                          className="w-full bg-[#7A1416] hover:bg-[#900000] text-white text-xs font-extrabold py-2.5 rounded-xl transition-all shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span>View Passbook</span>
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              /* STEP 2: SELECTED SCHEME PASSBOOK DETAILS */
+              <div>
+                {(() => {
+                  const sub = selectedPurchasedSub;
+                  const matchedScheme = images.find(
+                    img => img.title === sub.schemeName || img.id === sub.schemeId
+                  );
+                  const totalMonths = matchedScheme?.totalMonths || 9;
+                  const startDateStr = matchedScheme?.startDate;
+                  const dueDateDay = matchedScheme?.dueDateDay || 10;
+                  const monthlyAmount = matchedScheme?.monthlyAmount || 0;
+                  const monthList = Array.from({ length: totalMonths }, (_, i) => i + 1);
+
+                  return (
+                    <div className="space-y-6">
+                      <DialogHeader className="border-b border-gray-100 pb-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedPurchasedSub(null)}
+                            className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-xs px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <ArrowLeft className="w-4 h-4" />
+                            <span>Back to Purchased Schemes</span>
+                          </button>
+                          <span className={`px-3 py-1 rounded-full font-extrabold text-xs ${
+                            sub.approvalStatus === "Approved" || sub.status === "Approved" || sub.status === "Paid"
+                              ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                              : sub.approvalStatus === "Rejected" || sub.status === "Rejected"
+                              ? "bg-rose-100 text-rose-800 border border-rose-300"
+                              : "bg-amber-100 text-amber-800 border border-amber-300"
+                          }`}>
+                            Status: {sub.approvalStatus || sub.status}
+                          </span>
+                        </div>
+                        <DialogTitle className="text-xl font-extrabold text-[#2A1B54] mt-2">
+                          {sub.schemeName} — Passbook
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-gray-600 font-medium">
+                          Subscriber: <strong className="text-gray-900">{sub.name}</strong> • Mobile: <strong className="text-gray-900 font-mono">{sub.phone}</strong> • Location: <strong className="text-gray-900">{sub.location}</strong>
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      {/* Monthwise Payment Passbook Table */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between text-xs bg-amber-50 border border-amber-200/80 p-3 rounded-2xl">
+                          <span className="font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
+                            <Calendar className="w-4 h-4 text-[#7A1416]" />
+                            Monthwise Payment Schedule ({totalMonths} Months)
+                          </span>
+                          <span className="text-xs font-extrabold text-[#7A1416] bg-amber-100/90 px-3 py-1 rounded-xl border border-amber-300">
+                            🔔 Monthly Due Date: Before {dueDateDay}th of every month
+                          </span>
+                        </div>
+
+                        <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-2xs">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-gray-100/80 text-gray-700 text-xs uppercase font-extrabold tracking-wider border-b border-gray-200">
+                                <th className="p-3.5 w-16 text-center">S.No</th>
+                                <th className="p-3.5">Month</th>
+                                <th className="p-3.5">Amount</th>
+                                <th className="p-3.5">Payment Status</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 text-xs">
+                              {monthList.map((mNum, mIdx) => {
+                                const { monthName } = getMonthNameForIndex(mNum, startDateStr);
+                                const existingLog = (sub.monthlyPayments || []).find(p => p.monthNumber === mNum);
+                                const currentStatus = existingLog?.status || 'Pending';
+                                const isPaid = currentStatus === 'Paid' || currentStatus === 'Late Pay';
+                                const paidDay = existingLog?.paidAt ? new Date(existingLog.paidAt).getDate() : 0;
+                                const timingStatus = isPaid ? (paidDay > 0 && paidDay <= dueDateDay ? 'On-time Payment' : 'Delay Payment') : 'Pending';
+
+                                return (
+                                  <tr
+                                    key={mNum}
+                                    className={`hover:bg-gray-50/80 transition-colors ${
+                                      isPaid ? 'bg-emerald-50/30' : ''
+                                    }`}
+                                  >
+                                    <td className="p-3.5 font-bold text-gray-500 text-center">
+                                      {mIdx + 1}
+                                    </td>
+
+                                    <td className="p-3.5 font-extrabold text-gray-900 text-sm">
+                                      {monthName}
+                                    </td>
+
+                                    <td className="p-3.5 font-extrabold text-emerald-800 text-sm">
+                                      ₹{monthlyAmount.toLocaleString()}
+                                    </td>
+
+                                    <td className="p-3.5">
+                                      <div className="flex flex-col gap-1 items-start">
+                                        {isPaid && timingStatus === 'On-time Payment' && (
+                                          <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-xs px-3 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> On-time Payment
+                                          </span>
+                                        )}
+                                        {isPaid && timingStatus === 'Delay Payment' && (
+                                          <span className="bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-xs px-3 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                                            <Clock className="w-3.5 h-3.5 text-amber-700" /> Delay Payment
+                                          </span>
+                                        )}
+                                        {!isPaid && (
+                                          <span className="bg-gray-100 text-gray-600 font-bold text-xs px-3 py-0.5 rounded-full">
+                                            Unpaid / Pending
+                                          </span>
+                                        )}
+
+                                        {existingLog?.paidAt && isPaid && (
+                                          <span className="text-[11px] text-gray-500 font-medium">
+                                            Paid on: {new Date(existingLog.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-2">
-                        <span className={`px-3 py-1 rounded-full font-extrabold text-xs ${
-                          sub.approvalStatus === "Approved" || sub.status === "Approved" || sub.status === "Paid"
-                            ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                            : sub.approvalStatus === "Rejected" || sub.status === "Rejected"
-                            ? "bg-rose-100 text-rose-800 border border-rose-300"
-                            : "bg-amber-100 text-amber-800 border border-amber-300"
-                        }`}>
-                          Status: {sub.approvalStatus || sub.status}
-                        </span>
-                      </div>
                     </div>
-
-                    {/* Monthwise Payment Passbook Table */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
-                          <Calendar className="w-4 h-4 text-[#7A1416]" />
-                          Monthwise Payment Schedule ({totalMonths} Months)
-                        </span>
-                        <span className="text-[11px] font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg">
-                          Due: {dueDateDay}th of each month
-                        </span>
-                      </div>
-
-                      <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-2xs">
-                        <table className="w-full text-left border-collapse">
-                          <thead>
-                            <tr className="bg-gray-100/80 text-gray-700 text-xs uppercase font-extrabold tracking-wider border-b border-gray-200">
-                              <th className="p-3.5 w-16 text-center">S.No</th>
-                              <th className="p-3.5">Month</th>
-                              <th className="p-3.5">Due Date & Amount</th>
-                              <th className="p-3.5">Payment Status</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-100 text-xs">
-                            {monthList.map((mNum, mIdx) => {
-                              const { monthName } = getMonthNameForIndex(mNum, startDateStr);
-                              const existingLog = (sub.monthlyPayments || []).find(p => p.monthNumber === mNum);
-                              const currentStatus = existingLog?.status || 'Pending';
-
-                              return (
-                                <tr
-                                  key={mNum}
-                                  className={`hover:bg-gray-50/80 transition-colors ${
-                                    currentStatus === 'Paid'
-                                      ? 'bg-emerald-50/30'
-                                      : currentStatus === 'Late Pay'
-                                      ? 'bg-amber-50/40'
-                                      : ''
-                                  }`}
-                                >
-                                  <td className="p-3.5 font-bold text-gray-500 text-center">
-                                    {mIdx + 1}
-                                  </td>
-
-                                  <td className="p-3.5 font-extrabold text-gray-900 text-sm">
-                                    {monthName}
-                                  </td>
-
-                                  <td className="p-3.5 text-gray-700">
-                                    <div className="font-semibold">Due: {dueDateDay}th {monthName}</div>
-                                    {monthlyAmount ? (
-                                      <div className="text-[11px] font-bold text-[#7A1416] mt-0.5">
-                                        ₹{monthlyAmount.toLocaleString()} / month
-                                      </div>
-                                    ) : null}
-                                  </td>
-
-                                  <td className="p-3.5">
-                                    <div className="flex flex-col gap-1 items-start">
-                                      {currentStatus === 'Paid' && (
-                                        <span className="bg-emerald-600 text-white font-extrabold text-xs px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs">
-                                          <CheckCircle2 className="w-3.5 h-3.5" /> Paid
-                                        </span>
-                                      )}
-                                      {currentStatus === 'Late Pay' && (
-                                        <span className="bg-amber-600 text-white font-extrabold text-xs px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs">
-                                          <Clock className="w-3.5 h-3.5" /> Late Pay
-                                        </span>
-                                      )}
-                                      {currentStatus === 'Pending' && (
-                                        <span className="bg-gray-200 text-gray-700 font-bold text-xs px-3 py-1 rounded-full">
-                                          Unpaid / Pending
-                                        </span>
-                                      )}
-
-                                      {existingLog?.paidAt && currentStatus !== 'Pending' && (
-                                        <span className="text-[11px] text-gray-500 font-medium">
-                                          Paid on: {new Date(existingLog.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })()}
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       )}
