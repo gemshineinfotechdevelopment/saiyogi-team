@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { UserLoginModal } from "@/components/auth/UserLoginModal";
 import { setCookie, getCookie, deleteCookie } from "@/lib/cookieUtils";
 import { toast } from "sonner";
+import { trackCustomerAction } from "@/lib/api";
 
 const isLocalhost = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -41,19 +42,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState<boolean>(true);
 
   // Customer User Phone & Name Login
-  const [userPhone, setUserPhone] = useState<string | null>(localStorage.getItem("user_phone"));
-  const [userName, setUserName] = useState<string | null>(localStorage.getItem("user_name"));
+  const [userPhone, setUserPhone] = useState<string | null>(() => getCookie("saiyogi_user_phone") || localStorage.getItem("user_phone"));
+  const [userName, setUserName] = useState<string | null>(() => getCookie("saiyogi_user_name") || localStorage.getItem("user_name"));
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("admin_token");
     const storedRole = localStorage.getItem("admin_role");
-    const storedPhone = localStorage.getItem("user_phone");
-    const storedName = localStorage.getItem("user_name");
+    const storedPhone = getCookie("saiyogi_user_phone") || localStorage.getItem("user_phone");
+    const storedName = getCookie("saiyogi_user_name") || localStorage.getItem("user_name");
 
     if (storedPhone) {
       setUserPhone(storedPhone);
       setUserName(storedName || null);
+      // Ensure sync between cookie and localStorage
+      setCookie("saiyogi_user_phone", storedPhone, 30);
+      localStorage.setItem("user_phone", storedPhone);
+      if (storedName) {
+        setCookie("saiyogi_user_name", storedName, 30);
+        localStorage.setItem("user_name", storedName);
+      }
     }
 
     if (storedToken && ["admin", "SUPER ADMIN", "ADMIN"].includes(storedRole || "")) {
@@ -71,15 +79,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithPhone = (phone: string, name?: string) => {
     setUserPhone(phone);
     localStorage.setItem("user_phone", phone);
+    setCookie("saiyogi_user_phone", phone, 30);
+    setCookie(SESSION_COOKIE_NAME, phone, 30);
+
+    let cleanName: string | undefined = undefined;
     if (name && name.trim()) {
-      const cleanName = name.trim();
+      cleanName = name.trim();
       setUserName(cleanName);
       localStorage.setItem("user_name", cleanName);
+      setCookie("saiyogi_user_name", cleanName, 30);
     } else {
       setUserName(null);
       localStorage.removeItem("user_name");
+      deleteCookie("saiyogi_user_name");
     }
     setIsAuthenticated(true);
+
+    trackCustomerAction({
+      phone,
+      name: cleanName,
+      source: "normal_login"
+    }).catch((err) => console.warn("Failed to track login action:", err));
   };
 
   const openLoginModal = () => setIsLoginModalOpen(true);
@@ -89,6 +109,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUserPhone(null);
     setUserName(null);
     deleteCookie(SESSION_COOKIE_NAME);
+    deleteCookie("saiyogi_user_phone");
+    deleteCookie("saiyogi_user_name");
     localStorage.removeItem("user_phone");
     localStorage.removeItem("user_name");
     localStorage.removeItem("saiyogi_user_session");

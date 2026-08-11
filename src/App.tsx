@@ -29,13 +29,15 @@ import AdminCustomers from "./pages/admin/AdminCustomers";
 import AdminChitScheme from "./pages/admin/AdminChitScheme";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminContent from "./pages/admin/AdminContent";
+import AdminPageContent from "./pages/admin/AdminPageContent";
 
 import NotFound from "./pages/NotFound";
 
 import { SettingsProvider } from "@/context/SettingsContext";
 import ScrollToTop from "@/components/ScrollToTop";
-import { GlobalLoginModal } from "@/components/auth/GlobalLoginModal";
+import GlobalLoginModal from "@/components/auth/GlobalLoginModal";
 import FloatingCartTotal from "@/components/FloatingCartTotal";
+import FloatingQuickEnquiry from "@/components/FloatingQuickEnquiry";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +54,7 @@ const App = () => (
                 <ScrollToTop />
                 <GlobalLoginModal />
                 <FloatingCartTotal />
+                <FloatingQuickEnquiry />
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/combo-packs" element={<ComboPacks />} />
@@ -136,6 +139,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <AdminReports />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/page-content"
+                    element={
+                      <ProtectedRoute>
+                        <AdminPageContent />
                       </ProtectedRoute>
                     }
                   />

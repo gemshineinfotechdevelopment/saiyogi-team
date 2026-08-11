@@ -1,4 +1,4 @@
-import { ShoppingCart, X, Plus, Minus } from "lucide-react";
+import { ShoppingCart, X, Plus, Minus, CheckCircle2, Star, StarHalf } from "lucide-react";
 import { Product } from "@/data/products";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
@@ -7,13 +7,13 @@ import { toast } from "sonner";
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 
-const ProductCard = ({ product, categoryName }: { product: Product; categoryName?: string }) => {
+const ProductCard = ({ product, categoryName, onCardClick }: { product: Product; categoryName?: string; onCardClick?: () => void }) => {
   const [showDetails, setShowDetails] = useState(false);
   const { items, addToCart, updateQuantity, removeFromCart } = useCart();
   const { settings } = useSiteSettings();
 
   const productId = String(product._id || product.id || '');
-  const cartItem = useMemo(() => items.find(i => String(i.product._id || i.product.id) === productId), [items, productId]);
+  const cartItem = useMemo(() => items.find(i => i && i.product && String(i.product._id || i.product.id || '') === productId), [items, productId]);
   const quantity = cartItem?.quantity || 0;
 
   const discountPrice = getDiscountPrice(product.price, product.hasDiscount, settings.discountPercent, product.netRate, product.displayNetRate);
@@ -78,41 +78,53 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
     </div>
   );
 
+  const starRating = product.rating !== undefined ? product.rating : 5;
+
   return (
     <>
       <div className="group h-full">
-        <div className="rounded-2xl overflow-hidden bg-white border border-gray-200/80 hover:border-red-300 transition-all duration-300 hover:shadow-lg flex flex-col h-full relative">
+        <div 
+          className="rounded-2xl overflow-hidden bg-white border border-gray-200/80 hover:border-red-300 transition-all duration-300 hover:shadow-lg flex flex-col h-full relative cursor-pointer"
+          onClick={() => onCardClick ? onCardClick() : setShowDetails(true)}
+        >
           
           {/* Top Right Selected Amount Badge */}
-          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20">
-            <span className="bg-[#A80000] text-white text-xs sm:text-sm font-bold px-2.5 py-1 rounded-md shadow-md">
-              ₹ {selectedAmount.toFixed(2)}
-            </span>
-          </div>
+          {quantity > 0 && (
+            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20">
+              <span className="bg-[#A80000] text-white text-xs sm:text-sm font-bold px-2.5 py-1 rounded-md shadow-md">
+                ₹ {selectedAmount}
+              </span>
+            </div>
+          )}
 
-          <div
-            className="relative aspect-square overflow-hidden bg-white cursor-pointer p-2 sm:p-4 border-b border-gray-50"
-            onClick={() => setShowDetails(true)}
-          >
+          <div className="relative aspect-square overflow-hidden bg-white p-2 sm:p-4 border-b border-gray-50">
             <img
               src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
               alt={product.name}
-              className="w-full h-full object-contain p-1 sm:p-2 group-hover:scale-110 transition-transform duration-700 ease-out"
+              className="w-full h-full object-contain p-0.5 sm:p-1 group-hover:scale-105 transition-transform duration-500 ease-out"
               loading="lazy"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300?text=No+Image';
               }}
             />
-            <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <span className="bg-white text-gray-900 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 uppercase tracking-widest">
+                Quick View
+              </span>
+            </div>
 
             {discount > 0 && !isNetRate && (
-              <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-yellow-400 text-yellow-950 text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md shadow-sm z-10">
-                {discount}% OFF
-              </span>
+              <div className="absolute top-1 left-1 sm:top-2 sm:left-2 z-10 hover:scale-110 transition-transform duration-300 pointer-events-none">
+                <img
+                  src="/discount-tag.png"
+                  alt={`${discount}% OFF`}
+                  className="w-12 sm:w-16 h-auto object-contain drop-shadow-md"
+                />
+              </div>
             )}
 
             {isNetRate && (
-              <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-indigo-600 text-white text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md shadow-lg z-10 animate-pulse">
+              <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-indigo-600 text-white text-xs sm:text-sm font-black px-2.5 py-1 sm:px-3.5 sm:py-1 rounded-full shadow-lg z-10 animate-pulse tracking-wide">
                 NET RATE
               </span>
             )}
@@ -128,16 +140,51 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
             )}
           </div>
 
-          <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between">
+          <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between">
             <div>
-              <div className="flex justify-between items-start mb-0.5 sm:mb-1">
+              <div className="flex justify-between items-center mb-0.5 gap-1">
                 <p className="text-[9px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-wider">{product.brand || "Standard"}</p>
+                {product.isSaiYogiVerified && (
+                  <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[8px] sm:text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-2xs">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600 fill-emerald-100" />
+                    <span>Verified</span>
+                  </span>
+                )}
               </div>
 
-              <h3 className="font-display font-bold text-xs sm:text-base text-gray-900 leading-tight mb-1 line-clamp-2 group-hover:text-[#A80000] transition-colors text-center">{product.name}</h3>
+              <h3 className="product-title-font font-black text-xs sm:text-base text-gray-900 leading-snug tracking-tight mb-1 line-clamp-2 group-hover:text-[#A80000] transition-colors text-center">{product.name}</h3>
+
+              {/* Sai Yogi Verified Ribbon Badge & Dynamic Star Rating */}
+              <div className="flex flex-col items-center justify-center my-1">
+                {product.isSaiYogiVerified && (
+                  <div className="flex items-center justify-center my-0.5 select-none">
+                    <div className="bg-gradient-to-br from-amber-400 to-amber-600 text-white font-black text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-l-md shadow-md italic border-r border-amber-300 flex items-center justify-center">
+                      SY
+                    </div>
+                    <div className="bg-gradient-to-r from-red-600 via-red-700 to-red-600 text-white font-extrabold text-[9px] sm:text-[10px] px-2 py-0.5 rounded-r-md shadow-md italic tracking-wide font-serif border-y border-r border-red-500">
+                      Sai Yogi Verified
+                    </div>
+                  </div>
+                )}
+
+                {/* Star Rating based on product.rating */}
+                <div className="flex items-center justify-center gap-0.5 my-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => {
+                    const isFilled = i < Math.floor(starRating);
+                    const isHalf = i === Math.floor(starRating) && starRating % 1 >= 0.3;
+                    if (isFilled) {
+                      return <Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400 text-amber-400 drop-shadow-2xs" />;
+                    }
+                    if (isHalf) {
+                      return <StarHalf key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400 text-amber-400 drop-shadow-2xs" />;
+                    }
+                    return <Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-gray-200 text-gray-200" />;
+                  })}
+                </div>
+              </div>
             </div>
 
-            <div className="pt-2 sm:pt-3 flex flex-col items-center gap-2">
+            <div className="pt-1.5 sm:pt-2 flex flex-col items-center gap-1.5">
               <div className="flex items-baseline justify-center gap-2 flex-wrap">
                 <span className="font-display font-black text-gray-900 text-sm sm:text-lg leading-none">₹{discountPrice}</span>
                 {product.hasDiscount && !isNetRate && (
@@ -148,8 +195,24 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
                 )}
               </div>
 
-              <div className="flex justify-center w-full pt-1">
-                <QuantitySelector />
+              <div className="flex justify-center w-full pt-1" onClick={e => e.stopPropagation()}>
+                {quantity > 0 ? (
+                  <QuantitySelector />
+                ) : (
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={(product.storeStockPieces || 0) <= 0}
+                    className={cn(
+                      "w-full h-8 sm:h-9 rounded-lg flex items-center justify-center gap-1.5 text-xs sm:text-sm font-bold uppercase transition-all shadow-sm",
+                      (product.storeStockPieces || 0) <= 0
+                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        : "bg-[#A80000] text-white hover:bg-[#F4C542] hover:text-[#1A1A1A] active:scale-95"
+                    )}
+                  >
+                    <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    {(product.storeStockPieces || 0) <= 0 ? "Sold Out" : "Add to Cart"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -181,13 +244,33 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
             </div>
 
             <div className="p-6 md:p-8 flex-1 flex flex-col justify-center">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <span className="text-xs text-red-600 font-black uppercase tracking-widest">{product.brand}</span>
                 {(categoryName || product.category) && <span className="h-1 w-1 bg-red-200 rounded-full" />}
                 <span className="text-xs text-gray-500 font-medium uppercase tracking-widest">{categoryName || (typeof product.category === 'object' && product.category !== null ? (product.category as any).name : product.category)}</span>
+                {product.isSaiYogiVerified && (
+                  <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-black px-2.5 py-0.5 rounded-full shadow-2xs">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 fill-emerald-100" />
+                    <span>Sai Yogi Verified</span>
+                  </span>
+                )}
               </div>
 
-              <h2 className="font-display text-xl md:text-3xl font-black text-red-950 mb-4 md:mb-6 leading-tight">{product.name}</h2>
+              <h2 className="product-title-font text-2xl md:text-3xl font-black text-red-950 mb-2 leading-tight">{product.name}</h2>
+
+              {/* Gold Star Rating in Modal */}
+              <div className="flex items-center gap-3 mb-4 flex-wrap">
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => {
+                    const isFilled = i < Math.floor(starRating);
+                    const isHalf = i === Math.floor(starRating) && starRating % 1 >= 0.3;
+                    if (isFilled) return <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400 drop-shadow-2xs" />;
+                    if (isHalf) return <StarHalf key={i} className="w-4 h-4 fill-amber-400 text-amber-400 drop-shadow-2xs" />;
+                    return <Star key={i} className="w-4 h-4 fill-gray-200 text-gray-200" />;
+                  })}
+                  <span className="text-xs font-bold text-amber-800 ml-1">({starRating.toFixed(1)})</span>
+                </div>
+              </div>
 
               <div className="flex items-baseline gap-2 md:gap-3 mb-4 md:mb-8">
                 <span className="text-2xl md:text-4xl font-black text-red-700">₹{discountPrice}</span>

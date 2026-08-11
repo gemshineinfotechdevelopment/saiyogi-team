@@ -15,8 +15,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createOrder } from "@/lib/api";
-import { downloadOrderReceiptPDF } from "@/lib/pdf-generator";
+import { createOrder, trackCustomerAction } from "@/lib/api";
+import { downloadOrderReceiptPDF, printOrderReceipt } from "@/lib/pdf-generator";
 import {
   Select,
   SelectContent,
@@ -174,6 +174,18 @@ const CartDrawer = () => {
       });
 
       if (response?.order) {
+        trackCustomerAction({
+          phone: formData.phoneNumber,
+          name: formData.name,
+          source: "product_enquiry",
+          enquiry: {
+            productName: items.map(i => i.product.name).join(", ") || "Enquiry Items",
+            amount: response.order.total || estimatedTotal,
+            status: "New"
+          },
+          deliveryAddress: fullDeliveryAddress
+        }).catch(err => console.warn("Failed to track customer enquiry:", err));
+
         const orderData = {
           orderNumber: response.order.orderNumber || response.order._id,
           customerName: formData.name,
@@ -198,10 +210,27 @@ const CartDrawer = () => {
         };
         setSavedOrderData(orderData);
 
-        // Save enquiry to user's phone-specific key in localStorage for MyEnquiry page
+        // Save enquiry to user's phone-specific key in localStorage and cookie for MyEnquiry page
         try {
-          const userPhoneKey = `user_saved_enquiries_${formData.phoneNumber.replace(/\D/g, "")}`;
-          const existing = JSON.parse(localStorage.getItem(userPhoneKey) || "[]");
+          const cleanPhone = formData.phoneNumber.replace(/\D/g, "");
+          const userPhoneKey = `user_saved_enquiries_${cleanPhone}`;
+          const cookieKey = `saiyogi_enquiries_${cleanPhone}`;
+
+          let existing: any[] = [];
+          const cookieVal = getCookie(cookieKey);
+          if (cookieVal) {
+            try {
+              const parsedCookie = JSON.parse(cookieVal);
+              if (Array.isArray(parsedCookie)) existing = parsedCookie;
+            } catch (_) {}
+          }
+          if (existing.length === 0) {
+            try {
+              const parsedLocal = JSON.parse(localStorage.getItem(userPhoneKey) || "[]");
+              if (Array.isArray(parsedLocal)) existing = parsedLocal;
+            } catch (_) {}
+          }
+
           const newEnquiry = {
             id: String(Date.now()),
             enquiryNumber: String(response.order.orderNumber || Math.floor(100000 + Math.random() * 900000)),
@@ -214,7 +243,9 @@ const CartDrawer = () => {
             deliveryAddress: fullDeliveryAddress,
             items: items.map(i => ({ productName: i.product.name, quantity: i.quantity, price: i.product.price }))
           };
-          localStorage.setItem(userPhoneKey, JSON.stringify([newEnquiry, ...existing]));
+          const updatedEnquiries = [newEnquiry, ...existing];
+          localStorage.setItem(userPhoneKey, JSON.stringify(updatedEnquiries));
+          setCookie(cookieKey, JSON.stringify(updatedEnquiries), 30);
         } catch (_) {}
       }
 
@@ -237,7 +268,7 @@ const CartDrawer = () => {
   const handleConfirmAndSubmitTerms = () => {
     if (savedOrderData) {
       try {
-        downloadOrderReceiptPDF(savedOrderData);
+        printOrderReceipt(savedOrderData);
       } catch (pdfErr) {
         console.error("PDF download failed:", pdfErr);
       }
@@ -327,8 +358,8 @@ const CartDrawer = () => {
                     <div key={productId} className="py-3.5 flex gap-3 items-start">
                       <img src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : product.image} alt={product.name} className="w-14 h-14 rounded-md object-contain shrink-0 border border-gray-100 p-0.5" />
                       <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start gap-2">
-                          <h4 className="font-bold text-sm text-gray-900 truncate">{product.name}</h4>
+                        <div className="flex justify-between items-start gap-2 mb-1">
+                          <h4 className="product-title-font font-bold text-sm text-gray-900 truncate">{product.name}</h4>
                           <button 
                             onClick={() => removeFromCart(productId)} 
                             className="text-gray-400 hover:text-red-500 transition-colors p-0.5 shrink-0"
@@ -337,8 +368,6 @@ const CartDrawer = () => {
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
-
-                        <p className="text-xs text-gray-400 font-medium mt-0.5 mb-2">{product.quantity || "1 Box"}</p>
                         
                         <div className="flex items-center justify-between gap-1">
                           <span className="font-bold text-[#a41a1c] text-sm shrink-0">₹{dp.toLocaleString('en-IN')}</span>

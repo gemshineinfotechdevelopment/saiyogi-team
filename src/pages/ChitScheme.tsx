@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Lock, LogIn, Image as ImageIcon, ZoomIn, X, Gift } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
-import { getChitSchemes, ChitSchemeItem } from "@/lib/api";
+import { getChitSchemes, ChitSchemeItem, trackCustomerAction } from "@/lib/api";
 
 interface ChitSchemeImage {
   id: string;
@@ -29,29 +29,52 @@ const DEFAULT_IMAGES: ChitSchemeImage[] = [
 ];
 
 const ChitScheme: React.FC = () => {
-  const { isUserLoggedIn, openLoginModal } = useAuth();
+  const { isUserLoggedIn, userPhone, userName, openLoginModal } = useAuth();
   const [images, setImages] = useState<ChitSchemeImage[]>([]);
   const [activeZoomImage, setActiveZoomImage] = useState<ChitSchemeImage | null>(null);
 
   useEffect(() => {
-    getChitSchemes()
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const mapped = data.map((item: ChitSchemeItem) => ({
-            id: item._id || item.id || '',
-            url: item.url,
-            title: item.title || '',
-            description: item.description || ''
-          }));
-          setImages(mapped);
-        } else {
+    if (isUserLoggedIn && userPhone) {
+      trackCustomerAction({
+        phone: userPhone,
+        name: userName || undefined,
+        source: "chit_scheme"
+      }).catch(err => console.warn("Failed to track chit scheme action:", err));
+    }
+  }, [isUserLoggedIn, userPhone, userName]);
+
+  useEffect(() => {
+    const loadChit = () => {
+      getChitSchemes()
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            const mapped = data.map((item: ChitSchemeItem) => ({
+              id: item._id || item.id || '',
+              url: item.url,
+              title: item.title || '',
+              description: item.description || ''
+            }));
+            setImages(mapped);
+          } else {
+            setImages(DEFAULT_IMAGES);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to fetch chit schemes from API:", err);
           setImages(DEFAULT_IMAGES);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to fetch chit schemes from API:", err);
-        setImages(DEFAULT_IMAGES);
-      });
+        });
+    };
+
+    loadChit();
+
+    const interval = setInterval(loadChit, 5000);
+    const onFocus = () => loadChit();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
   return (

@@ -7,7 +7,7 @@ import { Product, Category } from "@/data/products";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
 import { toast } from "sonner";
-import { Plus, Minus, ShoppingCart, Sparkles, ShoppingBag, Search, LogIn } from "lucide-react";
+import { Plus, Minus, ShoppingCart, Sparkles, ShoppingBag, Search, LogIn, CheckCircle2, Star, StarHalf } from "lucide-react";
 import QuickEnquiryFilters from "@/components/QuickEnquiryFilters";
 
 const QuickEnquiry = () => {
@@ -53,7 +53,7 @@ const QuickEnquiry = () => {
 
     loadAll();
 
-    const interval = setInterval(loadAll, 15000);
+    const interval = setInterval(loadAll, 5000);
     const onFocus = () => loadAll();
     window.addEventListener('focus', onFocus);
 
@@ -90,21 +90,32 @@ const QuickEnquiry = () => {
 
     const catMap: Record<string, { categoryName: string; items: Product[] }> = {};
     categories.forEach((cat) => {
-      catMap[cat._id || cat.id] = { categoryName: cat.name.toUpperCase(), items: [] };
+      const key = cat._id || cat.id;
+      if (key) {
+        catMap[key] = { categoryName: cat.name.toUpperCase(), items: [] };
+      }
+      if (cat.name) {
+        const nameKey = cat.name.toLowerCase();
+        if (!catMap[nameKey]) {
+          catMap[nameKey] = catMap[key] || { categoryName: cat.name.toUpperCase(), items: [] };
+        }
+      }
     });
     catMap["uncategorized"] = { categoryName: "OTHER PRODUCTS", items: [] };
 
     filtered.forEach((p) => {
       const cat = p.category as any;
       const catId = typeof cat === 'object' && cat !== null ? (cat._id || cat.id) : cat;
-      const catName = categories.find(c => (c._id || c.id) === catId)?.name || "OTHER PRODUCTS";
+      const catName = typeof cat === 'object' && cat !== null ? cat.name : (categories.find(c => (c._id || c.id) === catId)?.name || String(cat || "OTHER PRODUCTS"));
 
-      if (selectedCategory !== "All Categories" && catName !== selectedCategory) {
+      if (selectedCategory !== "All Categories" && catName.toLowerCase() !== selectedCategory.toLowerCase()) {
         return; // skip this product
       }
 
       if (catId && catMap[catId]) {
         catMap[catId].items.push(p);
+      } else if (catName && catMap[catName.toLowerCase()]) {
+        catMap[catName.toLowerCase()].items.push(p);
       } else {
         catMap["uncategorized"].items.push(p);
       }
@@ -174,17 +185,8 @@ const QuickEnquiry = () => {
           isNavbarHidden={isNavbarHidden}
         />
 
-        <div className="w-full bg-white shadow-xl border-y border-gray-150 rounded-none mb-8 mt-0">
-          <div className="flex-1 container mx-auto px-0 md:px-4 pt-3 md:pt-4 pb-8">
-            {/* Table Header Row */}
-            <div className="hidden md:grid md:grid-cols-12 gap-4 bg-[#f8f9fa] border border-gray-200 rounded-xl py-2.5 px-6 text-[10px] font-extrabold font-sans text-gray-700 uppercase tracking-wider items-center shadow-xs mb-3 md:mb-4">
-              <div className="col-span-4 pl-2 text-left">PRODUCT NAME</div>
-              <div className="col-span-2 text-center">ITEM CODE</div>
-              <div className="col-span-2 text-center">CONTENT</div>
-              <div className="col-span-1 text-center">UNIT PRICE</div>
-              <div className="col-span-2 text-center">QUANTITY</div>
-              <div className="col-span-1 text-right pr-4">TOTAL</div>
-            </div>
+        <div className="w-full bg-white shadow-xl border-y border-gray-150 rounded-none mb-8 mt-4 md:mt-6">
+          <div className="flex-1 container mx-auto px-0 md:px-4 py-8">
 
             <div className="space-y-6 md:space-y-4">
               {loading ? (
@@ -222,19 +224,19 @@ const QuickEnquiry = () => {
                               </div>
                             </div>
 
-                            <div className="flex-1 flex flex-col justify-between py-0.5">
-                              <div className="flex justify-between items-start gap-2">
-                                <div>
-                                  <div className="font-extrabold text-gray-900 text-[13px] leading-snug uppercase font-sans tracking-wide">{item.name}</div>
-                                  <p className="text-gray-500 text-[10px] font-bold mt-0.5 font-sans tracking-wider">#{pId.substring(0, 8).toUpperCase()}</p>
-                                </div>
-                                <div className="text-right shrink-0">
-                                  <div className="font-extrabold text-[#D35400] text-[13px] font-sans">₹{dp.toLocaleString('en-IN')}</div>
-                                  {(item.hasDiscount || settings.discountPercent > 0) && item.price > dp && (
-                                    <div className="text-[10px] text-gray-400 line-through font-semibold font-sans">₹{item.price.toLocaleString('en-IN')}</div>
-                                  )}
-                                </div>
-                              </div>
+                        <div className="flex-1 flex flex-col justify-between py-0.5">
+                          <div className="flex justify-between items-start gap-2">
+                            <div>
+                              <h3 className="font-black text-gray-800 text-[13px] leading-snug uppercase">{item.name}</h3>
+                              <p className="text-gray-400 text-[10px] font-bold mt-0.5">#{pId.substring(0, 8).toUpperCase()}</p>
+                            </div>
+                            <div className="text-right shrink-0">
+                               <div className="font-black text-[#D35400] text-[13px]">₹{dp.toLocaleString('en-IN')}</div>
+                               {(item.hasDiscount || settings.discountPercent > 0) && item.price > dp && (
+                                 <div className="text-[10px] text-gray-400 line-through font-bold">₹{item.price.toLocaleString('en-IN')}</div>
+                               )}
+                            </div>
+                          </div>
 
                               <div className="flex justify-between items-center mt-3">
                                 <div className="flex items-center bg-white border border-gray-300 rounded-lg shadow-2xs h-8 font-sans">
@@ -255,14 +257,14 @@ const QuickEnquiry = () => {
                           </div>
                         );
 
-                        const desktopView = (
-                          <div className={`hidden md:grid md:grid-cols-12 gap-4 ${bgColor} border-b border-gray-100 last:border-0 p-4 items-center hover:bg-gray-50 transition-colors font-sans`}>
-                            <div className="col-span-4 flex items-center gap-4">
-                              <div className="w-12 h-12 bg-white border border-gray-200 rounded-lg overflow-hidden flex items-center justify-center shrink-0 cursor-pointer relative" onClick={() => setActiveImage(displayImg)}>
-                                <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain p-1" />
-                              </div>
-                              <div className="font-extrabold text-gray-900 text-xs sm:text-sm uppercase tracking-wide leading-snug font-sans">{item.name}</div>
-                            </div>
+                    const desktopView = (
+                      <div className={`hidden md:grid md:grid-cols-12 gap-4 ${bgColor} border-b border-gray-100 last:border-0 p-4 items-center hover:bg-gray-50 transition-colors`}>
+                        <div className="col-span-4 flex items-center gap-4">
+                           <div className="w-12 h-12 bg-white border border-gray-200 rounded-lg overflow-hidden flex items-center justify-center shrink-0 cursor-pointer relative" onClick={() => setActiveImage(displayImg)}>
+                             <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain p-1" />
+                           </div>
+                           <h3 className="font-black text-gray-800 text-sm uppercase leading-tight">{item.name}</h3>
+                        </div>
 
                             <div className="col-span-2 text-center text-xs font-bold text-gray-600 font-sans tracking-wider">
                               #{pId.substring(0, 8).toUpperCase()}

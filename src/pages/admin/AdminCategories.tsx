@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, FolderTree, Eye, Package } from "lucide-react";
+import { Plus, Pencil, Trash2, FolderTree, Eye, Package, Search } from "lucide-react";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminNavbar from "@/components/layout/AdminNavbar";
 import { getCategories, getProducts, API_BASE_URL } from "@/lib/api";
@@ -18,6 +18,7 @@ const AdminCategories = () => {
   const { token } = useAuth();
   const [cats, setCats] = useState<Category[]>([]);
   const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [editing, setEditing] = useState<Category | null>(null);
@@ -261,7 +262,20 @@ const AdminCategories = () => {
             </Button>
           </div>
 
-          <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
+          {/* Search Card */}
+          <div className="bg-card border border-border rounded-lg p-4 mb-6 shadow-sm">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search categories by name or code..."
+                className="pl-9 bg-white"
+              />
+            </div>
+          </div>
+
+          <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm mb-24">
             <Table>
               <TableHeader className="bg-gray-50">
                 <TableRow>
@@ -273,7 +287,7 @@ const AdminCategories = () => {
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-gray-100">
-                {cats.map((cat) => (
+                {cats.filter(cat => cat.name.toLowerCase().includes(searchQuery.toLowerCase()) || cat.categoryCode.toLowerCase().includes(searchQuery.toLowerCase())).map((cat) => (
                   <TableRow 
                     key={cat.id} 
                     onClick={() => setViewingCategory(cat)}
@@ -286,7 +300,7 @@ const AdminCategories = () => {
                     </TableCell>
                     <TableCell className="font-bold text-gray-900 py-2.5">{cat.name}</TableCell>
                     <TableCell className="py-2.5">
-                      <Badge variant="secondary" className="font-bold">
+                      <Badge variant="secondary" className="font-bold whitespace-nowrap">
                         {cat.productCount} Items
                       </Badge>
                     </TableCell>
@@ -341,7 +355,7 @@ const AdminCategories = () => {
                 <DialogTitle>{editing ? "Edit Category" : "New Category"}</DialogTitle>
                 <DialogDescription>{editing ? "Rename or update this category." : "Add a new product category."}</DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-2">
+              <div className="space-y-4 py-2 px-1">
                 <div className="space-y-2">
                   <Label className="text-xs font-bold uppercase text-gray-700">Category Code (Auto Generated)</Label>
                   <Input

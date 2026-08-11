@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, CheckCircle } from "lucide-react";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminNavbar from "@/components/layout/AdminNavbar";
 import { getProducts, getCategories, getBrands, API_BASE_URL, Brand } from "@/lib/api";
@@ -24,7 +24,7 @@ const AdminProducts = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
 
-  const [form, setForm] = useState({ name: "", sku: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", hasDiscount: false, displayNetRate: false, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1" });
+  const [form, setForm] = useState({ name: "", sku: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", rating: "5", hasDiscount: false, displayNetRate: false, isSaiYogiVerified: false, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1" });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
 
@@ -55,8 +55,10 @@ const AdminProducts = () => {
       category: catId,
       description: product.description || "",
       quantity: product.quantity || "",
+      rating: (product.rating ?? 5).toString(),
       hasDiscount: product.hasDiscount || false,
       displayNetRate: product.displayNetRate || false,
+      isSaiYogiVerified: product.isSaiYogiVerified || false,
       netRate: (product.netRate ?? "").toString(),
       wholesalePrice: (product.wholesalePrice ?? "").toString(),
       storeStockPieces: (product.storeStockPieces ?? 0).toString(),
@@ -69,7 +71,7 @@ const AdminProducts = () => {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ name: "", sku: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", hasDiscount: false, displayNetRate: false, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1" });
+    setForm({ name: "", sku: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", rating: "5", hasDiscount: false, displayNetRate: false, isSaiYogiVerified: false, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1" });
     setImageFile(null);
     setDialogOpen(true);
   };
@@ -198,8 +200,8 @@ const AdminProducts = () => {
       <AdminNavbar />
       <div className="flex min-h-screen">
         <AdminSidebar />
-        <main className="flex-1 p-6 lg:p-8 overflow-auto">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <main className="flex-1 p-6 lg:p-8 overflow-auto pb-32">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div className="flex items-start justify-between w-full md:w-auto">
               <div>
                 <h1 className="font-display text-2xl font-bold">Products</h1>
@@ -221,9 +223,12 @@ const AdminProducts = () => {
                       {editing ? 'Update product details and inventory' : 'Create a new product in the store catalog'}
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="space-y-4 max-h-[85vh] overflow-y-auto pr-2 custom-scrollbar">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div><Label>Product Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter product name" /></div>
+                  <div className="space-y-4 max-h-[85vh] overflow-y-auto p-1.5 pr-3 custom-scrollbar">
+                    <div className="grid grid-cols-2 gap-4 items-start">
+                      <div>
+                        <Label className="text-xs font-bold uppercase text-gray-700">Product Name *</Label>
+                        <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter product name" className="mt-1" />
+                      </div>
                       <div>
                         <Label className="text-xs font-bold uppercase text-gray-700">SKU / Code (Auto Generated)</Label>
                         <Input 
@@ -233,20 +238,36 @@ const AdminProducts = () => {
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div><Label>Retail Price (₹)</Label><Input value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} type="number" placeholder="0" /></div>
-                      <div><Label>Net-Rate (₹)</Label><Input value={form.netRate} onChange={(e) => setForm({ ...form, netRate: e.target.value })} type="number" placeholder="0" /></div>
+                    <div className="grid grid-cols-2 gap-4 items-start">
+                      <div>
+                        <Label className="text-xs font-bold uppercase text-gray-700">Retail Price (₹)</Label>
+                        <Input value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} type="number" placeholder="0" className="mt-1" />
+                      </div>
+                      <div>
+                        <Label className="text-xs font-bold uppercase text-gray-700">Net-Rate (₹)</Label>
+                        <Input value={form.netRate} onChange={(e) => setForm({ ...form, netRate: e.target.value })} type="number" placeholder="0" className="mt-1" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 items-start">
+                      <div>
+                        <Label className="text-xs font-bold uppercase text-gray-700">Shop Stock (Pcs)</Label>
+                        <Input value={form.storeStockPieces} onChange={(e) => {
+                          const val = e.target.value;
+                          setForm({ ...form, storeStockPieces: val, stock: val });
+                        }} type="number" placeholder="0" className="mt-1" />
+                      </div>
+                      <div>
+                        <Label className="text-xs font-bold uppercase text-gray-700">Star Rating (1 - 5 ⭐)</Label>
+                        <Input value={form.rating} onChange={(e) => setForm({ ...form, rating: e.target.value })} type="number" min="1" max="5" step="0.1" placeholder="5" className="mt-1" />
+                      </div>
                     </div>
                     <div>
-                      <Label>Shop Stock (Pcs)</Label>
-                      <Input value={form.storeStockPieces} onChange={(e) => {
-                        const val = e.target.value;
-                        setForm({ ...form, storeStockPieces: val, stock: val });
-                      }} type="number" placeholder="0" />
+                      <Label className="text-xs font-bold uppercase text-gray-700">Pack / Set Quantity Info (e.g. 50pcs/Set)</Label>
+                      <Input value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} type="text" placeholder="e.g. 50pcs/Set" className="mt-1" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4 items-start">
                       <div>
-                        <Label>Brand</Label>
+                        <Label className="text-xs font-bold uppercase text-gray-700">Brand</Label>
                         <select
                           value={form.brand}
                           onChange={(e) => setForm({ ...form, brand: e.target.value })}
@@ -294,8 +315,27 @@ const AdminProducts = () => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Dedicated Full-Width Verified by Sai Yogi Option */}
+                    <div className="p-3 bg-emerald-50 border-2 border-emerald-200 rounded-xl flex items-center justify-between shadow-xs my-1">
+                      <div className="flex items-center gap-2.5">
+                        <Checkbox 
+                          id="isSaiYogiVerified" 
+                          checked={form.isSaiYogiVerified} 
+                          onCheckedChange={(checked) => setForm({ ...form, isSaiYogiVerified: !!checked })} 
+                          className="w-5 h-5 border-emerald-600 data-[state=checked]:bg-emerald-600 data-[state=checked]:text-white"
+                        />
+                        <Label htmlFor="isSaiYogiVerified" className="cursor-pointer font-extrabold text-emerald-900 text-sm flex items-center gap-1.5 select-none">
+                          <CheckCircle className="w-5 h-5 text-emerald-600 fill-emerald-100 shrink-0" />
+                          <span>Verified by Sai Yogi</span>
+                        </Label>
+                      </div>
+                      <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full border border-emerald-300">
+                        Shows Verified Tag on User Side
+                      </span>
+                    </div>
                     <div>
-                      <Label>Category</Label>
+                      <Label className="text-xs font-bold uppercase text-gray-700">Category</Label>
                       <select 
                         value={form.category} 
                         onChange={(e) => {
@@ -335,7 +375,7 @@ const AdminProducts = () => {
                       </select>
                     </div>
                     <div>
-                      <Label>Image (Max 1200x1600px, Max 1MB)</Label>
+                      <Label className="text-xs font-bold uppercase text-gray-700">Image (Max 1200x1600px, Max 1MB)</Label>
                       <input type="file" accept="image/*" onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (!file) {
@@ -364,7 +404,7 @@ const AdminProducts = () => {
                       }} className="mt-1 block w-full text-xs text-gray-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer" />
                     </div>
                     <div>
-                      <Label>Description</Label>
+                      <Label className="text-xs font-bold uppercase text-gray-700">Description</Label>
                       <textarea 
                         value={form.description} 
                         onChange={(e) => setForm({ ...form, description: e.target.value })} 
@@ -390,10 +430,12 @@ const AdminProducts = () => {
                       fd.append('category', form.category);
                       fd.append('description', form.description);
                       fd.append('quantity', form.quantity);
+                      fd.append('rating', form.rating || "5");
                       fd.append('wholesalePrice', form.wholesalePrice || "");
                       fd.append('netRate', form.netRate || "");
                       fd.append('hasDiscount', form.hasDiscount.toString());
                       fd.append('displayNetRate', form.displayNetRate.toString());
+                      fd.append('isSaiYogiVerified', form.isSaiYogiVerified.toString());
                       fd.append('storeStockPieces', form.storeStockPieces);
                       fd.append('godownStockCases', form.godownStockCases);
                       fd.append('piecesPerCase', form.piecesPerCase);
@@ -424,7 +466,7 @@ const AdminProducts = () => {
                         }
 
                         setDialogOpen(false);
-                        setForm({ name: '', sku: '', price: '', wholesalePrice: '', netRate: '', stock: '', brand: '', category: '', description: '', quantity: '', hasDiscount: false, displayNetRate: false, storeStockPieces: '0', godownStockCases: '0', piecesPerCase: '1' });
+                        setForm({ name: '', sku: '', price: '', wholesalePrice: '', netRate: '', stock: '', brand: '', category: '', description: '', quantity: '', rating: '5', hasDiscount: false, displayNetRate: false, isSaiYogiVerified: false, storeStockPieces: '0', godownStockCases: '0', piecesPerCase: '1' });
                         setImageFile(null);
                         setEditing(null);
                         toast.success(editing ? 'Product updated!' : 'Product added!');
@@ -466,7 +508,7 @@ const AdminProducts = () => {
             </CardContent>
           </Card>
 
-          <div className="bg-card border border-border rounded-lg overflow-hidden">
+          <div className="bg-card border border-border rounded-lg overflow-hidden mb-24">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
                 <thead className="bg-gray-50">
@@ -477,6 +519,7 @@ const AdminProducts = () => {
                     <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-right">Price</th>
                     <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-right">Net Rate</th>
                     <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-center hidden md:table-cell">Discount</th>
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-center hidden md:table-cell">Verified</th>
                     <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-right hidden md:table-cell">Stock</th>
                     <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-right">Actions</th>
                   </tr>
@@ -484,20 +527,20 @@ const AdminProducts = () => {
                 <tbody className="divide-y divide-gray-100">
                   {paginatedData.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="text-center p-8 text-muted-foreground">
+                      <td colSpan={9} className="text-center p-8 text-muted-foreground">
                         {search ? `No products found matching "${search}"` : 'No products found'}
                       </td>
                     </tr>
                   ) : (
                     paginatedData.map((p) => (
                       <tr key={p.id || p._id} className="hover:bg-red-50/40 transition-colors">
-                        <td className="p-4 font-mono text-xs text-gray-500">{p.sku || p.code || 'N/A'}</td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-3">
-                            <img src={p.image || '/placeholder.svg'} alt={p.name || 'Product'} className="w-10 h-10 rounded-lg object-cover border border-gray-200" />
+                        <td className="p-4 font-mono text-xs text-gray-500 whitespace-nowrap">{p.sku || p.code || 'N/A'}</td>
+                        <td className="p-4 whitespace-nowrap">
+                          <div className="flex items-center gap-4 pr-6">
+                            <img src={p.image || '/placeholder.svg'} alt={p.name || 'Product'} className="w-12 h-12 rounded-lg object-cover border border-gray-200 shrink-0 shadow-sm" />
                             <div>
-                              <p className="font-bold text-gray-900">{p.name}</p>
-                              <p className="text-xs text-gray-500 mt-0.5">
+                              <p className="font-bold text-gray-900 text-base tracking-tight">{p.name}</p>
+                              <p className="text-xs font-medium text-gray-500 mt-0.5">
                                 {typeof p.brand === 'object' && p.brand !== null ? (p.brand as any).name : (p.brand || 'N/A')}
                               </p>
                             </div>
@@ -550,6 +593,48 @@ const AdminProducts = () => {
                             }
                           }}
                         />
+                      </td>
+                      <td className="p-3 text-center hidden md:table-cell">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <Checkbox
+                            checked={!!p.isSaiYogiVerified}
+                            onCheckedChange={async (checked) => {
+                              try {
+                                const newStatus = !!checked;
+                                // Optimistic update
+                                setProductList((prev) =>
+                                  prev.map((prod) =>
+                                    prod.id === p.id ? { ...prod, isSaiYogiVerified: newStatus } : prod
+                                  )
+                                );
+
+                                const headers: Record<string, string> = {
+                                  'Content-Type': 'application/json'
+                                };
+                                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                                const res = await fetch(`${API_BASE_URL}/api/products/${p.id}`, {
+                                  method: 'PUT',
+                                  headers,
+                                  body: JSON.stringify({ isSaiYogiVerified: newStatus }),
+                                  credentials: 'include'
+                                });
+
+                                if (!res.ok) throw new Error('Update failed');
+                                toast.success(`Verified by Sai Yogi ${newStatus ? 'enabled' : 'disabled'}`);
+                              } catch (err) {
+                                console.error('Update error:', err);
+                                toast.error('Failed to update verified status');
+                                // Revert on error
+                                setProductList((prev) =>
+                                  prev.map((prod) =>
+                                    prod.id === p.id ? { ...prod, isSaiYogiVerified: !checked } : prod
+                                  )
+                                );
+                              }
+                            }}
+                          />
+                        </div>
                       </td>
                       <td className="p-3 text-right hidden md:table-cell">
                         <span className={(p.storeStockPieces || 0) < 30 ? "text-accent font-bold" : ""}>{p.storeStockPieces || 0}</span>

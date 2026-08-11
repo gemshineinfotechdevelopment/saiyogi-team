@@ -261,7 +261,11 @@ const AdminOrders = () => {
                         <p className="text-xs text-gray-500 mt-0.5">{o.customerEmail}</p>
                       </td>
                       <td className="p-4 text-sm text-gray-700">{o.customerPhone}</td>
-                      <td className="p-4 hidden sm:table-cell font-medium">{o.items?.length || 0}</td>
+                      <td className="p-4 hidden sm:table-cell">
+                        <Badge variant="secondary" className="font-bold whitespace-nowrap">
+                          {o.items?.length || 0} Items
+                        </Badge>
+                      </td>
                       <td className="p-4 text-right font-bold text-primary">₹{Number(o.subtotal) + (Number(o.packingCharge) || 0)}</td>
                       <td className="p-4 text-center">
                         <Badge variant={o.packingStatus === 'packed' ? 'default' : 'secondary'} className={o.packingStatus === 'packed' ? 'bg-red-600' : ''}>

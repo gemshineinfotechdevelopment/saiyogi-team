@@ -89,7 +89,8 @@ const settingsSchema = new mongoose.Schema(
     youtubeVideos: [{
       title: String,
       url: String
-    }]
+    }],
+    heroBanners: [String]
   },
   { timestamps: true }
 );
