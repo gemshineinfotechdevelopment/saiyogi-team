@@ -437,72 +437,44 @@ const ChitScheme: React.FC = () => {
             </form>
           </div>
 
-          {/* Right Column (SECOND): Scheme Offers List (7 Cols) */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-purple-500/10 border border-amber-200/90 text-amber-950 p-4 rounded-2xl text-xs font-bold flex items-center gap-2.5 shadow-2xs">
-              <Sparkles className="w-5 h-5 text-amber-600 shrink-0 animate-bounce" />
-              <span>Explore active schemes below & select one to pre-fill the form!</span>
-            </div>
-
+          {/* Right Column: Admin Added Scheme Images */}
+          <div className="lg:col-span-7 space-y-5">
             {images.length === 0 ? (
               <div className="py-16 text-center text-gray-400 font-medium text-sm border-2 border-dashed border-gray-200 rounded-3xl bg-white p-6">
                 <Gift className="w-10 h-10 mx-auto mb-2 opacity-40 text-amber-700" />
-                No Chit Schemes currently available.
+                No Chit Scheme images available.
               </div>
             ) : (
-              <div className="space-y-5">
+              <div className="space-y-6">
                 {images.map((img) => (
                   <div
                     key={img.id}
-                    className="bg-white rounded-3xl border border-gray-200/90 p-5 sm:p-6 shadow-xs hover:shadow-md transition-all space-y-4"
+                    onClick={() => img.title && setSelectedScheme(img.title)}
+                    className={`group bg-white rounded-3xl border transition-all overflow-hidden shadow-xs hover:shadow-md cursor-pointer ${
+                      selectedScheme === img.title ? 'ring-2 ring-[#7A1416] border-transparent' : 'border-gray-200'
+                    }`}
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-gray-100 pb-3">
-                      <div className="space-y-1 flex-1">
-                        <div className="flex items-center gap-2">
-                          <Gift className="w-5 h-5 text-[#7A1416] shrink-0" />
-                          <h3 className="font-extrabold text-gray-900 text-base leading-snug">
-                            {img.title || "Diwali Special Savings Scheme"}
-                          </h3>
-                        </div>
-                        {img.description && (
-                          <p className="text-xs text-gray-600 font-medium leading-relaxed pt-1">
-                            {img.description}
-                          </p>
-                        )}
+                    {img.url ? (
+                      <div className="relative overflow-hidden">
+                        <img
+                          src={img.url}
+                          alt={img.title || "Chit Scheme Banner"}
+                          className="w-full h-auto max-h-[450px] object-cover group-hover:scale-[1.01] transition-transform duration-300 rounded-3xl"
+                        />
                       </div>
-                      {img.title && (
-                        <button
-                          onClick={() => handleSelectSchemeToApply(img.title!)}
-                          className="bg-[#7A1416] hover:bg-[#900000] text-white px-4 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-2xs whitespace-nowrap cursor-pointer shrink-0 self-start sm:self-auto"
-                        >
-                          Apply for this Scheme →
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Scheme Parameters Badge Grid */}
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      {img.startDate && (
-                        <div className="bg-gray-50 border border-gray-200/60 rounded-xl p-2.5 flex items-center gap-1.5 text-gray-700">
-                          <Calendar className="w-4 h-4 text-[#7A1416]" />
-                          <span>Start Date: <strong className="text-gray-900">{img.startDate}</strong></span>
+                    ) : (
+                      <div className="p-8 bg-gradient-to-br from-amber-50 to-red-50 border border-amber-100 rounded-3xl flex flex-col items-center justify-center text-center space-y-3 py-14">
+                        <div className="w-14 h-14 rounded-2xl bg-white text-[#7A1416] shadow-2xs flex items-center justify-center">
+                          <Gift className="w-8 h-8" />
                         </div>
-                      )}
-                      <div className="bg-gray-50 border border-gray-200/60 rounded-xl p-2.5 flex items-center gap-1.5 text-gray-700">
-                        <Clock className="w-4 h-4 text-[#7A1416]" />
-                        <span>Duration: <strong className="text-gray-900">{img.totalMonths || 11} Months</strong></span>
+                        <h3 className="font-extrabold text-gray-900 text-lg">{img.title}</h3>
+                        {img.monthlyAmount ? (
+                          <span className="text-xs font-extrabold bg-[#7A1416] text-white px-4 py-1.5 rounded-full shadow-2xs">
+                            ₹{img.monthlyAmount.toLocaleString()} / month
+                          </span>
+                        ) : null}
                       </div>
-                      <div className="bg-amber-50 border border-amber-200/80 rounded-xl p-2.5 col-span-2 flex items-center gap-1.5 text-amber-950 font-medium">
-                        <span className="text-amber-800 font-bold">🔔 Monthly Due Date:</span>
-                        <span className="font-extrabold text-[#7A1416]">Every month by the {img.dueDateDay || 10}th</span>
-                      </div>
-                      {img.monthlyAmount ? (
-                        <div className="bg-emerald-50 border border-emerald-200/80 rounded-xl p-2.5 col-span-2 flex items-center justify-between text-emerald-950 font-medium">
-                          <span>Monthly Amount:</span>
-                          <span className="font-extrabold text-emerald-900 text-sm">₹{img.monthlyAmount.toLocaleString()} / month</span>
-                        </div>
-                      ) : null}
-                    </div>
+                    )}
                   </div>
                 ))}
               </div>
