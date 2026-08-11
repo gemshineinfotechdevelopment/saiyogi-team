@@ -43,6 +43,8 @@ const MyAccount: React.FC = () => {
   const [enquiries, setEnquiries] = useState<EnquiryItem[]>([]);
   const [selectedEnquiry, setSelectedEnquiry] = useState<EnquiryItem | null>(null);
 
+  const [schemes, setSchemes] = useState<ChitSchemeItem[]>([]);
+  const [subscriptions, setSubscriptions] = useState<ChitSubscriptionItem[]>([]);
   const [loadingChit, setLoadingChit] = useState(false);
 
   useEffect(() => {
