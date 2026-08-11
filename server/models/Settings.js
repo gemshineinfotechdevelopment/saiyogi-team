@@ -94,7 +94,8 @@ const settingsSchema = new mongoose.Schema(
       type: String,
       default: ''
     },
-    heroBanners: [String]
+    heroBanners: [String],
+    noticeBanners: [String]
   },
   { timestamps: true }
 );

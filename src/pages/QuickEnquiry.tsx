@@ -169,6 +169,7 @@ const QuickEnquiry = () => {
       <main className={`flex-1 w-full pb-12 px-0 transition-all duration-300 ${isNavbarHidden
         ? 'pt-[56px] md:pt-[64px]'
         : 'pt-[120px] md:pt-[172px]'
+
         }`}>
         {/* Sticky Filters & Cart Total Component */}
         <QuickEnquiryFilters
