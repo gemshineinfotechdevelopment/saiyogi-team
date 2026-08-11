@@ -6,7 +6,11 @@ import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 
-const UserHeader = () => {
+interface UserHeaderProps {
+  isHidden?: boolean;
+}
+
+const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
   const { totalItems, setIsCartOpen } = useCart();
   const { settings } = useSiteSettings();
   const { isUserLoggedIn, userPhone, userName, openLoginModal, logoutUser } = useAuth();
@@ -51,7 +55,7 @@ const UserHeader = () => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md border-b border-gray-100 transition-all duration-300 w-full">
+      <header className={`fixed top-0 left-0 right-0 z-50 bg-white shadow-md border-b border-gray-100 transition-transform duration-300 w-full ${isHidden ? "-translate-y-full" : "translate-y-0"}`}>
         {/* Top Contact Bar */}
         <div className="bg-[#A80000] text-white text-xs py-1.5 hidden md:block">
           <div className="container mx-auto px-4 flex justify-between items-center">

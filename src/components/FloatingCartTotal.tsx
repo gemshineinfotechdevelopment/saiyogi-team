@@ -9,7 +9,7 @@ export const FloatingCartTotal: React.FC = () => {
   const location = useLocation();
 
   // Hide on admin routes
-  if (location?.pathname?.startsWith("/admin")) {
+  if (location.pathname.startsWith("/admin")) {
     return null;
   }
 

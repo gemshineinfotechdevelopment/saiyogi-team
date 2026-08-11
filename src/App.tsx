@@ -29,6 +29,7 @@ import AdminCustomers from "./pages/admin/AdminCustomers";
 import AdminChitScheme from "./pages/admin/AdminChitScheme";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminContent from "./pages/admin/AdminContent";
+import AdminPageContent from "./pages/admin/AdminPageContent";
 
 import NotFound from "./pages/NotFound";
 
@@ -138,6 +139,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <AdminReports />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/page-content"
+                    element={
+                      <ProtectedRoute>
+                        <AdminPageContent />
                       </ProtectedRoute>
                     }
                   />
