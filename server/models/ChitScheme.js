@@ -26,6 +26,27 @@ const chitSchemeSchema = new mongoose.Schema(
       type: Number,
       default: 0
     },
+    startDate: {
+      type: String,
+      default: ''
+    },
+    totalMonths: {
+      type: Number,
+      default: 11
+    },
+    dueDateDay: {
+      type: Number,
+      default: 10
+    },
+    monthlyAmount: {
+      type: Number,
+      default: 0
+    },
+    status: {
+      type: String,
+      enum: ['Upcoming', 'Active', 'Completed', 'Closed'],
+      default: 'Active'
+    },
     isActive: {
       type: Boolean,
       default: true
