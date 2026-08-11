@@ -8,8 +8,8 @@ export const FloatingCartTotal: React.FC = () => {
   const { settings } = useSiteSettings();
   const location = useLocation();
 
-  // Hide on admin routes
-  if (location.pathname.startsWith("/admin")) {
+  // Hide on admin routes & quick enquiry page (which has its own summary)
+  if (location.pathname.startsWith("/admin") || location.pathname === "/quick-enquiry") {
     return null;
   }
 

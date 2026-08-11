@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 const ProductCard = ({ product, categoryName }: { product: Product; categoryName?: string }) => {
   const [showDetails, setShowDetails] = useState(false);
-  const { items, addToCart, updateQuantity } = useCart();
+  const { items, addToCart, updateQuantity, removeFromCart } = useCart();
   const { settings } = useSiteSettings();
 
   const productId = String(product._id || product.id || '');
@@ -33,18 +33,26 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
   const handleIncrement = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if ((product.storeStockPieces || 0) <= 0) return;
     if (quantity >= (product.storeStockPieces || 0)) {
       toast.error("Not enough stock available");
       return;
     }
-    updateQuantity(productId!, quantity + 1);
+    if (quantity === 0) {
+      addToCart(product, 1);
+      toast.success(`${product.name} added to cart!`);
+    } else {
+      updateQuantity(productId, quantity + 1);
+    }
   };
 
   const handleDecrement = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (quantity > 0) {
-      updateQuantity(productId!, quantity - 1);
+    if (quantity > 1) {
+      updateQuantity(productId, quantity - 1);
+    } else if (quantity === 1) {
+      removeFromCart(productId);
     }
   };
 
