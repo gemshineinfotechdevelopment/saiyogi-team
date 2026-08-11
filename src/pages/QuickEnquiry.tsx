@@ -69,10 +69,11 @@ const QuickEnquiry = () => {
   }, [products]);
 
   const uniqueCategoryNames = useMemo(() => {
-    return ["All Categories", ...categories.map(c => c.name)];
+    const names = new Set(categories.map(c => c.name).filter(Boolean));
+    return ["All Categories", ...Array.from(names)];
   }, [categories]);
 
-  // Group and filter products
+  // Group and filter products cleanly without duplicates
   const groupedProducts = useMemo(() => {
     let filtered = products;
 
@@ -88,40 +89,45 @@ const QuickEnquiry = () => {
       filtered = filtered.filter(p => p.brand === selectedBrand);
     }
 
-    const catMap: Record<string, { categoryName: string; items: Product[] }> = {};
+    // Map each category uniquely by category ID or normalized name
+    const catGroupMap = new Map<string, { categoryName: string; items: Product[] }>();
+
     categories.forEach((cat) => {
-      const key = cat._id || cat.id;
-      if (key) {
-        catMap[key] = { categoryName: cat.name.toUpperCase(), items: [] };
-      }
-      if (cat.name) {
-        const nameKey = cat.name.toLowerCase();
-        if (!catMap[nameKey]) {
-          catMap[nameKey] = catMap[key] || { categoryName: cat.name.toUpperCase(), items: [] };
-        }
+      const key = String(cat._id || cat.id || cat.name).toLowerCase();
+      if (!catGroupMap.has(key)) {
+        catGroupMap.set(key, {
+          categoryName: cat.name.toUpperCase(),
+          items: [],
+        });
       }
     });
-    catMap["uncategorized"] = { categoryName: "OTHER PRODUCTS", items: [] };
+
+    const fallbackKey = "uncategorized";
+    catGroupMap.set(fallbackKey, { categoryName: "OTHER PRODUCTS", items: [] });
 
     filtered.forEach((p) => {
       const cat = p.category as any;
-      const catId = typeof cat === 'object' && cat !== null ? (cat._id || cat.id) : cat;
-      const catName = typeof cat === 'object' && cat !== null ? cat.name : (categories.find(c => (c._id || c.id) === catId)?.name || String(cat || "OTHER PRODUCTS"));
+      const catId = typeof cat === 'object' && cat !== null ? String(cat._id || cat.id || '').toLowerCase() : (cat ? String(cat).toLowerCase() : '');
+      const catName = typeof cat === 'object' && cat !== null ? cat.name : (categories.find(c => String(c._id || c.id || '').toLowerCase() === catId)?.name || String(cat || ""));
 
-      if (selectedCategory !== "All Categories" && catName.toLowerCase() !== selectedCategory.toLowerCase()) {
-        return; // skip this product
+      if (selectedCategory !== "All Categories" && catName && catName.toLowerCase() !== selectedCategory.toLowerCase()) {
+        return; // skip product if filtering by category
       }
 
-      if (catId && catMap[catId]) {
-        catMap[catId].items.push(p);
-      } else if (catName && catMap[catName.toLowerCase()]) {
-        catMap[catName.toLowerCase()].items.push(p);
-      } else {
-        catMap["uncategorized"].items.push(p);
+      // Find matching group
+      let groupKey = catId && catGroupMap.has(catId) ? catId : (catName && catGroupMap.has(catName.toLowerCase()) ? catName.toLowerCase() : fallbackKey);
+      
+      const group = catGroupMap.get(groupKey) || catGroupMap.get(fallbackKey)!;
+
+      // Prevent pushing duplicate product instances into the group
+      const pId = String(p._id || p.id);
+      if (!group.items.some(item => String(item._id || item.id) === pId)) {
+        group.items.push(p);
       }
     });
 
-    return Object.values(catMap).filter((g) => g.items.length > 0);
+    // Return unique category groups that contain items
+    return Array.from(catGroupMap.values()).filter((g) => g.items.length > 0);
   }, [products, categories, searchQuery, selectedBrand, selectedCategory]);
 
   const handleQtyChange = (product: Product, delta: number) => {
