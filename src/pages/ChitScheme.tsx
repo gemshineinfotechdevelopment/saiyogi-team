@@ -810,6 +810,8 @@ const ChitScheme: React.FC = () => {
             </button>
           </DialogContent>
         </Dialog>
+      )}
+
       {/* Image Zoom Modal */}
       {activeZoomImage && (
         <Dialog open={!!activeZoomImage} onOpenChange={() => setActiveZoomImage(null)}>
