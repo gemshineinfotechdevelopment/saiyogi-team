@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
-import { Lock, LogIn, Gift, Send, CheckCircle2, MapPin, User, Mail, Phone, ChevronDown, Sparkles, Calendar, Clock, ArrowLeft, ChevronRight, Eye } from "lucide-react";
+import { Lock, LogIn, Gift, Send, CheckCircle2, MapPin, User, Mail, Phone, ChevronDown, Sparkles, Calendar, Clock, ArrowLeft, ChevronRight, Eye, ZoomIn } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { getChitSchemes, ChitSchemeItem, submitChitSubscription, trackCustomerAction, getChitSubscriptions, ChitSubscriptionItem } from "@/lib/api";
@@ -74,6 +74,7 @@ const ChitScheme: React.FC = () => {
   const [showPurchasedModal, setShowPurchasedModal] = useState(false);
   const [selectedPurchasedSub, setSelectedPurchasedSub] = useState<ChitSubscriptionItem | null>(null);
   const [submittedData, setSubmittedData] = useState<any>(null);
+  const [activeZoomImage, setActiveZoomImage] = useState<ChitSchemeImage | null>(null);
 
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -807,6 +808,22 @@ const ChitScheme: React.FC = () => {
             >
               View My Purchased Scheme Details
             </button>
+          </DialogContent>
+        </Dialog>
+      {/* Image Zoom Modal */}
+      {activeZoomImage && (
+        <Dialog open={!!activeZoomImage} onOpenChange={() => setActiveZoomImage(null)}>
+          <DialogContent className="max-w-3xl p-4 bg-white rounded-3xl">
+            <DialogHeader className="sr-only">
+              <DialogTitle>{activeZoomImage.title || "Scheme Image Preview"}</DialogTitle>
+            </DialogHeader>
+            <div className="relative">
+              <img
+                src={activeZoomImage.url}
+                alt={activeZoomImage.title || "Scheme Image"}
+                className="w-full h-auto max-h-[80vh] object-contain rounded-2xl"
+              />
+            </div>
           </DialogContent>
         </Dialog>
       )}
