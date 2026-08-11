@@ -88,6 +88,9 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
               Quick Enquiry
               <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded animate-pulse absolute -right-6 -top-2 font-bold uppercase">NEW</span>
             </Link>
+            <Link to="/price-list" className={getLinkClass('/price-list')}>
+              PRICE LIST
+            </Link>
             <Link to="/chit-scheme" className={getLinkClass('/chit-scheme')}>
               Chit Scheme
             </Link>
@@ -107,11 +110,10 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
             {/* User Symbol Button / Phone Badge */}
             <button
               onClick={openLoginModal}
-              className={`p-2 sm:p-2.5 rounded-xl border transition-all flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95 cursor-pointer ${
-                isUserLoggedIn
+              className={`p-2 sm:p-2.5 rounded-xl border transition-all flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95 cursor-pointer ${isUserLoggedIn
                   ? "bg-red-50 border-[#A80000] text-[#A80000] font-bold"
                   : "bg-gray-50 border-gray-200 text-gray-700 hover:text-[#A80000] hover:border-[#A80000]"
-              }`}
+                }`}
               title={isUserLoggedIn ? `User Account (${userName && userName !== "Customer" ? userName : (userPhone ? `+91 ${userPhone}` : "")})` : "Login"}
             >
               <User className="h-5 w-5" />
@@ -162,43 +164,43 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
             </div>
           </div>
         )}
-
-        {/* Mobile Menu Drawer */}
-        <div className={`md:hidden fixed inset-0 z-[60] ${menuOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
-          {/* Backdrop overlay */}
-          <div 
-            className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
-              menuOpen ? "opacity-100" : "opacity-0"
-            }`}
-            onClick={() => setMenuOpen(false)}
-          />
-          
-          {/* Drawer content */}
-          <div 
-            className={`absolute top-0 left-0 h-full w-[75vw] max-w-[300px] bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
-              menuOpen ? "translate-x-0" : "-translate-x-full"
-            }`}
-          >
-            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <img src={companyLogo} alt="Sai Yogi" className="h-14 object-contain" />
-              <button onClick={() => setMenuOpen(false)} className="p-2 text-gray-500 hover:text-black hover:bg-gray-200 rounded-full transition-colors">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <nav className="flex flex-col gap-6 p-6 text-[15px] font-medium overflow-y-auto">
-              <Link to="/" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/')}>Home</Link>
-              <Link to="/catalog" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/catalog')}>All Products</Link>
-              <Link to="/quick-enquiry" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/quick-enquiry') + " flex items-center gap-2"}>
-                Quick Enquiry <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded uppercase font-bold">NEW</span>
-              </Link>
-              <Link to="/chit-scheme" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/chit-scheme')}>Chit Scheme</Link>
-              <Link to="/about-us" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/about-us')}>About Us</Link>
-              <Link to="/safety-tips" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/safety-tips')}>Safety Tips</Link>
-              <Link to="/contact" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/contact')}>Contact Us</Link>
-            </nav>
-          </div>
-        </div>
       </header>
+
+      {/* Mobile Menu Drawer (outside header so fixed positioning covers full screen viewport) */}
+      <div className={`md:hidden fixed inset-0 z-[100] ${menuOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
+        {/* Backdrop overlay */}
+        <div
+          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${menuOpen ? "opacity-100" : "opacity-0"
+            }`}
+          onClick={() => setMenuOpen(false)}
+        />
+
+        {/* Drawer content */}
+        <div
+          className={`absolute top-0 left-0 h-full w-[75vw] max-w-[300px] bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${menuOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+        >
+          <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <img src={companyLogo} alt="Sai Yogi" className="h-12 object-contain" />
+            <button onClick={() => setMenuOpen(false)} className="p-2 text-gray-500 hover:text-black hover:bg-gray-200 rounded-full transition-colors cursor-pointer">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <nav className="flex flex-col gap-5 p-6 text-sm uppercase font-bold overflow-y-auto flex-1">
+            <Link to="/" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/')}>HOME</Link>
+            <Link to="/catalog" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/catalog')}>ALL PRODUCTS</Link>
+            <Link to="/quick-enquiry" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/quick-enquiry') + " flex items-center gap-2"}>
+              QUICK ENQUIRY <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded">NEW</span>
+            </Link>
+            <Link to="/price-list" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/price-list')}>PRICE LIST</Link>
+            <Link to="/chit-scheme" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/chit-scheme')}>CHIT SCHEME</Link>
+            <Link to="/about-us" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/about-us')}>ABOUT US</Link>
+            <Link to="/safety-tips" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/safety-tips')}>SAFETY TIPS</Link>
+            <Link to="/contact" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/contact')}>CONTACT US</Link>
+          </nav>
+        </div>
+      </div>
+
       {/* Responsive layout spacer so fixed header doesn't cover top of page content */}
       <div className={isHomePage ? "w-full shrink-0 h-[92px] md:h-[172px]" : "w-full shrink-0 h-[60px] md:h-[108px]"} />
     </>

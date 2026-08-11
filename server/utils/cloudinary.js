@@ -28,12 +28,13 @@ export const uploadToCloudinary = (buffer, originalname, folder = 'uploads') => 
       const timestamp = Date.now();
       const filename = `${folder}_${timestamp}_${originalname}`.replace(/[^a-zA-Z0-9.\-_\/]/g, '_');
 
+      const isPdf = originalname.toLowerCase().endsWith('.pdf');
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: folder,
-          public_id: filename.replace(/\.[^/.]+$/, ''),
+          public_id: isPdf ? filename : filename.replace(/\.[^/.]+$/, ''),
           overwrite: true,
-          resource_type: 'image'
+          resource_type: isPdf ? 'raw' : 'auto'
         },
         (error, result) => {
           if (error) {

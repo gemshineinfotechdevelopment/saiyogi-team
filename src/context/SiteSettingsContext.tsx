@@ -41,7 +41,9 @@ export interface SiteSettings {
   };
   enablePackingCharge?: boolean;
   youtubeVideos?: { title: string; url: string }[];
+  priceListPdf?: string;
   heroBanners?: string[];
+  noticeBanners?: string[];
 }
 
 interface SiteSettingsContextType {
@@ -87,7 +89,9 @@ const defaultSettings: SiteSettings = {
   },
   enablePackingCharge: true,
   youtubeVideos: [],
+  priceListPdf: "",
   heroBanners: [],
+  noticeBanners: [],
 };
 
 const SiteSettingsContext = createContext<SiteSettingsContextType | undefined>(undefined);
@@ -121,7 +125,9 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
             billing: siteInfo.billing !== undefined ? siteInfo.billing : prev.billing,
             enablePackingCharge: siteInfo.enablePackingCharge !== undefined ? siteInfo.enablePackingCharge : prev.enablePackingCharge,
             youtubeVideos: siteInfo.youtubeVideos !== undefined ? siteInfo.youtubeVideos : prev.youtubeVideos,
+            priceListPdf: siteInfo.priceListPdf !== undefined ? siteInfo.priceListPdf : prev.priceListPdf,
             heroBanners: siteInfo.heroBanners !== undefined ? siteInfo.heroBanners : prev.heroBanners,
+            noticeBanners: siteInfo.noticeBanners !== undefined ? siteInfo.noticeBanners : prev.noticeBanners,
           }));
         }
       } catch (error) {

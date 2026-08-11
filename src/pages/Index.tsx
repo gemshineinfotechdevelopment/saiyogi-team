@@ -146,6 +146,13 @@ const Index = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideKey, setSlideKey] = useState(0);
 
+  // Secondary notice slideshow
+  const noticeImages = settings?.noticeBanners && settings.noticeBanners.length > 0
+    ? settings.noticeBanners
+    : [];
+  const [currentNoticeSlide, setCurrentNoticeSlide] = useState(0);
+  const [noticeSlideKey, setNoticeSlideKey] = useState(0);
+
   // Dynamic Diwali date & Live countdown
   const [diwaliInfo, setDiwaliInfo] = useState<UpcomingDiwaliInfo>(() => getUpcomingDiwaliInfo());
   const [timeLeft, setTimeLeft] = useState(() => calculateTimeLeft(diwaliInfo.targetDate));
@@ -160,6 +167,18 @@ const Index = () => {
     }, 4000);
     return () => clearInterval(timer);
   }, [heroImages.length]);
+
+  useEffect(() => {
+    if (noticeImages.length === 0) return;
+    const timer = setInterval(() => {
+      setCurrentNoticeSlide((cur) => {
+        const next = (cur + 1) % noticeImages.length;
+        setNoticeSlideKey((k) => k + 1);
+        return next;
+      });
+    }, 6000); // Changes 2 seconds slower than the main banner
+    return () => clearInterval(timer);
+  }, [noticeImages.length]);
 
   useEffect(() => {
     const updateCountdown = () => {
@@ -349,48 +368,52 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-white relative font-sans">
       <UserHeader />
 
-
-      {/* Hero Section (NPK Crackers Split Hero Layout) */}
-      <section className="bg-white py-4 md:py-6">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-            {/* Left Main Hero Swiper Card (7 Cols on desktop) */}
-            <div className="lg:col-span-7 relative overflow-hidden rounded-3xl shadow-lg bg-black h-[280px] sm:h-[380px] md:h-[450px] lg:h-[480px] group">
+      {/* Hero Section */}
+      <section className="bg-white py-4 md:py-6 select-none overflow-hidden">
+        <div className="container mx-auto px-2 sm:px-4 max-w-[1400px]">
+          <div className="flex flex-col lg:flex-row w-full h-auto lg:h-[calc(100vh-220px)] lg:max-h-[500px] lg:min-h-[400px] gap-2 sm:gap-4">
+            
+            {/* Main Carousel (Left Side) */}
+            <div className={`relative w-full ${noticeImages.length > 0 ? "lg:w-2/3 xl:w-3/4" : ""} h-[320px] sm:h-[450px] lg:h-full overflow-hidden bg-black group rounded-2xl shadow-xl border border-gray-200/50`}>
+              {/* Full Width & Height Banner Image */}
               <div key={slideKey} className="absolute inset-0 w-full h-full animate-slide-left">
                 <img 
                   src={heroImages[currentSlide]} 
-                  alt={`Sai Yogi Crackers Hero ${currentSlide + 1}`} 
-                  className="w-full h-full object-cover filter brightness-105" 
+                  alt={`Sai Yogi Crackers Banner ${currentSlide + 1}`} 
+                  className={`w-full h-full object-cover filter brightness-105 transition-all duration-500 ${
+                    currentSlide === 0 ? "object-[center_15%]" : "object-center"
+                  }`} 
                 />
               </div>
               
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20 pointer-events-none z-10" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none z-10" />
 
-              {/* Navigation Arrows */}
+              {/* Left Arrow Navigation */}
               <button
                 onClick={() => {
                   setCurrentSlide((prev) => (prev === 0 ? heroImages.length - 1 : prev - 1));
                   setSlideKey((k) => k + 1);
                 }}
-                className="absolute left-3 top-1/2 -translate-y-1/2 z-30 p-2 md:p-2.5 rounded-full bg-black/50 hover:bg-[#7009bc] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
+                className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-30 p-2.5 md:p-3 rounded-full bg-black/50 hover:bg-[#A80000] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
                 aria-label="Previous Slide"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
               </button>
 
+              {/* Right Arrow Navigation */}
               <button
                 onClick={() => {
                   setCurrentSlide((prev) => (prev + 1) % heroImages.length);
                   setSlideKey((k) => k + 1);
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 z-30 p-2 md:p-2.5 rounded-full bg-black/50 hover:bg-[#7009bc] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
+                className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 z-30 p-2.5 md:p-3 rounded-full bg-black/50 hover:bg-[#A80000] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
                 aria-label="Next Slide"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
               </button>
 
-              {/* Slider Dots */}
-              <div className="absolute bottom-4 left-0 right-0 z-30 flex justify-center items-center gap-2">
+              {/* Dots Indicator */}
+              <div className="absolute bottom-4 md:bottom-6 left-0 right-0 z-30 flex justify-center items-center gap-2.5">
                 {heroImages.map((_, idx) => (
                   <button
                     key={idx}
@@ -398,58 +421,29 @@ const Index = () => {
                       setCurrentSlide(idx);
                       setSlideKey((k) => k + 1);
                     }}
-                    className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                      currentSlide === idx ? "bg-[#fef200] w-6 shadow-md" : "bg-white/50 w-2 hover:bg-white"
+                    className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
+                      currentSlide === idx ? "bg-[#F4C542] w-8 shadow-lg shadow-yellow-500/50" : "bg-white/50 w-2.5 hover:bg-white"
                     }`}
+                    aria-label={`Slide ${idx + 1}`}
                   />
                 ))}
               </div>
             </div>
 
-            {/* Right Side Stacked Promotional Banners (5 Cols on desktop) */}
-            <div className="lg:col-span-5 flex flex-col gap-4">
-              <div className="relative overflow-hidden rounded-3xl shadow-md bg-gradient-to-br from-purple-900 to-red-800 p-6 text-white flex flex-col justify-between h-[230px]">
-                <div className="z-10">
-                  <span className="bg-[#fef200] text-[#7009bc] font-black text-[10px] uppercase px-3 py-1 rounded-full tracking-wider inline-block mb-2 shadow">
-                    Diwali 2026 Mega Deal
-                  </span>
-                  <h3 className="text-xl sm:text-2xl font-black uppercase leading-tight tracking-wide mb-1">
-                    Direct Sivakasi Factory Crackers
-                  </h3>
-                  <p className="text-white/80 text-xs font-medium">
-                    Order online at 100% direct Sivakasi wholesale price estimates.
-                  </p>
-                </div>
-                <Link
-                  to="/quick-enquiry"
-                  className="z-10 bg-[#fef200] hover:bg-yellow-300 text-[#7009bc] font-extrabold text-xs uppercase px-5 py-2.5 rounded-xl transition-all shadow-lg w-max flex items-center gap-2 hover:scale-105"
-                >
-                  <ShoppingCart className="w-4 h-4" /> Quick Enquiry / Order Now
-                </Link>
-                <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-red-500/20 rounded-full blur-2xl pointer-events-none" />
+            {/* Notice Image Carousel (Right Side) */}
+            {noticeImages.length > 0 && (
+              <div className="w-full lg:w-1/3 xl:w-1/4 h-[320px] sm:h-[450px] lg:h-full bg-black flex flex-col shadow-xl relative overflow-hidden z-20 rounded-2xl border border-gray-200/50 group">
+                 <div key={`notice-${noticeSlideKey}`} className="absolute inset-0 w-full h-full animate-slide-left">
+                   <img 
+                     src={noticeImages[currentNoticeSlide]} 
+                     alt={`Notice Banner ${currentNoticeSlide + 1}`} 
+                     className="w-full h-full object-cover filter brightness-105 transition-all duration-500" 
+                   />
+                 </div>
+                 
+                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none z-10" />
               </div>
-
-              <div className="relative overflow-hidden rounded-3xl shadow-md bg-gradient-to-br from-blue-950 via-slate-900 to-indigo-950 p-6 text-white flex flex-col justify-between h-[230px]">
-                <div className="z-10">
-                  <span className="bg-red-500 text-white font-black text-[10px] uppercase px-3 py-1 rounded-full tracking-wider inline-block mb-2 shadow">
-                    Kids Favourite Range
-                  </span>
-                  <h3 className="text-xl sm:text-2xl font-black uppercase leading-tight tracking-wide mb-1">
-                    Safe & Sound Celebrations 🧨
-                  </h3>
-                  <p className="text-white/80 text-xs font-medium">
-                    Sparklers, flower pots, ground chakkars, and colorful soundless fireworks.
-                  </p>
-                </div>
-                <Link
-                  to="/catalog?category=cat-1"
-                  className="z-10 bg-white hover:bg-gray-100 text-gray-900 font-extrabold text-xs uppercase px-5 py-2.5 rounded-xl transition-all shadow-lg w-max flex items-center gap-2 hover:scale-105"
-                >
-                  Explore Kids Collection →
-                </Link>
-                <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl pointer-events-none" />
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </section>
@@ -714,27 +708,27 @@ const Index = () => {
 
         {/* Infinite scrolling categories marquee */}
         <div className="relative w-full overflow-hidden py-4 mb-8">
-          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+          <div className="flex flex-nowrap gap-3 sm:gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
             {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i: number) => (
               <div
                 key={`${cat.id || cat._id || 'cat'}-${i}`}
                 onClick={() => window.location.href = `/catalog?category=${cat.id || cat._id}`}
-                className="bg-white border border-gray-200 p-4 flex flex-col items-center text-center shadow-md rounded-2xl min-w-[200px] max-w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
+                className="bg-white border border-gray-200 p-2.5 sm:p-4 flex flex-col items-center text-center shadow-md rounded-xl sm:rounded-2xl w-[135px] sm:w-[170px] md:w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
               >
-                <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative border border-gray-100/50">
+                <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-1.5 sm:p-2 mb-2 sm:mb-3 rounded-lg sm:rounded-xl overflow-hidden relative border border-gray-100/50">
                   <img
                     src={cat.image || "/sky_rocket_box.png"}
                     alt={cat.name}
                     className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110"
                   />
-                  <span className="absolute top-2 left-2 bg-[#A80000] text-[#F4C542] font-black text-[9px] px-2.5 py-0.5 rounded-full shadow uppercase">
+                  <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-[#A80000] text-[#F4C542] font-black text-[8px] sm:text-[9px] px-1.5 sm:px-2.5 py-0.5 rounded-full shadow uppercase">
                     SHOP
                   </span>
                 </div>
-                <h3 className="font-bold text-xs text-gray-800 uppercase text-center min-h-[32px] line-clamp-2 transition-colors group-hover:text-[#A80000] mb-3">{cat.name}</h3>
+                <h3 className="font-bold text-[10px] sm:text-xs text-gray-800 uppercase text-center min-h-[26px] sm:min-h-[32px] line-clamp-2 transition-colors group-hover:text-[#A80000] mb-2 sm:mb-3">{cat.name}</h3>
                 
                 <div className="w-full mt-auto">
-                  <button className="w-full bg-[#A80000] text-white py-1.5 rounded-lg text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase">
+                  <button className="w-full bg-[#A80000] text-white py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[9px] sm:text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase">
                     View Products
                   </button>
                 </div>
@@ -806,7 +800,7 @@ const Index = () => {
 
         {/* Infinite scrolling brands marquee from right to left */}
         <div className="relative w-full overflow-hidden py-4">
-          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+          <div className="flex flex-nowrap gap-3 sm:gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
             {[...(brands.length > 0 ? brands : shopByBrands), ...(brands.length > 0 ? brands : shopByBrands), ...(brands.length > 0 ? brands : shopByBrands)].map((brand: any, i: number) => {
               const brandId = brand._id || brand.id || i;
               return (
@@ -815,15 +809,15 @@ const Index = () => {
                   onClick={() => window.location.href = `/catalog?search=${encodeURIComponent(brand.name)}`}
                   className="bg-white border border-gray-200 hover:border-[#7A1416] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[130px] sm:w-[160px] md:w-[180px] shrink-0"
                 >
-                  <span className="text-[8px] sm:text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-1.5 sm:px-2 py-0.5 rounded-full mb-1.5 sm:mb-2 font-mono">
+                  <span className="text-[7px] sm:text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-1 sm:px-2 py-0.5 rounded-full mb-1 sm:mb-2 font-mono">
                     {brand.tag || "BRAND"}
                   </span>
-                  <div className="w-full aspect-square flex items-center justify-center p-1 sm:p-2 mb-1 sm:mb-2 group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-full aspect-square flex items-center justify-center p-0.5 sm:p-2 mb-0.5 sm:mb-2 group-hover:scale-105 transition-transform duration-300">
                     <img src={brand.logo || brand.image || "/sky_rocket_box.png"} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
                   </div>
                   <div>
-                    <h3 className="font-black text-[11px] sm:text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors line-clamp-1">{brand.name}</h3>
-                    <p className="text-[9px] sm:text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-1">{brand.subtitle || brand.description || "Original Sivakasi"}</p>
+                    <h3 className="font-black text-[10px] sm:text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors line-clamp-1">{brand.name}</h3>
+                    <p className="text-[8px] sm:text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-1">{brand.subtitle || brand.description || "Original Sivakasi"}</p>
                   </div>
                 </div>
               );
@@ -858,7 +852,7 @@ const Index = () => {
             </button>
 
             {/* Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full px-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8 w-full px-2 sm:px-4">
               {[0, 1, 2].map((offset) => {
                 const comboPacksList = (products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).length > 0
                   ? products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack'))
@@ -870,7 +864,7 @@ const Index = () => {
                 return (
                   <div
                     key={`combo-${offset}-${item._id || item.id || offset}`}
-                    className={`w-full ${offset > 0 ? "hidden md:block" : "block"}`}
+                    className={`w-full max-w-[260px] sm:max-w-none mx-auto ${offset > 0 ? "hidden md:block" : "block"}`}
                   >
                     <ProductCard product={item} />
                   </div>

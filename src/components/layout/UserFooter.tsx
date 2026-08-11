@@ -176,14 +176,9 @@ const UserFooter = () => {
 
         {/* Bottom bar */}
         <div className="bg-[#EBEBEB] border-t border-gray-300 py-4">
-          <div className="container mx-auto px-4 flex flex-col sm:flex-row justify-between items-center text-[10px] text-gray-500 uppercase tracking-widest font-semibold gap-2">
+          <div className="container mx-auto px-4 flex flex-col sm:flex-row justify-between items-center text-[10px] text-gray-500 uppercase tracking-widest font-semibold gap-2 text-center sm:text-left">
             <div>
               © 2026 {settings.siteName || "Sai Yogi Crackers"}. All rights reserved.
-            </div>
-            <div className="flex gap-2 opacity-60">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/320px-Visa_Inc._logo.svg.png" alt="Visa" className="h-4 object-contain" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/320px-Mastercard-logo.svg.png" alt="Mastercard" className="h-4 object-contain" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/320px-PayPal.svg.png" alt="PayPal" className="h-4 object-contain" />
             </div>
           </div>
         </div>
