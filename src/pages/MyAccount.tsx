@@ -188,6 +188,7 @@ const MyAccount: React.FC = () => {
             <span className="col-span-4 font-bold text-gray-700">Name</span>
             <span className="col-span-1 text-center font-bold">:</span>
             <span className="col-span-7 text-gray-900 font-semibold">{displayName}</span>
+          </div>
           <div className="grid grid-cols-12 items-center py-1">
             <span className="col-span-4 font-bold text-gray-700">Mobile Number</span>
             <span className="col-span-1 text-center font-bold">:</span>

@@ -289,7 +289,6 @@ const ChitScheme: React.FC = () => {
               <p className="text-xs text-gray-500 font-medium mt-1">
                 Fill details below to subscribe. Admin will update your payment status.
               </p>
->>>>>>> 362784cc470e9358b3ebc61fc9813701f6fc9390
             </div>
 
             <form onSubmit={handleSubmitForm} className="space-y-4">
@@ -477,7 +476,6 @@ const ChitScheme: React.FC = () => {
                           Apply for this Scheme →
                         </button>
                       )}
-                    </div>
                     </div>
 
                     {/* Scheme Parameters Badge Grid */}
