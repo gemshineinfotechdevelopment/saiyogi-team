@@ -95,7 +95,7 @@ const Contact = () => {
               </div>
 
               {/* Physical Office Card */}
-              <div className="flex items-start gap-4 p-5 rounded-2xl bg-amber-50/70 border border-amber-200/60 shadow-xs">
+              <div className="flex items-start gap-4 p-5 rounded-2xl bg-white border border-gray-200 shadow-xs">
                 <div className="w-11 h-11 bg-[#A80000] rounded-xl flex items-center justify-center shrink-0 shadow-md text-white">
                   <MapPin className="h-6 w-6" />
                 </div>

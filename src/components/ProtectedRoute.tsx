@@ -23,7 +23,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/admin/login" replace />;
   }
 
-  return <>{children}</>;
+  return <div className="admin-scope min-h-screen">{children}</div>;
 };
 
 export default ProtectedRoute;

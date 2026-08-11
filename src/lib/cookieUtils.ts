@@ -3,7 +3,7 @@
  * Handles setting, retrieving, and expiring cookies with a 7-day TTL.
  */
 
-export function setCookie(name: string, value: string, days: number = 7) {
+export function setCookie(name: string, value: string, days: number = 365) {
   try {
     const maxAge = Math.floor(days * 24 * 60 * 60); // seconds
     const date = new Date();

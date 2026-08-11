@@ -369,7 +369,7 @@ const Index = () => {
       <UserHeader />
 
       {/* Hero Section */}
-      <section className="relative w-full bg-gray-100/50 pt-0 pb-0 select-none overflow-hidden">
+      <section className="bg-white py-4 md:py-6 select-none overflow-hidden">
         <div className="container mx-auto px-2 sm:px-4 max-w-[1400px]">
           <div className="flex flex-col lg:flex-row w-full h-auto lg:h-[calc(100vh-220px)] lg:max-h-[500px] lg:min-h-[400px] gap-2 sm:gap-4">
 
@@ -442,7 +442,6 @@ const Index = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none z-10" />
               </div>
             )}
-
           </div>
         </div>
       </section>
@@ -499,7 +498,7 @@ const Index = () => {
       />
 
       {/* Best Sellers Section */}
-      <section className="py-16 bg-gradient-to-b from-[#FFF6E5] to-white border-b border-gray-100">
+      <section className="py-16 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center mb-10">
             <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
@@ -520,7 +519,7 @@ const Index = () => {
       </section>
 
       {/* Videos Section */}
-      <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5] relative overflow-hidden">
+      <section className="py-16 bg-white border-b border-gray-100 relative overflow-hidden">
         <div className="container mx-auto px-4 max-w-6xl relative">
 
           {/* Left Garland Crackers Bursting Animation */}
@@ -694,7 +693,7 @@ const Index = () => {
       </section>
 
       {/* Shop By Category */}
-      <section className="py-16 bg-[#FFF6E5]">
+      <section className="py-16 bg-white border-b border-gray-100">
         <div className="text-center mb-10 container mx-auto px-4">
           <h2 className="font-black text-[#A80000] text-3xl sm:text-4xl uppercase tracking-tight mb-2 font-display">
             Shop By Category
@@ -737,7 +736,7 @@ const Index = () => {
       </section>
 
       {/* Trusted Manufacturers */}
-      <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5]">
+      <section className="py-16 bg-white border-b border-gray-100">
         <div className="text-center mb-10 px-4">
           <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
             ⭐ AUTHENTIC PARTNERS ⭐
@@ -805,7 +804,7 @@ const Index = () => {
                 <div
                   key={`${brandId}-${i}`}
                   onClick={() => window.location.href = `/catalog?search=${encodeURIComponent(brand.name)}`}
-                  className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-xl sm:rounded-2xl p-2 sm:p-4 flex flex-col items-center justify-between text-center shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[105px] sm:w-[150px] md:w-[180px] shrink-0"
+                  className="bg-white border border-gray-200 hover:border-[#7A1416] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[130px] sm:w-[160px] md:w-[180px] shrink-0"
                 >
                   <span className="text-[7px] sm:text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-1 sm:px-2 py-0.5 rounded-full mb-1 sm:mb-2 font-mono">
                     {brand.tag || "BRAND"}
@@ -825,7 +824,7 @@ const Index = () => {
       </section>
 
       {/* Combo Packs */}
-      <section className="py-16 bg-[#FFF6E5]">
+      <section className="py-16 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center mb-10">
             <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">

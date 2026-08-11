@@ -62,7 +62,7 @@ const ProductCard = ({ product, categoryName, onCardClick }: { product: Product;
       <button
         onClick={handleDecrement}
         disabled={quantity <= 0}
-        className="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center rounded-lg bg-red-50 text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors font-bold text-base shadow-xs disabled:opacity-40 disabled:hover:bg-red-50 disabled:hover:text-[#A80000]"
+        className="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors font-bold text-base shadow-xs disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-[#A80000]"
       >
         <Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
       </button>
@@ -71,7 +71,7 @@ const ProductCard = ({ product, categoryName, onCardClick }: { product: Product;
       </span>
       <button
         onClick={handleIncrement}
-        className="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center rounded-lg bg-red-50 text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors font-bold text-base shadow-xs disabled:opacity-40"
+        className="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors font-bold text-base shadow-xs disabled:opacity-40"
         disabled={(product.storeStockPieces || 0) <= 0 || quantity >= ((product.storeStockPieces || 0) || 999)}
       >
         <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />

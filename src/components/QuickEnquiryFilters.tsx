@@ -92,6 +92,32 @@ export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Fixed Table Column Headers for Desktop View (Product Name, Item Code, Content, Unit Price, Qty, Subtotal) */}
+        {showTableHeader && (
+          <div className="hidden md:block mt-1.5 pt-1.5 border-t border-gray-100 font-sans">
+            <div className="grid grid-cols-12 gap-4 bg-gray-900 text-white py-2 px-4 rounded-xl font-black text-xs uppercase tracking-wider items-center shadow-xs">
+              <div className="col-span-4 flex items-center gap-2">
+                <span>Product Name</span>
+              </div>
+              <div className="col-span-2 text-center">
+                <span>Item Code</span>
+              </div>
+              <div className="col-span-2 text-center">
+                <span>Content</span>
+              </div>
+              <div className="col-span-1 text-center">
+                <span>Unit Price</span>
+              </div>
+              <div className="col-span-2 text-center">
+                <span>Qty</span>
+              </div>
+              <div className="col-span-1 text-right pr-2">
+                <span>Subtotal</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
