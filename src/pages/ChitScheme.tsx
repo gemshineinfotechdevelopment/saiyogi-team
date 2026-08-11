@@ -437,46 +437,29 @@ const ChitScheme: React.FC = () => {
             </form>
           </div>
 
-          {/* Right Column: Admin Added Scheme Images */}
+          {/* Right Column: Promotional Banner Images */}
           <div className="lg:col-span-7 space-y-5">
-            {images.length === 0 ? (
+            {images.filter(img => img.url).length === 0 ? (
               <div className="py-16 text-center text-gray-400 font-medium text-sm border-2 border-dashed border-gray-200 rounded-3xl bg-white p-6">
                 <Gift className="w-10 h-10 mx-auto mb-2 opacity-40 text-amber-700" />
-                No Chit Scheme images available.
+                No promotional images uploaded yet.
               </div>
             ) : (
               <div className="space-y-6">
-                {images.map((img) => (
-                  <div
-                    key={img.id}
-                    onClick={() => img.title && setSelectedScheme(img.title)}
-                    className={`group bg-white rounded-3xl border transition-all overflow-hidden shadow-xs hover:shadow-md cursor-pointer ${
-                      selectedScheme === img.title ? 'ring-2 ring-[#7A1416] border-transparent' : 'border-gray-200'
-                    }`}
-                  >
-                    {img.url ? (
-                      <div className="relative overflow-hidden">
-                        <img
-                          src={img.url}
-                          alt={img.title || "Chit Scheme Banner"}
-                          className="w-full h-auto max-h-[450px] object-cover group-hover:scale-[1.01] transition-transform duration-300 rounded-3xl"
-                        />
-                      </div>
-                    ) : (
-                      <div className="p-8 bg-gradient-to-br from-amber-50 to-red-50 border border-amber-100 rounded-3xl flex flex-col items-center justify-center text-center space-y-3 py-14">
-                        <div className="w-14 h-14 rounded-2xl bg-white text-[#7A1416] shadow-2xs flex items-center justify-center">
-                          <Gift className="w-8 h-8" />
-                        </div>
-                        <h3 className="font-extrabold text-gray-900 text-lg">{img.title}</h3>
-                        {img.monthlyAmount ? (
-                          <span className="text-xs font-extrabold bg-[#7A1416] text-white px-4 py-1.5 rounded-full shadow-2xs">
-                            ₹{img.monthlyAmount.toLocaleString()} / month
-                          </span>
-                        ) : null}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                {images
+                  .filter((img) => Boolean(img.url))
+                  .map((img, idx) => (
+                    <div
+                      key={img.id || idx}
+                      className="bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-xs hover:shadow-md transition-all"
+                    >
+                      <img
+                        src={img.url}
+                        alt="Chit Scheme Banner"
+                        className="w-full h-auto max-h-[500px] object-cover rounded-3xl"
+                      />
+                    </div>
+                  ))}
               </div>
             )}
           </div>

@@ -1056,9 +1056,6 @@ const AdminChitScheme: React.FC = () => {
                               {sch.title || sch.schemeName}
                             </h3>
                           </div>
-                          {sch.url && (
-                            <img src={sch.url} alt="Scheme" className="w-12 h-12 object-cover rounded-xl border border-gray-200 shrink-0" />
-                          )}
                         </div>
 
                         {sch.description && (
@@ -1096,13 +1093,6 @@ const AdminChitScheme: React.FC = () => {
 
                       <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
                         <button
-                          onClick={() => handleOpenUploadImageForScheme(sch)}
-                          className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
-                          title="Upload Image"
-                        >
-                          <ImageIcon className="w-3.5 h-3.5 text-blue-700" /> Image
-                        </button>
-                        <button
                           onClick={() => setViewingScheme(sch)}
                           className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
                         >
@@ -1124,6 +1114,65 @@ const AdminChitScheme: React.FC = () => {
                     </div>
                   );
                 })}
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 3: PROMOTIONAL BANNERS / SCHEME IMAGES GALLERY */}
+          <div className="bg-white rounded-3xl border border-gray-200/90 shadow-2xs p-6 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
+              <div>
+                <h2 className="text-xl font-extrabold text-[#2A1B54] flex items-center gap-2">
+                  <ImageIcon className="w-5 h-5 text-[#7A1416]" />
+                  Chit Scheme Promotional Images ({schemes.filter(s => s.url).length})
+                </h2>
+                <p className="text-xs text-gray-500 font-medium mt-0.5">
+                  Upload promotional image banners here. These images will be displayed to users on the Chit Scheme portal.
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  setUploadImageSelectedSchemeId("");
+                  setUploadImageFile(null);
+                  setUploadImagePreview(null);
+                  setIsUploadImageModalOpen(true);
+                }}
+                className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-2xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+              >
+                <ImageIcon className="w-4 h-4" />
+                <span>Upload New Image</span>
+              </button>
+            </div>
+
+            {schemes.filter(s => s.url).length === 0 ? (
+              <div className="py-12 text-center text-gray-400 font-medium text-xs border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50">
+                No promotional images uploaded yet. Click <strong>+ Upload New Image</strong> above to add banners for customers!
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {schemes.filter(s => s.url).map((sch) => (
+                  <div key={sch.id} className="relative group bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden shadow-2xs p-2 flex flex-col justify-between">
+                    <img
+                      src={sch.url}
+                      alt="Promotional Banner"
+                      className="w-full h-40 object-cover rounded-xl border border-gray-200"
+                    />
+                    <div className="flex items-center justify-between pt-2 px-1">
+                      <span className="text-[11px] font-semibold text-gray-500 truncate">
+                        Promotional Image
+                      </span>
+                      <button
+                        onClick={() => handleDeleteSchemePrompt(sch)}
+                        className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                        title="Delete Image"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
