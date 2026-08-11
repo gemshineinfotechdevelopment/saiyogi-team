@@ -520,7 +520,8 @@ const ChitScheme: React.FC = () => {
                         </div>
                       ) : null}
                     </div>
-                  ))}
+                  </div>
+                ))}
               </div>
             )}
           </div>
