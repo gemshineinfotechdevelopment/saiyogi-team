@@ -20,7 +20,11 @@ const navItems = [
   { label: "Price List", icon: FileText, href: "/admin/price-list" },
 ];
 
-const AdminSidebar = () => {
+interface AdminSidebarProps {
+  activeTab?: string;
+}
+
+const AdminSidebar: React.FC<AdminSidebarProps> = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
