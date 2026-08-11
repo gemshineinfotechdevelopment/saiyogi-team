@@ -5,7 +5,7 @@ import AdminNavbar from "@/components/layout/AdminNavbar";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ImagePlus, Save, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { ImagePlus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 const AdminPageContent = () => {
@@ -21,6 +21,27 @@ const AdminPageContent = () => {
       setBanners(settings.heroBanners);
     }
   }, [settings?.heroBanners]);
+
+  const saveBannersToAPI = async (newBanners: string[]) => {
+    try {
+      setIsSaving(true);
+      await updateSettingsAPI({ ...settings, heroBanners: newBanners });
+      await updateSettings({ ...settings, heroBanners: newBanners }); // Update local context
+      toast({
+        title: "Success",
+        description: "Banners saved successfully.",
+      });
+    } catch (error) {
+      console.error("Error saving banners:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update banners.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -49,54 +70,37 @@ const AdminPageContent = () => {
     }
 
     if (newBanners.length > 0) {
-      setBanners((prev) => [...prev, ...newBanners]);
+      const updatedBanners = [...banners, ...newBanners];
+      setBanners(updatedBanners);
       if (!hasError) {
-        toast({ title: "Success", description: "All images uploaded successfully. Don't forget to save changes!" });
+        toast({ title: "Success", description: "Images uploaded successfully." });
       } else {
-        toast({ title: "Partial Success", description: "Some images were uploaded. Don't forget to save changes!" });
+        toast({ title: "Partial Success", description: "Some images were uploaded." });
       }
+      await saveBannersToAPI(updatedBanners);
+    } else {
+      setIsSaving(false);
     }
-    
-    setIsSaving(false);
   };
 
-  const removeBanner = (index: number) => {
-    setBanners((prev) => prev.filter((_, i) => i !== index));
+  const removeBanner = async (index: number) => {
+    const updatedBanners = banners.filter((_, i) => i !== index);
+    setBanners(updatedBanners);
+    await saveBannersToAPI(updatedBanners);
   };
 
-  const moveBanner = (index: number, direction: 'up' | 'down') => {
+  const moveBanner = async (index: number, direction: 'up' | 'down') => {
     if (direction === 'up' && index === 0) return;
     if (direction === 'down' && index === banners.length - 1) return;
     
-    setBanners(prev => {
-      const newBanners = [...prev];
-      const targetIndex = direction === 'up' ? index - 1 : index + 1;
-      const temp = newBanners[targetIndex];
-      newBanners[targetIndex] = newBanners[index];
-      newBanners[index] = temp;
-      return newBanners;
-    });
-  };
-
-  const handleSave = async () => {
-    try {
-      setIsSaving(true);
-      await updateSettingsAPI({ ...settings, heroBanners: banners });
-      await updateSettings({ ...settings, heroBanners: banners }); // Update local context
-      toast({
-        title: "Success",
-        description: "Home page banners updated successfully.",
-      });
-    } catch (error) {
-      console.error("Error saving banners:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update banners.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
-    }
+    const newBanners = [...banners];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    const temp = newBanners[targetIndex];
+    newBanners[targetIndex] = newBanners[index];
+    newBanners[index] = temp;
+    
+    setBanners(newBanners);
+    await saveBannersToAPI(newBanners);
   };
 
   return (
@@ -111,10 +115,6 @@ const AdminPageContent = () => {
                 <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Home Page Banners</h2>
                 <p className="text-sm text-gray-500 mt-1">Manage the hero slideshow images displayed on the home page.</p>
               </div>
-              <Button onClick={handleSave} disabled={isSaving || isLoading} className="gap-2 shrink-0">
-                <Save className="h-4 w-4" />
-                {isSaving ? "Saving..." : "Save Changes"}
-              </Button>
             </div>
 
             <Card>
@@ -122,7 +122,7 @@ const AdminPageContent = () => {
                 <CardTitle>Banner Images</CardTitle>
                 <CardDescription>
                   Upload high-quality images. Recommended resolution: 1920x600 pixels.
-                  Supported formats: JPG, PNG, WebP.
+                  Supported formats: JPG, PNG, WebP. Banners are saved automatically.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -134,15 +134,19 @@ const AdminPageContent = () => {
                     className="hidden"
                     accept="image/*"
                     multiple
+                    disabled={isSaving}
                   />
                   <Button 
                     type="button" 
                     variant="outline" 
                     onClick={() => fileInputRef.current?.click()}
+                    disabled={isSaving}
                     className="w-full h-32 border-dashed border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 flex flex-col items-center justify-center gap-2"
                   >
                     <ImagePlus className="h-8 w-8 text-gray-400" />
-                    <span className="text-sm text-gray-600 font-medium">Click to upload banner images</span>
+                    <span className="text-sm text-gray-600 font-medium">
+                      {isSaving ? "Processing..." : "Click to upload banner images"}
+                    </span>
                   </Button>
                 </div>
 
@@ -163,7 +167,7 @@ const AdminPageContent = () => {
                                 size="icon"
                                 variant="secondary"
                                 onClick={() => moveBanner(index, 'up')}
-                                disabled={index === 0}
+                                disabled={index === 0 || isSaving}
                                 className="h-8 w-8 rounded-full"
                               >
                                 <ArrowUp className="h-4 w-4" />
@@ -172,7 +176,7 @@ const AdminPageContent = () => {
                                 size="icon"
                                 variant="secondary"
                                 onClick={() => moveBanner(index, 'down')}
-                                disabled={index === banners.length - 1}
+                                disabled={index === banners.length - 1 || isSaving}
                                 className="h-8 w-8 rounded-full"
                               >
                                 <ArrowDown className="h-4 w-4" />
@@ -181,6 +185,7 @@ const AdminPageContent = () => {
                                 size="icon"
                                 variant="destructive"
                                 onClick={() => removeBanner(index)}
+                                disabled={isSaving}
                                 className="h-8 w-8 rounded-full"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -205,3 +210,4 @@ const AdminPageContent = () => {
 };
 
 export default AdminPageContent;
+
