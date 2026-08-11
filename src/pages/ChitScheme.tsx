@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
-import { Lock, LogIn, Gift, Send, CheckCircle2, MapPin, User, Mail, Phone, ChevronDown, Sparkles, Calendar, Clock, ArrowLeft, ChevronRight, Eye } from "lucide-react";
+import { Lock, LogIn, Gift, Send, CheckCircle2, MapPin, User, Mail, Phone, ChevronDown, Sparkles, Calendar, Clock, ArrowLeft, ChevronRight, Eye, ZoomIn } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { getChitSchemes, ChitSchemeItem, submitChitSubscription, trackCustomerAction, getChitSubscriptions, ChitSubscriptionItem } from "@/lib/api";
@@ -59,6 +59,7 @@ const getMonthNameForIndex = (monthIndex: number, startDateStr?: string): { mont
 const ChitScheme: React.FC = () => {
   const { isUserLoggedIn, userPhone, userName, loginWithPhone, openLoginModal } = useAuth();
   const [images, setImages] = useState<ChitSchemeImage[]>([]);
+  const [activeZoomImage, setActiveZoomImage] = useState<ChitSchemeImage | null>(null);
   const [userSubscriptions, setUserSubscriptions] = useState<ChitSubscriptionItem[]>([]);
 
   // Form states
