@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createOrder, trackCustomerAction } from "@/lib/api";
 import { downloadOrderReceiptPDF } from "@/lib/pdf-generator";
+import { setCookie, getCookie } from "@/lib/cookieUtils";
 import {
   Select,
   SelectContent,
@@ -210,10 +211,27 @@ const CartDrawer = () => {
         };
         setSavedOrderData(orderData);
 
-        // Save enquiry to user's phone-specific key in localStorage for MyEnquiry page
+        // Save enquiry to user's phone-specific key in localStorage and cookie for MyEnquiry page
         try {
-          const userPhoneKey = `user_saved_enquiries_${formData.phoneNumber.replace(/\D/g, "")}`;
-          const existing = JSON.parse(localStorage.getItem(userPhoneKey) || "[]");
+          const cleanPhone = formData.phoneNumber.replace(/\D/g, "");
+          const userPhoneKey = `user_saved_enquiries_${cleanPhone}`;
+          const cookieKey = `saiyogi_enquiries_${cleanPhone}`;
+
+          let existing: any[] = [];
+          const cookieVal = getCookie(cookieKey);
+          if (cookieVal) {
+            try {
+              const parsedCookie = JSON.parse(cookieVal);
+              if (Array.isArray(parsedCookie)) existing = parsedCookie;
+            } catch (_) {}
+          }
+          if (existing.length === 0) {
+            try {
+              const parsedLocal = JSON.parse(localStorage.getItem(userPhoneKey) || "[]");
+              if (Array.isArray(parsedLocal)) existing = parsedLocal;
+            } catch (_) {}
+          }
+
           const newEnquiry = {
             id: String(Date.now()),
             enquiryNumber: String(response.order.orderNumber || Math.floor(100000 + Math.random() * 900000)),
@@ -226,7 +244,9 @@ const CartDrawer = () => {
             deliveryAddress: fullDeliveryAddress,
             items: items.map(i => ({ productName: i.product.name, quantity: i.quantity, price: i.product.price }))
           };
-          localStorage.setItem(userPhoneKey, JSON.stringify([newEnquiry, ...existing]));
+          const updatedEnquiries = [newEnquiry, ...existing];
+          localStorage.setItem(userPhoneKey, JSON.stringify(updatedEnquiries));
+          setCookie(cookieKey, JSON.stringify(updatedEnquiries), 30);
         } catch (_) {}
       }
 

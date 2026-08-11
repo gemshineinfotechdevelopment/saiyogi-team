@@ -108,10 +108,14 @@ const ProductDetail = () => {
               <div className="flex items-baseline gap-3">
                 <span className="text-3xl font-bold text-red-700">₹{discountPrice}</span>
                 {discount > 0 && (
-                  <>
-                    <span className="text-lg text-red-600 line-through">₹{product.price}</span>
-                    <span className="text-sm font-bold bg-red-600 text-white px-2 py-1 rounded">{discount}% OFF</span>
-                  </>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-xl text-red-600 line-through font-semibold">₹{product.price}</span>
+                    <img
+                      src="/discount-tag.png"
+                      alt={`${discount}% OFF`}
+                      className="w-14 sm:w-16 h-auto object-contain drop-shadow-md"
+                    />
+                  </div>
                 )}
               </div>
             </div>
