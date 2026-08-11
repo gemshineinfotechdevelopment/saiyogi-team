@@ -146,6 +146,13 @@ const Index = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideKey, setSlideKey] = useState(0);
 
+  // Secondary notice slideshow
+  const noticeImages = settings?.noticeBanners && settings.noticeBanners.length > 0
+    ? settings.noticeBanners
+    : [];
+  const [currentNoticeSlide, setCurrentNoticeSlide] = useState(0);
+  const [noticeSlideKey, setNoticeSlideKey] = useState(0);
+
   // Dynamic Diwali date & Live countdown
   const [diwaliInfo, setDiwaliInfo] = useState<UpcomingDiwaliInfo>(() => getUpcomingDiwaliInfo());
   const [timeLeft, setTimeLeft] = useState(() => calculateTimeLeft(diwaliInfo.targetDate));
@@ -160,6 +167,18 @@ const Index = () => {
     }, 4000);
     return () => clearInterval(timer);
   }, [heroImages.length]);
+
+  useEffect(() => {
+    if (noticeImages.length === 0) return;
+    const timer = setInterval(() => {
+      setCurrentNoticeSlide((cur) => {
+        const next = (cur + 1) % noticeImages.length;
+        setNoticeSlideKey((k) => k + 1);
+        return next;
+      });
+    }, 6000); // Changes 2 seconds slower than the main banner
+    return () => clearInterval(timer);
+  }, [noticeImages.length]);
 
   useEffect(() => {
     const updateCountdown = () => {
@@ -350,60 +369,82 @@ const Index = () => {
       <UserHeader />
 
       {/* Hero Section */}
-      <section className="relative w-full overflow-hidden bg-black flex flex-col select-none">
-        <div className="relative w-full h-[320px] sm:h-[450px] md:h-[550px] lg:h-[620px] overflow-hidden bg-black flex items-center justify-center group">
-          {/* Full Width & Height Banner Image */}
-          <div key={slideKey} className="absolute inset-0 w-full h-full animate-slide-left">
-            <img 
-              src={heroImages[currentSlide]} 
-              alt={`Sai Yogi Crackers Banner ${currentSlide + 1}`} 
-              className={`w-full h-full object-cover filter brightness-105 transition-all duration-500 ${
-                currentSlide === 0 ? "object-[center_15%]" : "object-center"
-              }`} 
-            />
-          </div>
-          
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none z-10" />
+      <section className="relative w-full bg-gray-100/50 pt-0 pb-0 select-none overflow-hidden">
+        <div className="container mx-auto px-2 sm:px-4 max-w-[1400px]">
+          <div className="flex flex-col lg:flex-row w-full h-auto lg:h-[calc(100vh-220px)] lg:max-h-[500px] lg:min-h-[400px] gap-2 sm:gap-4">
+            
+            {/* Main Carousel (Left Side) */}
+            <div className={`relative w-full ${noticeImages.length > 0 ? "lg:w-2/3 xl:w-3/4" : ""} h-[320px] sm:h-[450px] lg:h-full overflow-hidden bg-black group rounded-2xl shadow-xl border border-gray-200/50`}>
+              {/* Full Width & Height Banner Image */}
+              <div key={slideKey} className="absolute inset-0 w-full h-full animate-slide-left">
+                <img 
+                  src={heroImages[currentSlide]} 
+                  alt={`Sai Yogi Crackers Banner ${currentSlide + 1}`} 
+                  className={`w-full h-full object-cover filter brightness-105 transition-all duration-500 ${
+                    currentSlide === 0 ? "object-[center_15%]" : "object-center"
+                  }`} 
+                />
+              </div>
+              
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none z-10" />
 
-          {/* Left Arrow Navigation */}
-          <button
-            onClick={() => {
-              setCurrentSlide((prev) => (prev === 0 ? heroImages.length - 1 : prev - 1));
-              setSlideKey((k) => k + 1);
-            }}
-            className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-30 p-2.5 md:p-3 rounded-full bg-black/50 hover:bg-[#A80000] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
-            aria-label="Previous Slide"
-          >
-            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
-          </button>
-
-          {/* Right Arrow Navigation */}
-          <button
-            onClick={() => {
-              setCurrentSlide((prev) => (prev + 1) % heroImages.length);
-              setSlideKey((k) => k + 1);
-            }}
-            className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 z-30 p-2.5 md:p-3 rounded-full bg-black/50 hover:bg-[#A80000] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
-            aria-label="Next Slide"
-          >
-            <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
-          </button>
-
-          {/* Dots Indicator */}
-          <div className="absolute bottom-4 md:bottom-6 left-0 right-0 z-30 flex justify-center items-center gap-2.5">
-            {heroImages.map((_, idx) => (
+              {/* Left Arrow Navigation */}
               <button
-                key={idx}
                 onClick={() => {
-                  setCurrentSlide(idx);
+                  setCurrentSlide((prev) => (prev === 0 ? heroImages.length - 1 : prev - 1));
                   setSlideKey((k) => k + 1);
                 }}
-                className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
-                  currentSlide === idx ? "bg-[#F4C542] w-8 shadow-lg shadow-yellow-500/50" : "bg-white/50 w-2.5 hover:bg-white"
-                }`}
-                aria-label={`Slide ${idx + 1}`}
-              />
-            ))}
+                className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-30 p-2.5 md:p-3 rounded-full bg-black/50 hover:bg-[#A80000] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
+                aria-label="Previous Slide"
+              >
+                <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+              </button>
+
+              {/* Right Arrow Navigation */}
+              <button
+                onClick={() => {
+                  setCurrentSlide((prev) => (prev + 1) % heroImages.length);
+                  setSlideKey((k) => k + 1);
+                }}
+                className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 z-30 p-2.5 md:p-3 rounded-full bg-black/50 hover:bg-[#A80000] text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110 opacity-80 group-hover:opacity-100 cursor-pointer"
+                aria-label="Next Slide"
+              >
+                <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+              </button>
+
+              {/* Dots Indicator */}
+              <div className="absolute bottom-4 md:bottom-6 left-0 right-0 z-30 flex justify-center items-center gap-2.5">
+                {heroImages.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setCurrentSlide(idx);
+                      setSlideKey((k) => k + 1);
+                    }}
+                    className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
+                      currentSlide === idx ? "bg-[#F4C542] w-8 shadow-lg shadow-yellow-500/50" : "bg-white/50 w-2.5 hover:bg-white"
+                    }`}
+                    aria-label={`Slide ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Notice Image Carousel (Right Side) */}
+            {noticeImages.length > 0 && (
+              <div className="w-full lg:w-1/3 xl:w-1/4 h-[320px] sm:h-[450px] lg:h-full bg-black flex flex-col shadow-xl relative overflow-hidden z-20 rounded-2xl border border-gray-200/50 group">
+                 <div key={`notice-${noticeSlideKey}`} className="absolute inset-0 w-full h-full animate-slide-left">
+                   <img 
+                     src={noticeImages[currentNoticeSlide]} 
+                     alt={`Notice Banner ${currentNoticeSlide + 1}`} 
+                     className="w-full h-full object-cover filter brightness-105 transition-all duration-500" 
+                   />
+                 </div>
+                 
+                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none z-10" />
+              </div>
+            )}
+            
           </div>
         </div>
       </section>
