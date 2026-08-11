@@ -39,7 +39,6 @@ const MyAccount: React.FC = () => {
   const { userPhone, userName, isUserLoggedIn, openLoginModal } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<"account" | "enquiry">("account");
-
   const [enquiries, setEnquiries] = useState<EnquiryItem[]>([]);
   const [selectedEnquiry, setSelectedEnquiry] = useState<EnquiryItem | null>(null);
 
