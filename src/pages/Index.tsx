@@ -668,27 +668,27 @@ const Index = () => {
 
         {/* Infinite scrolling categories marquee */}
         <div className="relative w-full overflow-hidden py-4 mb-8">
-          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+          <div className="flex flex-nowrap gap-3 sm:gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
             {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i: number) => (
               <div
                 key={`${cat.id || cat._id || 'cat'}-${i}`}
                 onClick={() => window.location.href = `/catalog?category=${cat.id || cat._id}`}
-                className="bg-white border border-gray-200 p-4 flex flex-col items-center text-center shadow-md rounded-2xl min-w-[200px] max-w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
+                className="bg-white border border-gray-200 p-2.5 sm:p-4 flex flex-col items-center text-center shadow-md rounded-xl sm:rounded-2xl w-[135px] sm:w-[170px] md:w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
               >
-                <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative border border-gray-100/50">
+                <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-1.5 sm:p-2 mb-2 sm:mb-3 rounded-lg sm:rounded-xl overflow-hidden relative border border-gray-100/50">
                   <img
                     src={cat.image || "/sky_rocket_box.png"}
                     alt={cat.name}
                     className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110"
                   />
-                  <span className="absolute top-2 left-2 bg-[#A80000] text-[#F4C542] font-black text-[9px] px-2.5 py-0.5 rounded-full shadow uppercase">
+                  <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-[#A80000] text-[#F4C542] font-black text-[8px] sm:text-[9px] px-1.5 sm:px-2.5 py-0.5 rounded-full shadow uppercase">
                     SHOP
                   </span>
                 </div>
-                <h3 className="font-bold text-xs text-gray-800 uppercase text-center min-h-[32px] line-clamp-2 transition-colors group-hover:text-[#A80000] mb-3">{cat.name}</h3>
+                <h3 className="font-bold text-[10px] sm:text-xs text-gray-800 uppercase text-center min-h-[26px] sm:min-h-[32px] line-clamp-2 transition-colors group-hover:text-[#A80000] mb-2 sm:mb-3">{cat.name}</h3>
                 
                 <div className="w-full mt-auto">
-                  <button className="w-full bg-[#A80000] text-white py-1.5 rounded-lg text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase">
+                  <button className="w-full bg-[#A80000] text-white py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[9px] sm:text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase">
                     View Products
                   </button>
                 </div>
@@ -760,24 +760,24 @@ const Index = () => {
 
         {/* Infinite scrolling brands marquee from right to left */}
         <div className="relative w-full overflow-hidden py-4">
-          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+          <div className="flex flex-nowrap gap-3 sm:gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
             {[...(brands.length > 0 ? brands : shopByBrands), ...(brands.length > 0 ? brands : shopByBrands), ...(brands.length > 0 ? brands : shopByBrands)].map((brand: any, i: number) => {
               const brandId = brand._id || brand.id || i;
               return (
                 <div
                   key={`${brandId}-${i}`}
                   onClick={() => window.location.href = `/catalog?search=${encodeURIComponent(brand.name)}`}
-                  className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[130px] sm:w-[160px] md:w-[180px] shrink-0"
+                  className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-xl sm:rounded-2xl p-2 sm:p-4 flex flex-col items-center justify-between text-center shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[105px] sm:w-[150px] md:w-[180px] shrink-0"
                 >
-                  <span className="text-[8px] sm:text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-1.5 sm:px-2 py-0.5 rounded-full mb-1.5 sm:mb-2 font-mono">
+                  <span className="text-[7px] sm:text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-1 sm:px-2 py-0.5 rounded-full mb-1 sm:mb-2 font-mono">
                     {brand.tag || "BRAND"}
                   </span>
-                  <div className="w-full aspect-square flex items-center justify-center p-1 sm:p-2 mb-1 sm:mb-2 group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-full aspect-square flex items-center justify-center p-0.5 sm:p-2 mb-0.5 sm:mb-2 group-hover:scale-105 transition-transform duration-300">
                     <img src={brand.logo || brand.image || "/sky_rocket_box.png"} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
                   </div>
                   <div>
-                    <h3 className="font-black text-[11px] sm:text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors line-clamp-1">{brand.name}</h3>
-                    <p className="text-[9px] sm:text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-1">{brand.subtitle || brand.description || "Original Sivakasi"}</p>
+                    <h3 className="font-black text-[10px] sm:text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors line-clamp-1">{brand.name}</h3>
+                    <p className="text-[8px] sm:text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-1">{brand.subtitle || brand.description || "Original Sivakasi"}</p>
                   </div>
                 </div>
               );
@@ -812,7 +812,7 @@ const Index = () => {
             </button>
 
             {/* Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full px-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8 w-full px-2 sm:px-4">
               {[0, 1, 2].map((offset) => {
                 const comboPacksList = (products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).length > 0
                   ? products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack'))
@@ -824,7 +824,7 @@ const Index = () => {
                 return (
                   <div
                     key={`combo-${offset}-${item._id || item.id || offset}`}
-                    className={`w-full ${offset > 0 ? "hidden md:block" : "block"}`}
+                    className={`w-full max-w-[260px] sm:max-w-none mx-auto ${offset > 0 ? "hidden md:block" : "block"}`}
                   >
                     <ProductCard product={item} />
                   </div>
