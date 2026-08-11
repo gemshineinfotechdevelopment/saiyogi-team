@@ -4,7 +4,8 @@ import AdminNavbar from "@/components/layout/AdminNavbar";
 import {
   Image as ImageIcon, Upload, Trash2, AlertCircle, Edit2, FileText, Loader2, X, Users,
   CheckCircle2, Clock, Search, Filter, Phone, MapPin, Mail, RefreshCw, Check, XCircle,
-  Eye, CheckCheck, Calendar, Plus, ArrowLeft, User, DollarSign, Award, ChevronRight, AlertTriangle
+  Eye, CheckCheck, Calendar, Plus, ArrowLeft, User, DollarSign, Award, ChevronRight, AlertTriangle,
+  Share2, MessageCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
@@ -585,17 +586,50 @@ const AdminChitScheme: React.FC = () => {
     });
   };
 
-  // Update Manual Stage Handler
-  const handleUpdateStage = async (sub: ChitSubscriptionItem, newStage: string) => {
-    try {
-      toast.loading("Updating deal stage...", { id: "stage-toast" });
-      const id = sub._id || sub.id || "";
-      await updateChitSubscriptionStatus(id, sub.status);
-      loadSubscriptions();
-      toast.success(`Stage updated to ${newStage}`, { id: "stage-toast" });
-    } catch (err: any) {
-      toast.error("Failed to update stage: " + (err.message || err), { id: "stage-toast" });
-    }
+  // Helper to determine On-time vs Delay Payment based on due day
+  const getPaymentTimingStatus = (paidDateStr: string | undefined, dueDateDay: number): "On-time Payment" | "Delay Payment" => {
+    if (!paidDateStr) return "On-time Payment";
+    const paidDate = new Date(paidDateStr);
+    if (isNaN(paidDate.getTime())) return "On-time Payment";
+    const paidDay = paidDate.getDate();
+    return paidDay <= dueDateDay ? "On-time Payment" : "Delay Payment";
+  };
+
+  // WhatsApp Receipt Share Function
+  const handleShareWhatsAppReceipt = (
+    sub: ChitSubscriptionItem,
+    monthNumber: number,
+    monthName: string,
+    amount: number,
+    paidAt?: string,
+    paymentMethod?: string,
+    transactionNumber?: string,
+    dueDateDay: number = 10
+  ) => {
+    const rawPhone = (sub.phone || sub.mobileNumber || '').replace(/\D/g, '');
+    const customerName = sub.name || sub.customerName || 'Customer';
+    const schemeName = sub.schemeName || 'Chit Scheme';
+    const formattedDate = paidAt ? new Date(paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const timingStatus = getPaymentTimingStatus(paidAt, dueDateDay);
+
+    const text = 
+`*SAI YOGI CRACKERS - CHIT SCHEME PAYMENT RECEIPT* 🧾
+--------------------------------------------
+*Subscriber:* ${customerName}
+*Mobile:* ${sub.phone || sub.mobileNumber}
+*Scheme:* ${schemeName}
+*Month:* Month ${monthNumber} (${monthName})
+*Amount Paid:* ₹${amount.toLocaleString()}
+*Payment Date:* ${formattedDate}
+*Payment Status:* ${timingStatus}
+*Payment Method:* ${paymentMethod || 'Cash/UPI'}${transactionNumber ? ` (#${transactionNumber})` : ''}
+--------------------------------------------
+Thank you for your payment! 🙏
+_Sai Yogi Crackers_`;
+
+    const encodedText = encodeURIComponent(text);
+    const waUrl = rawPhone ? `https://api.whatsapp.com/send?phone=91${rawPhone}&text=${encodedText}` : `https://api.whatsapp.com/send?text=${encodedText}`;
+    window.open(waUrl, '_blank');
   };
 
   // Filter Customer Applications
@@ -692,8 +726,8 @@ const AdminChitScheme: React.FC = () => {
             </div>
           </div>
 
-          {/* 5 Summary KPI Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          {/* 4 Summary KPI Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="bg-white p-4 rounded-2xl border border-gray-200/90 shadow-2xs flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-purple-100 text-[#7A1416] flex items-center justify-center shrink-0">
                 <FileText className="w-5 h-5 stroke-[2.5]" />
@@ -701,16 +735,6 @@ const AdminChitScheme: React.FC = () => {
               <div>
                 <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Total Schemes</div>
                 <div className="text-xl font-extrabold text-gray-900">{totalSchemesCount}</div>
-              </div>
-            </div>
-
-            <div className="bg-white p-4 rounded-2xl border border-amber-200/90 shadow-2xs flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-                <Clock className="w-5 h-5 stroke-[2.5]" />
-              </div>
-              <div>
-                <div className="text-[11px] font-bold text-amber-900 uppercase tracking-wide">Pending Apps</div>
-                <div className="text-xl font-extrabold text-amber-950">{pendingApplicationsCount}</div>
               </div>
             </div>
 
@@ -734,7 +758,7 @@ const AdminChitScheme: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-gray-200/90 shadow-2xs flex items-center gap-3 col-span-2 sm:col-span-1">
+            <div className="bg-white p-4 rounded-2xl border border-gray-200/90 shadow-2xs flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center shrink-0">
                 <Award className="w-5 h-5 stroke-[2.5]" />
               </div>
@@ -1798,22 +1822,10 @@ const AdminChitScheme: React.FC = () => {
                         </DialogTitle>
                       </div>
 
-                      {/* Manual Stage Selector */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-gray-600">Stage:</span>
-                        <select
-                          value={autoStage}
-                          onChange={(e) => handleUpdateStage(sub, e.target.value)}
-                          className="text-xs font-bold p-2 bg-amber-50 border border-amber-300 text-amber-950 rounded-xl outline-none"
-                        >
-                          <option value="Pending Approval">Pending Approval</option>
-                          <option value="Approved">Approved</option>
-                          <option value="Payment Started">Payment Started</option>
-                          <option value="In Progress">In Progress</option>
-                          <option value="Almost Completed">Almost Completed</option>
-                          <option value="Completed">Completed</option>
-                          <option value="Rejected">Rejected</option>
-                        </select>
+                      {/* Prominent Due Date Banner */}
+                      <div className="bg-amber-100/90 text-amber-950 border border-amber-300 font-extrabold text-xs px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs">
+                        <span>🔔 Monthly Due Date:</span>
+                        <strong className="text-[#7A1416]">Before {dueDateDay}th of every month</strong>
                       </div>
                     </div>
                   </DialogHeader>
@@ -1908,7 +1920,6 @@ const AdminChitScheme: React.FC = () => {
                           <tr className="bg-gray-100 text-gray-700 text-xs uppercase font-extrabold tracking-wider border-b border-gray-200">
                             <th className="p-3.5 w-14 text-center">#</th>
                             <th className="p-3.5">Month</th>
-                            <th className="p-3.5">Due Date</th>
                             <th className="p-3.5">Amount</th>
                             <th className="p-3.5">Payment Status &amp; Method</th>
                             <th className="p-3.5 text-right">Action</th>
@@ -1918,6 +1929,7 @@ const AdminChitScheme: React.FC = () => {
                           {monthSchedule.map((m) => {
                             const existingLog = (sub.monthlyPayments || []).find(p => p.monthNumber === m.monthNumber);
                             const isPaid = existingLog?.status === 'Paid' || existingLog?.status === 'Late Pay';
+                            const timingStatus = getPaymentTimingStatus(existingLog?.paidAt, dueDateDay);
 
                             return (
                               <tr
@@ -1934,23 +1946,25 @@ const AdminChitScheme: React.FC = () => {
                                   {m.monthName}
                                 </td>
 
-                                <td className="p-3.5 text-gray-600 font-semibold">
-                                  {m.dueDateStr}
-                                </td>
-
                                 <td className="p-3.5 font-bold text-emerald-800">
                                   ₹{m.amount.toLocaleString()}
                                 </td>
 
                                 <td className="p-3.5">
                                   {isPaid ? (
-                                    <div className="space-y-0.5">
-                                      <span className="bg-emerald-600 text-white font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
-                                        <CheckCircle2 className="w-3.5 h-3.5" /> Paid
-                                      </span>
+                                    <div className="space-y-1">
+                                      {timingStatus === 'On-time Payment' ? (
+                                        <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> On-time Payment
+                                        </span>
+                                      ) : (
+                                        <span className="bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                                          <Clock className="w-3.5 h-3.5 text-amber-700" /> Delay Payment
+                                        </span>
+                                      )}
                                       {existingLog?.paidAt && (
                                         <div className="text-[11px] text-gray-600 font-medium">
-                                          Paid on: {new Date(existingLog.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                          Paid date: {new Date(existingLog.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                                         </div>
                                       )}
                                       {existingLog?.paymentMethod && (
@@ -1970,6 +1984,24 @@ const AdminChitScheme: React.FC = () => {
                                   {currentApproval === 'Approved' ? (
                                     isPaid ? (
                                       <div className="flex items-center justify-end gap-1.5">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleShareWhatsAppReceipt(
+                                            sub,
+                                            m.monthNumber,
+                                            m.monthName,
+                                            m.amount,
+                                            existingLog?.paidAt,
+                                            existingLog?.paymentMethod,
+                                            existingLog?.transactionNumber,
+                                            dueDateDay
+                                          )}
+                                          className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
+                                          title="Share Receipt via WhatsApp"
+                                        >
+                                          <Share2 className="w-3.5 h-3.5" />
+                                          <span>Share Receipt</span>
+                                        </button>
                                         <button
                                           type="button"
                                           onClick={() => handleOpenPaymentModal(sub, m.monthNumber, m.monthName, m.dueDateStr, m.amount, existingLog)}

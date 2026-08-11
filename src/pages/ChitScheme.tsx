@@ -524,13 +524,13 @@ const ChitScheme: React.FC = () => {
 
                     {/* Monthwise Payment Passbook Table */}
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center justify-between text-xs bg-amber-50 border border-amber-200/80 p-3 rounded-2xl">
                         <span className="font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
                           <Calendar className="w-4 h-4 text-[#7A1416]" />
                           Monthwise Payment Schedule ({totalMonths} Months)
                         </span>
-                        <span className="text-[11px] font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg">
-                          Due: {dueDateDay}th of each month
+                        <span className="text-xs font-extrabold text-[#7A1416] bg-amber-100/90 px-3 py-1 rounded-xl border border-amber-300">
+                          🔔 Monthly Due Date: Before {dueDateDay}th of every month
                         </span>
                       </div>
 
@@ -540,7 +540,7 @@ const ChitScheme: React.FC = () => {
                             <tr className="bg-gray-100/80 text-gray-700 text-xs uppercase font-extrabold tracking-wider border-b border-gray-200">
                               <th className="p-3.5 w-16 text-center">S.No</th>
                               <th className="p-3.5">Month</th>
-                              <th className="p-3.5">Due Date & Amount</th>
+                              <th className="p-3.5">Amount</th>
                               <th className="p-3.5">Payment Status</th>
                             </tr>
                           </thead>
@@ -549,16 +549,15 @@ const ChitScheme: React.FC = () => {
                               const { monthName } = getMonthNameForIndex(mNum, startDateStr);
                               const existingLog = (sub.monthlyPayments || []).find(p => p.monthNumber === mNum);
                               const currentStatus = existingLog?.status || 'Pending';
+                              const isPaid = currentStatus === 'Paid' || currentStatus === 'Late Pay';
+                              const paidDay = existingLog?.paidAt ? new Date(existingLog.paidAt).getDate() : 0;
+                              const timingStatus = isPaid ? (paidDay > 0 && paidDay <= dueDateDay ? 'On-time Payment' : 'Delay Payment') : 'Pending';
 
                               return (
                                 <tr
                                   key={mNum}
                                   className={`hover:bg-gray-50/80 transition-colors ${
-                                    currentStatus === 'Paid'
-                                      ? 'bg-emerald-50/30'
-                                      : currentStatus === 'Late Pay'
-                                      ? 'bg-amber-50/40'
-                                      : ''
+                                    isPaid ? 'bg-emerald-50/30' : ''
                                   }`}
                                 >
                                   <td className="p-3.5 font-bold text-gray-500 text-center">
@@ -569,34 +568,29 @@ const ChitScheme: React.FC = () => {
                                     {monthName}
                                   </td>
 
-                                  <td className="p-3.5 text-gray-700">
-                                    <div className="font-semibold">Due: {dueDateDay}th {monthName}</div>
-                                    {monthlyAmount ? (
-                                      <div className="text-[11px] font-bold text-[#7A1416] mt-0.5">
-                                        ₹{monthlyAmount.toLocaleString()} / month
-                                      </div>
-                                    ) : null}
+                                  <td className="p-3.5 font-extrabold text-emerald-800 text-sm">
+                                    ₹{monthlyAmount.toLocaleString()}
                                   </td>
 
                                   <td className="p-3.5">
                                     <div className="flex flex-col gap-1 items-start">
-                                      {currentStatus === 'Paid' && (
-                                        <span className="bg-emerald-600 text-white font-extrabold text-xs px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs">
-                                          <CheckCircle2 className="w-3.5 h-3.5" /> Paid
+                                      {isPaid && timingStatus === 'On-time Payment' && (
+                                        <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-xs px-3 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> On-time Payment
                                         </span>
                                       )}
-                                      {currentStatus === 'Late Pay' && (
-                                        <span className="bg-amber-600 text-white font-extrabold text-xs px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs">
-                                          <Clock className="w-3.5 h-3.5" /> Late Pay
+                                      {isPaid && timingStatus === 'Delay Payment' && (
+                                        <span className="bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-xs px-3 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                                          <Clock className="w-3.5 h-3.5 text-amber-700" /> Delay Payment
                                         </span>
                                       )}
-                                      {currentStatus === 'Pending' && (
-                                        <span className="bg-gray-200 text-gray-700 font-bold text-xs px-3 py-1 rounded-full">
+                                      {!isPaid && (
+                                        <span className="bg-gray-100 text-gray-600 font-bold text-xs px-3 py-0.5 rounded-full">
                                           Unpaid / Pending
                                         </span>
                                       )}
 
-                                      {existingLog?.paidAt && currentStatus !== 'Pending' && (
+                                      {existingLog?.paidAt && isPaid && (
                                         <span className="text-[11px] text-gray-500 font-medium">
                                           Paid on: {new Date(existingLog.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                                         </span>
