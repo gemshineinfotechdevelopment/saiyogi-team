@@ -102,6 +102,7 @@ const AdminChitScheme: React.FC = () => {
   const [uploadDueDateDay, setUploadDueDateDay] = useState("10");
   const [uploadMonthlyAmount, setUploadMonthlyAmount] = useState("2000");
   const [uploadStatus, setUploadStatus] = useState<'Upcoming' | 'Active' | 'Completed' | 'Closed'>("Active");
+  const [isUploading, setIsUploading] = useState(false);
   // Dedicated Admin Image Upload Modal State
   const [isUploadImageModalOpen, setIsUploadImageModalOpen] = useState(false);
   const [uploadImageSelectedSchemeId, setUploadImageSelectedSchemeId] = useState("");
