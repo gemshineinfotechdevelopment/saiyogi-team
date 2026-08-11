@@ -38,10 +38,10 @@ export const FloatingCartTotal: React.FC = () => {
   return (
     <div
       onClick={() => setIsCartOpen(true)}
-      className="fixed bottom-18 left-4 sm:bottom-20 sm:left-6 z-50 bg-[#A80000] hover:bg-[#8B0000] text-white px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-xl shadow-2xl border border-amber-400/30 cursor-pointer transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2 group"
+      className="fixed bottom-16 left-3 sm:bottom-20 sm:left-6 z-50 bg-[#A80000] hover:bg-[#8B0000] text-white px-2.5 py-1 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl shadow-2xl border border-amber-400/30 cursor-pointer transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5 group"
       title="Click to view cart"
     >
-      <span className="font-bold text-[10px] sm:text-sm tracking-wide">
+      <span className="font-bold text-[9px] sm:text-sm tracking-wide">
         Total : ₹ {totalPrice.toFixed(2)}
       </span>
     </div>
