@@ -35,8 +35,9 @@ import NotFound from "./pages/NotFound";
 
 import { SettingsProvider } from "@/context/SettingsContext";
 import ScrollToTop from "@/components/ScrollToTop";
-import { GlobalLoginModal } from "@/components/auth/GlobalLoginModal";
+import GlobalLoginModal from "@/components/auth/GlobalLoginModal";
 import FloatingCartTotal from "@/components/FloatingCartTotal";
+import FloatingQuickEnquiry from "@/components/FloatingQuickEnquiry";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ const App = () => (
                 <ScrollToTop />
                 <GlobalLoginModal />
                 <FloatingCartTotal />
+                <FloatingQuickEnquiry />
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/combo-packs" element={<ComboPacks />} />

@@ -162,18 +162,18 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-lg p-0 overflow-hidden rounded-3xl border-0 shadow-2xl bg-[#F7F5F0] [&>button]:hidden">
+      <DialogContent className="w-[92vw] max-w-[360px] sm:max-w-[420px] p-0 overflow-hidden rounded-2xl sm:rounded-3xl border-0 shadow-2xl bg-[#F7F5F0] [&>button]:hidden max-h-[90vh] flex flex-col">
         {/* Header decoration */}
-        <div className="bg-gradient-to-r from-[#7A1416] via-[#A80000] to-[#7A1416] text-white p-5 relative flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20 shrink-0">
-              <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-[#F4C542]" />
+        <div className="bg-gradient-to-r from-[#7A1416] via-[#A80000] to-[#7A1416] text-white px-3.5 py-3 sm:px-4 sm:py-3.5 relative flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20 shrink-0">
+              <ShieldCheck className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#F4C542]" />
             </div>
             <div>
-              <DialogTitle className="text-sm sm:text-base font-black uppercase tracking-wide text-white leading-tight">
+              <DialogTitle className="text-xs sm:text-sm font-black uppercase tracking-wide text-white leading-tight">
                 Sai Yogi Crackers
               </DialogTitle>
-              <DialogDescription className="text-[9px] sm:text-[10px] text-amber-300 font-bold tracking-wider uppercase">
+              <DialogDescription className="text-[8.5px] sm:text-[9.5px] text-amber-300 font-bold tracking-wider uppercase">
                 Celebrate Every Moment ✨
               </DialogDescription>
             </div>
@@ -182,91 +182,88 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
           <button
             onClick={onClose}
             type="button"
-            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer border border-white/20 shrink-0"
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer border border-white/20 shrink-0"
             aria-label="Close modal"
           >
-            <X className="w-5 h-5 text-white" />
+            <X className="w-4 h-4 text-white" />
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="p-3.5 sm:p-6 bg-[#F7F5F0]">
+        <div className="p-3 sm:p-4 bg-[#F7F5F0] overflow-y-auto custom-scrollbar flex-1">
           {isUserLoggedIn ? (
-            <div className="space-y-3 sm:space-y-4 font-sans">
+            <div className="space-y-2.5 sm:space-y-3 font-sans">
               {/* Profile Card */}
-              <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-gray-200/80 shadow-md text-center relative overflow-hidden">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-gray-200/80 shadow-xs text-center relative overflow-hidden">
                 {/* Clean Avatar */}
-                <div className="relative inline-block mx-auto mb-1 sm:mb-2">
-                  <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-red-50 border-2 sm:border-4 border-red-100 flex items-center justify-center shadow-md">
-                    <User className="w-7 h-7 sm:w-10 sm:h-10 text-[#7A1416]" />
+                <div className="relative inline-block mx-auto mb-1">
+                  <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-red-50 border-2 border-red-100 flex items-center justify-center shadow-xs">
+                    <User className="w-5 h-5 sm:w-7 sm:h-7 text-[#7A1416]" />
                   </div>
                 </div>
 
-                <h3 className="text-lg sm:text-2xl font-black text-gray-900 tracking-tight">
+                <h3 className="text-base sm:text-lg font-black text-gray-900 tracking-tight">
                   {userName || localStorage.getItem("user_name") || "User"}
                 </h3>
 
-                <p className="text-[10px] sm:text-[11px] text-gray-400 font-bold uppercase tracking-wider mb-2 sm:mb-3 mt-0.5">
+                <p className="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 mt-0.5">
                   Registered Mobile Number
                 </p>
 
                 {/* Mobile Number Box */}
-                <div className="bg-red-50/70 border border-red-100 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 flex items-center justify-between shadow-2xs">
-                  <div className="flex items-center gap-2.5 sm:gap-3">
-                    <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-[#7A1416] text-white flex items-center justify-center shadow-sm shrink-0">
-                      <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <div className="bg-red-50/70 border border-red-100 rounded-lg sm:rounded-xl p-2 sm:p-2.5 flex items-center justify-between shadow-2xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#7A1416] text-white flex items-center justify-center shadow-xs shrink-0">
+                      <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     </div>
-                    <span className="text-xs sm:text-base md:text-lg font-black text-gray-900 tracking-wider">
+                    <span className="text-xs sm:text-sm font-black text-gray-900 tracking-wider">
                       +91 {userPhone || "98765 43210"}
                     </span>
                   </div>
-                  <span className="bg-emerald-100 text-emerald-800 text-[9px] sm:text-[11px] font-black px-2 sm:px-3 py-0.5 sm:py-1 rounded-full flex items-center gap-1 shadow-2xs border border-emerald-200 shrink-0">
-                    <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600" />
+                  <span className="bg-emerald-100 text-emerald-800 text-[8.5px] sm:text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs border border-emerald-200 shrink-0">
+                    <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-600" />
                     <span>Active Session</span>
                   </span>
                 </div>
               </div>
 
               {/* Middle Festive Banner */}
-              <div className="bg-amber-50/90 border border-amber-200/80 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-2xs">
-                <div className="flex items-center gap-2.5 sm:gap-3.5">
-                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-red-100 text-[#7A1416] flex items-center justify-center shrink-0 shadow-2xs border border-red-200/50">
-                    <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-[#7A1416]" />
+              <div className="bg-amber-50/90 border border-amber-200/80 rounded-xl p-2.5 sm:p-3 flex items-center justify-between shadow-2xs">
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-100 text-[#7A1416] flex items-center justify-center shrink-0 border border-red-200/50">
+                    <Gift className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7A1416]" />
                   </div>
                   <div>
-                    <h4 className="font-display font-black text-gray-900 text-xs sm:text-sm leading-snug">
+                    <h4 className="font-display font-black text-gray-900 text-[11px] sm:text-xs leading-snug">
                       Thank you for being with Sai Yogi Crackers!
                     </h4>
-                    <p className="text-[10px] sm:text-xs text-amber-900/80 font-semibold mt-0.5">
+                    <p className="text-[9px] sm:text-[10px] text-amber-900/80 font-semibold mt-0.5">
                       Light up more celebrations with us
                     </p>
                   </div>
                 </div>
-                <div className="hidden sm:block text-amber-500 text-2xl shrink-0">
-                  🎆
-                </div>
               </div>
 
               {/* Action Cards Grid: My Account & My Enquiry */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5">
+              <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
                 {/* My Account Card */}
                 <button
                   onClick={() => {
                     onClose();
                     navigate("/my-account");
                   }}
-                  className="bg-white hover:bg-red-50/40 border border-gray-200/80 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between text-left transition-all group cursor-pointer shadow-2xs"
+                  className="bg-white hover:bg-red-50/40 border border-gray-200/80 rounded-xl p-2.5 sm:p-3 flex items-center justify-between text-left transition-all group cursor-pointer shadow-2xs"
                 >
-                  <div className="flex items-center gap-2.5 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-red-50 text-[#7A1416] border border-red-100 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <User className="w-4 h-4 sm:w-5 sm:h-5 text-[#7A1416]" />
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-50 text-[#7A1416] border border-red-100 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7A1416]" />
                     </div>
-                    <div>
-                      <h5 className="font-black text-gray-900 text-xs sm:text-sm">My Account</h5>
-                      <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">View & edit your details</p>
+                    <div className="min-w-0 flex-1">
+                      <h5 className="font-black text-gray-900 text-[11px] sm:text-xs truncate">My Account</h5>
+                      <p className="text-[8.5px] sm:text-[9.5px] text-gray-500 font-medium truncate">View details</p>
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#7A1416] transition-colors" />
+                  <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#7A1416] transition-colors shrink-0" />
                 </button>
 
                 {/* My Enquiry Card */}
@@ -275,27 +272,27 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
                     onClose();
                     navigate("/my-enquiry");
                   }}
-                  className="bg-white hover:bg-red-50/40 border border-gray-200/80 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between text-left transition-all group cursor-pointer shadow-2xs"
+                  className="bg-white hover:bg-red-50/40 border border-gray-200/80 rounded-xl p-2.5 sm:p-3 flex items-center justify-between text-left transition-all group cursor-pointer shadow-2xs"
                 >
-                  <div className="flex items-center gap-2.5 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-red-50 text-[#7A1416] border border-red-100 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-[#7A1416]" />
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-50 text-[#7A1416] border border-red-100 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7A1416]" />
                     </div>
-                    <div>
-                      <h5 className="font-black text-gray-900 text-xs sm:text-sm">My Enquiry</h5>
-                      <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Track your enquiries</p>
+                    <div className="min-w-0 flex-1">
+                      <h5 className="font-black text-gray-900 text-[11px] sm:text-xs truncate">My Enquiry</h5>
+                      <p className="text-[8.5px] sm:text-[9.5px] text-gray-500 font-medium truncate">Track enquiries</p>
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#7A1416] transition-colors" />
+                  <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#7A1416] transition-colors shrink-0" />
                 </button>
               </div>
 
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
-                className="w-full py-2.5 sm:py-3 bg-white hover:bg-red-50 text-gray-700 hover:text-red-700 border border-gray-200 rounded-xl sm:rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs mt-1"
+                className="w-full py-2 sm:py-2.5 bg-white hover:bg-red-50 text-gray-700 hover:text-red-700 border border-gray-200 rounded-xl font-black text-[11px] sm:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
               >
-                <LogOut className="w-4 h-4 text-red-600" />
+                <LogOut className="w-3.5 h-3.5 text-red-600" />
                 <span>Logout Account</span>
               </button>
             </div>

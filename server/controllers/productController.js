@@ -75,7 +75,7 @@ export const getProductById = async (req, res, next) => {
 
 export const createProduct = async (req, res, next) => {
   try {
-    const { name, code, sku, category, price, wholesalePrice, netRate, stock, minimumStock, description, brand, hasDiscount, displayNetRate, storeStockPieces, godownStockCases, piecesPerCase } = req.body;
+    const { name, code, sku, category, price, wholesalePrice, netRate, stock, minimumStock, description, brand, hasDiscount, displayNetRate, storeStockPieces, godownStockCases, piecesPerCase, isSaiYogiVerified, rating } = req.body;
 
     let imageUrl = req.body.image || '';
     
@@ -138,6 +138,8 @@ export const createProduct = async (req, res, next) => {
       newSkuStr = categoryCode + Date.now().toString().substring(5);
     }
 
+    const parsedRating = rating !== undefined ? Math.min(5, Math.max(0, parseFloat(rating))) : 5;
+
     const newProduct = new Product({
       name,
       code: newSkuStr,
@@ -157,7 +159,9 @@ export const createProduct = async (req, res, next) => {
       minimumStock: minimumStock ? parseInt(minimumStock) : 0,
       description,
       image: imageUrl,
-      isActive: true
+      isActive: true,
+      isSaiYogiVerified: isSaiYogiVerified === 'true' || isSaiYogiVerified === true,
+      rating: isNaN(parsedRating) ? 5 : parsedRating
     });
 
     const savedProduct = await newProduct.save();
@@ -177,8 +181,8 @@ export const updateProduct = async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return next(new AppError('Product not found', 404));
     }
-    const { name, code, sku, category, price, wholesalePrice, netRate, stock, minimumStock, description, isActive, brand, hasDiscount, displayNetRate, storeStockPieces, godownStockCases, piecesPerCase } = req.body;
-    
+    const { name, code, sku, category, price, wholesalePrice, netRate, stock, minimumStock, description, isActive, brand, hasDiscount, displayNetRate, storeStockPieces, godownStockCases, piecesPerCase, isSaiYogiVerified, rating, quantity } = req.body;
+
     let imageUrl = req.body.image;
 
     if (req.file) {
@@ -210,12 +214,18 @@ export const updateProduct = async (req, res, next) => {
     if (code) updateData.code = code;
     if (sku) updateData.sku = sku;
     if (category) updateData.category = category;
+    if (quantity !== undefined) updateData.quantity = quantity;
     if (price !== undefined) updateData.price = parseFloat(price);
     if (wholesalePrice !== undefined) updateData.wholesalePrice = parseFloat(wholesalePrice);
     if (netRate !== undefined) updateData.netRate = parseFloat(netRate);
     if (brand !== undefined) updateData.brand = brand;
     if (hasDiscount !== undefined) updateData.hasDiscount = hasDiscount === 'true' || hasDiscount === true;
     if (displayNetRate !== undefined) updateData.displayNetRate = displayNetRate === 'true' || displayNetRate === true;
+    if (isSaiYogiVerified !== undefined) updateData.isSaiYogiVerified = isSaiYogiVerified === 'true' || isSaiYogiVerified === true;
+    if (rating !== undefined) {
+      const r = parseFloat(rating);
+      if (!isNaN(r)) updateData.rating = Math.min(5, Math.max(0, r));
+    }
 
     if (updateData.displayNetRate === true) {
       updateData.hasDiscount = false;
