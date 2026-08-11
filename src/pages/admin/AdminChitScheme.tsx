@@ -39,6 +39,8 @@ export interface ChitSchemeImage {
   dueDateDay?: number;
   paymentDueDay?: number;
   monthlyAmount?: number;
+  totalSchemeAmount?: number;
+  totalAmount?: number;
   status?: 'Upcoming' | 'Active' | 'Completed' | 'Closed';
 }
 
@@ -101,6 +103,7 @@ const AdminChitScheme: React.FC = () => {
   const [uploadTotalMonths, setUploadTotalMonths] = useState("9");
   const [uploadDueDateDay, setUploadDueDateDay] = useState("10");
   const [uploadMonthlyAmount, setUploadMonthlyAmount] = useState("2000");
+  const [uploadTotalSchemeAmount, setUploadTotalSchemeAmount] = useState("18000");
   const [uploadStatus, setUploadStatus] = useState<'Upcoming' | 'Active' | 'Completed' | 'Closed'>("Active");
   const [isUploading, setIsUploading] = useState(false);
   // Dedicated Admin Image Upload Modal State
@@ -118,6 +121,7 @@ const AdminChitScheme: React.FC = () => {
   const [editTotalMonths, setEditTotalMonths] = useState("9");
   const [editDueDateDay, setEditDueDateDay] = useState("10");
   const [editMonthlyAmount, setEditMonthlyAmount] = useState("");
+  const [editTotalSchemeAmount, setEditTotalSchemeAmount] = useState("");
   const [editStatus, setEditStatus] = useState<'Upcoming' | 'Active' | 'Completed' | 'Closed'>("Active");
   const [editUrl, setEditUrl] = useState("");
   const [editSelectedFile, setEditSelectedFile] = useState<File | null>(null);
@@ -267,17 +271,23 @@ const AdminChitScheme: React.FC = () => {
     try {
       toast.loading("Creating Chit Scheme...", { id: "scheme-toast" });
 
+      const monthly = parseFloat(uploadMonthlyAmount) || 0;
+      const months = parseInt(uploadTotalMonths, 10) || 9;
+      const totalExpected = parseFloat(uploadTotalSchemeAmount) || (monthly * months);
+
       await createChitScheme({
         title: uploadTitle.trim(),
         schemeName: uploadTitle.trim(),
         description: uploadDescription.trim(),
         url: "https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=1200&auto=format&fit=crop",
         startDate: uploadStartDate,
-        totalMonths: parseInt(uploadTotalMonths, 10) || 9,
-        numberOfMonths: parseInt(uploadTotalMonths, 10) || 9,
+        totalMonths: months,
+        numberOfMonths: months,
         dueDateDay: parseInt(uploadDueDateDay, 10) || 10,
         paymentDueDay: parseInt(uploadDueDateDay, 10) || 10,
-        monthlyAmount: parseFloat(uploadMonthlyAmount) || 0,
+        monthlyAmount: monthly,
+        totalSchemeAmount: totalExpected,
+        totalAmount: totalExpected,
         status: uploadStatus
       });
 
@@ -288,6 +298,7 @@ const AdminChitScheme: React.FC = () => {
       setUploadTotalMonths("9");
       setUploadDueDateDay("10");
       setUploadMonthlyAmount("2000");
+      setUploadTotalSchemeAmount("18000");
       setUploadStatus("Active");
       setIsCreateModalOpen(false);
       loadChitSchemes();
@@ -373,13 +384,18 @@ const AdminChitScheme: React.FC = () => {
 
   // Open Edit Scheme Modal
   const handleOpenEditModal = (sch: ChitSchemeImage) => {
+    const monthly = sch.monthlyAmount || 0;
+    const months = sch.totalMonths || sch.numberOfMonths || 9;
+    const totalExpected = sch.totalSchemeAmount || sch.totalAmount || (monthly * months);
+
     setEditingScheme(sch);
     setEditTitle(sch.title || sch.schemeName || "");
     setEditDescription(sch.description || "");
     setEditStartDate(sch.startDate || new Date().toISOString().split('T')[0]);
-    setEditTotalMonths(String(sch.totalMonths || sch.numberOfMonths || 9));
+    setEditTotalMonths(String(months));
     setEditDueDateDay(String(sch.dueDateDay || sch.paymentDueDay || 10));
-    setEditMonthlyAmount(String(sch.monthlyAmount || 0));
+    setEditMonthlyAmount(String(monthly));
+    setEditTotalSchemeAmount(String(totalExpected));
     setEditStatus(sch.status || 'Active');
     setEditUrl(sch.url || "");
     setEditSelectedFile(null);
@@ -403,17 +419,23 @@ const AdminChitScheme: React.FC = () => {
         finalUrl = await uploadImageToCloudinary(editSelectedFile, "chit_schemes");
       }
 
+      const monthly = parseFloat(editMonthlyAmount) || 0;
+      const months = parseInt(editTotalMonths, 10) || 9;
+      const totalExpected = parseFloat(editTotalSchemeAmount) || (monthly * months);
+
       await updateChitScheme(editingScheme.id, {
         title: editTitle.trim(),
         schemeName: editTitle.trim(),
         description: editDescription.trim(),
         url: finalUrl,
         startDate: editStartDate,
-        totalMonths: parseInt(editTotalMonths, 10) || 9,
-        numberOfMonths: parseInt(editTotalMonths, 10) || 9,
+        totalMonths: months,
+        numberOfMonths: months,
         dueDateDay: parseInt(editDueDateDay, 10) || 10,
         paymentDueDay: parseInt(editDueDateDay, 10) || 10,
-        monthlyAmount: parseFloat(editMonthlyAmount) || 0,
+        monthlyAmount: monthly,
+        totalSchemeAmount: totalExpected,
+        totalAmount: totalExpected,
         status: editStatus
       });
 
@@ -594,7 +616,7 @@ const AdminChitScheme: React.FC = () => {
     return paidDay <= dueDateDay ? "On-time Payment" : "Delay Payment";
   };
 
-  // WhatsApp Receipt Share Function
+  // PDF Receipt Generation & WhatsApp Share Function
   const handleShareWhatsAppReceipt = (
     sub: ChitSubscriptionItem,
     monthNumber: number,
@@ -610,25 +632,148 @@ const AdminChitScheme: React.FC = () => {
     const schemeName = sub.schemeName || 'Chit Scheme';
     const formattedDate = paidAt ? new Date(paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
     const timingStatus = getPaymentTimingStatus(paidAt, dueDateDay);
+    const receiptNo = `REC-${monthNumber}-${Date.now().toString().slice(-6)}`;
 
-    const text = 
-`*SAI YOGI CRACKERS - CHIT SCHEME PAYMENT RECEIPT* 🧾
+    // Create offscreen container for PDF receipt
+    const html = `
+      <div style="font-family: Arial, sans-serif; padding: 25px; max-width: 650px; background: #ffffff; color: #1e293b; border: 2px solid #7A1416; border-radius: 16px;">
+        <div style="text-align: center; border-bottom: 2px solid #7A1416; padding-bottom: 15px; margin-bottom: 20px;">
+          <h1 style="color: #7A1416; margin: 0; font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">SAI YOGI CRACKERS</h1>
+          <p style="margin: 4px 0 0 0; font-size: 13px; font-weight: bold; color: #475569;">MONTHLY CHIT SCHEME PAYMENT RECEIPT</p>
+          <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b;">Sattur, Virudhunagar District, Tamil Nadu • Mobile: +91 95859 75756</p>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 12px; background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0;">
+          <div>
+            <strong>Receipt No:</strong> ${receiptNo}<br/>
+            <strong>Payment Date:</strong> ${formattedDate}
+          </div>
+          <div style="text-align: right;">
+            <strong>Scheme:</strong> ${schemeName}<br/>
+            <strong>Due Date:</strong> Before ${dueDateDay}th of month
+          </div>
+        </div>
+
+        <div style="margin-bottom: 20px; font-size: 13px;">
+          <div style="font-weight: bold; color: #7A1416; font-size: 14px; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">Subscriber Details</div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+            <tr>
+              <td style="padding: 4px 0; color: #64748b; width: 130px;">Customer Name:</td>
+              <td style="padding: 4px 0; font-weight: bold; color: #0f172a;">${customerName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0; color: #64748b;">Mobile Number:</td>
+              <td style="padding: 4px 0; font-weight: bold; color: #0f172a;">${sub.phone || sub.mobileNumber}</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0; color: #64748b;">Location:</td>
+              <td style="padding: 4px 0; font-weight: bold; color: #0f172a;">${sub.location || 'N/A'}</td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="margin-bottom: 25px;">
+          <div style="font-weight: bold; color: #7A1416; font-size: 14px; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">Payment Particulars</div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+            <thead>
+              <tr style="background: #f1f5f9; color: #334155; font-size: 11px; text-transform: uppercase;">
+                <th style="padding: 8px; border: 1px solid #cbd5e1;">Description</th>
+                <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">Month</th>
+                <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">Status</th>
+                <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">Amount Paid</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 10px 8px; border: 1px solid #cbd5e1; font-weight: bold;">${schemeName} Installment</td>
+                <td style="padding: 10px 8px; border: 1px solid #cbd5e1; text-align: center;">Month ${monthNumber} (${monthName})</td>
+                <td style="padding: 10px 8px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: ${timingStatus === 'On-time Payment' ? '#047857' : '#b45309'};">
+                  ${timingStatus}
+                </td>
+                <td style="padding: 10px 8px; border: 1px solid #cbd5e1; text-align: right; font-weight: 900; color: #047857; font-size: 14px;">₹${amount.toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="margin-bottom: 25px; background: #fef2f2; border: 1px solid #fca5a5; padding: 12px; border-radius: 10px; font-size: 12px;">
+          <div style="display: flex; justify-content: space-between;">
+            <span><strong>Payment Method:</strong> ${paymentMethod || 'Cash / UPI'}${transactionNumber ? ` (Ref #${transactionNumber})` : ''}</span>
+            <span><strong>Total Paid:</strong> <strong style="color: #7A1416; font-size: 14px;">₹${amount.toLocaleString()}</strong></span>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; font-size: 11px; color: #64748b;">
+          <div>
+            <p style="margin: 0;">Thank you for your payment!</p>
+            <p style="margin: 2px 0 0 0;">This is an official computer generated receipt.</p>
+          </div>
+          <div style="text-align: center; border-top: 1px dashed #94a3b8; padding-top: 5px; width: 160px;">
+            <strong style="color: #7A1416;">Sai Yogi Crackers</strong><br/>
+            Authorized Signatory
+          </div>
+        </div>
+      </div>
+    `;
+
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    tempDiv.style.position = 'absolute';
+    tempDiv.style.left = '-9999px';
+    tempDiv.style.width = '650px';
+    document.body.appendChild(tempDiv);
+
+    toast.loading("Generating & Downloading PDF Receipt...", { id: "pdf-toast" });
+
+    import("html2canvas").then((html2canvas) => {
+      html2canvas.default(tempDiv, { scale: 2, backgroundColor: "#ffffff" }).then((canvas) => {
+        import("jspdf").then((jsPDF) => {
+          const pdf = new jsPDF.jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+          const imgData = canvas.toDataURL("image/jpeg", 0.95);
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const margin = 10;
+          const imgWidth = pdfWidth - (margin * 2);
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+          pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, imgHeight);
+          pdf.save(`Receipt_Month${monthNumber}_${customerName.replace(/\s+/g, '_')}.pdf`);
+          toast.success("PDF Receipt Downloaded!", { id: "pdf-toast" });
+
+          if (document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
+
+          // Open WhatsApp with pre-formatted summary text & PDF note
+          const text = 
+`*SAI YOGI CRACKERS - CHIT SCHEME PAYMENT RECEIPT (PDF)* 🧾
 --------------------------------------------
 *Subscriber:* ${customerName}
-*Mobile:* ${sub.phone || sub.mobileNumber}
 *Scheme:* ${schemeName}
 *Month:* Month ${monthNumber} (${monthName})
 *Amount Paid:* ₹${amount.toLocaleString()}
 *Payment Date:* ${formattedDate}
-*Payment Status:* ${timingStatus}
-*Payment Method:* ${paymentMethod || 'Cash/UPI'}${transactionNumber ? ` (#${transactionNumber})` : ''}
+*Status:* ${timingStatus}
 --------------------------------------------
+📄 PDF Receipt generated & downloaded to your device. Please attach the PDF receipt to this chat.
 Thank you for your payment! 🙏
 _Sai Yogi Crackers_`;
 
-    const encodedText = encodeURIComponent(text);
-    const waUrl = rawPhone ? `https://api.whatsapp.com/send?phone=91${rawPhone}&text=${encodedText}` : `https://api.whatsapp.com/send?text=${encodedText}`;
-    window.open(waUrl, '_blank');
+          const encodedText = encodeURIComponent(text);
+          const waUrl = rawPhone ? `https://api.whatsapp.com/send?phone=91${rawPhone}&text=${encodedText}` : `https://api.whatsapp.com/send?text=${encodedText}`;
+          window.open(waUrl, '_blank');
+        }).catch((err) => {
+          console.error(err);
+          toast.error("Failed to generate PDF", { id: "pdf-toast" });
+          if (document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
+        });
+      }).catch((err) => {
+        console.error(err);
+        toast.error("Failed to capture receipt element", { id: "pdf-toast" });
+        if (document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
+      });
+    }).catch((err) => {
+      console.error(err);
+      toast.error("Library load error", { id: "pdf-toast" });
+      if (document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
+    });
   };
 
   // Filter Customer Applications
@@ -889,7 +1034,6 @@ _Sai Yogi Crackers_`;
                               className="font-extrabold text-[#7A1416] hover:text-[#900000] hover:underline text-sm text-left flex items-center gap-1.5 group cursor-pointer"
                             >
                               <span>{sub.name || sub.customerName || 'Customer'}</span>
-                              <ChevronRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
                             </button>
                             <div className="text-[11px] text-gray-400 font-medium mt-0.5">
                               Applied: {sub.createdAt ? new Date(sub.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recent'}
@@ -1383,6 +1527,22 @@ _Sai Yogi Crackers_`;
                 </div>
 
                 <div className="col-span-1 sm:col-span-2">
+                  <label className="block text-xs font-extrabold text-[#7A1416] uppercase mb-1">
+                    Total Expected Scheme Amount (₹) *
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="e.g. 18000"
+                    value={uploadTotalSchemeAmount}
+                    onChange={(e) => setUploadTotalSchemeAmount(e.target.value)}
+                    className="w-full text-xs p-2.5 bg-white border border-amber-400 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none font-extrabold text-[#7A1416]"
+                    required
+                  />
+                  <span className="text-[10px] text-gray-500 font-medium">Set by Admin: Total expected scheme amount.</span>
+                </div>
+
+                <div className="col-span-1 sm:col-span-2">
                   <label className="block text-xs font-bold text-gray-800 uppercase mb-1">
                     Scheme Status
                   </label>
@@ -1635,6 +1795,19 @@ _Sai Yogi Crackers_`;
                     onChange={(e) => setEditDueDateDay(e.target.value)}
                     className="w-full text-xs p-2.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none font-semibold"
                   />
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block text-xs font-extrabold text-[#7A1416] uppercase mb-1">
+                    Total Expected Scheme Amount (₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={editTotalSchemeAmount}
+                    onChange={(e) => setEditTotalSchemeAmount(e.target.value)}
+                    className="w-full text-xs p-2.5 bg-white border border-amber-400 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none font-extrabold text-[#7A1416]"
+                  />
+                  <span className="text-[10px] text-gray-500 font-medium">Set by Admin: Total expected scheme amount.</span>
                 </div>
 
                 <div className="col-span-2">
