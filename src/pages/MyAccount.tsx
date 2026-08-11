@@ -4,13 +4,12 @@ import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
 import { getChitSubscriptions, getChitSchemes, ChitSubscriptionItem, ChitSchemeItem, getOrders } from "@/lib/api";
-import { Calendar, Clock, CheckCircle2, Gift, FileText } from "lucide-react";
+import { Calendar, Clock, CheckCircle2, Gift, FileText, User, ShoppingBag } from "lucide-react";
+import { loadUserEnquiries, EnquiryItem, formatAddress, formatString } from "@/lib/enquiryUtils";
+import { downloadOrderReceiptPDF, OrderData } from "@/lib/pdf-generator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { getCookie, setCookie } from "@/lib/cookieUtils";
-import { downloadOrderReceiptPDF, OrderData } from "@/lib/pdf-generator";
-import { EnquiryItem, loadUserEnquiries, formatAddress, formatString } from "@/lib/enquiryUtils";
-
 const getMonthNameForIndex = (monthIndex: number, startDateStr?: string): { monthName: string; dueDateStr: string } => {
   if (startDateStr && startDateStr.trim()) {
     const cleanStr = startDateStr.trim();
@@ -38,11 +37,16 @@ const getMonthNameForIndex = (monthIndex: number, startDateStr?: string): { mont
 const MyAccount: React.FC = () => {
   const { userPhone, userName, isUserLoggedIn, openLoginModal } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<"account" | "enquiry">("account");
+  
+  const initialTab = searchParams.get("tab") === "enquiry" ? "enquiry" : "account";
+  const [activeTab, setActiveTab] = useState<"account" | "enquiry">(initialTab);
+
+  const [subscriptions, setSubscriptions] = useState<ChitSubscriptionItem[]>([]);
+  const [schemes, setSchemes] = useState<ChitSchemeItem[]>([]);
+  const [loadingChit, setLoadingChit] = useState(false);
+
   const [enquiries, setEnquiries] = useState<EnquiryItem[]>([]);
   const [selectedEnquiry, setSelectedEnquiry] = useState<EnquiryItem | null>(null);
-
-  const [loadingChit, setLoadingChit] = useState(false);
 
   useEffect(() => {
     const tabParam = searchParams.get("tab");
@@ -178,26 +182,33 @@ const MyAccount: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 py-8 px-4 sm:px-12 max-w-4xl mx-auto w-full space-y-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-[#2A1B54]">
-          My Account
-        </h1>
-
-        {/* User Account Details Card */}
-        <div className="bg-gray-50 border border-gray-200/80 rounded-2xl p-6 space-y-4 max-w-2xl text-xs sm:text-sm">
-          <h2 className="font-extrabold text-gray-900 text-base border-b border-gray-200 pb-2">Personal Details</h2>
-          <div className="grid grid-cols-12 items-center py-1 border-b border-gray-100/80 pb-2">
-            <span className="col-span-4 font-bold text-gray-700">Name</span>
-            <span className="col-span-1 text-center font-bold">:</span>
-            <span className="col-span-7 text-gray-900 font-semibold">{displayName}</span>
-          </div>
-
-          <div className="grid grid-cols-12 items-center py-1">
-            <span className="col-span-4 font-bold text-gray-700">Mobile Number</span>
-            <span className="col-span-1 text-center font-bold">:</span>
-            <span className="col-span-7 text-gray-900 font-mono font-bold">{displayPhone}</span>
-          </div>
+      <main className="flex-1 py-8 px-4 sm:px-12 max-w-5xl mx-auto w-full">
+        {/* Navigation Tabs Bar */}
+        <div className="flex items-center gap-3 border-b border-gray-200 mb-8">
+          <button
+            onClick={() => handleTabChange("account")}
+            className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors cursor-pointer border-b-2 ${
+              activeTab === "account"
+                ? "border-[#4C1D95] text-[#4C1D95]"
+                : "border-transparent text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            <User className="w-4 h-4" />
+            <span>Account Details</span>
+          </button>
+          <button
+            onClick={() => handleTabChange("enquiry")}
+            className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors cursor-pointer border-b-2 ${
+              activeTab === "enquiry"
+                ? "border-[#4C1D95] text-[#4C1D95]"
+                : "border-transparent text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            <ShoppingBag className="w-4 h-4" />
+            <span>My Enquiry</span>
+          </button>
         </div>
+
 
         {activeTab === "account" ? (
           <div className="space-y-8">
@@ -392,12 +403,14 @@ const MyAccount: React.FC = () => {
                 </div>
               )}
             </div>
+
           </div>
         ) : (
           <div>
             <h1 className="text-2xl sm:text-3xl font-medium text-[#2A1B54] mb-8">
               My Enquiry
             </h1>
+
             {!isUserLoggedIn && (
               <div className="mb-6 bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-2xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
                 <div>

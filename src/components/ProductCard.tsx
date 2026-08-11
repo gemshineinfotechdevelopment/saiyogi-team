@@ -269,7 +269,7 @@ const ProductCard = ({ product, categoryName, onCardClick }: { product: Product;
                 </div>
               </div>
 
-              <div className="flex items-baseline gap-2 md:gap-3 mb-4 md:mb-8">
+              <div className="flex items-baseline gap-2 md:gap-3 mb-4 md:mb-6">
                 <span className="text-2xl md:text-4xl font-black text-red-700">₹{discountPrice}</span>
                 {product.hasDiscount && !isNetRate && (
                   <span className="text-base md:text-xl text-gray-300 line-through font-medium">₹{product.price}</span>
@@ -278,6 +278,12 @@ const ProductCard = ({ product, categoryName, onCardClick }: { product: Product;
                   <span className="text-xs md:text-sm text-indigo-500 font-black uppercase tracking-widest px-2.5 py-0.5 bg-indigo-50 rounded-lg border border-indigo-100">Net Rate Only</span>
                 )}
               </div>
+
+              {product.description && (
+                <p className="text-sm md:text-base text-gray-700 mb-6 leading-relaxed">
+                  {product.description}
+                </p>
+              )}
 
               <div className="space-y-4">
                 {quantity > 0 ? (

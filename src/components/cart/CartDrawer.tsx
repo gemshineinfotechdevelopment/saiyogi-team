@@ -408,9 +408,15 @@ const CartDrawer = () => {
                   <span>Packing Charge</span>
                   <span className="text-gray-900 font-bold">₹{packingCharge.toLocaleString('en-IN')}</span>
                 </div>
+                {Math.round(estimatedTotal) - estimatedTotal !== 0 && (
+                  <div className="flex justify-between text-xs text-gray-600 font-medium">
+                    <span>Round Off</span>
+                    <span className="text-gray-900 font-bold">{(Math.round(estimatedTotal) - estimatedTotal) > 0 ? '+' : ''}₹{(Math.round(estimatedTotal) - estimatedTotal).toLocaleString('en-IN')}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center py-2 pt-3 border-t border-gray-100">
                   <span className="font-bold text-[#a41a1c] text-sm tracking-wide">ESTIMATED TOTAL</span>
-                  <span className="font-black text-[#a41a1c] text-xl">₹{estimatedTotal.toLocaleString('en-IN')}</span>
+                  <span className="font-black text-[#a41a1c] text-xl">₹{Math.round(estimatedTotal).toLocaleString('en-IN')}</span>
                 </div>
 
                 {/* Minimum Subtotal Limit Warning Card (NPK Crackers replica) */}
@@ -670,9 +676,23 @@ const CartDrawer = () => {
             
             {/* Checkout Footer Actions */}
             <div className="p-4 bg-white border-t border-gray-100 space-y-3 sticky bottom-0 z-10 shadow-md">
-              <div className="flex justify-between items-center py-1 font-bold text-[#a41a1c] text-sm">
+              <div className="flex justify-between text-xs text-gray-600 font-medium">
+                <span>Items Total ({totalItems} Items)</span>
+                <span className="text-gray-900 font-bold">₹{totalPrice.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between text-xs text-gray-600 font-medium">
+                <span>Packing Charge</span>
+                <span className="text-gray-900 font-bold">₹{packingCharge.toLocaleString('en-IN')}</span>
+              </div>
+              {Math.round(estimatedTotal) - estimatedTotal !== 0 && (
+                <div className="flex justify-between text-xs text-gray-600 font-medium">
+                  <span>Round Off</span>
+                  <span className="text-gray-900 font-bold">{(Math.round(estimatedTotal) - estimatedTotal) > 0 ? '+' : ''}₹{(Math.round(estimatedTotal) - estimatedTotal).toLocaleString('en-IN')}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center py-2 pt-3 border-t border-gray-100 font-bold text-[#a41a1c] text-sm">
                 <span>ESTIMATED TOTAL ({totalItems} Items)</span>
-                <span className="text-lg font-black">₹{estimatedTotal.toLocaleString('en-IN')}</span>
+                <span className="text-lg font-black">₹{Math.round(estimatedTotal).toLocaleString('en-IN')}</span>
               </div>
 
               {!canPlaceOrder && formData.state && (
