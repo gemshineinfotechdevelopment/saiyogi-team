@@ -626,6 +626,7 @@ export interface ChitSchemeItem {
   paymentDueDay?: number;
   monthlyAmount?: number;
   totalAmount?: number;
+  totalSchemeAmount?: number;
   status?: 'Upcoming' | 'Active' | 'Completed' | 'Closed';
   displayOrder?: number;
   isActive?: boolean;
