@@ -90,7 +90,6 @@ const AdminChitScheme: React.FC = () => {
   const [schemeFilter, setSchemeFilter] = useState("all");
   const [approvalFilter, setApprovalFilter] = useState<"all" | "Pending" | "Approved" | "Rejected">("all");
   const [paymentFilter, setPaymentFilter] = useState<"all" | "Paid" | "Pending">("all");
-  const [stageFilter, setStageFilter] = useState("all");
 
   // Create Scheme Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -650,10 +649,7 @@ _Sai Yogi Crackers_`;
       (paymentFilter === "Paid" && (sub.monthsPaid || 0) > 0) ||
       (paymentFilter === "Pending" && (sub.monthsPaid || 0) === 0);
 
-    const currentStage = sub.stage || (currentApproval === 'Pending' ? 'Pending Approval' : (currentApproval === 'Rejected' ? 'Rejected' : 'Approved'));
-    const matchesStage = stageFilter === "all" || currentStage === stageFilter;
-
-    return matchesSearch && matchesScheme && matchesApproval && matchesPayment && matchesStage;
+    return matchesSearch && matchesScheme && matchesApproval && matchesPayment;
   });
 
   // Calculate Summary Statistics
@@ -795,7 +791,7 @@ _Sai Yogi Crackers_`;
             </div>
 
             {/* Filter Controls Bar */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 bg-gray-50/90 p-4 rounded-2xl border border-gray-200/80">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-gray-50/90 p-4 rounded-2xl border border-gray-200/80">
               {/* Search Box */}
               <div className="relative col-span-1 sm:col-span-2 lg:col-span-1">
                 <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -848,24 +844,6 @@ _Sai Yogi Crackers_`;
                   <option value="all">Payment: All ▼</option>
                   <option value="Paid">Payments Started (&gt;0)</option>
                   <option value="Pending">No Payments (0)</option>
-                </select>
-              </div>
-
-              {/* Stage Dropdown */}
-              <div>
-                <select
-                  value={stageFilter}
-                  onChange={(e) => setStageFilter(e.target.value)}
-                  className="w-full text-xs p-2.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none font-semibold text-gray-700"
-                >
-                  <option value="all">Stage: All ▼</option>
-                  <option value="Pending Approval">Pending Approval</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Payment Started">Payment Started</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Almost Completed">Almost Completed</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Rejected">Rejected</option>
                 </select>
               </div>
             </div>
