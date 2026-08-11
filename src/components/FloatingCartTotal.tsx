@@ -4,12 +4,17 @@ import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext
 import { useLocation } from "react-router-dom";
 
 export const FloatingCartTotal: React.FC = () => {
-  const { items, setIsCartOpen } = useCart();
+  const { items, isCartOpen, setIsCartOpen } = useCart();
   const { settings } = useSiteSettings();
   const location = useLocation();
 
-  // Hide on admin routes
-  if (location.pathname.startsWith("/admin")) {
+  // Hide when cart drawer is open or on admin/quick-enquiry routes
+  if (
+    isCartOpen ||
+    location.pathname.startsWith("/admin") ||
+    location.pathname.includes("quick-enquir") ||
+    location.pathname.includes("quick-enquer")
+  ) {
     return null;
   }
 

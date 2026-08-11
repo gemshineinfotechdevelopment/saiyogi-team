@@ -221,7 +221,7 @@ const Catalog = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative" style={{ backgroundColor: '#EFF6FF' }}>
+    <div className="min-h-screen flex flex-col relative bg-white" style={{ backgroundColor: '#ffffff' }}>
       <UserHeader isHidden={isNavbarHidden} />
 
       {/* Shared Fixed Filter Component */}
@@ -259,7 +259,7 @@ const Catalog = () => {
             </button>
           </div>
 
-          <div className="bg-[#fefae0] rounded-2xl shadow-2xl border-2 border-red-200 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-2xl border-2 border-red-200 overflow-hidden">
             <div className="p-4 flex items-center gap-3">
               <Search className="h-6 w-6 text-red-600" />
               <input

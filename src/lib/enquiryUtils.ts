@@ -36,44 +36,60 @@ export const formatString = (val: any, fallback: string = ""): string => {
 };
 
 export function loadUserEnquiries(userPhone: string | null): EnquiryItem[] {
-  if (!userPhone) return [];
-  const cleanPhone = userPhone.replace(/\D/g, "");
-  if (!cleanPhone) return [];
-
-  const cookieKey = `saiyogi_enquiries_${cleanPhone}`;
-  const localKey = `user_saved_enquiries_${cleanPhone}`;
+  const effectivePhone = userPhone || getCookie("saiyogi_user_phone") || getCookie("saiyogi_last_phone") || localStorage.getItem("user_phone") || localStorage.getItem("saiyogi_last_phone");
+  const cleanPhone = effectivePhone ? effectivePhone.replace(/\D/g, "") : "";
 
   let items: EnquiryItem[] = [];
 
-  // 1. Try cookie
-  const cookieVal = getCookie(cookieKey);
-  if (cookieVal) {
-    try {
-      const parsed = JSON.parse(cookieVal);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        items = parsed;
-      }
-    } catch (_) {}
-  }
+  if (cleanPhone) {
+    const cookieKey = `saiyogi_enquiries_${cleanPhone}`;
+    const localKey = `user_saved_enquiries_${cleanPhone}`;
 
-  // 2. Fallback to localStorage
-  if (items.length === 0) {
-    const localVal = localStorage.getItem(localKey);
-    if (localVal) {
+    // 1. Try phone-specific cookie
+    const cookieVal = getCookie(cookieKey);
+    if (cookieVal) {
       try {
-        const parsed = JSON.parse(localVal);
+        const parsed = JSON.parse(cookieVal);
         if (Array.isArray(parsed) && parsed.length > 0) {
           items = parsed;
         }
       } catch (_) {}
     }
+
+    // 2. Fallback to phone-specific localStorage
+    if (items.length === 0) {
+      const localVal = localStorage.getItem(localKey);
+      if (localVal) {
+        try {
+          const parsed = JSON.parse(localVal);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            items = parsed;
+          }
+        } catch (_) {}
+      }
+    }
   }
 
-  // Keep cookie & localStorage synced
-  if (items.length > 0) {
+  // 3. Master fallback cookie for browser (preserves enquiries even if logged out)
+  if (items.length === 0) {
+    const masterVal = getCookie("saiyogi_all_enquiries") || localStorage.getItem("saiyogi_all_enquiries");
+    if (masterVal) {
+      try {
+        const parsedMaster = JSON.parse(masterVal);
+        if (Array.isArray(parsedMaster) && parsedMaster.length > 0) {
+          items = parsedMaster;
+        }
+      } catch (_) {}
+    }
+  }
+
+  // Keep cookies & localStorage permanently synced (365 days)
+  if (items.length > 0 && cleanPhone) {
     try {
-      localStorage.setItem(localKey, JSON.stringify(items));
-      setCookie(cookieKey, JSON.stringify(items), 30);
+      localStorage.setItem(`user_saved_enquiries_${cleanPhone}`, JSON.stringify(items));
+      localStorage.setItem("saiyogi_all_enquiries", JSON.stringify(items));
+      setCookie(`saiyogi_enquiries_${cleanPhone}`, JSON.stringify(items), 365);
+      setCookie("saiyogi_all_enquiries", JSON.stringify(items), 365);
     } catch (_) {}
   }
 

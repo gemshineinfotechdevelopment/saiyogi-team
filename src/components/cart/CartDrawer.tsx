@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createOrder, trackCustomerAction } from "@/lib/api";
+import { getCookie, setCookie } from "@/lib/cookieUtils";
 import { downloadOrderReceiptPDF, printOrderReceipt } from "@/lib/pdf-generator";
 import { getCookie, setCookie } from "@/lib/cookieUtils";
 import {
@@ -246,7 +247,10 @@ const CartDrawer = () => {
           };
           const updatedEnquiries = [newEnquiry, ...existing];
           localStorage.setItem(userPhoneKey, JSON.stringify(updatedEnquiries));
-          setCookie(cookieKey, JSON.stringify(updatedEnquiries), 30);
+          localStorage.setItem("saiyogi_all_enquiries", JSON.stringify(updatedEnquiries));
+          setCookie(cookieKey, JSON.stringify(updatedEnquiries), 365);
+          setCookie("saiyogi_all_enquiries", JSON.stringify(updatedEnquiries), 365);
+          setCookie("saiyogi_last_phone", cleanPhone, 365);
         } catch (_) {}
       }
 
@@ -413,6 +417,18 @@ const CartDrawer = () => {
                 <div className="flex justify-between items-center py-2 pt-3 border-t border-gray-100">
                   <span className="font-bold text-[#a41a1c] text-sm tracking-wide">ESTIMATED TOTAL</span>
                   <span className="font-black text-[#a41a1c] text-xl">₹{Math.round(estimatedTotal).toLocaleString('en-IN')}</span>
+                </div>
+
+                {/* Minimum Subtotal Limit Warning Card (NPK Crackers replica) */}
+                <div className="glamics-cart-warning-card my-2">
+                  <div className="glamics-cart-glow" />
+                  <span className="glamics-cart-warning-title">
+                    <ShieldCheck className="w-4 h-4" /> Minimum Subtotal Limit
+                  </span>
+                  <div className="glamics-cart-warning-text">
+                    Tamil Nadu: <b className="text-gray-900">₹ 3,000.00</b><br />
+                    Other States: <b className="text-gray-900">₹ 5,000.00</b>
+                  </div>
                 </div>
 
                 <Button 
@@ -714,7 +730,7 @@ const CartDrawer = () => {
               </p>
 
               <p className="leading-relaxed">
-                <strong className="font-extrabold text-gray-900">2. Transport Charges:</strong> Payable by the customer directly at the transport office upon pickup (Min. ₹500 for Tamil Nadu; ₹650 for Bangalore/Andhra).
+                <strong className="font-extrabold text-gray-900">2. Transport Charges:</strong> Payable by the customer directly at the transport office upon pickup.
               </p>
 
               <p className="leading-relaxed">

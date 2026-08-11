@@ -1,6 +1,6 @@
 import companyLogo from "@/assets/saiyogi-logo-1.png";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { ShoppingCart, Menu, X, ChevronDown, User } from "lucide-react";
+import { ShoppingCart, Menu, X, User } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { useState } from "react";
@@ -56,53 +56,52 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
   return (
     <>
       <header className={`fixed top-0 left-0 right-0 z-50 bg-white shadow-md border-b border-gray-100 transition-transform duration-300 w-full ${isHidden ? "-translate-y-full" : "translate-y-0"}`}>
-        {/* Top Contact Bar */}
-        <div className="bg-[#A80000] text-white text-xs py-1.5 hidden md:block">
-          <div className="container mx-auto px-4 flex justify-between items-center">
-            <div className="flex gap-4">
-              <span>{settings.contact?.email || "Info@SaiYogi.com"}</span>
-              <span>|</span>
-              <span>Call us: {settings.contact?.phone || "+91 94880 73004"}</span>
-            </div>
-            <div className="flex items-center gap-1 cursor-pointer">
-              Language: English <ChevronDown className="h-3 w-3" />
+        {/* Top Announcement Bar */}
+        <div className="bg-[#7009bc] text-[#FEF200] text-xs py-1.5 overflow-hidden relative z-50">
+          <div className="flex items-center justify-between container mx-auto px-4">
+            <div className="w-full overflow-hidden">
+              <div className="animate-marquee whitespace-nowrap flex items-center gap-4 text-[11px] sm:text-xs font-black tracking-wider text-[#FEF200]">
+                <span>DIWALI 2026 BOOKING OPENS! | In compliance with the 2018 Supreme Court order, online sale of firecrackers is strictly prohibited. This site only provides price estimates for reference. | Licensed Operator: E/SC/TN/24/937 | GST: 33ACBPI9592C2ZP</span>
+                <span className="text-white">✦</span>
+                <span>DIWALI 2026 BOOKING OPENS! | In compliance with the 2018 Supreme Court order, online sale of firecrackers is strictly prohibited. This site only provides price estimates for reference. | Licensed Operator: E/SC/TN/24/937 | GST: 33ACBPI9592C2ZP</span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Main Header & Navbar Row */}
-        <div className="container mx-auto px-4 py-2.5 md:py-3 flex items-center justify-between gap-4">
+        <div className="container mx-auto px-4 py-2 flex items-center justify-between gap-4">
           {/* Logo */}
           <Link to="/" className="flex items-center shrink-0">
-            <img src={companyLogo} alt="Sai Yogi Crackers" className="h-14 object-contain" />
+            <img src={companyLogo} alt="Sai Yogi Crackers" className="h-14 md:h-16 scale-110 md:scale-125 origin-left object-contain transition-all duration-200" />
           </Link>
 
           {/* Navigation Bar (Desktop) */}
-          <nav className="hidden md:flex items-center gap-5 lg:gap-7 text-[12px] lg:text-[13px] uppercase tracking-wide">
+          <nav className="hidden md:flex items-center gap-5 lg:gap-7 text-[15px] font-medium tracking-wide">
             <Link to="/" className={getLinkClass('/')}>
-              HOME
+              Home
             </Link>
             <Link to="/catalog" className={getLinkClass('/catalog')}>
-              ALL PRODUCTS
+              All Products
             </Link>
             <Link to="/quick-enquiry" className={getLinkClass('/quick-enquiry') + " relative flex items-center gap-1"}>
-              QUICK ENQUIRY
-              <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded animate-pulse absolute -right-6 -top-2">NEW</span>
+              Quick Enquiry
+              <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded animate-pulse absolute -right-6 -top-2 font-bold uppercase">NEW</span>
             </Link>
             <Link to="/price-list" className={getLinkClass('/price-list')}>
               PRICE LIST
             </Link>
             <Link to="/chit-scheme" className={getLinkClass('/chit-scheme')}>
-              CHIT SCHEME
+              Chit Scheme
             </Link>
             <Link to="/about-us" className={getLinkClass('/about-us')}>
-              ABOUT US
+              About Us
             </Link>
             <Link to="/safety-tips" className={getLinkClass('/safety-tips')}>
-              SAFETY TIPS
+              Safety Tips
             </Link>
             <Link to="/contact" className={getLinkClass('/contact')}>
-              CONTACT US
+              Contact Us
             </Link>
           </nav>
 
@@ -148,7 +147,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
 
         {/* Marquee Banner between Header and Content (Home Page Only) */}
         {isHomePage && (
-          <div className="relative overflow-hidden bg-[#F4C542] text-[#A80000] py-2 border-y border-[#A80000]/20 select-none z-[110]">
+          <div className="relative overflow-hidden bg-[#A80000] text-white py-2 border-y border-red-900 select-none z-[110]">
             <div className="animate-top-marquee font-bold text-[10px] md:text-xs uppercase tracking-widest py-1">
               <div className="flex gap-16 whitespace-nowrap">
                 <span>✨ Welcome to Sai Yogi Crackers - Sivakasi's Premium Fireworks at Wholesale Price! ✨</span>
@@ -167,27 +166,29 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
         )}
       </header>
 
-      {/* Mobile Menu Drawer (outside header so fixed positioning covers full screen viewport) */}
+      {/* Mobile Menu Drawer (Placed outside header so it doesn't get affected by header scroll-hide translate-y) */}
       <div className={`md:hidden fixed inset-0 z-[100] ${menuOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
         {/* Backdrop overlay */}
-        <div
-          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${menuOpen ? "opacity-100" : "opacity-0"
-            }`}
+        <div 
+          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+            menuOpen ? "opacity-100" : "opacity-0"
+          }`}
           onClick={() => setMenuOpen(false)}
         />
-
+        
         {/* Drawer content */}
-        <div
-          className={`absolute top-0 left-0 h-full w-[75vw] max-w-[300px] bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${menuOpen ? "translate-x-0" : "-translate-x-full"
-            }`}
+        <div 
+          className={`absolute top-0 left-0 h-full w-[85vw] max-w-[320px] bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
+            menuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
         >
           <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-            <img src={companyLogo} alt="Sai Yogi" className="h-12 object-contain" />
-            <button onClick={() => setMenuOpen(false)} className="p-2 text-gray-500 hover:text-black hover:bg-gray-200 rounded-full transition-colors cursor-pointer">
+            <img src={companyLogo} alt="Sai Yogi" className="h-14 object-contain" />
+            <button onClick={() => setMenuOpen(false)} className="p-2 text-gray-500 hover:text-black hover:bg-gray-200 rounded-full transition-colors">
               <X className="h-5 w-5" />
             </button>
           </div>
-          <nav className="flex flex-col gap-5 p-6 text-sm uppercase font-bold overflow-y-auto flex-1">
+          <nav className="flex flex-col gap-6 p-6 text-sm uppercase font-bold overflow-y-auto">
             <Link to="/" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/')}>HOME</Link>
             <Link to="/catalog" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/catalog')}>ALL PRODUCTS</Link>
             <Link to="/quick-enquiry" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/quick-enquiry') + " flex items-center gap-2"}>

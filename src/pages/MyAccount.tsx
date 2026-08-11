@@ -43,7 +43,7 @@ const MyAccount: React.FC = () => {
 
   const [subscriptions, setSubscriptions] = useState<ChitSubscriptionItem[]>([]);
   const [schemes, setSchemes] = useState<ChitSchemeItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingChit, setLoadingChit] = useState(false);
 
   const [enquiries, setEnquiries] = useState<EnquiryItem[]>([]);
   const [selectedEnquiry, setSelectedEnquiry] = useState<EnquiryItem | null>(null);
@@ -111,6 +111,30 @@ const MyAccount: React.FC = () => {
     }
   }, [userPhone]);
 
+  const displayName = userName || getCookie("saiyogi_user_name") || localStorage.getItem("user_name") || "User";
+  const displayPhone = userPhone || getCookie("saiyogi_user_phone") || localStorage.getItem("user_phone") || "-";
+
+  useEffect(() => {
+    getChitSchemes()
+      .then(res => setSchemes(res || []))
+      .catch(err => console.warn("Failed to fetch schemes:", err));
+
+    const cleanPhone = String(displayPhone).replace(/\D/g, "").slice(-10);
+    if (cleanPhone && cleanPhone.length === 10) {
+      setLoadingChit(true);
+      getChitSubscriptions()
+        .then(allSubs => {
+          const mySubs = (allSubs || []).filter(s => {
+            const p = String(s.phone || s.mobileNumber || "").replace(/\D/g, "").slice(-10);
+            return p === cleanPhone;
+          });
+          setSubscriptions(mySubs);
+        })
+        .catch(err => console.warn("Failed to fetch user subscriptions:", err))
+        .finally(() => setLoadingChit(false));
+    }
+  }, [displayPhone, isUserLoggedIn]);
+
   const handleTabChange = (tab: "account" | "enquiry") => {
     setActiveTab(tab);
     setSearchParams({ tab });
@@ -141,30 +165,6 @@ const MyAccount: React.FC = () => {
     toast.info("Generating estimate PDF...");
     downloadOrderReceiptPDF(pdfData);
   };
-
-  const displayName = userName || getCookie("saiyogi_user_name") || localStorage.getItem("user_name") || "User";
-  const displayPhone = userPhone || getCookie("saiyogi_user_phone") || localStorage.getItem("user_phone") || "-";
-
-  useEffect(() => {
-    getChitSchemes()
-      .then(res => setSchemes(res || []))
-      .catch(err => console.warn("Failed to fetch schemes:", err));
-
-    const cleanPhone = String(displayPhone).replace(/\D/g, "").slice(-10);
-    if (cleanPhone && cleanPhone.length === 10) {
-      setLoading(true);
-      getChitSubscriptions()
-        .then(allSubs => {
-          const mySubs = (allSubs || []).filter(s => {
-            const p = String(s.phone || "").replace(/\D/g, "").slice(-10);
-            return p === cleanPhone;
-          });
-          setSubscriptions(mySubs);
-        })
-        .catch(err => console.warn("Failed to fetch user subscriptions:", err))
-        .finally(() => setLoading(false));
-    }
-  }, [displayPhone, isUserLoggedIn]);
 
   return (
     <div className="min-h-screen flex flex-col bg-white font-sans">
@@ -212,197 +212,201 @@ const MyAccount: React.FC = () => {
           </button>
         </div>
 
+
         {activeTab === "account" ? (
           <div className="space-y-8">
-            <h1 className="text-2xl sm:text-3xl font-medium text-[#2A1B54] mb-8">
-              My Account
-            </h1>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2A1B54] mb-6">
+                My Account
+              </h1>
 
-            {/* User Account Details Table */}
-            <div className="space-y-4 text-xs sm:text-sm text-gray-900 font-medium max-w-2xl bg-white p-6 rounded-2xl border border-gray-100 shadow-2xs">
-              <div className="grid grid-cols-12 items-center py-2 border-b border-gray-100 pb-3">
-                <span className="col-span-4 font-bold text-gray-900">Name</span>
-                <span className="col-span-1 text-center font-bold">:</span>
-                <span className="col-span-7 text-gray-800 font-semibold">{displayName}</span>
-              </div>
+              {/* User Account Details Table */}
+              <div className="space-y-4 text-xs sm:text-sm text-gray-900 font-medium max-w-2xl bg-white p-6 rounded-2xl border border-gray-100 shadow-2xs">
+                <div className="grid grid-cols-12 items-center py-2 border-b border-gray-100 pb-3">
+                  <span className="col-span-4 font-bold text-gray-900">Name</span>
+                  <span className="col-span-1 text-center font-bold">:</span>
+                  <span className="col-span-7 text-gray-800 font-semibold">{displayName}</span>
+                </div>
 
-              <div className="grid grid-cols-12 items-center py-2 border-b border-gray-100 pb-3">
-                <span className="col-span-4 font-bold text-gray-900">Mobile Number</span>
-                <span className="col-span-1 text-center font-bold">:</span>
-                <span className="col-span-7 text-gray-800 font-semibold">{displayPhone}</span>
-              </div>
-            </div>
-
-        {/* My Subscribed Chit Schemes Section */}
-        <div className="space-y-6 pt-4 border-t border-gray-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center font-bold">
-                <Gift className="w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">My Subscribed Chit Schemes</h2>
-                <p className="text-xs text-gray-500 font-medium mt-0.5">
-                  Live payment passbook & monthly status updated by admin.
-                </p>
+                <div className="grid grid-cols-12 items-center py-2 border-b border-gray-100 pb-3">
+                  <span className="col-span-4 font-bold text-gray-900">Mobile Number</span>
+                  <span className="col-span-1 text-center font-bold">:</span>
+                  <span className="col-span-7 text-gray-800 font-semibold">{displayPhone}</span>
+                </div>
               </div>
             </div>
-            <Link
-              to="/chit-scheme"
-              className="text-xs font-bold text-[#7A1416] hover:underline bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200"
-            >
-              Browse Schemes →
-            </Link>
-          </div>
 
-          {loading ? (
-            <div className="py-8 text-center text-gray-400 text-xs font-medium">
-              Loading your chit scheme passbook...
-            </div>
-          ) : subscriptions.length === 0 ? (
-            <div className="bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-6 text-center space-y-2">
-              <p className="text-xs text-gray-500 font-medium">You have not subscribed to any chit schemes yet.</p>
-              <Link
-                to="/chit-scheme"
-                className="inline-block bg-[#7A1416] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-2xs"
-              >
-                Join Chit Scheme Now
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-8">
-              {subscriptions.map((sub, sIdx) => {
-                const matchedScheme = schemes.find(
-                  s => s.title === sub.schemeName || (s._id || s.id) === sub.schemeId
-                );
-                const totalMonths = matchedScheme?.totalMonths || 9;
-                const startDateStr = matchedScheme?.startDate;
-                const dueDateDay = matchedScheme?.dueDateDay || 10;
-                const monthlyAmount = matchedScheme?.monthlyAmount || 0;
+            {/* My Subscribed Chit Schemes Section */}
+            <div className="space-y-6 pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center font-bold">
+                    <Gift className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">My Subscribed Chit Schemes</h2>
+                    <p className="text-xs text-gray-500 font-medium mt-0.5">
+                      Live payment passbook & monthly status updated by admin.
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  to="/chit-scheme"
+                  className="text-xs font-bold text-[#7A1416] hover:underline bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200"
+                >
+                  Browse Schemes →
+                </Link>
+              </div>
 
-                const monthList = Array.from({ length: totalMonths }, (_, i) => i + 1);
+              {loadingChit ? (
+                <div className="py-8 text-center text-gray-400 text-xs font-medium">
+                  Loading your chit scheme passbook...
+                </div>
+              ) : subscriptions.length === 0 ? (
+                <div className="bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-6 text-center space-y-2">
+                  <p className="text-xs text-gray-500 font-medium">You have not subscribed to any chit schemes yet.</p>
+                  <Link
+                    to="/chit-scheme"
+                    className="inline-block bg-[#7A1416] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-2xs"
+                  >
+                    Join Chit Scheme Now
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  {subscriptions.map((sub, sIdx) => {
+                    const matchedScheme = schemes.find(
+                      s => (s.title || s.schemeName) === sub.schemeName || (s._id || s.id) === sub.schemeId
+                    );
+                    const totalMonths = matchedScheme?.totalMonths || matchedScheme?.numberOfMonths || 9;
+                    const startDateStr = matchedScheme?.startDate;
+                    const dueDateDay = matchedScheme?.dueDateDay || matchedScheme?.paymentDueDay || 10;
+                    const monthlyAmount = matchedScheme?.monthlyAmount || 0;
 
-                return (
-                  <div key={sub._id || sub.id || sIdx} className="bg-white border border-gray-200/90 rounded-3xl p-6 shadow-xs space-y-5">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
-                      <div>
-                        <h3 className="text-base font-extrabold text-[#2A1B54]">
-                          {sub.schemeName}
-                        </h3>
-                        <div className="text-xs text-gray-500 font-medium mt-1 flex flex-wrap items-center gap-3">
-                          <span>Subscriber: <strong className="text-gray-900">{sub.name}</strong></span>
-                          <span>•</span>
-                          <span>Location: <strong className="text-gray-900">{sub.location}</strong></span>
+                    const monthList = Array.from({ length: totalMonths }, (_, i) => i + 1);
+
+                    return (
+                      <div key={sub._id || sub.id || sIdx} className="bg-white border border-gray-200/90 rounded-3xl p-6 shadow-xs space-y-5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
+                          <div>
+                            <h3 className="text-base font-extrabold text-[#2A1B54]">
+                              {sub.schemeName}
+                            </h3>
+                            <div className="text-xs text-gray-500 font-medium mt-1 flex flex-wrap items-center gap-3">
+                              <span>Subscriber: <strong className="text-gray-900">{sub.name || sub.customerName}</strong></span>
+                              <span>•</span>
+                              <span>Location: <strong className="text-gray-900">{sub.location}</strong></span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <span className={`px-3 py-1 rounded-full font-extrabold text-xs ${
+                              sub.approvalStatus === "Approved" || sub.status === "Approved" || sub.status === "Paid"
+                                ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                : sub.approvalStatus === "Rejected" || sub.status === "Rejected"
+                                ? "bg-rose-100 text-rose-800 border border-rose-300"
+                                : "bg-amber-100 text-amber-800 border border-amber-300"
+                            }`}>
+                              Status: {sub.approvalStatus || sub.status}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Monthwise Payment Passbook Table */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
+                              <Calendar className="w-4 h-4 text-[#7A1416]" />
+                              Monthwise Payment Schedule ({totalMonths} Months)
+                            </span>
+                            <span className="text-[11px] font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg">
+                              Due: {dueDateDay}th of each month
+                            </span>
+                          </div>
+
+                          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
+                            <table className="w-full text-left border-collapse">
+                              <thead>
+                                <tr className="bg-gray-100/80 text-gray-700 text-xs uppercase font-extrabold tracking-wider border-b border-gray-200">
+                                  <th className="p-3.5 w-16 text-center">S.No</th>
+                                  <th className="p-3.5">Month</th>
+                                  <th className="p-3.5">Due Date &amp; Amount</th>
+                                  <th className="p-3.5">Payment Status</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100 text-xs">
+                                {monthList.map((mNum, mIdx) => {
+                                  const { monthName } = getMonthNameForIndex(mNum, startDateStr);
+                                  const existingLog = (sub.monthlyPayments || []).find(p => p.monthNumber === mNum);
+                                  const currentStatus = existingLog?.status || 'Pending';
+
+                                  return (
+                                    <tr
+                                      key={mNum}
+                                      className={`hover:bg-gray-50/80 transition-colors ${
+                                        currentStatus === 'Paid'
+                                          ? 'bg-emerald-50/30'
+                                          : currentStatus === 'Late Pay'
+                                          ? 'bg-amber-50/40'
+                                          : ''
+                                      }`}
+                                    >
+                                      <td className="p-3.5 font-bold text-gray-500 text-center">
+                                        {mIdx + 1}
+                                      </td>
+
+                                      <td className="p-3.5 font-extrabold text-gray-900 text-sm">
+                                        {monthName}
+                                      </td>
+
+                                      <td className="p-3.5 text-gray-700">
+                                        <div className="font-semibold">Due: {dueDateDay}th {monthName}</div>
+                                        {monthlyAmount ? (
+                                          <div className="text-[11px] font-bold text-[#7A1416] mt-0.5">
+                                            ₹{monthlyAmount.toLocaleString()} / month
+                                          </div>
+                                        ) : null}
+                                      </td>
+
+                                      <td className="p-3.5">
+                                        <div className="flex flex-col gap-1 items-start">
+                                          {currentStatus === 'Paid' && (
+                                            <span className="bg-emerald-600 text-white font-extrabold text-xs px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs">
+                                              <CheckCircle2 className="w-3.5 h-3.5" /> Paid
+                                            </span>
+                                          )}
+                                          {currentStatus === 'Late Pay' && (
+                                            <span className="bg-amber-600 text-white font-extrabold text-xs px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs">
+                                              <Clock className="w-3.5 h-3.5" /> Late Pay
+                                            </span>
+                                          )}
+                                          {currentStatus === 'Pending' && (
+                                            <span className="bg-gray-200 text-gray-700 font-bold text-xs px-3 py-1 rounded-full">
+                                              Unpaid / Pending
+                                            </span>
+                                          )}
+
+                                          {existingLog?.paidAt && currentStatus !== 'Pending' && (
+                                            <span className="text-[11px] text-gray-500 font-medium">
+                                              Paid on: {new Date(existingLog.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
                       </div>
-
-                      <div>
-                        <span className={`px-3 py-1 rounded-full font-extrabold text-xs ${
-                          sub.approvalStatus === "Approved" || sub.status === "Approved" || sub.status === "Paid"
-                            ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                            : sub.approvalStatus === "Rejected" || sub.status === "Rejected"
-                            ? "bg-rose-100 text-rose-800 border border-rose-300"
-                            : "bg-amber-100 text-amber-800 border border-amber-300"
-                        }`}>
-                          Status: {sub.approvalStatus || sub.status}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Monthwise Payment Passbook Table */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
-                          <Calendar className="w-4 h-4 text-[#7A1416]" />
-                          Monthwise Payment Schedule ({totalMonths} Months)
-                        </span>
-                        <span className="text-[11px] font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg">
-                          Due: {dueDateDay}th of each month
-                        </span>
-                      </div>
-
-                      <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
-                        <table className="w-full text-left border-collapse">
-                          <thead>
-                            <tr className="bg-gray-100/80 text-gray-700 text-xs uppercase font-extrabold tracking-wider border-b border-gray-200">
-                              <th className="p-3.5 w-16 text-center">S.No</th>
-                              <th className="p-3.5">Month</th>
-                              <th className="p-3.5">Due Date & Amount</th>
-                              <th className="p-3.5">Payment Status</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-100 text-xs">
-                            {monthList.map((mNum, mIdx) => {
-                              const { monthName } = getMonthNameForIndex(mNum, startDateStr);
-                              const existingLog = (sub.monthlyPayments || []).find(p => p.monthNumber === mNum);
-                              const currentStatus = existingLog?.status || 'Pending';
-
-                              return (
-                                <tr
-                                  key={mNum}
-                                  className={`hover:bg-gray-50/80 transition-colors ${
-                                    currentStatus === 'Paid'
-                                      ? 'bg-emerald-50/30'
-                                      : currentStatus === 'Late Pay'
-                                      ? 'bg-amber-50/40'
-                                      : ''
-                                  }`}
-                                >
-                                  <td className="p-3.5 font-bold text-gray-500 text-center">
-                                    {mIdx + 1}
-                                  </td>
-
-                                  <td className="p-3.5 font-extrabold text-gray-900 text-sm">
-                                    {monthName}
-                                  </td>
-
-                                  <td className="p-3.5 text-gray-700">
-                                    <div className="font-semibold">Due: {dueDateDay}th {monthName}</div>
-                                    {monthlyAmount ? (
-                                      <div className="text-[11px] font-bold text-[#7A1416] mt-0.5">
-                                        ₹{monthlyAmount.toLocaleString()} / month
-                                      </div>
-                                    ) : null}
-                                  </td>
-
-                                  <td className="p-3.5">
-                                    <div className="flex flex-col gap-1 items-start">
-                                      {currentStatus === 'Paid' && (
-                                        <span className="bg-emerald-600 text-white font-extrabold text-xs px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs">
-                                          <CheckCircle2 className="w-3.5 h-3.5" /> Paid
-                                        </span>
-                                      )}
-                                      {currentStatus === 'Late Pay' && (
-                                        <span className="bg-amber-600 text-white font-extrabold text-xs px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs">
-                                          <Clock className="w-3.5 h-3.5" /> Late Pay
-                                        </span>
-                                      )}
-                                      {currentStatus === 'Pending' && (
-                                        <span className="bg-gray-200 text-gray-700 font-bold text-xs px-3 py-1 rounded-full">
-                                          Unpaid / Pending
-                                        </span>
-                                      )}
-
-                                      {existingLog?.paidAt && currentStatus !== 'Pending' && (
-                                        <span className="text-[11px] text-gray-500 font-medium">
-                                          Paid on: {new Date(existingLog.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+
           </div>
         ) : (
           <div>
