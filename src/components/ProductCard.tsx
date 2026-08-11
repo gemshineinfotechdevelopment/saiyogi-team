@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 
-const ProductCard = ({ product, categoryName }: { product: Product; categoryName?: string }) => {
+const ProductCard = ({ product, categoryName, onCardClick }: { product: Product; categoryName?: string; onCardClick?: () => void }) => {
   const [showDetails, setShowDetails] = useState(false);
   const { items, addToCart, updateQuantity } = useCart();
   const { settings } = useSiteSettings();
@@ -75,19 +75,21 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
   return (
     <>
       <div className="group h-full">
-        <div className="rounded-2xl overflow-hidden bg-white border border-gray-200/80 hover:border-red-300 transition-all duration-300 hover:shadow-lg flex flex-col h-full relative">
+        <div 
+          className="rounded-2xl overflow-hidden bg-white border border-gray-200/80 hover:border-red-300 transition-all duration-300 hover:shadow-lg flex flex-col h-full relative cursor-pointer"
+          onClick={() => onCardClick ? onCardClick() : setShowDetails(true)}
+        >
           
           {/* Top Right Selected Amount Badge */}
-          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20">
-            <span className="bg-[#A80000] text-white text-xs sm:text-sm font-extrabold px-3 py-1 sm:px-3.5 sm:py-1 rounded-full shadow-md border border-red-800/40 tracking-tight">
-              ₹ {selectedAmount.toFixed(2)}
-            </span>
-          </div>
+          {quantity > 0 && (
+            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20">
+              <span className="bg-[#A80000] text-white text-xs sm:text-sm font-bold px-2.5 py-1 rounded-md shadow-md">
+                ₹ {selectedAmount}
+              </span>
+            </div>
+          )}
 
-          <div
-            className="relative aspect-[4/3] sm:aspect-square overflow-hidden bg-white cursor-pointer p-1.5 sm:p-3 border-b border-gray-100 flex items-center justify-center"
-            onClick={() => setShowDetails(true)}
-          >
+          <div className="relative aspect-square overflow-hidden bg-white p-2 sm:p-4 border-b border-gray-50">
             <img
               src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
               alt={product.name}
@@ -97,7 +99,11 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
                 (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300?text=No+Image';
               }}
             />
-            <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <span className="bg-white text-gray-900 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 uppercase tracking-widest">
+                Quick View
+              </span>
+            </div>
 
             {discount > 0 && !isNetRate && (
               <div className="absolute top-1 left-1 sm:top-2 sm:left-2 z-10 hover:scale-110 transition-transform duration-300 pointer-events-none">
@@ -181,8 +187,24 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
                 )}
               </div>
 
-              <div className="flex justify-center w-full pt-1">
-                <QuantitySelector />
+              <div className="flex justify-center w-full pt-1" onClick={e => e.stopPropagation()}>
+                {quantity > 0 ? (
+                  <QuantitySelector />
+                ) : (
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={(product.storeStockPieces || 0) <= 0}
+                    className={cn(
+                      "w-full h-8 sm:h-9 rounded-lg flex items-center justify-center gap-1.5 text-xs sm:text-sm font-bold uppercase transition-all shadow-sm",
+                      (product.storeStockPieces || 0) <= 0
+                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        : "bg-[#A80000] text-white hover:bg-[#F4C542] hover:text-[#1A1A1A] active:scale-95"
+                    )}
+                  >
+                    <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    {(product.storeStockPieces || 0) <= 0 ? "Sold Out" : "Add to Cart"}
+                  </button>
+                )}
               </div>
             </div>
           </div>

@@ -43,17 +43,17 @@ const SourceBadges: React.FC<{ sources: string[] }> = ({ sources }) => {
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       {list.includes('normal_login') && (
-        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80">
+        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 whitespace-nowrap">
           🔐 Login
         </span>
       )}
       {list.includes('chit_scheme') && (
-        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200/80">
+        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200/80 whitespace-nowrap">
           🎁 Chit Scheme
         </span>
       )}
       {list.includes('product_enquiry') && (
-        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200/80">
+        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200/80 whitespace-nowrap">
           🔎 Enquiry
         </span>
       )}
