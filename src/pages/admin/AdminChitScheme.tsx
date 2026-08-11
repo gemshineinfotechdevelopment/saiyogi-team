@@ -113,6 +113,10 @@ const AdminChitScheme: React.FC = () => {
   const [editDueDateDay, setEditDueDateDay] = useState("10");
   const [editMonthlyAmount, setEditMonthlyAmount] = useState("");
   const [editStatus, setEditStatus] = useState<'Upcoming' | 'Active' | 'Completed' | 'Closed'>("Active");
+  const [editUrl, setEditUrl] = useState("");
+  const [editSelectedFile, setEditSelectedFile] = useState<File | null>(null);
+  const [editFilePreview, setEditFilePreview] = useState<string | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   // View Scheme Details Modal State
   const [viewingScheme, setViewingScheme] = useState<ChitSchemeImage | null>(null);
@@ -293,6 +297,26 @@ const AdminChitScheme: React.FC = () => {
     }
   };
 
+  // File Select for Edit Scheme
+  const handleEditFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    setEditSelectedFile(file);
+    if (editFilePreview && editFilePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(editFilePreview);
+    }
+    setEditFilePreview(URL.createObjectURL(file));
+  };
+
+  const handleClearEditSelectedFile = () => {
+    setEditSelectedFile(null);
+    if (editFilePreview && editFilePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(editFilePreview);
+    }
+    setEditFilePreview(editUrl || null);
+  };
+
   // Open Edit Scheme Modal
   const handleOpenEditModal = (sch: ChitSchemeImage) => {
     setEditingScheme(sch);
@@ -303,6 +327,9 @@ const AdminChitScheme: React.FC = () => {
     setEditDueDateDay(String(sch.dueDateDay || sch.paymentDueDay || 10));
     setEditMonthlyAmount(String(sch.monthlyAmount || 0));
     setEditStatus(sch.status || 'Active');
+    setEditUrl(sch.url || "");
+    setEditSelectedFile(null);
+    setEditFilePreview(sch.url || null);
   };
 
   // Save Edit Scheme Handler
@@ -314,12 +341,19 @@ const AdminChitScheme: React.FC = () => {
       return;
     }
 
+    setIsSavingEdit(true);
     try {
       toast.loading("Updating scheme...", { id: "edit-toast" });
+      let finalUrl = editUrl;
+      if (editSelectedFile) {
+        finalUrl = await uploadImageToCloudinary(editSelectedFile, "chit_schemes");
+      }
+
       await updateChitScheme(editingScheme.id, {
         title: editTitle.trim(),
         schemeName: editTitle.trim(),
         description: editDescription.trim(),
+        url: finalUrl,
         startDate: editStartDate,
         totalMonths: parseInt(editTotalMonths, 10) || 9,
         numberOfMonths: parseInt(editTotalMonths, 10) || 9,
@@ -329,11 +363,15 @@ const AdminChitScheme: React.FC = () => {
         status: editStatus
       });
 
-      toast.success("Chit Scheme updated!", { id: "edit-toast" });
+      toast.success("Chit Scheme updated successfully!", { id: "edit-toast" });
       setEditingScheme(null);
+      setEditSelectedFile(null);
+      setEditFilePreview(null);
       loadChitSchemes();
     } catch (err: any) {
       toast.error(`Failed to update: ${err.message || err}`, { id: "edit-toast" });
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
@@ -646,133 +684,7 @@ const AdminChitScheme: React.FC = () => {
             </div>
           </div>
 
-          {/* SECTION 1: SCHEMES MANAGEMENT TABLE / CARDS */}
-          <div className="bg-white rounded-3xl border border-gray-200/90 shadow-2xs p-6 space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
-              <div>
-                <h2 className="text-xl font-extrabold text-[#2A1B54] flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-[#7A1416]" />
-                  Available Schemes ({schemes.length})
-                </h2>
-                <p className="text-xs text-gray-500 font-medium mt-0.5">
-                  Configure scheme names, starting dates, duration, monthly amounts, and payment due date rules.
-                </p>
-              </div>
-
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300/80 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
-              >
-                <Plus className="w-4 h-4 text-[#7A1416]" />
-                <span>Add Scheme</span>
-              </button>
-            </div>
-
-            {loadingSchemes ? (
-              <div className="py-12 text-center text-gray-400 font-medium text-xs flex flex-col items-center gap-2">
-                <Loader2 className="w-7 h-7 animate-spin text-[#7A1416]" />
-                <span>Loading Chit Schemes...</span>
-              </div>
-            ) : schemes.length === 0 ? (
-              <div className="py-12 text-center text-gray-400 font-medium text-xs border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50">
-                No Chit Schemes configured yet. Click <strong>+ Create New Scheme</strong> to add one!
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {schemes.map((sch) => {
-                  const duration = sch.totalMonths || sch.numberOfMonths || 9;
-                  const monthlyAmt = sch.monthlyAmount || 0;
-                  const totalExpAmount = monthlyAmt * duration;
-                  const enrolledCount = subscriptions.filter(s => s.schemeName === (sch.title || sch.schemeName)).length;
-                  const dueDay = sch.dueDateDay || sch.paymentDueDay || 10;
-                  const schStatus = sch.status || 'Active';
-
-                  return (
-                    <div
-                      key={sch.id}
-                      className="bg-white border border-gray-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
-                    >
-                      <div className="space-y-3">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide ${
-                              schStatus === 'Active' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
-                              schStatus === 'Upcoming' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
-                              schStatus === 'Completed' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
-                              'bg-gray-100 text-gray-700 border border-gray-200'
-                            }`}>
-                              {schStatus}
-                            </span>
-                            <h3 className="font-extrabold text-gray-900 text-base leading-snug mt-1">
-                              {sch.title || sch.schemeName}
-                            </h3>
-                          </div>
-                          {sch.url && (
-                            <img src={sch.url} alt="Scheme" className="w-12 h-12 object-cover rounded-xl border border-gray-200 shrink-0" />
-                          )}
-                        </div>
-
-                        {sch.description && (
-                          <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
-                            {sch.description}
-                          </p>
-                        )}
-
-                        <div className="grid grid-cols-2 gap-2 text-xs bg-gray-50 p-3 rounded-xl border border-gray-200/80">
-                          <div>
-                            <span className="text-gray-500 text-[11px] block">Start Date:</span>
-                            <strong className="text-gray-900 font-semibold">{sch.startDate || 'Immediate'}</strong>
-                          </div>
-                          <div>
-                            <span className="text-gray-500 text-[11px] block">Duration:</span>
-                            <strong className="text-gray-900 font-semibold">{duration} Months</strong>
-                          </div>
-                          <div>
-                            <span className="text-gray-500 text-[11px] block">Monthly Amount:</span>
-                            <strong className="text-emerald-700 font-bold">₹{monthlyAmt.toLocaleString()}</strong>
-                          </div>
-                          <div>
-                            <span className="text-gray-500 text-[11px] block">Total Expected:</span>
-                            <strong className="text-[#7A1416] font-extrabold">₹{totalExpAmount.toLocaleString()}</strong>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between text-xs text-gray-600 bg-amber-50/70 border border-amber-200/70 p-2.5 rounded-xl">
-                          <span className="font-medium">🔔 Due: Before {dueDay}th monthly</span>
-                          <span className="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-lg text-[11px]">
-                            {enrolledCount} Enrolled
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
-                        <button
-                          onClick={() => setViewingScheme(sch)}
-                          className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
-                        >
-                          <Eye className="w-3.5 h-3.5" /> View
-                        </button>
-                        <button
-                          onClick={() => handleOpenEditModal(sch)}
-                          className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
-                        >
-                          <Edit2 className="w-3.5 h-3.5 text-amber-700" /> Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteSchemePrompt(sch)}
-                          className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* SECTION 2: CUSTOMER APPLICATIONS TABLE */}
+          {/* SECTION 1: CUSTOMER APPLICATIONS TABLE */}
           <div className="bg-white rounded-3xl border border-gray-200/90 shadow-2xs p-6 space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-4">
               <div>
@@ -1018,6 +930,132 @@ const AdminChitScheme: React.FC = () => {
                     })}
                   </tbody>
                 </table>
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 2: SCHEMES MANAGEMENT TABLE / CARDS */}
+          <div className="bg-white rounded-3xl border border-gray-200/90 shadow-2xs p-6 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
+              <div>
+                <h2 className="text-xl font-extrabold text-[#2A1B54] flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-[#7A1416]" />
+                  Available Schemes ({schemes.length})
+                </h2>
+                <p className="text-xs text-gray-500 font-medium mt-0.5">
+                  Configure scheme names, starting dates, duration, monthly amounts, and payment due date rules.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300/80 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+              >
+                <Plus className="w-4 h-4 text-[#7A1416]" />
+                <span>Add Scheme</span>
+              </button>
+            </div>
+
+            {loadingSchemes ? (
+              <div className="py-12 text-center text-gray-400 font-medium text-xs flex flex-col items-center gap-2">
+                <Loader2 className="w-7 h-7 animate-spin text-[#7A1416]" />
+                <span>Loading Chit Schemes...</span>
+              </div>
+            ) : schemes.length === 0 ? (
+              <div className="py-12 text-center text-gray-400 font-medium text-xs border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50">
+                No Chit Schemes configured yet. Click <strong>+ Create New Scheme</strong> to add one!
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {schemes.map((sch) => {
+                  const duration = sch.totalMonths || sch.numberOfMonths || 9;
+                  const monthlyAmt = sch.monthlyAmount || 0;
+                  const totalExpAmount = monthlyAmt * duration;
+                  const enrolledCount = subscriptions.filter(s => s.schemeName === (sch.title || sch.schemeName)).length;
+                  const dueDay = sch.dueDateDay || sch.paymentDueDay || 10;
+                  const schStatus = sch.status || 'Active';
+
+                  return (
+                    <div
+                      key={sch.id}
+                      className="bg-white border border-gray-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide ${
+                              schStatus === 'Active' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+                              schStatus === 'Upcoming' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
+                              schStatus === 'Completed' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
+                              'bg-gray-100 text-gray-700 border border-gray-200'
+                            }`}>
+                              {schStatus}
+                            </span>
+                            <h3 className="font-extrabold text-gray-900 text-base leading-snug mt-1">
+                              {sch.title || sch.schemeName}
+                            </h3>
+                          </div>
+                          {sch.url && (
+                            <img src={sch.url} alt="Scheme" className="w-12 h-12 object-cover rounded-xl border border-gray-200 shrink-0" />
+                          )}
+                        </div>
+
+                        {sch.description && (
+                          <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+                            {sch.description}
+                          </p>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-2 text-xs bg-gray-50 p-3 rounded-xl border border-gray-200/80">
+                          <div>
+                            <span className="text-gray-500 text-[11px] block">Start Date:</span>
+                            <strong className="text-gray-900 font-semibold">{sch.startDate || 'Immediate'}</strong>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 text-[11px] block">Duration:</span>
+                            <strong className="text-gray-900 font-semibold">{duration} Months</strong>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 text-[11px] block">Monthly Amount:</span>
+                            <strong className="text-emerald-700 font-bold">₹{monthlyAmt.toLocaleString()}</strong>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 text-[11px] block">Total Expected:</span>
+                            <strong className="text-[#7A1416] font-extrabold">₹{totalExpAmount.toLocaleString()}</strong>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs text-gray-600 bg-amber-50/70 border border-amber-200/70 p-2.5 rounded-xl">
+                          <span className="font-medium">🔔 Due: Before {dueDay}th monthly</span>
+                          <span className="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-lg text-[11px]">
+                            {enrolledCount} Enrolled
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+                        <button
+                          onClick={() => setViewingScheme(sch)}
+                          className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5" /> View
+                        </button>
+                        <button
+                          onClick={() => handleOpenEditModal(sch)}
+                          className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
+                        >
+                          <Edit2 className="w-3.5 h-3.5 text-amber-700" /> Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteSchemePrompt(sch)}
+                          className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -1417,6 +1455,57 @@ const AdminChitScheme: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  Scheme Banner Image
+                </label>
+                {editFilePreview ? (
+                  <div className="relative border border-gray-200 rounded-2xl p-2.5 bg-gray-50 flex items-center justify-between">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <img src={editFilePreview} alt="Preview" className="w-14 h-14 object-cover rounded-xl shrink-0 border border-gray-200" />
+                      <div className="truncate">
+                        <span className="text-xs font-semibold text-gray-800 block truncate">
+                          {editSelectedFile?.name || "Current Scheme Banner"}
+                        </span>
+                        <label className="text-[11px] text-[#7A1416] hover:underline font-bold cursor-pointer inline-block mt-0.5">
+                          Change Image
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleEditFileSelect}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleClearEditSelectedFile}
+                      className="text-xs text-rose-600 hover:text-rose-700 font-bold p-1 cursor-pointer"
+                      title="Remove image"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="border-2 border-dashed border-gray-200 hover:border-[#7A1416]/50 rounded-2xl p-3.5 text-center transition-colors bg-gray-50 flex items-center justify-between cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <ImageIcon className="w-5 h-5 text-[#7A1416]" />
+                      <span className="text-xs font-bold text-gray-700">Upload Scheme Image</span>
+                    </div>
+                    <span className="bg-[#7A1416] text-white text-[11px] font-bold px-3 py-1 rounded-lg">
+                      Browse File
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleEditFileSelect}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
                   Description
                 </label>
                 <textarea
@@ -1437,9 +1526,17 @@ const AdminChitScheme: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-[#7A1416] hover:bg-[#900000] text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
+                  disabled={isSavingEdit}
+                  className="px-5 py-2.5 bg-[#7A1416] hover:bg-[#900000] text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
-                  Save Changes
+                  {isSavingEdit ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <span>Save Changes</span>
+                  )}
                 </button>
               </DialogFooter>
             </form>
