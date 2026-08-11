@@ -77,7 +77,7 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
           
           {/* Top Right Selected Amount Badge */}
           <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20">
-            <span className="bg-[#A80000] text-white text-xs sm:text-sm font-bold px-2.5 py-1 rounded-md shadow-md">
+            <span className="bg-[#A80000] text-white text-xs sm:text-sm font-extrabold px-3 py-1 sm:px-3.5 sm:py-1 rounded-full shadow-md border border-red-800/40 tracking-tight">
               ₹ {selectedAmount.toFixed(2)}
             </span>
           </div>
@@ -98,13 +98,17 @@ const ProductCard = ({ product, categoryName }: { product: Product; categoryName
             <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
 
             {discount > 0 && !isNetRate && (
-              <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-yellow-400 text-yellow-950 text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md shadow-sm z-10">
-                {discount}% OFF
-              </span>
+              <div className="absolute top-1 left-1 sm:top-2 sm:left-2 z-10 hover:scale-110 transition-transform duration-300 pointer-events-none">
+                <img
+                  src="/discount-tag.png"
+                  alt={`${discount}% OFF`}
+                  className="w-12 sm:w-16 h-auto object-contain drop-shadow-md"
+                />
+              </div>
             )}
 
             {isNetRate && (
-              <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-indigo-600 text-white text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md shadow-lg z-10 animate-pulse">
+              <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-indigo-600 text-white text-xs sm:text-sm font-black px-2.5 py-1 sm:px-3.5 sm:py-1 rounded-full shadow-lg z-10 animate-pulse tracking-wide">
                 NET RATE
               </span>
             )}
