@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
-import { Lock, LogIn, Gift, Send, CheckCircle2, MapPin, User, Mail, Phone, ChevronDown, Sparkles, Calendar, Clock, ArrowLeft, ChevronRight, Eye } from "lucide-react";
+import { Lock, LogIn, Gift, Send, CheckCircle2, MapPin, User, Mail, Phone, ChevronDown, Sparkles, Calendar, Clock, ArrowLeft, ChevronRight, Eye, ZoomIn } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { getChitSchemes, ChitSchemeItem, submitChitSubscription, trackCustomerAction, getChitSubscriptions, ChitSubscriptionItem } from "@/lib/api";
@@ -74,6 +74,7 @@ const ChitScheme: React.FC = () => {
   const [showPurchasedModal, setShowPurchasedModal] = useState(false);
   const [selectedPurchasedSub, setSelectedPurchasedSub] = useState<ChitSubscriptionItem | null>(null);
   const [submittedData, setSubmittedData] = useState<any>(null);
+  const [activeZoomImage, setActiveZoomImage] = useState<ChitSchemeImage | null>(null);
 
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -519,7 +520,8 @@ const ChitScheme: React.FC = () => {
                         </div>
                       ) : null}
                     </div>
-                  ))}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -806,6 +808,27 @@ const ChitScheme: React.FC = () => {
             >
               View My Purchased Scheme Details
             </button>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Zoom Image Modal */}
+      {activeZoomImage && (
+        <Dialog open={!!activeZoomImage} onOpenChange={(open) => { if (!open) setActiveZoomImage(null); }}>
+          <DialogContent className="max-w-3xl p-4 bg-white rounded-3xl text-center space-y-3 font-sans">
+            {activeZoomImage.url && (
+              <img
+                src={activeZoomImage.url}
+                alt={activeZoomImage.title || "Chit Scheme Image"}
+                className="w-full max-h-[80vh] object-contain rounded-2xl border border-gray-100"
+              />
+            )}
+            {activeZoomImage.title && (
+              <h3 className="font-extrabold text-gray-900 text-base">{activeZoomImage.title}</h3>
+            )}
+            {activeZoomImage.description && (
+              <p className="text-xs text-gray-600 font-medium leading-relaxed">{activeZoomImage.description}</p>
+            )}
           </DialogContent>
         </Dialog>
       )}

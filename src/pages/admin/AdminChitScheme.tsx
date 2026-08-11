@@ -1148,14 +1148,6 @@ _Sai Yogi Crackers_`;
                   Configure scheme names, starting dates, duration, monthly amounts, and payment due date rules.
                 </p>
               </div>
-
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300/80 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
-              >
-                <Plus className="w-4 h-4 text-[#7A1416]" />
-                <span>Add Scheme</span>
-              </button>
             </div>
 
             {loadingSchemes ? (
