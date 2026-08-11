@@ -6,7 +6,7 @@ import aboutImg from "@/assets/about.png";
 
 const AboutUs = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#FFF6E5] font-sans text-gray-900 antialiased">
+    <div className="min-h-screen flex flex-col bg-white font-sans text-gray-900 antialiased">
       <UserHeader />
 
       <main className="flex-1">

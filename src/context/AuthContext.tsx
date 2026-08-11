@@ -78,19 +78,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithPhone = (phone: string, name?: string) => {
     setUserPhone(phone);
     localStorage.setItem("user_phone", phone);
-    setCookie("saiyogi_user_phone", phone, 30);
-    setCookie(SESSION_COOKIE_NAME, phone, 30);
+    localStorage.setItem("saiyogi_last_phone", phone);
+    setCookie("saiyogi_user_phone", phone, 365);
+    setCookie("saiyogi_last_phone", phone, 365);
+    setCookie(SESSION_COOKIE_NAME, phone, 365);
 
     let cleanName: string | undefined = undefined;
     if (name && name.trim()) {
       cleanName = name.trim();
       setUserName(cleanName);
       localStorage.setItem("user_name", cleanName);
-      setCookie("saiyogi_user_name", cleanName, 30);
+      setCookie("saiyogi_user_name", cleanName, 365);
     } else {
       setUserName(null);
       localStorage.removeItem("user_name");
-      deleteCookie("saiyogi_user_name");
     }
     setIsAuthenticated(true);
 
@@ -105,14 +106,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const closeLoginModal = () => setIsLoginModalOpen(false);
 
   const logoutUser = () => {
+    // Preserve last logged in user phone in cookie so enquiries remain permanently accessible
+    if (userPhone) {
+      setCookie("saiyogi_last_phone", userPhone, 365);
+      localStorage.setItem("saiyogi_last_phone", userPhone);
+    }
     setUserPhone(null);
     setUserName(null);
     deleteCookie(SESSION_COOKIE_NAME);
-    deleteCookie("saiyogi_user_phone");
-    deleteCookie("saiyogi_user_name");
-    localStorage.removeItem("user_phone");
-    localStorage.removeItem("user_name");
-    localStorage.removeItem("saiyogi_user_session");
     if (!isAdmin) {
       setIsAuthenticated(false);
     }

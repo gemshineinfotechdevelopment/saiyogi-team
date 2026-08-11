@@ -1,10 +1,28 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 
 export const FloatingQuickEnquiry: React.FC = () => {
+  const { isCartOpen } = useCart();
+  const { isLoginModalOpen } = useAuth();
   const location = useLocation();
   const rawPath = location.pathname || "/";
   const normalizedPath = rawPath.toLowerCase().replace(/\/+$/, "") || "/";
+
+  // Hide floating badge whenever Cart Drawer or Login Modal is open
+  if (isCartOpen || isLoginModalOpen) {
+    return null;
+  }
+
+  // Hide on Quick Enquiry pages or Admin routes
+  if (
+    normalizedPath.includes("quick-enquir") ||
+    normalizedPath.includes("quick-enquer") ||
+    normalizedPath.startsWith("/admin")
+  ) {
+    return null;
+  }
 
   // Show on Home (/), About (/about or /about-us), and Safety Tips (/safety-tips)
   const allowedPaths = ["/", "/about", "/about-us", "/safety-tips"];
@@ -15,7 +33,7 @@ export const FloatingQuickEnquiry: React.FC = () => {
   return (
     <Link
       to="/quick-enquiry"
-      className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-[999] group cursor-pointer select-none"
+      className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-40 group cursor-pointer select-none"
       title="Quick Enquiry"
     >
       <div className="relative flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95">

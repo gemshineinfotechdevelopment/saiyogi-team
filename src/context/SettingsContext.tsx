@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { apiRequest } from '@/lib/api';
-import { useAuth } from './AuthContext';
+import { useAuth } from "@/context/AuthContext";
 
 export interface Settings {
   shopName: string;

@@ -15,8 +15,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Cinzel", "serif"],
-        body: ["Outfit", "sans-serif"],
+        display: ["Google Sans", "Product Sans", "Outfit", "sans-serif"],
+        body: ["Google Sans", "Product Sans", "Outfit", "sans-serif"],
+        sans: ["Google Sans", "Product Sans", "Outfit", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

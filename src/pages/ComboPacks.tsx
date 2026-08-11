@@ -30,7 +30,7 @@ const ComboPacks = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F5F0] font-sans text-gray-900 antialiased">
+    <div className="min-h-screen flex flex-col bg-white font-sans text-gray-900 antialiased">
       {/* Header Component */}
       <UserHeader />
 
