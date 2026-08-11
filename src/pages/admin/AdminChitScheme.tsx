@@ -103,7 +103,6 @@ const AdminChitScheme: React.FC = () => {
   const [uploadTotalMonths, setUploadTotalMonths] = useState("9");
   const [uploadDueDateDay, setUploadDueDateDay] = useState("10");
   const [uploadMonthlyAmount, setUploadMonthlyAmount] = useState("2000");
-  const [uploadTotalSchemeAmount, setUploadTotalSchemeAmount] = useState("18000");
   const [uploadStatus, setUploadStatus] = useState<'Upcoming' | 'Active' | 'Completed' | 'Closed'>("Active");
   const [isUploading, setIsUploading] = useState(false);
   // Dedicated Admin Image Upload Modal State
@@ -121,7 +120,6 @@ const AdminChitScheme: React.FC = () => {
   const [editTotalMonths, setEditTotalMonths] = useState("9");
   const [editDueDateDay, setEditDueDateDay] = useState("10");
   const [editMonthlyAmount, setEditMonthlyAmount] = useState("");
-  const [editTotalSchemeAmount, setEditTotalSchemeAmount] = useState("");
   const [editStatus, setEditStatus] = useState<'Upcoming' | 'Active' | 'Completed' | 'Closed'>("Active");
   const [editUrl, setEditUrl] = useState("");
   const [editSelectedFile, setEditSelectedFile] = useState<File | null>(null);
@@ -273,7 +271,7 @@ const AdminChitScheme: React.FC = () => {
 
       const monthly = parseFloat(uploadMonthlyAmount) || 0;
       const months = parseInt(uploadTotalMonths, 10) || 9;
-      const totalExpected = parseFloat(uploadTotalSchemeAmount) || (monthly * months);
+      const totalExpected = monthly * months;
 
       await createChitScheme({
         title: uploadTitle.trim(),
@@ -298,7 +296,6 @@ const AdminChitScheme: React.FC = () => {
       setUploadTotalMonths("9");
       setUploadDueDateDay("10");
       setUploadMonthlyAmount("2000");
-      setUploadTotalSchemeAmount("18000");
       setUploadStatus("Active");
       setIsCreateModalOpen(false);
       loadChitSchemes();
@@ -386,7 +383,6 @@ const AdminChitScheme: React.FC = () => {
   const handleOpenEditModal = (sch: ChitSchemeImage) => {
     const monthly = sch.monthlyAmount || 0;
     const months = sch.totalMonths || sch.numberOfMonths || 9;
-    const totalExpected = sch.totalSchemeAmount || sch.totalAmount || (monthly * months);
 
     setEditingScheme(sch);
     setEditTitle(sch.title || sch.schemeName || "");
@@ -395,7 +391,6 @@ const AdminChitScheme: React.FC = () => {
     setEditTotalMonths(String(months));
     setEditDueDateDay(String(sch.dueDateDay || sch.paymentDueDay || 10));
     setEditMonthlyAmount(String(monthly));
-    setEditTotalSchemeAmount(String(totalExpected));
     setEditStatus(sch.status || 'Active');
     setEditUrl(sch.url || "");
     setEditSelectedFile(null);
@@ -421,7 +416,7 @@ const AdminChitScheme: React.FC = () => {
 
       const monthly = parseFloat(editMonthlyAmount) || 0;
       const months = parseInt(editTotalMonths, 10) || 9;
-      const totalExpected = parseFloat(editTotalSchemeAmount) || (monthly * months);
+      const totalExpected = monthly * months;
 
       await updateChitScheme(editingScheme.id, {
         title: editTitle.trim(),
@@ -1527,22 +1522,6 @@ _Sai Yogi Crackers_`;
                 </div>
 
                 <div className="col-span-1 sm:col-span-2">
-                  <label className="block text-xs font-extrabold text-[#7A1416] uppercase mb-1">
-                    Total Expected Scheme Amount (₹) *
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="e.g. 18000"
-                    value={uploadTotalSchemeAmount}
-                    onChange={(e) => setUploadTotalSchemeAmount(e.target.value)}
-                    className="w-full text-xs p-2.5 bg-white border border-amber-400 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none font-extrabold text-[#7A1416]"
-                    required
-                  />
-                  <span className="text-[10px] text-gray-500 font-medium">Set by Admin: Total expected scheme amount.</span>
-                </div>
-
-                <div className="col-span-1 sm:col-span-2">
                   <label className="block text-xs font-bold text-gray-800 uppercase mb-1">
                     Scheme Status
                   </label>
@@ -1795,19 +1774,6 @@ _Sai Yogi Crackers_`;
                     onChange={(e) => setEditDueDateDay(e.target.value)}
                     className="w-full text-xs p-2.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none font-semibold"
                   />
-                </div>
-
-                <div className="col-span-2">
-                  <label className="block text-xs font-extrabold text-[#7A1416] uppercase mb-1">
-                    Total Expected Scheme Amount (₹)
-                  </label>
-                  <input
-                    type="number"
-                    value={editTotalSchemeAmount}
-                    onChange={(e) => setEditTotalSchemeAmount(e.target.value)}
-                    className="w-full text-xs p-2.5 bg-white border border-amber-400 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none font-extrabold text-[#7A1416]"
-                  />
-                  <span className="text-[10px] text-gray-500 font-medium">Set by Admin: Total expected scheme amount.</span>
                 </div>
 
                 <div className="col-span-2">
