@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { UserLoginModal } from "@/components/auth/UserLoginModal";
 import { setCookie, getCookie, deleteCookie } from "@/lib/cookieUtils";
 import { toast } from "sonner";
 import { trackCustomerAction } from "@/lib/api";

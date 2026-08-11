@@ -1,12 +1,55 @@
-import React from 'react';
+import React, { useState } from 'react';
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
-import { Download, FileText, FileX } from "lucide-react";
+import { Download, FileText, FileX, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const ProductList = () => {
   const { settings, isLoading } = useSiteSettings();
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    if (!settings.priceListPdf) return;
+    setDownloading(true);
+    try {
+      // Format Cloudinary URL if available to force attachment download
+      let pdfUrl = settings.priceListPdf;
+      if (pdfUrl.includes('/upload/') && !pdfUrl.includes('fl_attachment')) {
+        pdfUrl = pdfUrl.replace('/upload/', '/upload/fl_attachment:Saiyogi_Crackers_Pricelist/');
+      }
+
+      const response = await fetch(pdfUrl);
+      if (!response.ok) throw new Error('Download request failed');
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = 'Saiyogi Crackers Pricelist.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+
+      toast.success("Saiyogi Crackers Pricelist downloaded successfully!");
+    } catch (error) {
+      console.error("Direct blob download failed, fallback to attachment link:", error);
+      let fallbackUrl = settings.priceListPdf;
+      if (fallbackUrl.includes('/upload/') && !fallbackUrl.includes('fl_attachment')) {
+        fallbackUrl = fallbackUrl.replace('/upload/', '/upload/fl_attachment:Saiyogi_Crackers_Pricelist/');
+      }
+      const link = document.createElement('a');
+      link.href = fallbackUrl;
+      link.download = 'Saiyogi Crackers Pricelist.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
@@ -41,14 +84,22 @@ const ProductList = () => {
                   </div>
                   
                   <Button 
-                    asChild 
+                    onClick={handleDownload}
+                    disabled={downloading}
                     size="lg" 
-                    className="mt-4 px-8 py-6 text-lg rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-1 w-full sm:w-auto font-bold"
+                    className="mt-4 px-8 py-6 text-lg rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-1 w-full sm:w-auto font-bold cursor-pointer"
                   >
-                    <a href={settings.priceListPdf} target="_blank" rel="noopener noreferrer" download>
-                      <Download className="mr-2 h-6 w-6" />
-                      Download Price List
-                    </a>
+                    {downloading ? (
+                      <>
+                        <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+                        Downloading Pricelist...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="mr-2 h-6 w-6" />
+                        Download Price List
+                      </>
+                    )}
                   </Button>
                 </>
               ) : !isLoading && !settings.priceListPdf ? (
