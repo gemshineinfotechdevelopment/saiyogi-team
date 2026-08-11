@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose, SheetDescription } from "@/components/ui/sheet";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
@@ -407,9 +408,15 @@ const CartDrawer = () => {
                   <span>Packing Charge</span>
                   <span className="text-gray-900 font-bold">₹{packingCharge.toLocaleString('en-IN')}</span>
                 </div>
+                {Math.round(estimatedTotal) - estimatedTotal !== 0 && (
+                  <div className="flex justify-between text-xs text-gray-600 font-medium">
+                    <span>Round Off</span>
+                    <span className="text-gray-900 font-bold">{(Math.round(estimatedTotal) - estimatedTotal) > 0 ? '+' : ''}₹{(Math.round(estimatedTotal) - estimatedTotal).toLocaleString('en-IN')}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center py-2 pt-3 border-t border-gray-100">
                   <span className="font-bold text-[#a41a1c] text-sm tracking-wide">ESTIMATED TOTAL</span>
-                  <span className="font-black text-[#a41a1c] text-xl">₹{estimatedTotal.toLocaleString('en-IN')}</span>
+                  <span className="font-black text-[#a41a1c] text-xl">₹{Math.round(estimatedTotal).toLocaleString('en-IN')}</span>
                 </div>
 
                 {/* Minimum Subtotal Limit Warning Card (NPK Crackers replica) */}
@@ -669,9 +676,23 @@ const CartDrawer = () => {
             
             {/* Checkout Footer Actions */}
             <div className="p-4 bg-white border-t border-gray-100 space-y-3 sticky bottom-0 z-10 shadow-md">
-              <div className="flex justify-between items-center py-1 font-bold text-[#a41a1c] text-sm">
+              <div className="flex justify-between text-xs text-gray-600 font-medium">
+                <span>Items Total ({totalItems} Items)</span>
+                <span className="text-gray-900 font-bold">₹{totalPrice.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between text-xs text-gray-600 font-medium">
+                <span>Packing Charge</span>
+                <span className="text-gray-900 font-bold">₹{packingCharge.toLocaleString('en-IN')}</span>
+              </div>
+              {Math.round(estimatedTotal) - estimatedTotal !== 0 && (
+                <div className="flex justify-between text-xs text-gray-600 font-medium">
+                  <span>Round Off</span>
+                  <span className="text-gray-900 font-bold">{(Math.round(estimatedTotal) - estimatedTotal) > 0 ? '+' : ''}₹{(Math.round(estimatedTotal) - estimatedTotal).toLocaleString('en-IN')}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center py-2 pt-3 border-t border-gray-100 font-bold text-[#a41a1c] text-sm">
                 <span>ESTIMATED TOTAL ({totalItems} Items)</span>
-                <span className="text-lg font-black">₹{estimatedTotal.toLocaleString('en-IN')}</span>
+                <span className="text-lg font-black">₹{Math.round(estimatedTotal).toLocaleString('en-IN')}</span>
               </div>
 
               {!canPlaceOrder && formData.state && (
@@ -719,12 +740,17 @@ const CartDrawer = () => {
 
             <div className="space-y-4 text-gray-700 text-xs sm:text-sm">
               <p className="leading-relaxed">
-                <strong className="font-extrabold text-gray-900">1. Shipping:</strong> Direct dispatch from Sivakasi within 5–7 working days.
+                <strong className="font-extrabold text-gray-900">1. Shipping:</strong> Direct dispatch from Sivakasi warehouse within 5–7 working days.
               </p>
 
-              <p className="leading-relaxed">
-                <strong className="font-extrabold text-gray-900">2. Transport Charges:</strong> Payable by the customer directly at the transport office upon pickup.
-              </p>
+              <div className="bg-amber-50/80 border border-amber-200 rounded-xl p-3.5 space-y-1">
+                <strong className="font-extrabold text-[#900000] flex items-center gap-1.5 text-xs sm:text-sm">
+                  🚚 2. Transport Charges:
+                </strong>
+                <p className="text-gray-700 text-xs leading-relaxed">
+                  Transport charges are payable entirely by the customer directly at the transport office upon parcel collection. The transport service operates independently from our shop.
+                </p>
+              </div>
 
               <p className="leading-relaxed">
                 <strong className="font-extrabold text-gray-900">3. Payments:</strong> 100% advance payment required before dispatch.
@@ -741,6 +767,16 @@ const CartDrawer = () => {
               <p className="leading-relaxed">
                 <strong className="font-extrabold text-gray-900">6. Returns:</strong> No returns accepted once goods are dispatched.
               </p>
+
+              <div className="pt-2 border-t border-gray-100 text-center">
+                <Link 
+                  to="/terms" 
+                  onClick={() => setShowTermsModal(false)}
+                  className="text-xs font-extrabold text-[#900000] hover:underline"
+                >
+                  Read Full Transport Charges & Terms & Conditions →
+                </Link>
+              </div>
             </div>
           </div>
 
