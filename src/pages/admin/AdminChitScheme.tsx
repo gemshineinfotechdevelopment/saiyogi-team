@@ -102,7 +102,12 @@ const AdminChitScheme: React.FC = () => {
   const [uploadDueDateDay, setUploadDueDateDay] = useState("10");
   const [uploadMonthlyAmount, setUploadMonthlyAmount] = useState("2000");
   const [uploadStatus, setUploadStatus] = useState<'Upcoming' | 'Active' | 'Completed' | 'Closed'>("Active");
-  const [isUploading, setIsUploading] = useState(false);
+  // Dedicated Admin Image Upload Modal State
+  const [isUploadImageModalOpen, setIsUploadImageModalOpen] = useState(false);
+  const [uploadImageSelectedSchemeId, setUploadImageSelectedSchemeId] = useState("");
+  const [uploadImageFile, setUploadImageFile] = useState<File | null>(null);
+  const [uploadImagePreview, setUploadImagePreview] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Edit Scheme Modal State
   const [editingScheme, setEditingScheme] = useState<ChitSchemeImage | null>(null);
@@ -249,7 +254,7 @@ const AdminChitScheme: React.FC = () => {
     }
   };
 
-  // Create Scheme Handler
+  // Create Scheme Handler (No image file input required)
   const handleCreateSchemeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!uploadTitle.trim()) {
@@ -260,16 +265,12 @@ const AdminChitScheme: React.FC = () => {
     setIsUploading(true);
     try {
       toast.loading("Creating Chit Scheme...", { id: "scheme-toast" });
-      let cloudinaryUrl = "";
-      if (selectedFile) {
-        cloudinaryUrl = await uploadImageToCloudinary(selectedFile, "chit_schemes");
-      }
 
       await createChitScheme({
         title: uploadTitle.trim(),
         schemeName: uploadTitle.trim(),
         description: uploadDescription.trim(),
-        url: cloudinaryUrl || "https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=1200&auto=format&fit=crop",
+        url: "https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=1200&auto=format&fit=crop",
         startDate: uploadStartDate,
         totalMonths: parseInt(uploadTotalMonths, 10) || 9,
         numberOfMonths: parseInt(uploadTotalMonths, 10) || 9,
@@ -280,7 +281,6 @@ const AdminChitScheme: React.FC = () => {
       });
 
       toast.success("Chit Scheme created successfully!", { id: "scheme-toast" });
-      handleClearSelectedFile();
       setUploadTitle("");
       setUploadDescription("");
       setUploadStartDate(new Date().toISOString().split('T')[0]);
@@ -294,6 +294,52 @@ const AdminChitScheme: React.FC = () => {
       toast.error(`Creation failed: ${err.message || err}`, { id: "scheme-toast" });
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  // Open Dedicated Upload Image Modal for a Scheme
+  const handleOpenUploadImageForScheme = (sch: ChitSchemeImage) => {
+    setUploadImageSelectedSchemeId(String(sch.id));
+    setUploadImageFile(null);
+    setUploadImagePreview(sch.url || null);
+    setIsUploadImageModalOpen(true);
+  };
+
+  // Dedicated Admin Scheme Image Upload Handler
+  const handleUploadImageSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uploadImageFile) {
+      toast.error("Please select an image to upload");
+      return;
+    }
+    if (!uploadImageSelectedSchemeId) {
+      toast.error("Please select a scheme to attach this image to");
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      toast.loading("Uploading scheme image...", { id: "img-toast" });
+      const cloudinaryUrl = await uploadImageToCloudinary(uploadImageFile, "chit_schemes");
+
+      const targetScheme = schemes.find(s => String(s.id) === String(uploadImageSelectedSchemeId));
+      if (targetScheme) {
+        await updateChitScheme(targetScheme.id, {
+          url: cloudinaryUrl
+        });
+        toast.success(`Image updated for "${targetScheme.title || targetScheme.schemeName}"!`, { id: "img-toast" });
+      } else {
+        toast.error("Target scheme not found", { id: "img-toast" });
+      }
+
+      setIsUploadImageModalOpen(false);
+      setUploadImageFile(null);
+      setUploadImagePreview(null);
+      loadChitSchemes();
+    } catch (err: any) {
+      toast.error("Upload failed: " + (err.message || err), { id: "img-toast" });
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
@@ -620,6 +666,13 @@ const AdminChitScheme: React.FC = () => {
               >
                 <RefreshCw className="w-4 h-4 text-gray-600" />
                 <span className="hidden sm:inline">Refresh</span>
+              </button>
+              <button
+                onClick={() => setIsUploadImageModalOpen(true)}
+                className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer active:scale-95"
+              >
+                <ImageIcon className="w-4.5 h-4.5" />
+                <span>Upload Scheme Image</span>
               </button>
               <button
                 onClick={() => setIsCreateModalOpen(true)}
@@ -1035,6 +1088,13 @@ const AdminChitScheme: React.FC = () => {
 
                       <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
                         <button
+                          onClick={() => handleOpenUploadImageForScheme(sch)}
+                          className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
+                          title="Upload Image"
+                        >
+                          <ImageIcon className="w-3.5 h-3.5 text-blue-700" /> Image
+                        </button>
+                        <button
                           onClick={() => setViewingScheme(sch)}
                           className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
                         >
@@ -1282,45 +1342,6 @@ const AdminChitScheme: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Banner Image (Optional)
-                </label>
-                {filePreview ? (
-                  <div className="relative border border-gray-200 rounded-2xl p-2 bg-gray-50 flex items-center justify-between">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <img src={filePreview} alt="Preview" className="w-12 h-12 object-cover rounded-xl shrink-0" />
-                      <span className="text-xs font-semibold text-gray-700 truncate max-w-[200px]">
-                        {selectedFile?.name}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleClearSelectedFile}
-                      className="text-xs text-rose-600 hover:text-rose-700 font-bold p-1 cursor-pointer"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <label className="border-2 border-dashed border-gray-200 hover:border-[#7A1416]/50 rounded-2xl p-3 text-center transition-colors bg-gray-50 flex items-center justify-between cursor-pointer">
-                    <div className="flex items-center gap-2">
-                      <ImageIcon className="w-5 h-5 text-gray-400" />
-                      <span className="text-xs font-medium text-gray-600">Select Banner Image</span>
-                    </div>
-                    <span className="bg-white border border-gray-300 text-gray-700 text-[11px] font-bold px-3 py-1 rounded-lg">
-                      Browse
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileSelect}
-                      className="hidden"
-                    />
-                  </label>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
                   Scheme Description (Optional)
                 </label>
                 <textarea
@@ -1354,6 +1375,155 @@ const AdminChitScheme: React.FC = () => {
                     <>
                       <Plus className="w-4 h-4" />
                       <span>Create Scheme</span>
+                    </>
+                  )}
+                </button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* MODAL 2.5: DEDICATED ADMIN SCHEME IMAGE UPLOAD MODAL */}
+      {isUploadImageModalOpen && (
+        <Dialog open={isUploadImageModalOpen} onOpenChange={setIsUploadImageModalOpen}>
+          <DialogContent className="sm:max-w-lg p-6 bg-white rounded-3xl font-sans max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-extrabold text-[#2A1B54] flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-[#7A1416]" />
+                Upload Chit Scheme Image / Banner
+              </DialogTitle>
+              <DialogDescription className="text-xs text-gray-600">
+                Upload or update a promotional banner image for a chit scheme. This banner will be displayed to customers on the Chit Scheme registration page.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleUploadImageSubmit} className="space-y-4 py-3 text-xs">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  Select Chit Scheme *
+                </label>
+                <select
+                  value={uploadImageSelectedSchemeId}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    setUploadImageSelectedSchemeId(selectedId);
+                    const found = schemes.find(s => String(s.id) === String(selectedId));
+                    if (found?.url) {
+                      setUploadImagePreview(found.url);
+                    } else {
+                      setUploadImagePreview(null);
+                    }
+                  }}
+                  className="w-full text-xs p-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none font-semibold text-gray-800"
+                  required
+                >
+                  <option value="">-- Choose Scheme --</option>
+                  {schemes.map(sch => (
+                    <option key={sch.id} value={sch.id}>
+                      {sch.title || sch.schemeName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  Select Image File *
+                </label>
+                {uploadImagePreview ? (
+                  <div className="relative border border-gray-200 rounded-2xl p-3 bg-gray-50 flex items-center justify-between">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <img src={uploadImagePreview} alt="Preview" className="w-16 h-16 object-cover rounded-xl shrink-0 border border-gray-200" />
+                      <div className="truncate">
+                        <span className="text-xs font-semibold text-gray-800 block truncate">
+                          {uploadImageFile?.name || "Selected Image"}
+                        </span>
+                        <label className="text-[11px] text-[#7A1416] hover:underline font-bold cursor-pointer inline-block mt-1">
+                          Choose Different Image
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const files = e.target.files;
+                              if (!files || files.length === 0) return;
+                              const file = files[0];
+                              setUploadImageFile(file);
+                              if (uploadImagePreview && uploadImagePreview.startsWith("blob:")) {
+                                URL.revokeObjectURL(uploadImagePreview);
+                              }
+                              setUploadImagePreview(URL.createObjectURL(file));
+                            }}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUploadImageFile(null);
+                        setUploadImagePreview(null);
+                      }}
+                      className="text-xs text-rose-600 hover:text-rose-700 font-bold p-1 cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="border-2 border-dashed border-gray-300 hover:border-[#7A1416] rounded-2xl p-4 text-center transition-colors bg-gray-50 flex flex-col items-center justify-center gap-2 cursor-pointer">
+                    <div className="w-10 h-10 rounded-full bg-amber-100 text-[#7A1416] flex items-center justify-center">
+                      <ImageIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-gray-800 block">Click to upload scheme image</span>
+                      <span className="text-[11px] text-gray-500 font-medium">PNG, JPG, WEBP up to 10MB</span>
+                    </div>
+                    <span className="bg-[#7A1416] text-white text-[11px] font-bold px-3 py-1 rounded-lg mt-1">
+                      Browse Files
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (!files || files.length === 0) return;
+                        const file = files[0];
+                        setUploadImageFile(file);
+                        setUploadImagePreview(URL.createObjectURL(file));
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+
+              <DialogFooter className="gap-2 pt-3 border-t">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsUploadImageModalOpen(false);
+                    setUploadImageFile(null);
+                    setUploadImagePreview(null);
+                  }}
+                  className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUploadingImage || !uploadImageFile || !uploadImageSelectedSchemeId}
+                  className="px-5 py-2.5 bg-[#7A1416] hover:bg-[#900000] text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isUploadingImage ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ImageIcon className="w-4 h-4" />
+                      <span>Upload Image</span>
                     </>
                   )}
                 </button>
