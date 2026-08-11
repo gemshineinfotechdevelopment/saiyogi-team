@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from "react";
-<<<<<<< HEAD
 import { Link, useSearchParams } from "react-router-dom";
-=======
-import { Link } from "react-router-dom";
->>>>>>> 362784cc470e9358b3ebc61fc9813701f6fc9390
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
@@ -40,18 +36,11 @@ const getMonthNameForIndex = (monthIndex: number, startDateStr?: string): { mont
 };
 
 const MyAccount: React.FC = () => {
-<<<<<<< HEAD
   const { userPhone, userName, isUserLoggedIn, openLoginModal } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   
   const initialTab = searchParams.get("tab") === "enquiry" ? "enquiry" : "account";
   const [activeTab, setActiveTab] = useState<"account" | "enquiry">(initialTab);
-=======
-  const { userPhone, userName, isUserLoggedIn } = useAuth();
-  const [subscriptions, setSubscriptions] = useState<ChitSubscriptionItem[]>([]);
-  const [schemes, setSchemes] = useState<ChitSchemeItem[]>([]);
-  const [loading, setLoading] = useState(false);
->>>>>>> 362784cc470e9358b3ebc61fc9813701f6fc9390
 
   const [enquiries, setEnquiries] = useState<EnquiryItem[]>([]);
   const [selectedEnquiry, setSelectedEnquiry] = useState<EnquiryItem | null>(null);
@@ -423,8 +412,6 @@ const MyAccount: React.FC = () => {
             <h1 className="text-2xl sm:text-3xl font-medium text-[#2A1B54] mb-8">
               My Enquiry
             </h1>
-
-<<<<<<< HEAD
             {!isUserLoggedIn && (
               <div className="mb-6 bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-2xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
                 <div>
