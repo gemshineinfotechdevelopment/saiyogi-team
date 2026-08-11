@@ -167,8 +167,8 @@ const QuickEnquiry = () => {
       <UserHeader isHidden={isNavbarHidden} />
 
       <main className={`flex-1 w-full pb-12 px-0 transition-all duration-300 ${isNavbarHidden
-        ? 'pt-[120px] md:pt-[80px]'
-        : 'pt-[195px] md:pt-[190px]'
+        ? 'pt-[68px] md:pt-[35px]'
+        : 'pt-[144px] md:pt-[157px]'
         }`}>
         {/* Sticky Filters & Cart Total Component */}
         <QuickEnquiryFilters
@@ -185,8 +185,8 @@ const QuickEnquiry = () => {
           isNavbarHidden={isNavbarHidden}
         />
 
-        <div className="w-full bg-white shadow-xl border-y border-gray-150 rounded-none mb-8 mt-4 md:mt-6">
-          <div className="flex-1 container mx-auto px-0 md:px-4 py-8">
+        <div className="w-full bg-white shadow-xl border-y border-gray-150 rounded-none mb-8 mt-1 md:mt-2">
+          <div className="flex-1 container mx-auto px-0 md:px-4 py-2 md:py-3">
 
             <div className="space-y-6 md:space-y-4">
               {loading ? (
@@ -228,7 +228,7 @@ const QuickEnquiry = () => {
                           <div className="flex justify-between items-start gap-2">
                             <div>
                               <h3 className="font-black text-gray-800 text-[13px] leading-snug uppercase">{item.name}</h3>
-                              <p className="text-gray-400 text-[10px] font-bold mt-0.5">#{pId.substring(0, 8).toUpperCase()}</p>
+                              <p className="text-gray-400 text-[10px] font-bold mt-0.5">{item.sku || item.code || (pId ? `#${pId.substring(0, 8).toUpperCase()}` : 'N/A')}</p>
                             </div>
                             <div className="text-right shrink-0">
                                <div className="font-black text-[#D35400] text-[13px]">₹{dp.toLocaleString('en-IN')}</div>
@@ -267,7 +267,7 @@ const QuickEnquiry = () => {
                         </div>
 
                             <div className="col-span-2 text-center text-xs font-bold text-gray-600 font-sans tracking-wider">
-                              #{pId.substring(0, 8).toUpperCase()}
+                              {item.sku || item.code || (pId ? `#${pId.substring(0, 8).toUpperCase()}` : 'N/A')}
                             </div>
 
                             <div className="col-span-2 flex justify-center">
