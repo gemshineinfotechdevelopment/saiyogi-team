@@ -215,7 +215,7 @@ const CartDrawer = () => {
 
         // Save enquiry to user's phone-specific key in localStorage and cookie for MyEnquiry page
         try {
-          const cleanPhone = formData.phoneNumber.replace(/\D/g, "");
+          const cleanPhone = formData.phoneNumber.replace(/\D/g, "").slice(-10);
           const userPhoneKey = `user_saved_enquiries_${cleanPhone}`;
           const cookieKey = `saiyogi_enquiries_${cleanPhone}`;
 

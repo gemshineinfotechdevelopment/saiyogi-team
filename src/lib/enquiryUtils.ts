@@ -56,17 +56,47 @@ export function loadUserEnquiries(userPhone: string | null): EnquiryItem[] {
     } catch (_) {}
   }
 
-  // 2. Fallback to phone-specific localStorage
+  // 2. Fallback to phone-specific localStorage (10-digit and 91+10-digit)
   if (items.length === 0) {
-    const localVal = localStorage.getItem(localKey);
-    if (localVal) {
-      try {
-        const parsed = JSON.parse(localVal);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          items = parsed;
-        }
-      } catch (_) {}
+    const keysToTry = [
+      localKey,
+      `user_saved_enquiries_91${cleanPhone}`,
+      `saiyogi_enquiries_91${cleanPhone}`
+    ];
+
+    for (const key of keysToTry) {
+      const val = localStorage.getItem(key) || getCookie(key);
+      if (val) {
+        try {
+          const parsed = JSON.parse(val);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            items = parsed;
+            break;
+          }
+        } catch (_) {}
+      }
     }
+  }
+
+  // 3. Scan localStorage for any key ending with cleanPhone if still empty
+  if (items.length === 0 && typeof window !== "undefined" && window.localStorage) {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith("user_saved_enquiries_") || k.startsWith("saiyogi_enquiries_"))) {
+          if (k.endsWith(cleanPhone)) {
+            const val = localStorage.getItem(k);
+            if (val) {
+              const parsed = JSON.parse(val);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                items = parsed;
+                break;
+              }
+            }
+          }
+        }
+      }
+    } catch (_) {}
   }
 
   // Double check that loaded items belong strictly to cleanPhone
@@ -75,7 +105,7 @@ export function loadUserEnquiries(userPhone: string | null): EnquiryItem[] {
     return !itemPhone || itemPhone === cleanPhone;
   });
 
-  // Save phone-specific items back to sync
+  // Save phone-specific items back to 10-digit key to sync
   if (items.length > 0) {
     try {
       localStorage.setItem(`user_saved_enquiries_${cleanPhone}`, JSON.stringify(items));
