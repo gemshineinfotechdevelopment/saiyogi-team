@@ -226,6 +226,11 @@ export const approveOrder = async (req, res, next) => {
     }
 
     order.approved = true;
+    if (order.packingStatus === 'packed') {
+      order.status = 'Shipped';
+    } else {
+      order.status = 'Approved';
+    }
     const updatedOrder = await order.save();
 
     let customer = await Customer.findOne({ email: order.customerEmail });
@@ -346,14 +351,25 @@ export const updatePackingStatus = async (req, res, next) => {
       return next(new AppError('Invalid packing status. Must be "packed" or "unpacked"', 400));
     }
 
-    const order = await Order.findByIdAndUpdate(orderId, { packingStatus }, { returnDocument: 'after' });
+    const order = await Order.findById(orderId);
     if (!order) {
       return next(new AppError('Order not found', 404));
     }
 
+    order.packingStatus = packingStatus;
+    if (packingStatus === 'packed') {
+      order.status = 'Shipped';
+    } else if (order.approved) {
+      order.status = 'Approved';
+    } else {
+      order.status = 'Pending';
+    }
+
+    const updatedOrder = await order.save();
+
     res.json({
       message: 'Packing status updated successfully',
-      order
+      order: updatedOrder
     });
   } catch (error) {
     next(error);

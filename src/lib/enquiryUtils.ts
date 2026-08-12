@@ -5,7 +5,7 @@ export interface EnquiryItem {
   enquiryNumber: string;
   date: string;
   total: number;
-  status: "Pending" | "Confirmed" | "Completed" | "Cancelled";
+  status: "Pending" | "Confirmed" | "Completed" | "Cancelled" | "Shipped" | "Approved" | (string & {});
   customerName: string;
   customerPhone: string;
   customerEmail: string;

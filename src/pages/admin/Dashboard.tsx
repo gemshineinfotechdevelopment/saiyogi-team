@@ -60,8 +60,8 @@ const Dashboard = () => {
   const productSalesMap = new Map<string, number>();
   orders.forEach(order => {
     order.items?.forEach((item: any) => {
-      const id = item.product;
-      if (id) {
+      const id = item.product?._id ? String(item.product._id) : String(item.product);
+      if (id && id !== 'undefined' && id !== 'null') {
         productSalesMap.set(id, (productSalesMap.get(id) || 0) + (item.quantity || 0));
       }
     });
@@ -75,7 +75,7 @@ const Dashboard = () => {
     .sort((a, b) => b.soldCount - a.soldCount)
     .slice(0, 5);
 
-  const fmt = (v: number) => new Intl.NumberFormat('en-IN').format(v);
+  const fmt = (v: number) => new Intl.NumberFormat('en-IN').format(Math.round(v));
 
   return (
     <>
@@ -142,7 +142,7 @@ const Dashboard = () => {
                     <p className="text-xs text-muted-foreground">{order.customerName}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-sm">₹{Number(order.subtotal) + (Number(order.packingCharge) || 0)}</p>
+                    <p className="font-semibold text-sm">₹{Math.round(Number(order.subtotal) + (Number(order.packingCharge) || 0))}</p>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
                       order.status === "delivered" ? "bg-green-500/20 text-green-500" :
                       order.status === "shipped" ? "bg-red-500/20 text-red-500" :

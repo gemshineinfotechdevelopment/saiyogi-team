@@ -14,6 +14,22 @@ import { EnquiryItem, loadUserEnquiries, formatAddress, formatString } from "@/l
 export type { EnquiryItem };
 export { loadUserEnquiries, formatAddress, formatString };
 
+const getEnquiryStatus = (ord: any): string => {
+  const pStatus = String(ord.packingStatus || "").toLowerCase();
+  const mainStatus = String(ord.status || "").toLowerCase();
+  
+  if (pStatus === 'packed' || mainStatus === 'shipped') {
+    return "Shipped";
+  }
+  if (ord.approved || mainStatus === 'approved') {
+    return "Approved";
+  }
+  if (ord.status && ord.status !== 'pending') {
+    return ord.status;
+  }
+  return "Pending";
+};
+
 const MyEnquiry: React.FC = () => {
   const { userPhone, isUserLoggedIn, openLoginModal } = useAuth();
   const [enquiries, setEnquiries] = useState<EnquiryItem[]>([]);
@@ -26,50 +42,54 @@ const MyEnquiry: React.FC = () => {
       const localCookieItems = loadUserEnquiries(cleanPhone);
       setEnquiries(localCookieItems);
 
-      // Async fetch authenticated user's enquiries from server API
-      getMyEnquiries()
-        .then((backendOrders) => {
-          if (Array.isArray(backendOrders)) {
-            // Safeguard: filter by cleanPhone if present
-            const matching = backendOrders.filter((ord: any) => {
-              const ordPhone = String(ord.customerPhone || "").replace(/\D/g, "").slice(-10);
-              return !ordPhone || ordPhone === cleanPhone;
-            });
+      const fetchServerOrders = () => {
+        getMyEnquiries()
+          .then((backendOrders) => {
+            if (Array.isArray(backendOrders) && backendOrders.length > 0) {
+              const matching = backendOrders.filter((ord: any) => {
+                const ordPhone = String(ord.customerPhone || "").replace(/\D/g, "").slice(-10);
+                return !ordPhone || ordPhone === cleanPhone;
+              });
 
-            const convertedBackend: EnquiryItem[] = matching.map((ord: any) => ({
-              id: String(ord._id || ord.id || Date.now()),
-              enquiryNumber: String(ord.orderNumber || ord._id),
-              date: ord.createdAt
-                ? `${new Date(ord.createdAt).toLocaleDateString('en-IN')} ${new Date(ord.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
-                : (ord.date || new Date().toLocaleDateString('en-IN')),
-              total: ord.total || ord.subtotal || 0,
-              status: (ord.status as any) || "Pending",
-              customerName: formatString(ord.customerName, "Customer"),
-              customerPhone: formatString(ord.customerPhone, effectivePhone),
-              customerEmail: formatString(ord.customerEmail, ""),
-              deliveryAddress: formatAddress(ord.deliveryAddress || ord.shippingAddress),
-              items: Array.isArray(ord.items)
-                ? ord.items.map((i: any) => ({
-                    productName: formatString(i.productName || i.product?.name, "Product"),
-                    quantity: i.quantity || 1,
-                    price: i.price || 0,
-                  }))
-                : [],
-            }));
+              if (matching.length > 0) {
+                const convertedBackend: EnquiryItem[] = matching.map((ord: any) => ({
+                  id: String(ord._id || ord.id || Date.now()),
+                  enquiryNumber: String(ord.orderNumber || ord._id),
+                  date: ord.createdAt
+                    ? `${new Date(ord.createdAt).toLocaleDateString('en-IN')} ${new Date(ord.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
+                    : (ord.date || new Date().toLocaleDateString('en-IN')),
+                  total: ord.total || ord.subtotal || 0,
+                  status: getEnquiryStatus(ord) as any,
+                  customerName: formatString(ord.customerName, "Customer"),
+                  customerPhone: formatString(ord.customerPhone, effectivePhone),
+                  customerEmail: formatString(ord.customerEmail, ""),
+                  deliveryAddress: formatAddress(ord.deliveryAddress || ord.shippingAddress),
+                  items: Array.isArray(ord.items)
+                    ? ord.items.map((i: any) => ({
+                        productName: formatString(i.productName || i.product?.name, "Product"),
+                        quantity: i.quantity || 1,
+                        price: i.price || 0,
+                      }))
+                    : [],
+                }));
 
-            const map = new Map<string, EnquiryItem>();
-            localCookieItems.forEach((item) => map.set(item.enquiryNumber, item));
-            convertedBackend.forEach((item) => map.set(item.enquiryNumber, item));
+                const map = new Map<string, EnquiryItem>();
+                localCookieItems.forEach((item) => map.set(item.enquiryNumber, item));
+                convertedBackend.forEach((item) => map.set(item.enquiryNumber, item));
 
-            const merged = Array.from(map.values());
-            setEnquiries(merged);
-            if (merged.length > 0) {
-              localStorage.setItem(`user_saved_enquiries_${cleanPhone}`, JSON.stringify(merged));
-              setCookie(`saiyogi_enquiries_${cleanPhone}`, JSON.stringify(merged), 30);
+                const merged = Array.from(map.values());
+                setEnquiries(merged);
+                localStorage.setItem(`user_saved_enquiries_${cleanPhone}`, JSON.stringify(merged));
+                setCookie(`saiyogi_enquiries_${cleanPhone}`, JSON.stringify(merged), 30);
+              }
             }
-          }
-        })
-        .catch(() => {});
+          })
+          .catch(() => {});
+      };
+
+      fetchServerOrders();
+      const interval = setInterval(fetchServerOrders, 4000);
+      return () => clearInterval(interval);
     } else {
       setEnquiries([]);
     }
@@ -102,29 +122,22 @@ const MyEnquiry: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white font-sans">
-      {/* Header */}
+    <div className="min-h-screen flex flex-col bg-gray-50/50 font-sans">
       <UserHeader />
 
-      {/* Breadcrumb Header Bar */}
-      <div className="bg-[#F8F7FA] border-b border-gray-200/80 py-3.5 px-4 sm:px-12">
-        <div className="max-w-5xl mx-auto flex items-center gap-2 text-xs text-gray-600 font-medium">
-          <Link to="/" className="hover:text-[#4C1D95] transition-colors">
-            Home
-          </Link>
+      <main className="flex-1 container mx-auto px-4 py-8 max-w-5xl">
+        <div className="flex items-center gap-2 text-xs text-gray-500 mb-6 font-medium">
+          <Link to="/" className="hover:text-gray-900 transition-colors">Home</Link>
           <span>/</span>
           <span className="text-[#4C1D95] font-bold">My Enquiry</span>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <main className="flex-1 py-8 px-4 sm:px-12 max-w-5xl mx-auto w-full">
         <h1 className="text-2xl sm:text-3xl font-medium text-[#2A1B54] mb-8">
           My Enquiry
         </h1>
 
         {!isUserLoggedIn && (
-          <div className="mb-6 bg-white border border-gray-200 text-gray-900 p-4 rounded-2xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+          <div className="mb-6 bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-2xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
             <div>
               <span>ℹ️ Log in with your mobile number to view and track your active inquiries and download PDF receipts.</span>
             </div>
@@ -137,7 +150,6 @@ const MyEnquiry: React.FC = () => {
           </div>
         )}
 
-        {/* Enquiry Table */}
         <div className="overflow-x-auto bg-white rounded-lg border-b border-gray-200">
           <table className="w-full text-left border-collapse min-w-[600px]">
             <thead>
@@ -172,8 +184,14 @@ const MyEnquiry: React.FC = () => {
                       ₹ {item.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </td>
                     <td className="py-4 px-6">
-                      <span className="text-rose-600 font-medium">
-                        {item.status}
+                      <span className={
+                        item.status === 'Shipped'
+                          ? 'bg-red-50 text-[#A80000] border border-red-200 text-xs font-black px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-2xs'
+                          : item.status === 'Approved'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-black px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-2xs'
+                          : 'bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-2xs'
+                      }>
+                        {item.status === 'Shipped' ? '🚚 Shipped' : item.status === 'Approved' ? '✓ Approved' : item.status || 'Pending'}
                       </span>
                     </td>
                     <td className="py-4 px-4 text-right">
@@ -201,15 +219,20 @@ const MyEnquiry: React.FC = () => {
         </div>
       </main>
 
-      {/* Enquiry Details Modal */}
       {selectedEnquiry && (
         <Dialog open={!!selectedEnquiry} onOpenChange={() => setSelectedEnquiry(null)}>
           <DialogContent className="sm:max-w-lg p-6 bg-white rounded-2xl">
             <DialogHeader className="border-b border-gray-100 pb-3">
               <DialogTitle className="text-lg font-bold text-gray-900 flex items-center justify-between">
                 <span>Enquiry #{selectedEnquiry.enquiryNumber}</span>
-                <span className="text-xs bg-rose-50 text-rose-600 font-bold px-2.5 py-1 rounded-full border border-rose-100">
-                  {selectedEnquiry.status}
+                <span className={
+                  selectedEnquiry.status === 'Shipped'
+                    ? 'text-xs bg-red-50 text-[#A80000] font-black px-2.5 py-1 rounded-full border border-red-200 inline-flex items-center gap-1'
+                    : selectedEnquiry.status === 'Approved'
+                    ? 'text-xs bg-emerald-50 text-emerald-700 font-black px-2.5 py-1 rounded-full border border-emerald-200 inline-flex items-center gap-1'
+                    : 'text-xs bg-amber-50 text-amber-700 font-bold px-2.5 py-1 rounded-full border border-amber-200 inline-flex items-center gap-1'
+                }>
+                  {selectedEnquiry.status === 'Shipped' ? '🚚 Shipped' : selectedEnquiry.status === 'Approved' ? '✓ Approved' : selectedEnquiry.status || 'Pending'}
                 </span>
               </DialogTitle>
               <p className="text-xs text-gray-500 mt-1">Date: {selectedEnquiry.date}</p>
