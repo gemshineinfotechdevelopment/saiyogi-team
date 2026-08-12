@@ -8,8 +8,25 @@ export const API_BASE_URL = isLocalhost
   ? "http://localhost:5000" 
   : rawEnvUrl.trim().replace(/\/+$/, "");
 
+function resolveAuthToken(path: string): string | null {
+  const adminToken = localStorage.getItem("admin_token");
+  const customerToken = localStorage.getItem("customer_token");
+
+  const cleanPath = path.toLowerCase();
+  const isCustomerRoute = cleanPath.includes('/my-enquiries') || cleanPath.includes('/my-orders') || cleanPath.includes('/customer');
+  const isAdminOnlyRoute = cleanPath === '/api/orders' || cleanPath.startsWith('/api/orders/') || cleanPath === '/orders' || cleanPath === '/api/settings' || cleanPath.startsWith('/api/settings/') || cleanPath === '/settings' || cleanPath.includes('/admin/');
+
+  if (isCustomerRoute) {
+    return customerToken || adminToken;
+  }
+  if (isAdminOnlyRoute) {
+    return adminToken; // Never send customer token to admin routes
+  }
+  return adminToken || customerToken;
+}
+
 async function fetchJSON<T>(path: string, method: string = 'GET', body?: any): Promise<T> {
-  const token = localStorage.getItem("admin_token");
+  const token = resolveAuthToken(path);
   const headers: HeadersInit = {
     'Content-Type': 'application/json'
   };
@@ -290,6 +307,20 @@ export async function getOrders(): Promise<Order[]> {
   }
 }
 
+export async function getMyEnquiries(): Promise<Order[]> {
+  try {
+    const data = await fetchJSON<{ orders: Order[] } | Order[]>('/api/orders/my-enquiries');
+    return Array.isArray(data) ? data : (data?.orders || []);
+  } catch (error) {
+    console.warn('Failed to fetch my enquiries from API:', error);
+    return [];
+  }
+}
+
+export async function customerPhoneLoginAPI(phone: string, name?: string): Promise<{ token: string; user: any }> {
+  return await fetchJSON<{ token: string; user: any }>('/api/auth/customer-login', 'POST', { phone, name });
+}
+
 export async function createOrder(orderData: {
   customerName: string;
   customerEmail: string;
@@ -392,6 +423,7 @@ export interface SiteSettings {
   };
   enablePackingCharge?: boolean;
   youtubeVideos?: { title: string; url: string }[];
+  priceListPdf?: string;
   heroBanners?: string[];
   noticeBanners?: string[];
 }
@@ -425,7 +457,7 @@ export async function getSiteInfo(): Promise<SiteSettings> {
 }
 
 export const apiRequest = async (path: string, options: any = {}) => {
-  const token = localStorage.getItem('admin_token');
+  const token = resolveAuthToken(path);
 
   const headers: Record<string, string> = {
     ...(token && { 'Authorization': `Bearer ${token}` }),

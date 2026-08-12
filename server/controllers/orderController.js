@@ -226,6 +226,11 @@ export const approveOrder = async (req, res, next) => {
     }
 
     order.approved = true;
+    if (order.packingStatus === 'packed') {
+      order.status = 'Shipped';
+    } else {
+      order.status = 'Approved';
+    }
     const updatedOrder = await order.save();
 
     let customer = await Customer.findOne({ email: order.customerEmail });
@@ -298,21 +303,43 @@ export const cancelOrder = async (req, res, next) => {
   }
 };
 
-export const getUserOrders = async (req, res, next) => {
+export const getMyEnquiries = async (req, res, next) => {
   try {
-    const userEmail = req.userEmail; // needs to be set by auth middleware if applicable
-    let query = {};
-    if (userEmail) {
-      query = { customerEmail: userEmail };
-    } else if (req.userId) {
-      query = { customer: req.userId };
+    // SECURITY: Use authenticated user identity from JWT middleware ONLY.
+    // Ignore any customerId or customerPhone sent in query/body by client.
+    const userId = req.userId;
+    const userPhone = req.userPhone;
+
+    if (!userId && !userPhone) {
+      return res.status(401).json({ error: 'Authentication required' });
     }
 
-    const orders = await Order.find(query).sort({ createdAt: -1 });
+    const cleanPhone = userPhone ? String(userPhone).replace(/\D/g, '').slice(-10) : '';
+
+    const orConditions = [];
+    if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+      orConditions.push({ customer: userId });
+    }
+    if (cleanPhone && cleanPhone.length === 10) {
+      orConditions.push({ customerPhone: { $regex: cleanPhone } });
+    }
+
+    if (orConditions.length === 0) {
+      return res.json([]);
+    }
+
+    const orders = await Order.find({ $or: orConditions })
+      .populate('items.product', 'name price netRate displayNetRate hasDiscount')
+      .sort({ createdAt: -1 });
+
     res.json(orders);
   } catch (error) {
     next(error);
   }
+};
+
+export const getUserOrders = async (req, res, next) => {
+  return getMyEnquiries(req, res, next);
 };
 
 export const updatePackingStatus = async (req, res, next) => {
@@ -324,14 +351,25 @@ export const updatePackingStatus = async (req, res, next) => {
       return next(new AppError('Invalid packing status. Must be "packed" or "unpacked"', 400));
     }
 
-    const order = await Order.findByIdAndUpdate(orderId, { packingStatus }, { returnDocument: 'after' });
+    const order = await Order.findById(orderId);
     if (!order) {
       return next(new AppError('Order not found', 404));
     }
 
+    order.packingStatus = packingStatus;
+    if (packingStatus === 'packed') {
+      order.status = 'Shipped';
+    } else if (order.approved) {
+      order.status = 'Approved';
+    } else {
+      order.status = 'Pending';
+    }
+
+    const updatedOrder = await order.save();
+
     res.json({
       message: 'Packing status updated successfully',
-      order
+      order: updatedOrder
     });
   } catch (error) {
     next(error);

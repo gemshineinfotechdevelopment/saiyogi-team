@@ -148,3 +148,65 @@ export const updateProfile = async (req, res, next) => {
     next(error);
   }
 };
+
+export const customerPhoneLogin = async (req, res, next) => {
+  try {
+    const { phone, name } = req.body;
+    if (!phone) {
+      return next(new AppError('Mobile number is required', 400));
+    }
+
+    const cleanPhone = String(phone).replace(/\D/g, '').slice(-10);
+    if (!cleanPhone || cleanPhone.length !== 10) {
+      return next(new AppError('Valid 10-digit mobile number required', 400));
+    }
+
+    let customer = await Customer.findOne({
+      $or: [
+        { phone: cleanPhone },
+        { phone: `+91${cleanPhone}` },
+        { phone: `91${cleanPhone}` },
+        { phone: { $regex: cleanPhone } }
+      ]
+    });
+
+    if (!customer) {
+      customer = new Customer({
+        name: (name || 'Customer').trim(),
+        phone: cleanPhone,
+        customerType: 'WEBSITE',
+        isActive: true,
+        sources: ['normal_login']
+      });
+      await customer.save();
+    } else if (name && (customer.name === 'Customer' || !customer.name)) {
+      customer.name = name.trim();
+      await customer.save();
+    }
+
+    const token = jwt.sign(
+      { id: customer._id, phone: cleanPhone, role: 'CUSTOMER' },
+      process.env.JWT_SECRET || 'saiyogi_jwt_secret_key_2026',
+      { expiresIn: process.env.JWT_EXPIRE || '30d' }
+    );
+
+    logger.info(`Customer phone login successful (+91${cleanPhone})`, {
+      reqId: req.id,
+      phone: cleanPhone,
+      customerId: customer._id
+    });
+
+    res.json({
+      message: 'Login successful',
+      token,
+      user: {
+        id: customer._id,
+        name: customer.name,
+        phone: cleanPhone,
+        role: 'CUSTOMER'
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};

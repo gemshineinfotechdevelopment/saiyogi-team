@@ -50,8 +50,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const { token: authContextToken } = useAuth();
 
   const fetchSettings = async () => {
-    const token = localStorage.getItem('admin_token') || authContextToken;
-    if (!token) {
+    const token = localStorage.getItem('admin_token');
+    const role = localStorage.getItem('admin_role');
+    const isAdminUser = ["admin", "SUPER ADMIN", "ADMIN"].includes(role || "");
+
+    if (!token || !isAdminUser) {
         setLoading(false);
         setSettings(null);
         return;
@@ -62,10 +65,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const data = await apiRequest('/settings');
       setSettings(data);
     } catch (err) {
-      console.error("Error fetching settings:", err);
-      if (err instanceof Error && err.message.includes('401')) {
-          setSettings(null);
-      }
+      console.warn("Could not fetch admin settings:", err);
+      setSettings(null);
     } finally {
       setLoading(false);
     }

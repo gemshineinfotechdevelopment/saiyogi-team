@@ -233,7 +233,7 @@ const QuickEnquiry = () => {
                         <div className="flex-1 flex flex-col justify-between py-0.5">
                           <div className="flex justify-between items-start gap-2">
                             <div>
-                              <h3 className="font-black text-gray-800 text-[13px] leading-snug uppercase">{item.name}</h3>
+                              <h3 className="font-black text-black text-base leading-snug uppercase">{item.name}</h3>
                               <p className="text-gray-400 text-[10px] font-bold mt-0.5">{item.sku || item.code || (pId ? `#${pId.substring(0, 8).toUpperCase()}` : 'N/A')}</p>
                             </div>
                             <div className="text-right shrink-0">
@@ -269,7 +269,7 @@ const QuickEnquiry = () => {
                            <div className="w-12 h-12 bg-white border border-gray-200 rounded-lg overflow-hidden flex items-center justify-center shrink-0 cursor-pointer relative" onClick={() => setActiveImage(displayImg)}>
                              <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain p-1" />
                            </div>
-                           <h3 className="font-black text-gray-800 text-sm uppercase leading-tight">{item.name}</h3>
+                           <h3 className="font-black text-black text-base uppercase leading-tight">{item.name}</h3>
                         </div>
 
                             <div className="col-span-2 text-center text-xs font-bold text-gray-600 font-sans tracking-wider">
