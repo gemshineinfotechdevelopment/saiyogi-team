@@ -9,6 +9,7 @@ import heroBanner1 from "@/assets/hero_banner_1.jpg";
 import heroBanner2 from "@/assets/hero_banner_2.jpg";
 import heroBanner3 from "@/assets/hero_banner_3.jpg";
 import heroBanner4 from "@/assets/hero_banner_4.jpg";
+import offerBanner from "@/assets/banner -1.jpeg";
 import { useState, useEffect, useRef } from "react";
 import { getProducts, getCategories, getBrands, Brand } from "@/lib/api";
 import { Product, Category } from "@/data/products";
@@ -828,6 +829,15 @@ const Index = () => {
                 </div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Special Offer Banner */}
+      <section className="py-6 sm:py-10 bg-white">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="w-full rounded-2xl overflow-hidden shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300">
+            <img src={offerBanner} alt="Special Offer" className="w-full h-auto object-cover" />
           </div>
         </div>
       </section>
