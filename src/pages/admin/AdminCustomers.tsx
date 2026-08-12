@@ -412,14 +412,11 @@ const AdminCustomers = () => {
                         <SourceBadges sources={c.sources} />
                       </TableCell>
                       <TableCell className="font-medium">{c.totalOrders > 0 ? c.totalOrders : "—"}</TableCell>
-                      <TableCell className="font-bold text-primary">
-                        {c.totalSpent > 0 ? (
-                          `₹${c.totalSpent.toLocaleString()}`
-                        ) : c.productEnquiries && c.productEnquiries.length > 0 ? (
-                          `₹${(c.productEnquiries[0]?.amount || 0).toLocaleString()}`
-                        ) : (
-                          <span className="text-muted-foreground font-normal">—</span>
-                        )}
+                      <TableCell className="font-medium">
+                        {c.totalSpent > 0 ? 
+                          `₹${Math.round(c.totalSpent).toLocaleString()}` : 
+                          (c.productEnquiries?.length > 0 ? 
+                          `₹${Math.round(c.productEnquiries[0]?.amount || 0).toLocaleString()}` : '₹0')}
                       </TableCell>
                       <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
                         {c.lastOrderDate ? new Date(c.lastOrderDate).toLocaleDateString() : "—"}
@@ -490,11 +487,10 @@ const AdminCustomers = () => {
                     </div>
                     <div className="bg-rose-50/80 p-4 rounded-2xl border border-rose-100">
                       <p className="text-xs font-medium text-muted-foreground">Total Spent</p>
-                      <p className="font-bold text-xl text-foreground mt-1">
+                      <p className="font-semibold mt-1 text-lg">
                         ₹{(
-                          selectedCustomer.totalSpent > 0
-                            ? selectedCustomer.totalSpent
-                            : selectedCustomer.purchases.reduce((sum, o) => sum + (Number(o.total) || (Number(o.subtotal) + (Number(o.packingCharge) || 0))), 0)
+                          Math.round(selectedCustomer.totalSpent || 
+                          (selectedCustomer.productEnquiries?.[0]?.amount || 0))
                         ).toLocaleString()}
                       </p>
                     </div>
@@ -542,8 +538,10 @@ const AdminCustomers = () => {
                                 {o.createdAt ? new Date(o.createdAt).toLocaleDateString() : (o.date || "N/A")}
                               </TableCell>
                               <TableCell className="text-xs font-bold">{o.items?.length || 0}</TableCell>
-                              <TableCell className="font-bold text-xs text-foreground">
-                                ₹{(Number(o.total) || (Number(o.subtotal) + (Number(o.packingCharge) || 0))).toLocaleString()}
+                              <TableCell>
+                                <p className="text-sm font-semibold whitespace-nowrap">
+                                  ₹{Math.round(Number(o.total) || (Number(o.subtotal) + (Number(o.packingCharge) || 0))).toLocaleString()}
+                                </p>
                               </TableCell>
                               <TableCell>
                                 <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">

@@ -87,7 +87,7 @@ const AdminReports = () => {
                   <IndianRupee className="h-4 w-4 text-gray-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">₹{totalRevenue.toLocaleString()}</div>
+                  <div className="text-2xl font-bold">₹{Math.round(totalRevenue).toLocaleString()}</div>
                 </CardContent>
               </Card>
               <Card>
@@ -121,11 +121,11 @@ const AdminReports = () => {
                       <BarChart data={chartData} margin={{ top: 20, right: 30, left: 40, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                         <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 12 }} tickLine={false} axisLine={false} />
-                        <YAxis width={80} tick={{ fill: '#6b7280', fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value}`} />
+                        <YAxis width={80} tick={{ fill: '#6b7280', fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${Math.round(value)}`} />
                         <Tooltip
                           cursor={{ fill: '#f3f4f6' }}
                           contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                          formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Revenue']}
+                          formatter={(value: number) => [`₹${Math.round(value).toLocaleString()}`, 'Revenue']}
                         />
                         <Bar dataKey="revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={50} />
                       </BarChart>
@@ -160,7 +160,7 @@ const AdminReports = () => {
                             <TableCell className="font-medium">{product.name}</TableCell>
                             <TableCell className="text-right">{product.quantity.toLocaleString()}</TableCell>
                             <TableCell className="text-right font-medium">
-                              ₹{product.revenue.toLocaleString()}
+                              ₹{Math.round(product.revenue).toLocaleString()}
                             </TableCell>
                           </TableRow>
                         ))}

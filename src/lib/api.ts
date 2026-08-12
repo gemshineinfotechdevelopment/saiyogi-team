@@ -389,6 +389,7 @@ export interface SiteSettings {
   };
   enablePackingCharge?: boolean;
   youtubeVideos?: { title: string; url: string }[];
+  priceListPdf?: string;
   heroBanners?: string[];
   noticeBanners?: string[];
 }
