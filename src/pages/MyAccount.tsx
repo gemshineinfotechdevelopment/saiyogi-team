@@ -34,6 +34,22 @@ const getMonthNameForIndex = (monthIndex: number, startDateStr?: string): { mont
   return { monthName: `Month ${monthIndex}`, dueDateStr: `Month ${monthIndex}` };
 };
 
+const getEnquiryStatus = (ord: any): string => {
+  const pStatus = String(ord.packingStatus || "").toLowerCase();
+  const mainStatus = String(ord.status || "").toLowerCase();
+  
+  if (pStatus === 'packed' || mainStatus === 'shipped') {
+    return "Shipped";
+  }
+  if (ord.approved || mainStatus === 'approved') {
+    return "Approved";
+  }
+  if (ord.status && ord.status !== 'pending') {
+    return ord.status;
+  }
+  return "Pending";
+};
+
 const MyAccount: React.FC = () => {
   const { userPhone, userName, isUserLoggedIn, openLoginModal } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -63,49 +79,55 @@ const MyAccount: React.FC = () => {
       const localCookieItems = loadUserEnquiries(effectivePhone);
       setEnquiries(localCookieItems);
 
-      const cleanPhone = effectivePhone.replace(/\D/g, "");
-      getOrders()
-        .then((backendOrders) => {
-          if (Array.isArray(backendOrders) && backendOrders.length > 0) {
-            const matching = backendOrders.filter((ord: any) => {
-              const ordPhone = (ord.customerPhone || "").replace(/\D/g, "");
-              return ordPhone && ordPhone === cleanPhone;
-            });
+      const fetchServerOrders = () => {
+        const cleanPhone = effectivePhone.replace(/\D/g, "");
+        getOrders()
+          .then((backendOrders) => {
+            if (Array.isArray(backendOrders) && backendOrders.length > 0) {
+              const matching = backendOrders.filter((ord: any) => {
+                const ordPhone = (ord.customerPhone || "").replace(/\D/g, "");
+                return ordPhone && ordPhone === cleanPhone;
+              });
 
-            if (matching.length > 0) {
-              const convertedBackend: EnquiryItem[] = matching.map((ord: any) => ({
-                id: String(ord._id || ord.id || Date.now()),
-                enquiryNumber: String(ord.orderNumber || ord._id),
-                date: ord.createdAt
-                  ? `${new Date(ord.createdAt).toLocaleDateString('en-IN')} ${new Date(ord.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
-                  : (ord.date || new Date().toLocaleDateString('en-IN')),
-                total: ord.total || ord.subtotal || 0,
-                status: (ord.status as any) || "Pending",
-                customerName: formatString(ord.customerName, "Customer"),
-                customerPhone: formatString(ord.customerPhone, effectivePhone),
-                customerEmail: formatString(ord.customerEmail, ""),
-                deliveryAddress: formatAddress(ord.deliveryAddress || ord.shippingAddress),
-                items: Array.isArray(ord.items)
-                  ? ord.items.map((i: any) => ({
-                      productName: formatString(i.productName || i.product?.name, "Product"),
-                      quantity: i.quantity || 1,
-                      price: i.price || 0,
-                    }))
-                  : [],
-              }));
+              if (matching.length > 0) {
+                const convertedBackend: EnquiryItem[] = matching.map((ord: any) => ({
+                  id: String(ord._id || ord.id || Date.now()),
+                  enquiryNumber: String(ord.orderNumber || ord._id),
+                  date: ord.createdAt
+                    ? `${new Date(ord.createdAt).toLocaleDateString('en-IN')} ${new Date(ord.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
+                    : (ord.date || new Date().toLocaleDateString('en-IN')),
+                  total: ord.total || ord.subtotal || 0,
+                  status: getEnquiryStatus(ord) as any,
+                  customerName: formatString(ord.customerName, "Customer"),
+                  customerPhone: formatString(ord.customerPhone, effectivePhone),
+                  customerEmail: formatString(ord.customerEmail, ""),
+                  deliveryAddress: formatAddress(ord.deliveryAddress || ord.shippingAddress),
+                  items: Array.isArray(ord.items)
+                    ? ord.items.map((i: any) => ({
+                        productName: formatString(i.productName || i.product?.name, "Product"),
+                        quantity: i.quantity || 1,
+                        price: i.price || 0,
+                      }))
+                    : [],
+                }));
 
-              const map = new Map<string, EnquiryItem>();
-              localCookieItems.forEach((item) => map.set(item.enquiryNumber, item));
-              convertedBackend.forEach((item) => map.set(item.enquiryNumber, item));
+                const map = new Map<string, EnquiryItem>();
+                localCookieItems.forEach((item) => map.set(item.enquiryNumber, item));
+                convertedBackend.forEach((item) => map.set(item.enquiryNumber, item));
 
-              const merged = Array.from(map.values());
-              setEnquiries(merged);
-              localStorage.setItem(`user_saved_enquiries_${cleanPhone}`, JSON.stringify(merged));
-              setCookie(`saiyogi_enquiries_${cleanPhone}`, JSON.stringify(merged), 30);
+                const merged = Array.from(map.values());
+                setEnquiries(merged);
+                localStorage.setItem(`user_saved_enquiries_${cleanPhone}`, JSON.stringify(merged));
+                setCookie(`saiyogi_enquiries_${cleanPhone}`, JSON.stringify(merged), 30);
+              }
             }
-          }
-        })
-        .catch(() => {});
+          })
+          .catch(() => {});
+      };
+
+      fetchServerOrders();
+      const interval = setInterval(fetchServerOrders, 4000);
+      return () => clearInterval(interval);
     } else {
       setEnquiries([]);
     }
@@ -460,8 +482,14 @@ const MyAccount: React.FC = () => {
                           ₹ {item.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                         </td>
                         <td className="py-4 px-6">
-                          <span className="text-rose-600 font-medium">
-                            {item.status}
+                          <span className={
+                            item.status === 'Shipped'
+                              ? 'bg-red-50 text-[#A80000] border border-red-200 text-xs font-black px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-2xs'
+                              : item.status === 'Approved'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-black px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-2xs'
+                              : 'bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-2xs'
+                          }>
+                            {item.status === 'Shipped' ? '🚚 Shipped' : item.status === 'Approved' ? '✓ Approved' : item.status || 'Pending'}
                           </span>
                         </td>
                         <td className="py-4 px-4 text-right">

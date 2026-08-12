@@ -509,9 +509,18 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-            {(products.length > 0 ? products.slice(0, 6) : staticBestSellers).map((item) => (
-              <div key={`bestseller-${item.id || (item as any)._id}`} className="w-full">
-                <ProductCard product={item as Product} onCardClick={() => navigate(`/catalog?search=${encodeURIComponent(item.name)}`)} />
+            {(products.length > 0 ? products.slice(0, 6) : staticBestSellers).map((item, idx) => (
+              <div key={`bestseller-${item.id || (item as any)._id}`} className="w-full relative group/card">
+                <div className="absolute -top-2.5 right-2 z-20 pointer-events-none">
+                  <span className="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md uppercase tracking-wider flex items-center gap-0.5 border border-amber-300/80">
+                    🔥 TOP PICK
+                  </span>
+                </div>
+                <ProductCard
+                  product={item as Product}
+                  onCardClick={() => navigate(`/catalog?search=${encodeURIComponent(item.name)}`)}
+                  className="bg-[#FAF2E6] border-amber-200/90 hover:border-[#A80000]/70 hover:shadow-xl hover:shadow-amber-900/10 transition-all duration-300"
+                />
               </div>
             ))}
           </div>
