@@ -61,9 +61,9 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
           <div className="flex items-center justify-between container mx-auto px-4">
             <div className="w-full overflow-hidden">
               <div className="animate-marquee whitespace-nowrap flex items-center gap-4 text-[11px] sm:text-xs font-black tracking-wider text-[#FEF200]">
-                <span>DIWALI 2026 BOOKING OPENS! | In compliance with the 2018 Supreme Court order, online sale of firecrackers is strictly prohibited. This site only provides price estimates for reference. | Licensed Operator: E/SC/TN/24/937 | GST: 33ACBPI9592C2ZP</span>
+                <span>DIWALI 2026 BOOKING OPENS! | In compliance with the 2018 Supreme Court order, online sale of firecrackers is strictly prohibited. This site only provides price estimates for reference. </span>
                 <span className="text-white">✦</span>
-                <span>DIWALI 2026 BOOKING OPENS! | In compliance with the 2018 Supreme Court order, online sale of firecrackers is strictly prohibited. This site only provides price estimates for reference. | Licensed Operator: E/SC/TN/24/937 | GST: 33ACBPI9592C2ZP</span>
+                <span>DIWALI 2026 BOOKING OPENS! | In compliance with the 2018 Supreme Court order, online sale of firecrackers is strictly prohibited. This site only provides price estimates for reference. </span>
               </div>
             </div>
           </div>
@@ -89,7 +89,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
               <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded animate-pulse absolute -right-6 -top-2 font-bold uppercase">NEW</span>
             </Link>
             <Link to="/price-list" className={getLinkClass('/price-list')}>
-              PRICE LIST
+              Price List
             </Link>
             <Link to="/chit-scheme" className={getLinkClass('/chit-scheme')}>
               Chit Scheme
@@ -111,8 +111,8 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
             <button
               onClick={openLoginModal}
               className={`p-2 sm:p-2.5 rounded-xl border transition-all flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95 cursor-pointer ${isUserLoggedIn
-                  ? "bg-red-50 border-[#A80000] text-[#A80000] font-bold"
-                  : "bg-gray-50 border-gray-200 text-gray-700 hover:text-[#A80000] hover:border-[#A80000]"
+                ? "bg-red-50 border-[#A80000] text-[#A80000] font-bold"
+                : "bg-gray-50 border-gray-200 text-gray-700 hover:text-[#A80000] hover:border-[#A80000]"
                 }`}
               title={isUserLoggedIn ? `User Account (${userName && userName !== "Customer" ? userName : (userPhone ? `+91 ${userPhone}` : "")})` : "Login"}
             >
@@ -163,18 +163,16 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
       {/* Mobile Menu Drawer (Placed outside header so it doesn't get affected by header scroll-hide translate-y) */}
       <div className={`md:hidden fixed inset-0 z-[100] ${menuOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
         {/* Backdrop overlay */}
-        <div 
-          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
-            menuOpen ? "opacity-100" : "opacity-0"
-          }`}
+        <div
+          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${menuOpen ? "opacity-100" : "opacity-0"
+            }`}
           onClick={() => setMenuOpen(false)}
         />
-        
+
         {/* Drawer content */}
-        <div 
-          className={`absolute top-0 left-0 h-full w-[85vw] max-w-[320px] bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
-            menuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        <div
+          className={`absolute top-0 left-0 h-full w-[85vw] max-w-[320px] bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${menuOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
         >
           <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
             <img src={companyLogo} alt="Sai Yogi" className="h-14 object-contain" />
