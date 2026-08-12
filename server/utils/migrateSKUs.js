@@ -43,7 +43,14 @@ const migrate = async () => {
           catProductCount[catCode] = 0;
         }
         catProductCount[catCode]++;
-        const newSku = `${catCode}${catProductCount[catCode]}`;
+        const catNum = parseInt(catCode, 10);
+        let newSku;
+        if (!isNaN(catNum)) {
+          const base = catCode.length === 3 ? catNum * 10 : catNum;
+          newSku = (base + catProductCount[catCode]).toString();
+        } else {
+          newSku = `${catCode}${catProductCount[catCode]}`;
+        }
         p.sku = newSku;
         p.code = newSku;
         await p.save();

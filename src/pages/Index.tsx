@@ -446,14 +446,14 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Supreme Court Order Disclaimer Marquee */}
+      {/* Supreme Court Order Disclaimer Marquee
       <div className="bg-red-600 text-white py-2 overflow-hidden flex items-center relative z-20">
         <div className="animate-marquee whitespace-nowrap text-sm md:text-base font-semibold tracking-wide flex items-center gap-4">
           <span>⚠️ As per the 2018 Supreme Court order, online sale of firecrackers is strictly prohibited. This website is intended for inquiry and catalog browsing purposes only. We process orders through official offline channels only. ⚠️</span>
           <span>⚠️ As per the 2018 Supreme Court order, online sale of firecrackers is strictly prohibited. This website is intended for inquiry and catalog browsing purposes only. We process orders through official offline channels only. ⚠️</span>
           <span>⚠️ As per the 2018 Supreme Court order, online sale of firecrackers is strictly prohibited. This website is intended for inquiry and catalog browsing purposes only. We process orders through official offline channels only. ⚠️</span>
         </div>
-      </div>
+      </div> */}
 
       {/* Realistic Flower Pot Canvas */}
       <canvas

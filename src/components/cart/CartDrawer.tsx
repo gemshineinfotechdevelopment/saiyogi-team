@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createOrder, trackCustomerAction } from "@/lib/api";
 import { getCookie, setCookie } from "@/lib/cookieUtils";
-import { promptAndDownloadOrderReceiptPDF, promptAndPrintOrderReceipt } from "@/lib/pdf-generator";
+import { promptAndDownloadOrderReceiptPDF, promptAndPrintOrderReceipt, downloadOrderReceiptPDF, printOrderReceipt } from "@/lib/pdf-generator";
 import {
   Select,
   SelectContent,

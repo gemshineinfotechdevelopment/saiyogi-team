@@ -91,74 +91,74 @@ const ProductCard = ({ product, categoryName, onCardClick }: { product: Product;
 
           {/* Top Right Selected Amount Badge */}
           {quantity > 0 && (
-            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20">
-              <span className="bg-[#A80000] text-white text-xs sm:text-sm font-bold px-2.5 py-1 rounded-md shadow-md">
+            <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-20">
+              <span className="bg-[#A80000] text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-md shadow-md">
                 ₹ {selectedAmount}
               </span>
             </div>
           )}
 
-          <div className="relative aspect-square overflow-hidden bg-white p-2 sm:p-4 border-b border-gray-50">
+          <div className="relative aspect-square overflow-hidden bg-white p-2 md:p-2.5 border-b border-gray-50">
             <img
               src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
               alt={product.name}
-              className="w-full h-full object-contain p-0.5 sm:p-1 group-hover:scale-105 transition-transform duration-500 ease-out"
+              className="w-full h-full object-contain p-0.5 group-hover:scale-105 transition-transform duration-500 ease-out"
               loading="lazy"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300?text=No+Image';
               }}
             />
             <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <span className="bg-white text-gray-900 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 uppercase tracking-widest">
+              <span className="bg-white text-gray-900 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 uppercase tracking-widest">
                 Quick View
               </span>
             </div>
 
             {discount > 0 && !isNetRate && (
-              <div className="absolute top-1 left-1 sm:top-2 sm:left-2 z-10">
-                <DiscountTag discount={discount} className="w-12 sm:w-16 h-auto" />
+              <div className="absolute top-1 left-1 sm:top-1.5 sm:left-1.5 z-10">
+                <DiscountTag discount={discount} className="w-10 sm:w-12 h-auto" />
               </div>
             )}
 
             {isNetRate && (
-              <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-indigo-600 text-white text-xs sm:text-sm font-black px-2.5 py-1 sm:px-3.5 sm:py-1 rounded-full shadow-lg z-10 animate-pulse tracking-wide">
+              <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-indigo-600 text-white text-[9px] sm:text-xs font-black px-2 py-0.5 rounded-full shadow-lg z-10 animate-pulse tracking-wide">
                 NET RATE
               </span>
             )}
 
             {(product.storeStockPieces || 0) <= 0 ? (
               <span className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[2px] z-10">
-                <span className="bg-gray-900 text-white text-[10px] sm:text-xs font-bold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-2xl">Sold Out</span>
+                <span className="bg-gray-900 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-2xl">Sold Out</span>
               </span>
             ) : (product.storeStockPieces || 0) < 20 && (
-              <span className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 bg-amber-400 text-amber-950 text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">
+              <span className="absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 bg-amber-400 text-amber-950 text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">
                 Only {product.storeStockPieces} left
               </span>
             )}
           </div>
 
-          <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between">
+          <div className="p-2 sm:p-2.5 flex-1 flex flex-col justify-between">
             <div>
               <div className="flex justify-between items-center mb-0.5 gap-1">
-                <p className="text-[9px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-wider">{product.brand || "Standard"}</p>
+                <p className="text-[8px] sm:text-[9px] text-gray-500 font-bold uppercase tracking-wider">{product.brand || "Standard"}</p>
                 {product.isSaiYogiVerified && (
-                  <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[8px] sm:text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-2xs">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600 fill-emerald-100" />
+                  <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[7px] sm:text-[8px] font-black px-1 py-0.5 rounded-full shadow-2xs">
+                    <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600 fill-emerald-100" />
                     <span>Verified</span>
                   </span>
                 )}
               </div>
 
-              <h3 className="product-title-font font-black text-xs sm:text-base text-gray-900 leading-snug tracking-tight mb-1 line-clamp-2 group-hover:text-[#A80000] transition-colors text-center">{product.name}</h3>
+              <h3 className="product-title-font font-black text-xs sm:text-xs md:text-sm text-gray-900 leading-snug tracking-tight mb-1 line-clamp-2 group-hover:text-[#A80000] transition-colors text-center">{product.name}</h3>
 
               {/* Sai Yogi Verified Ribbon Badge & Dynamic Star Rating */}
-              <div className="flex flex-col items-center justify-center my-1">
+              <div className="flex flex-col items-center justify-center my-0.5">
                 {product.isSaiYogiVerified && (
                   <div className="flex items-center justify-center my-0.5 select-none">
-                    <div className="bg-gradient-to-br from-amber-400 to-amber-600 text-white font-black text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-l-md shadow-md italic border-r border-amber-300 flex items-center justify-center">
+                    <div className="bg-gradient-to-br from-amber-400 to-amber-600 text-white font-black text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded-l-md shadow-md italic border-r border-amber-300 flex items-center justify-center">
                       SY
                     </div>
-                    <div className="bg-gradient-to-r from-red-600 via-red-700 to-red-600 text-white font-extrabold text-[9px] sm:text-[10px] px-2 py-0.5 rounded-r-md shadow-md italic tracking-wide font-serif border-y border-r border-red-500">
+                    <div className="bg-gradient-to-r from-red-600 via-red-700 to-red-600 text-white font-extrabold text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded-r-md shadow-md italic tracking-wide font-serif border-y border-r border-red-500">
                       Sai Yogi Verified
                     </div>
                   </div>
@@ -170,25 +170,25 @@ const ProductCard = ({ product, categoryName, onCardClick }: { product: Product;
                     const isFilled = i < Math.floor(starRating);
                     const isHalf = i === Math.floor(starRating) && starRating % 1 >= 0.3;
                     if (isFilled) {
-                      return <Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400 text-amber-400 drop-shadow-2xs" />;
+                      return <Star key={i} className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400 drop-shadow-2xs" />;
                     }
                     if (isHalf) {
-                      return <StarHalf key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400 text-amber-400 drop-shadow-2xs" />;
+                      return <StarHalf key={i} className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400 drop-shadow-2xs" />;
                     }
-                    return <Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-gray-200 text-gray-200" />;
+                    return <Star key={i} className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-gray-200 text-gray-200" />;
                   })}
                 </div>
               </div>
             </div>
 
-            <div className="pt-1.5 sm:pt-2 flex flex-col items-center gap-1.5">
-              <div className="flex items-baseline justify-center gap-2 flex-wrap">
-                <span className="font-display font-black text-gray-900 text-sm sm:text-lg leading-none">₹{discountPrice}</span>
+            <div className="pt-1 flex flex-col items-center gap-1">
+              <div className="flex items-baseline justify-center gap-1.5 flex-wrap">
+                <span className="font-display font-black text-gray-900 text-xs sm:text-base leading-none">₹{discountPrice}</span>
                 {product.hasDiscount && !isNetRate && (
-                  <span className="text-[8px] sm:text-[10px] text-gray-400 line-through">₹{product.price}</span>
+                  <span className="text-[8px] sm:text-[9px] text-gray-400 line-through">₹{product.price}</span>
                 )}
                 {isNetRate && (
-                  <span className="text-[8px] sm:text-[10px] text-indigo-500 font-bold uppercase tracking-tighter">Fixed Price</span>
+                  <span className="text-[7px] sm:text-[8px] text-indigo-500 font-bold uppercase tracking-tighter">Fixed Price</span>
                 )}
               </div>
 
@@ -200,13 +200,13 @@ const ProductCard = ({ product, categoryName, onCardClick }: { product: Product;
                     onClick={handleAddToCart}
                     disabled={(product.storeStockPieces || 0) <= 0}
                     className={cn(
-                      "w-full h-8 sm:h-9 rounded-lg flex items-center justify-center gap-1.5 text-xs sm:text-sm font-bold uppercase transition-all shadow-sm",
+                      "w-full h-7 sm:h-8 rounded-lg flex items-center justify-center gap-1 text-[11px] sm:text-xs font-bold uppercase transition-all shadow-sm",
                       (product.storeStockPieces || 0) <= 0
                         ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                         : "bg-[#A80000] text-white hover:bg-[#F4C542] hover:text-[#1A1A1A] active:scale-95"
                     )}
                   >
-                    <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <ShoppingCart className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     {(product.storeStockPieces || 0) <= 0 ? "Sold Out" : "Add to Cart"}
                   </button>
                 )}
