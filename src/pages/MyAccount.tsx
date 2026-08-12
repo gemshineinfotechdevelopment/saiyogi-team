@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
-import { getChitSubscriptions, getChitSchemes, ChitSubscriptionItem, ChitSchemeItem, getOrders } from "@/lib/api";
+import { getChitSubscriptions, getChitSchemes, ChitSubscriptionItem, ChitSchemeItem, getMyEnquiries } from "@/lib/api";
 import { Calendar, Clock, CheckCircle2, Gift, FileText, User, ShoppingBag } from "lucide-react";
 import { loadUserEnquiries, EnquiryItem, formatAddress, formatString } from "@/lib/enquiryUtils";
 import { downloadOrderReceiptPDF, OrderData } from "@/lib/pdf-generator";
@@ -59,47 +59,47 @@ const MyAccount: React.FC = () => {
 
   useEffect(() => {
     const effectivePhone = userPhone || getCookie("saiyogi_user_phone") || localStorage.getItem("user_phone");
-    if (effectivePhone) {
-      const localCookieItems = loadUserEnquiries(effectivePhone);
+    if (isUserLoggedIn && effectivePhone) {
+      const cleanPhone = effectivePhone.replace(/\D/g, "").slice(-10);
+      const localCookieItems = loadUserEnquiries(cleanPhone);
       setEnquiries(localCookieItems);
 
-      const cleanPhone = effectivePhone.replace(/\D/g, "");
-      getOrders()
+      getMyEnquiries()
         .then((backendOrders) => {
-          if (Array.isArray(backendOrders) && backendOrders.length > 0) {
+          if (Array.isArray(backendOrders)) {
             const matching = backendOrders.filter((ord: any) => {
-              const ordPhone = (ord.customerPhone || "").replace(/\D/g, "");
-              return ordPhone && ordPhone === cleanPhone;
+              const ordPhone = String(ord.customerPhone || "").replace(/\D/g, "").slice(-10);
+              return !ordPhone || ordPhone === cleanPhone;
             });
 
-            if (matching.length > 0) {
-              const convertedBackend: EnquiryItem[] = matching.map((ord: any) => ({
-                id: String(ord._id || ord.id || Date.now()),
-                enquiryNumber: String(ord.orderNumber || ord._id),
-                date: ord.createdAt
-                  ? `${new Date(ord.createdAt).toLocaleDateString('en-IN')} ${new Date(ord.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
-                  : (ord.date || new Date().toLocaleDateString('en-IN')),
-                total: ord.total || ord.subtotal || 0,
-                status: (ord.status as any) || "Pending",
-                customerName: formatString(ord.customerName, "Customer"),
-                customerPhone: formatString(ord.customerPhone, effectivePhone),
-                customerEmail: formatString(ord.customerEmail, ""),
-                deliveryAddress: formatAddress(ord.deliveryAddress || ord.shippingAddress),
-                items: Array.isArray(ord.items)
-                  ? ord.items.map((i: any) => ({
-                      productName: formatString(i.productName || i.product?.name, "Product"),
-                      quantity: i.quantity || 1,
-                      price: i.price || 0,
-                    }))
-                  : [],
-              }));
+            const convertedBackend: EnquiryItem[] = matching.map((ord: any) => ({
+              id: String(ord._id || ord.id || Date.now()),
+              enquiryNumber: String(ord.orderNumber || ord._id),
+              date: ord.createdAt
+                ? `${new Date(ord.createdAt).toLocaleDateString('en-IN')} ${new Date(ord.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
+                : (ord.date || new Date().toLocaleDateString('en-IN')),
+              total: ord.total || ord.subtotal || 0,
+              status: (ord.status as any) || "Pending",
+              customerName: formatString(ord.customerName, "Customer"),
+              customerPhone: formatString(ord.customerPhone, effectivePhone),
+              customerEmail: formatString(ord.customerEmail, ""),
+              deliveryAddress: formatAddress(ord.deliveryAddress || ord.shippingAddress),
+              items: Array.isArray(ord.items)
+                ? ord.items.map((i: any) => ({
+                    productName: formatString(i.productName || i.product?.name, "Product"),
+                    quantity: i.quantity || 1,
+                    price: i.price || 0,
+                  }))
+                : [],
+            }));
 
-              const map = new Map<string, EnquiryItem>();
-              localCookieItems.forEach((item) => map.set(item.enquiryNumber, item));
-              convertedBackend.forEach((item) => map.set(item.enquiryNumber, item));
+            const map = new Map<string, EnquiryItem>();
+            localCookieItems.forEach((item) => map.set(item.enquiryNumber, item));
+            convertedBackend.forEach((item) => map.set(item.enquiryNumber, item));
 
-              const merged = Array.from(map.values());
-              setEnquiries(merged);
+            const merged = Array.from(map.values());
+            setEnquiries(merged);
+            if (merged.length > 0) {
               localStorage.setItem(`user_saved_enquiries_${cleanPhone}`, JSON.stringify(merged));
               setCookie(`saiyogi_enquiries_${cleanPhone}`, JSON.stringify(merged), 30);
             }
@@ -109,7 +109,7 @@ const MyAccount: React.FC = () => {
     } else {
       setEnquiries([]);
     }
-  }, [userPhone]);
+  }, [userPhone, isUserLoggedIn]);
 
   const displayName = userName || getCookie("saiyogi_user_name") || localStorage.getItem("user_name") || "Customer";
   const displayPhone = userPhone || getCookie("saiyogi_user_phone") || localStorage.getItem("user_phone") || "-";

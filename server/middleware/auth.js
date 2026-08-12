@@ -9,8 +9,9 @@ export const auth = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'saiyogi_jwt_secret_key_2026');
     req.userId = decoded.id;
+    req.userPhone = decoded.phone;
     req.role = decoded.role;
     next();
   } catch (error) {
@@ -19,7 +20,8 @@ export const auth = (req, res, next) => {
 };
 
 export const adminOnly = (req, res, next) => {
-  if (req.role !== 'SUPER ADMIN' && req.role !== 'ADMIN') {
+  const roleUpper = String(req.role || '').toUpperCase();
+  if (roleUpper !== 'SUPER ADMIN' && roleUpper !== 'ADMIN') {
     return next(new AppError('Admin access required', 403));
   }
   next();
@@ -37,8 +39,9 @@ export const optionalAuth = (req, res, next) => {
 
   if (token) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'saiyogi_jwt_secret_key_2026');
       req.userId = decoded.id;
+      req.userPhone = decoded.phone;
       req.role = decoded.role;
     } catch (error) {
       // Token invalid but not required - continue

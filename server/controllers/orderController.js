@@ -298,21 +298,43 @@ export const cancelOrder = async (req, res, next) => {
   }
 };
 
-export const getUserOrders = async (req, res, next) => {
+export const getMyEnquiries = async (req, res, next) => {
   try {
-    const userEmail = req.userEmail; // needs to be set by auth middleware if applicable
-    let query = {};
-    if (userEmail) {
-      query = { customerEmail: userEmail };
-    } else if (req.userId) {
-      query = { customer: req.userId };
+    // SECURITY: Use authenticated user identity from JWT middleware ONLY.
+    // Ignore any customerId or customerPhone sent in query/body by client.
+    const userId = req.userId;
+    const userPhone = req.userPhone;
+
+    if (!userId && !userPhone) {
+      return res.status(401).json({ error: 'Authentication required' });
     }
 
-    const orders = await Order.find(query).sort({ createdAt: -1 });
+    const cleanPhone = userPhone ? String(userPhone).replace(/\D/g, '').slice(-10) : '';
+
+    const orConditions = [];
+    if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+      orConditions.push({ customer: userId });
+    }
+    if (cleanPhone && cleanPhone.length === 10) {
+      orConditions.push({ customerPhone: { $regex: cleanPhone } });
+    }
+
+    if (orConditions.length === 0) {
+      return res.json([]);
+    }
+
+    const orders = await Order.find({ $or: orConditions })
+      .populate('items.product', 'name price netRate displayNetRate hasDiscount')
+      .sort({ createdAt: -1 });
+
     res.json(orders);
   } catch (error) {
     next(error);
   }
+};
+
+export const getUserOrders = async (req, res, next) => {
+  return getMyEnquiries(req, res, next);
 };
 
 export const updatePackingStatus = async (req, res, next) => {
