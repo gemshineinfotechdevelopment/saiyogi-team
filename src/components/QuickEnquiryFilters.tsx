@@ -37,7 +37,7 @@ export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
 
   return (
     <div className={`fixed left-0 right-0 z-40 bg-white border-b border-gray-200 shadow-md py-2 sm:py-3 px-2.5 sm:px-4 transition-all duration-300 ${
-      isNavbarHidden ? "top-0" : "top-[60px] md:top-[108px]"
+      isNavbarHidden ? "top-0" : "top-[100px] md:top-[108px]"
 
     }`}>
       <div className="container mx-auto">

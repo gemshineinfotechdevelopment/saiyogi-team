@@ -173,8 +173,8 @@ const QuickEnquiry = () => {
       <UserHeader isHidden={isNavbarHidden} />
 
       <main className={`flex-1 w-full pb-12 px-0 transition-all duration-300 ${isNavbarHidden
-        ? 'pt-[68px] md:pt-[35px]'
-        : 'pt-[144px] md:pt-[157px]'
+        ? 'pt-[38px] md:pt-[5px]'
+        : 'pt-[114px] md:pt-[127px]'
         }`}>
         {/* Sticky Filters & Cart Total Component */}
         <QuickEnquiryFilters

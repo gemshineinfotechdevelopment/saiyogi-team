@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
+
 import indiaStatesData from "@/lib/indiaStates.json";
 
 const getAllStates = () => Object.keys(indiaStatesData);
@@ -273,7 +274,7 @@ const CartDrawer = () => {
   const handleConfirmAndSubmitTerms = () => {
     if (savedOrderData) {
       try {
-        promptAndPrintOrderReceipt(savedOrderData);
+        downloadOrderReceiptPDF(savedOrderData);
       } catch (pdfErr) {
         console.error("PDF download failed:", pdfErr);
       }

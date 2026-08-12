@@ -312,8 +312,8 @@ const Catalog = () => {
 
       <main className={`container pb-12 flex-1 transition-all duration-300 ${
         isNavbarHidden
-          ? 'pt-[120px] md:pt-[80px]'
-          : 'pt-[195px] md:pt-[190px]'
+          ? 'pt-[90px] md:pt-[50px]'
+          : 'pt-[165px] md:pt-[160px]'
       }`}>
         {filtered.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-3.5 md:gap-4 mt-0 animate-in fade-in duration-700">

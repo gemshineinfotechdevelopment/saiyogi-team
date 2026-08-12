@@ -430,12 +430,12 @@ const Index = () => {
 
             {/* Notice Image Carousel (Right Side) */}
             {noticeImages.length > 0 && (
-              <div className="w-full lg:w-1/3 xl:w-1/4 h-[320px] sm:h-[450px] lg:h-full bg-black flex flex-col shadow-xl relative overflow-hidden z-20 rounded-2xl border border-gray-200/50 group">
+              <div className="w-full lg:w-1/3 xl:w-1/4 aspect-[2/3] sm:aspect-[3/4] lg:aspect-auto lg:h-full bg-black flex flex-col shadow-xl relative overflow-hidden z-20 rounded-2xl border border-gray-200/50 group">
                 <div key={`notice-${noticeSlideKey}`} className="absolute inset-0 w-full h-full animate-slide-left">
                   <img
                     src={noticeImages[currentNoticeSlide]}
                     alt={`Notice Banner ${currentNoticeSlide + 1}`}
-                    className="w-full h-full object-cover filter brightness-105 transition-all duration-500"
+                    className="w-full h-full object-contain filter brightness-105 transition-all duration-500"
                   />
                 </div>
 
