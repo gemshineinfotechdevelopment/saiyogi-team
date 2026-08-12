@@ -14,7 +14,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { downloadOrderReceiptPDF, printOrderReceipt } from "@/lib/pdf-generator";
+import { promptAndDownloadOrderReceiptPDF, promptAndPrintOrderReceipt } from "@/lib/pdf-generator";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 
 const AdminOrders = () => {
@@ -55,12 +55,12 @@ const AdminOrders = () => {
   });
 
   const handleDownloadPDF = (order: any) => {
-    downloadOrderReceiptPDF(getOrderData(order));
+    promptAndDownloadOrderReceiptPDF(getOrderData(order));
     toast.success("Downloading PDF...");
   };
 
   const handlePrintPDF = (order: any) => {
-    printOrderReceipt(getOrderData(order));
+    promptAndPrintOrderReceipt(getOrderData(order));
     toast.success("Preparing Print...");
   };
   const [phoneFilter, setPhoneFilter] = useState("");
@@ -266,7 +266,7 @@ const AdminOrders = () => {
                           {o.items?.length || 0} Items
                         </Badge>
                       </td>
-                      <td className="p-4 text-right font-bold text-primary">₹{Number(o.subtotal) + (Number(o.packingCharge) || 0)}</td>
+                      <td className="p-4 text-right font-bold text-primary">₹{Math.round(Number(o.subtotal) + (Number(o.packingCharge) || 0))}</td>
                       <td className="p-4 text-center">
                         <Badge variant={o.packingStatus === 'packed' ? 'default' : 'secondary'} className={o.packingStatus === 'packed' ? 'bg-red-600' : ''}>
                           {o.packingStatus ? (o.packingStatus === 'packed' ? '🚚 Shipped' : '🔹 Unshipped') : 'N/A'}
@@ -352,7 +352,7 @@ const AdminOrders = () => {
                         <p><strong>Subtotal:</strong> ₹{selectedOrder.subtotal}</p>
                         <p><strong>Packing Charges:</strong> ₹{selectedOrder.packingCharge || (Number(selectedOrder.subtotal) <= 3999 ? 120 : Math.round(Number(selectedOrder.subtotal) * 0.03))}</p>
                         <p className="text-green-600 text-xs italic"><strong>Delivery Charges:</strong> Excluded</p>
-                        <p className="font-bold"><strong>Total:</strong> ₹{Number(selectedOrder.subtotal) + (Number(selectedOrder.packingCharge) || (Number(selectedOrder.subtotal) <= 3999 ? 120 : Math.round(Number(selectedOrder.subtotal) * 0.03)))}</p>
+                        <p className="font-bold"><strong>Total:</strong> ₹{Math.round(Number(selectedOrder.subtotal) + (Number(selectedOrder.packingCharge) || (Number(selectedOrder.subtotal) <= 3999 ? 120 : Math.round(Number(selectedOrder.subtotal) * 0.03))))}</p>
                         <p><strong>Status:</strong> {selectedOrder.status}</p>
                         <p><strong>Shipping Status:</strong> {selectedOrder.packingStatus ? (selectedOrder.packingStatus === 'packed' ? '🚚 Shipped' : '🔹 Unshipped') : 'Not set'}</p>
                       </div>

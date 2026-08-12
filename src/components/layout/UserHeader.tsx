@@ -57,7 +57,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
     <>
       <header className={`fixed top-0 left-0 right-0 z-50 bg-white shadow-md border-b border-gray-100 transition-transform duration-300 w-full ${isHidden ? "-translate-y-full" : "translate-y-0"}`}>
         {/* Top Announcement Bar */}
-        <div className="bg-[#7009bc] text-[#FEF200] text-xs py-1.5 overflow-hidden relative z-50">
+        <div className="bg-[#A80000] text-[#FEF200] text-xs py-1.5 overflow-hidden relative z-50">
           <div className="flex items-center justify-between container mx-auto px-4">
             <div className="w-full overflow-hidden">
               <div className="animate-marquee whitespace-nowrap flex items-center gap-4 text-[11px] sm:text-xs font-black tracking-wider text-[#FEF200]">
@@ -150,16 +150,10 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
           <div className="relative overflow-hidden bg-[#A80000] text-white py-2 border-y border-red-900 select-none z-[110]">
             <div className="animate-top-marquee font-bold text-[10px] md:text-xs uppercase tracking-widest py-1">
               <div className="flex gap-16 whitespace-nowrap">
-                <span>✨ Welcome to Sai Yogi Crackers - Sivakasi's Premium Fireworks at Wholesale Price! ✨</span>
-                <span>💥 Special Diwali Offer: Up to 50% discount on all Family Packs! 💥</span>
-                <span>🚚 Direct delivery from Sivakasi to your doorstep! 🚚</span>
-                <span>📞 WhatsApp us now to place your inquiry and custom orders! 📞</span>
+                <span>{settings?.news || "✨ Welcome to Sai Yogi Crackers - Sivakasi's Premium Fireworks at Wholesale Price! ✨ 💥 Special Diwali Offer: Up to 50% discount on all Family Packs! 💥 🚚 Direct delivery from Sivakasi to your doorstep! 🚚 📞 WhatsApp us now to place your inquiry and custom orders! 📞"}</span>
               </div>
               <div className="flex gap-16 whitespace-nowrap">
-                <span>✨ Welcome to Sai Yogi Crackers - Sivakasi's Premium Fireworks at Wholesale Price! ✨</span>
-                <span>💥 Special Diwali Offer: Up to 50% discount on all Family Packs! 💥</span>
-                <span>🚚 Direct delivery from Sivakasi to your doorstep! 🚚</span>
-                <span>📞 WhatsApp us now to place your inquiry and custom orders! 📞</span>
+                <span>{settings?.news || "✨ Welcome to Sai Yogi Crackers - Sivakasi's Premium Fireworks at Wholesale Price! ✨ 💥 Special Diwali Offer: Up to 50% discount on all Family Packs! 💥 🚚 Direct delivery from Sivakasi to your doorstep! 🚚 📞 WhatsApp us now to place your inquiry and custom orders! 📞"}</span>
               </div>
             </div>
           </div>

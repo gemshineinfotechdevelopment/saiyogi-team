@@ -454,6 +454,17 @@ export const BillPrintTemplate: React.FC<BillPrintTemplateProps> = ({ data, sett
                                             <span className="text-gray-800">SGST ({(effectiveGstPct / 2)}%)</span>
                                             <span className="text-gray-400">:</span>
                                             <span className="text-right">{formatCurrency(sgstAmt)}</span>
+                                            
+                                            {Math.round(taxableAmount + cgstAmt + sgstAmt + packingAmt + miscCharge) - (taxableAmount + cgstAmt + sgstAmt + packingAmt + miscCharge) !== 0 && (
+                                                <>
+                                                    <span className="text-gray-800">Round Off</span>
+                                                    <span className="text-gray-400">:</span>
+                                                    <span className="text-right">
+                                                        {(Math.round(taxableAmount + cgstAmt + sgstAmt + packingAmt + miscCharge) - (taxableAmount + cgstAmt + sgstAmt + packingAmt + miscCharge)) > 0 ? '+' : ''}
+                                                        {formatCurrency(Math.round(taxableAmount + cgstAmt + sgstAmt + packingAmt + miscCharge) - (taxableAmount + cgstAmt + sgstAmt + packingAmt + miscCharge))}
+                                                    </span>
+                                                </>
+                                            )}
                                         </div>
 
                                         <div className="flex justify-between px-2 py-1 mt-1 border-t-2 border-black font-extrabold text-[14px] bg-gray-200 text-black">
