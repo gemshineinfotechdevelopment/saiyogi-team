@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { DiscountTag } from "@/components/ui/DiscountTag";
 
 const ProductCard = ({ product, categoryName, onCardClick }: { product: Product; categoryName?: string; onCardClick?: () => void }) => {
   const [showDetails, setShowDetails] = useState(false);
@@ -61,7 +62,7 @@ const ProductCard = ({ product, categoryName, onCardClick }: { product: Product;
       <button
         onClick={handleDecrement}
         disabled={quantity <= 0}
-        className="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center rounded-lg bg-red-50 text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors font-bold text-base shadow-xs disabled:opacity-40 disabled:hover:bg-red-50 disabled:hover:text-[#A80000]"
+        className="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors font-bold text-base shadow-xs disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-[#A80000]"
       >
         <Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
       </button>
@@ -70,7 +71,7 @@ const ProductCard = ({ product, categoryName, onCardClick }: { product: Product;
       </span>
       <button
         onClick={handleIncrement}
-        className="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center rounded-lg bg-red-50 text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors font-bold text-base shadow-xs disabled:opacity-40"
+        className="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors font-bold text-base shadow-xs disabled:opacity-40"
         disabled={(product.storeStockPieces || 0) <= 0 || quantity >= ((product.storeStockPieces || 0) || 999)}
       >
         <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -83,11 +84,11 @@ const ProductCard = ({ product, categoryName, onCardClick }: { product: Product;
   return (
     <>
       <div className="group h-full">
-        <div 
+        <div
           className="rounded-2xl overflow-hidden bg-white border border-gray-200/80 hover:border-red-300 transition-all duration-300 hover:shadow-lg flex flex-col h-full relative cursor-pointer"
           onClick={() => onCardClick ? onCardClick() : setShowDetails(true)}
         >
-          
+
           {/* Top Right Selected Amount Badge */}
           {quantity > 0 && (
             <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20">
@@ -114,12 +115,8 @@ const ProductCard = ({ product, categoryName, onCardClick }: { product: Product;
             </div>
 
             {discount > 0 && !isNetRate && (
-              <div className="absolute top-1 left-1 sm:top-2 sm:left-2 z-10 hover:scale-110 transition-transform duration-300 pointer-events-none">
-                <img
-                  src="/discount-tag.png"
-                  alt={`${discount}% OFF`}
-                  className="w-12 sm:w-16 h-auto object-contain drop-shadow-md"
-                />
+              <div className="absolute top-1 left-1 sm:top-2 sm:left-2 z-10">
+                <DiscountTag discount={discount} className="w-12 sm:w-16 h-auto" />
               </div>
             )}
 
@@ -272,7 +269,7 @@ const ProductCard = ({ product, categoryName, onCardClick }: { product: Product;
                 </div>
               </div>
 
-              <div className="flex items-baseline gap-2 md:gap-3 mb-4 md:mb-8">
+              <div className="flex items-baseline gap-2 md:gap-3 mb-4 md:mb-6">
                 <span className="text-2xl md:text-4xl font-black text-red-700">₹{discountPrice}</span>
                 {product.hasDiscount && !isNetRate && (
                   <span className="text-base md:text-xl text-gray-300 line-through font-medium">₹{product.price}</span>
@@ -281,6 +278,12 @@ const ProductCard = ({ product, categoryName, onCardClick }: { product: Product;
                   <span className="text-xs md:text-sm text-indigo-500 font-black uppercase tracking-widest px-2.5 py-0.5 bg-indigo-50 rounded-lg border border-indigo-100">Net Rate Only</span>
                 )}
               </div>
+
+              {product.description && (
+                <p className="text-sm md:text-base text-gray-700 mb-6 leading-relaxed">
+                  {product.description}
+                </p>
+              )}
 
               <div className="space-y-4">
                 {quantity > 0 ? (

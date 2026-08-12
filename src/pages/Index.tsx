@@ -140,8 +140,8 @@ const Index = () => {
   }, []);
 
   // Hero image slideshow (right-to-left slide)
-  const heroImages = settings?.heroBanners && settings.heroBanners.length > 0 
-    ? settings.heroBanners 
+  const heroImages = settings?.heroBanners && settings.heroBanners.length > 0
+    ? settings.heroBanners
     : [heroBanner1, heroBanner2, heroBanner3, heroBanner4];
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideKey, setSlideKey] = useState(0);
@@ -231,8 +231,8 @@ const Index = () => {
         if (!data) return;
 
         // YT.PlayerState: 1 = PLAYING, 2 = PAUSED, 0 = ENDED, -1 = UNSTARTED
-        const playerState = data.info?.playerState !== undefined 
-          ? data.info.playerState 
+        const playerState = data.info?.playerState !== undefined
+          ? data.info.playerState
           : (typeof data.info === 'number' ? data.info : undefined);
 
         if (playerState !== undefined) {
@@ -264,7 +264,7 @@ const Index = () => {
     resizeCanvas();
 
     let particles: any[] = [];
-    
+
     const createFlowerPotParticle = (x: number, y: number) => {
       const isMobile = window.innerWidth < 768;
       const angle = (Math.random() * Math.PI) / 4 - Math.PI / 8; // Narrower angle for realistic fountain
@@ -301,7 +301,7 @@ const Index = () => {
 
     const render = (time: number) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
+
       const elapsed = time - lastToggleTime;
       if (isActive && elapsed > 5000) {
         isActive = false;
@@ -316,10 +316,10 @@ const Index = () => {
       const leftPotX = canvas.width * (isMobile ? 0.2 : 0.1);
       const rightPotX = canvas.width * (isMobile ? 0.8 : 0.9);
       const centerX = canvas.width * 0.5;
-      
+
       // Move the Y position slightly up on mobile to avoid bottom UI / notch covering it
       const potY = canvas.height - (isMobile ? 40 : 10);
-      
+
       const particleCount = isMobile ? 3 : 5; // Slightly increased for better visibility
       const chakkarCount = isMobile ? 3 : 6;
 
@@ -353,9 +353,9 @@ const Index = () => {
 
       animationId = requestAnimationFrame(render);
     };
-    
+
     animationId = requestAnimationFrame(render);
-    
+
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       cancelAnimationFrame(animationId);
@@ -369,23 +369,22 @@ const Index = () => {
       <UserHeader />
 
       {/* Hero Section */}
-      <section className="relative w-full bg-gray-100/50 pt-0 pb-0 select-none overflow-hidden">
+      <section className="bg-white py-4 md:py-6 select-none overflow-hidden">
         <div className="container mx-auto px-2 sm:px-4 max-w-[1400px]">
           <div className="flex flex-col lg:flex-row w-full h-auto lg:h-[calc(100vh-220px)] lg:max-h-[500px] lg:min-h-[400px] gap-2 sm:gap-4">
-            
+
             {/* Main Carousel (Left Side) */}
             <div className={`relative w-full ${noticeImages.length > 0 ? "lg:w-2/3 xl:w-3/4" : ""} h-[320px] sm:h-[450px] lg:h-full overflow-hidden bg-black group rounded-2xl shadow-xl border border-gray-200/50`}>
               {/* Full Width & Height Banner Image */}
               <div key={slideKey} className="absolute inset-0 w-full h-full animate-slide-left">
-                <img 
-                  src={heroImages[currentSlide]} 
-                  alt={`Sai Yogi Crackers Banner ${currentSlide + 1}`} 
-                  className={`w-full h-full object-cover filter brightness-105 transition-all duration-500 ${
-                    currentSlide === 0 ? "object-[center_15%]" : "object-center"
-                  }`} 
+                <img
+                  src={heroImages[currentSlide]}
+                  alt={`Sai Yogi Crackers Banner ${currentSlide + 1}`}
+                  className={`w-full h-full object-cover filter brightness-105 transition-all duration-500 ${currentSlide === 0 ? "object-[center_15%]" : "object-center"
+                    }`}
                 />
               </div>
-              
+
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none z-10" />
 
               {/* Left Arrow Navigation */}
@@ -421,9 +420,8 @@ const Index = () => {
                       setCurrentSlide(idx);
                       setSlideKey((k) => k + 1);
                     }}
-                    className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
-                      currentSlide === idx ? "bg-[#F4C542] w-8 shadow-lg shadow-yellow-500/50" : "bg-white/50 w-2.5 hover:bg-white"
-                    }`}
+                    className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${currentSlide === idx ? "bg-[#F4C542] w-8 shadow-lg shadow-yellow-500/50" : "bg-white/50 w-2.5 hover:bg-white"
+                      }`}
                     aria-label={`Slide ${idx + 1}`}
                   />
                 ))}
@@ -433,18 +431,17 @@ const Index = () => {
             {/* Notice Image Carousel (Right Side) */}
             {noticeImages.length > 0 && (
               <div className="w-full lg:w-1/3 xl:w-1/4 h-[320px] sm:h-[450px] lg:h-full bg-black flex flex-col shadow-xl relative overflow-hidden z-20 rounded-2xl border border-gray-200/50 group">
-                 <div key={`notice-${noticeSlideKey}`} className="absolute inset-0 w-full h-full animate-slide-left">
-                   <img 
-                     src={noticeImages[currentNoticeSlide]} 
-                     alt={`Notice Banner ${currentNoticeSlide + 1}`} 
-                     className="w-full h-full object-cover filter brightness-105 transition-all duration-500" 
-                   />
-                 </div>
-                 
-                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none z-10" />
+                <div key={`notice-${noticeSlideKey}`} className="absolute inset-0 w-full h-full animate-slide-left">
+                  <img
+                    src={noticeImages[currentNoticeSlide]}
+                    alt={`Notice Banner ${currentNoticeSlide + 1}`}
+                    className="w-full h-full object-cover filter brightness-105 transition-all duration-500"
+                  />
+                </div>
+
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none z-10" />
               </div>
             )}
-            
           </div>
         </div>
       </section>
@@ -459,8 +456,8 @@ const Index = () => {
       </div>
 
       {/* Realistic Flower Pot Canvas */}
-      <canvas 
-        id="flower-pot-canvas" 
+      <canvas
+        id="flower-pot-canvas"
         className="fixed inset-0 pointer-events-none z-[45] opacity-90"
       />
 
@@ -501,7 +498,7 @@ const Index = () => {
       />
 
       {/* Best Sellers Section */}
-      <section className="py-16 bg-gradient-to-b from-[#FFF6E5] to-white border-b border-gray-100">
+      <section className="py-16 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center mb-10">
             <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
@@ -522,15 +519,15 @@ const Index = () => {
       </section>
 
       {/* Videos Section */}
-      <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5] relative overflow-hidden">
+      <section className="py-16 bg-white border-b border-gray-100 relative overflow-hidden">
         <div className="container mx-auto px-4 max-w-6xl relative">
-          
+
           {/* Left Garland Crackers Bursting Animation */}
           <div className="absolute -left-3 sm:left-0 md:-left-12 lg:-left-20 top-1/2 -translate-y-1/2 z-30 pointer-events-none hidden xs:flex flex-col items-center">
             <div className="relative">
-              <img 
-                src="/garland_crackers.png" 
-                alt="Left Garland Crackers" 
+              <img
+                src="/garland_crackers.png"
+                alt="Left Garland Crackers"
                 className="w-14 sm:w-20 md:w-28 lg:w-36 h-auto drop-shadow-2xl animate-pulse"
               />
               {/* Bursting sparks effect at bottom */}
@@ -548,9 +545,9 @@ const Index = () => {
           {/* Right Garland Crackers Bursting Animation */}
           <div className="absolute -right-3 sm:right-0 md:-right-12 lg:-right-20 top-1/2 -translate-y-1/2 z-30 pointer-events-none hidden xs:flex flex-col items-center">
             <div className="relative">
-              <img 
-                src="/garland_crackers.png" 
-                alt="Right Garland Crackers" 
+              <img
+                src="/garland_crackers.png"
+                alt="Right Garland Crackers"
                 className="w-14 sm:w-20 md:w-28 lg:w-36 h-auto drop-shadow-2xl scale-x-[-1] animate-pulse"
               />
               {/* Bursting sparks effect at bottom */}
@@ -588,14 +585,13 @@ const Index = () => {
             </button>
 
             {/* Continuous Horizontal Moving Videos Container */}
-            <div 
+            <div
               ref={videoScrollRef}
               className="w-full overflow-x-auto no-scrollbar scroll-smooth py-4 px-2 select-none"
             >
-              <div 
-                className={`flex flex-nowrap gap-3 sm:gap-6 w-max animate-marquee ${
-                  playingVideo ? "paused" : "hover:[animation-play-state:paused]"
-                }`}
+              <div
+                className={`flex flex-nowrap gap-3 sm:gap-6 w-max animate-marquee ${playingVideo ? "paused" : "hover:[animation-play-state:paused]"
+                  }`}
                 style={playingVideo ? { animationPlayState: 'paused' } : undefined}
               >
                 {(() => {
@@ -697,7 +693,7 @@ const Index = () => {
       </section>
 
       {/* Shop By Category */}
-      <section className="py-16 bg-[#FFF6E5]">
+      <section className="py-16 bg-white border-b border-gray-100">
         <div className="text-center mb-10 container mx-auto px-4">
           <h2 className="font-black text-[#A80000] text-3xl sm:text-4xl uppercase tracking-tight mb-2 font-display">
             Shop By Category
@@ -709,27 +705,27 @@ const Index = () => {
 
         {/* Infinite scrolling categories marquee */}
         <div className="relative w-full overflow-hidden py-4 mb-8">
-          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+          <div className="flex flex-nowrap gap-3 sm:gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
             {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i: number) => (
               <div
                 key={`${cat.id || cat._id || 'cat'}-${i}`}
                 onClick={() => window.location.href = `/catalog?category=${cat.id || cat._id}`}
-                className="bg-white border border-gray-200 p-4 flex flex-col items-center text-center shadow-md rounded-2xl min-w-[200px] max-w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
+                className="bg-white border border-gray-200 p-2.5 sm:p-4 flex flex-col items-center text-center shadow-md rounded-xl sm:rounded-2xl w-[135px] sm:w-[170px] md:w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
               >
-                <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-2 mb-3 rounded-xl overflow-hidden relative border border-gray-100/50">
+                <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-1.5 sm:p-2 mb-2 sm:mb-3 rounded-lg sm:rounded-xl overflow-hidden relative border border-gray-100/50">
                   <img
                     src={cat.image || "/sky_rocket_box.png"}
                     alt={cat.name}
                     className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110"
                   />
-                  <span className="absolute top-2 left-2 bg-[#A80000] text-[#F4C542] font-black text-[9px] px-2.5 py-0.5 rounded-full shadow uppercase">
+                  <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-[#A80000] text-[#F4C542] font-black text-[8px] sm:text-[9px] px-1.5 sm:px-2.5 py-0.5 rounded-full shadow uppercase">
                     SHOP
                   </span>
                 </div>
-                <h3 className="font-bold text-xs text-gray-800 uppercase text-center min-h-[32px] line-clamp-2 transition-colors group-hover:text-[#A80000] mb-3">{cat.name}</h3>
-                
+                <h3 className="font-bold text-[10px] sm:text-xs text-gray-800 uppercase text-center min-h-[26px] sm:min-h-[32px] line-clamp-2 transition-colors group-hover:text-[#A80000] mb-2 sm:mb-3">{cat.name}</h3>
+
                 <div className="w-full mt-auto">
-                  <button className="w-full bg-[#A80000] text-white py-1.5 rounded-lg text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase">
+                  <button className="w-full bg-[#A80000] text-white py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[9px] sm:text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase">
                     View Products
                   </button>
                 </div>
@@ -738,9 +734,9 @@ const Index = () => {
           </div>
         </div>
       </section>
-      
+
       {/* Trusted Manufacturers */}
-      <section className="py-16 bg-gradient-to-b from-white to-[#FFF6E5]">
+      <section className="py-16 bg-white border-b border-gray-100">
         <div className="text-center mb-10 px-4">
           <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
             ⭐ AUTHENTIC PARTNERS ⭐
@@ -801,24 +797,24 @@ const Index = () => {
 
         {/* Infinite scrolling brands marquee from right to left */}
         <div className="relative w-full overflow-hidden py-4">
-          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+          <div className="flex flex-nowrap gap-3 sm:gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
             {[...(brands.length > 0 ? brands : shopByBrands), ...(brands.length > 0 ? brands : shopByBrands), ...(brands.length > 0 ? brands : shopByBrands)].map((brand: any, i: number) => {
               const brandId = brand._id || brand.id || i;
               return (
                 <div
                   key={`${brandId}-${i}`}
                   onClick={() => window.location.href = `/catalog?search=${encodeURIComponent(brand.name)}`}
-                  className="bg-gradient-to-b from-white to-amber-50/30 border border-gray-200 hover:border-[#7A1416] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[130px] sm:w-[160px] md:w-[180px] shrink-0"
+                  className="bg-white border border-gray-200 hover:border-[#7A1416] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[130px] sm:w-[160px] md:w-[180px] shrink-0"
                 >
-                  <span className="text-[8px] sm:text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-1.5 sm:px-2 py-0.5 rounded-full mb-1.5 sm:mb-2 font-mono">
+                  <span className="text-[7px] sm:text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-1 sm:px-2 py-0.5 rounded-full mb-1 sm:mb-2 font-mono">
                     {brand.tag || "BRAND"}
                   </span>
-                  <div className="w-full aspect-square flex items-center justify-center p-1 sm:p-2 mb-1 sm:mb-2 group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-full aspect-square flex items-center justify-center p-0.5 sm:p-2 mb-0.5 sm:mb-2 group-hover:scale-105 transition-transform duration-300">
                     <img src={brand.logo || brand.image || "/sky_rocket_box.png"} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
                   </div>
                   <div>
-                    <h3 className="font-black text-[11px] sm:text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors line-clamp-1">{brand.name}</h3>
-                    <p className="text-[9px] sm:text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-1">{brand.subtitle || brand.description || "Original Sivakasi"}</p>
+                    <h3 className="font-black text-[10px] sm:text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors line-clamp-1">{brand.name}</h3>
+                    <p className="text-[8px] sm:text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-1">{brand.subtitle || brand.description || "Original Sivakasi"}</p>
                   </div>
                 </div>
               );
@@ -828,7 +824,7 @@ const Index = () => {
       </section>
 
       {/* Combo Packs */}
-      <section className="py-16 bg-[#FFF6E5]">
+      <section className="py-16 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center mb-10">
             <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
@@ -853,7 +849,7 @@ const Index = () => {
             </button>
 
             {/* Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full px-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8 w-full px-2 sm:px-4">
               {[0, 1, 2].map((offset) => {
                 const comboPacksList = (products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).length > 0
                   ? products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack'))
@@ -865,7 +861,7 @@ const Index = () => {
                 return (
                   <div
                     key={`combo-${offset}-${item._id || item.id || offset}`}
-                    className={`w-full ${offset > 0 ? "hidden md:block" : "block"}`}
+                    className={`w-full max-w-[260px] sm:max-w-none mx-auto ${offset > 0 ? "hidden md:block" : "block"}`}
                   >
                     <ProductCard product={item} />
                   </div>

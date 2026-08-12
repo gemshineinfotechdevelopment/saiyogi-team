@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Jost:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&family=Quicksand:wght@300;400;500;600;700&display=swap');
 
 @import "tailwindcss/base";
 @import "tailwindcss/components";
@@ -62,27 +62,54 @@
 
   html {
     overflow-x: hidden;
+    font-size: 16px;
   }
 
-  body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    font-family: 'Google Sans', 'Product Sans', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
-    min-height: 100vh;
-    overflow-x: hidden;
+  @media (max-width: 768px) {
+    html {
+      font-size: 15px;
+    }
   }
 
+  @media (max-width: 640px) {
+    html {
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    html {
+      font-size: 13px;
+    }
+  }
+
+  body,
+  html,
   h1,
   h2,
   h3,
   h4,
   h5,
-  h6 {
-    font-family: 'Google Sans', 'Product Sans', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+  h6,
+  p,
+  a,
+  span,
+  button,
+  input,
+  select,
+  textarea,
+  div {
+    font-family: 'Google Sans', 'Product Sans', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   }
 
   .product-title-font {
-    font-family: 'Google Sans', 'Product Sans', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+    font-family: 'Google Sans', 'Product Sans', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  /* Admin Scope Isolation: Keep Admin Side Fonts Untouched */
+  .admin-scope,
+  .admin-scope * {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif !important;
   }
 
   /* Hide scrollbar globally for all browsers while keeping scrolling functional */
@@ -336,6 +363,99 @@
 .animate-marquee.paused,
 .paused {
   animation-play-state: paused !important;
+}
+
+/* NPK Crackers Glamics Style Utilities */
+.glamics-marquee-wrapper {
+  background: #ffffff;
+  color: #A80000;
+  overflow: hidden;
+  position: relative;
+  white-space: nowrap;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.glamics-marquee-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 2rem;
+  animation: marquee 35s linear infinite;
+}
+
+.glamics-marquee-item {
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+}
+
+.glamics-marquee-star {
+  color: #fef200;
+  font-size: 1rem;
+}
+
+.glamics-cart-warning-card {
+  background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+  border: 1.5px dashed #f43f5e;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-top: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.glamics-cart-glow {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 50px;
+  height: 50px;
+  background: radial-gradient(circle, rgba(244,63,94,0.3) 0%, transparent 70%);
+}
+
+.glamics-cart-warning-title {
+  color: #be123c;
+  font-weight: 800;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.glamics-cart-warning-text {
+  color: #881337;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.glamics-promo-banner {
+  background: linear-gradient(135deg, #7009bc 0%, #ed1c24 100%);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(112, 9, 188, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.glamics-btn-glow {
+  background: #fef200;
+  color: #7009bc;
+  font-weight: 800;
+  padding: 12px 28px;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(254, 242, 0, 0.4);
+}
+
+.glamics-btn-glow:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 20px rgba(254, 242, 0, 0.6);
+  color: #000;
 }
 
 @keyframes cracker-burst {

@@ -14,6 +14,7 @@ import settingsRouter from './routes/settings.js';
 import brandsRouter from './routes/brands.js';
 import uploadRouter from './routes/upload.js';
 import chitSchemesRouter from './routes/chitSchemes.js';
+import chitSubscriptionsRouter from './routes/chitSubscriptions.js';
 
 import { errorHandler } from './middleware/errorHandler.js';
 import logger from './utils/logger.js';
@@ -110,6 +111,8 @@ app.use('/api/settings', settingsRouter);
 app.use('/api/brands', brandsRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/chit-schemes', chitSchemesRouter);
+app.use('/api/chit-subscriptions', chitSubscriptionsRouter);
+app.use('/api/chit-applications', chitSubscriptionsRouter);
 
 
 // 404 Handler for API routes

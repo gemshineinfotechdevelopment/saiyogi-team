@@ -7,6 +7,7 @@ import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/ProductCard";
+import { DiscountTag } from "@/components/ui/DiscountTag";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { toast } from "sonner";
@@ -48,7 +49,7 @@ const ProductDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #FEF3C7 0%, #FFE4E6 50%, #FEF3C7 100%)' }}>
+      <div className="min-h-screen flex flex-col bg-white">
         <UserHeader />
         <div className="flex-1 flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
@@ -60,7 +61,7 @@ const ProductDetail = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #FEF3C7 0%, #FFE4E6 50%, #FEF3C7 100%)' }}>
+      <div className="min-h-screen flex flex-col bg-white">
         <UserHeader />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -86,7 +87,7 @@ const ProductDetail = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #FEF3C7 0%, #FFE4E6 50%, #FEF3C7 100%)' }}>
+    <div className="min-h-screen flex flex-col bg-white">
       <UserHeader />
       <main className="container py-8 flex-1">
         <Link to="/catalog" className="inline-flex items-center gap-1 text-sm text-red-700 hover:text-red-900 transition-colors mb-6 font-semibold">
@@ -110,11 +111,7 @@ const ProductDetail = () => {
                 {discount > 0 && (
                   <div className="flex items-center gap-2.5">
                     <span className="text-xl text-red-600 line-through font-semibold">₹{product.price}</span>
-                    <img
-                      src="/discount-tag.png"
-                      alt={`${discount}% OFF`}
-                      className="w-14 sm:w-16 h-auto object-contain drop-shadow-md"
-                    />
+                    <DiscountTag discount={discount} className="w-14 sm:w-16 h-auto" />
                   </div>
                 )}
               </div>

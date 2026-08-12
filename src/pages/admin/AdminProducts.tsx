@@ -24,7 +24,7 @@ const AdminProducts = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
 
-  const [form, setForm] = useState({ name: "", sku: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", rating: "5", hasDiscount: false, displayNetRate: false, isSaiYogiVerified: false, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1" });
+  const [form, setForm] = useState({ name: "", sku: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", rating: "5", hasDiscount: false, displayNetRate: false, isSaiYogiVerified: true, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1" });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
 
@@ -71,7 +71,7 @@ const AdminProducts = () => {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ name: "", sku: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", rating: "5", hasDiscount: false, displayNetRate: false, isSaiYogiVerified: false, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1" });
+    setForm({ name: "", sku: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", rating: "5", hasDiscount: false, displayNetRate: false, isSaiYogiVerified: true, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1" });
     setImageFile(null);
     setDialogOpen(true);
   };
@@ -258,7 +258,25 @@ const AdminProducts = () => {
                       </div>
                       <div>
                         <Label className="text-xs font-bold uppercase text-gray-700">Star Rating (1 - 5 ⭐)</Label>
-                        <Input value={form.rating} onChange={(e) => setForm({ ...form, rating: e.target.value })} type="number" min="1" max="5" step="0.1" placeholder="5" className="mt-1" />
+                        <Input 
+                          value={form.rating} 
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const num = parseFloat(val);
+                            const hasRating = val.trim() !== "" && !isNaN(num) && num > 0;
+                            setForm({ 
+                              ...form, 
+                              rating: val,
+                              isSaiYogiVerified: hasRating ? true : form.isSaiYogiVerified
+                            });
+                          }} 
+                          type="number" 
+                          min="1" 
+                          max="5" 
+                          step="0.1" 
+                          placeholder="5" 
+                          className="mt-1" 
+                        />
                       </div>
                     </div>
                     <div>
@@ -466,7 +484,7 @@ const AdminProducts = () => {
                         }
 
                         setDialogOpen(false);
-                        setForm({ name: '', sku: '', price: '', wholesalePrice: '', netRate: '', stock: '', brand: '', category: '', description: '', quantity: '', rating: '5', hasDiscount: false, displayNetRate: false, isSaiYogiVerified: false, storeStockPieces: '0', godownStockCases: '0', piecesPerCase: '1' });
+                        setForm({ name: '', sku: '', price: '', wholesalePrice: '', netRate: '', stock: '', brand: '', category: '', description: '', quantity: '', rating: '5', hasDiscount: false, displayNetRate: false, isSaiYogiVerified: true, storeStockPieces: '0', godownStockCases: '0', piecesPerCase: '1' });
                         setImageFile(null);
                         setEditing(null);
                         toast.success(editing ? 'Product updated!' : 'Product added!');

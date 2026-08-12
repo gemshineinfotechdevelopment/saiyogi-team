@@ -116,7 +116,9 @@ export const createOrder = async (req, res, next) => {
     const packingCharge = packingChargeEnabled ? (subtotal <= 3999 ? 120 : Math.round(subtotal * 0.03)) : 0;
     const delivery = 0;
     const gst = 0;
-    const total = subtotal + packingCharge;
+    const estimatedTotal = subtotal + packingCharge + delivery + gst;
+    const total = Math.round(estimatedTotal);
+    const roundOff = total - estimatedTotal;
 
     // Generate sequential order number starting from 8899
     const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(50).session(session);
@@ -153,6 +155,7 @@ export const createOrder = async (req, res, next) => {
       packingCharge,
       gst,
       delivery,
+      roundOff,
       total,
       shippingAddress,
       paymentMethod,

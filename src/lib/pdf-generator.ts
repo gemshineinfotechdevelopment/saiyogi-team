@@ -363,7 +363,9 @@ function generateReceiptHTML(order: OrderData, copies: number = 1): string {
   const netAmount2 = netAmount1 + totalNetRateAmount;
   const packingCharge = order.packingCharge ?? (netAmount2 <= 3999 ? 120 : Math.round(netAmount2 * 0.03));
   const packingPct = netAmount2 > 0 ? (netAmount2 <= 3999 ? "Flat" : Math.round((packingCharge / netAmount2) * 100).toString()) : "3";
-  const grandTotal = netAmount2 + packingCharge;
+  const exactTotal = netAmount2 + packingCharge;
+  const grandTotal = Math.round(exactTotal);
+  const roundOffAmount = grandTotal - exactTotal;
   const inWords = numberToWords(grandTotal);
   
   if (pages.length === 0) {
@@ -433,6 +435,12 @@ function generateReceiptHTML(order: OrderData, copies: number = 1): string {
               <span style="width: 5%; text-align: center;">:</span>
               <span style="width: 45%; text-align: right; font-weight:500;">${formatAmt(packingCharge)}</span>
             </div>
+            ${roundOffAmount !== 0 ? `
+            <div class="totals-row">
+              <span style="width: 50%; color:#475569;">Round Off</span>
+              <span style="width: 5%; text-align: center;">:</span>
+              <span style="width: 45%; text-align: right; font-weight:500;">${roundOffAmount > 0 ? '+' : ''}${formatAmt(roundOffAmount)}</span>
+            </div>` : ''}
             
             <div class="totals-row" style="font-weight: 900; font-size: 16px; background: transparent; color: #000000; padding: 10px 15px; margin-top: auto; border-top: 1px solid #000000;">
               <span style="width: 50%; text-transform: uppercase; letter-spacing: 0.5px;">GRAND TOTAL</span>
