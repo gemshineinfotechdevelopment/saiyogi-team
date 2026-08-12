@@ -36,7 +36,44 @@ export interface Customer {
   totalSpent: number;
   purchases: any[];
   createdAt?: string;
+  updatedAt?: string;
 }
+
+const getCustomerLatestTimestamp = (c: Customer): number => {
+  const timestamps: number[] = [];
+
+  if (c.updatedAt) {
+    const t = new Date(c.updatedAt).getTime();
+    if (!isNaN(t) && t > 0) timestamps.push(t);
+  }
+  if (c.lastOrderDate) {
+    const t = new Date(c.lastOrderDate).getTime();
+    if (!isNaN(t) && t > 0) timestamps.push(t);
+  }
+  if (c.createdAt) {
+    const t = new Date(c.createdAt).getTime();
+    if (!isNaN(t) && t > 0) timestamps.push(t);
+  }
+  if (Array.isArray(c.productEnquiries)) {
+    c.productEnquiries.forEach((pe) => {
+      if (pe.enquiryDate) {
+        const t = new Date(pe.enquiryDate).getTime();
+        if (!isNaN(t) && t > 0) timestamps.push(t);
+      }
+    });
+  }
+  if (Array.isArray(c.purchases)) {
+    c.purchases.forEach((p) => {
+      const pDate = p.createdAt || p.date;
+      if (pDate) {
+        const t = new Date(pDate).getTime();
+        if (!isNaN(t) && t > 0) timestamps.push(t);
+      }
+    });
+  }
+
+  return timestamps.length > 0 ? Math.max(...timestamps) : 0;
+};
 
 const SourceBadges: React.FC<{ sources: string[] }> = ({ sources }) => {
   const list = sources || ['normal_login'];
@@ -93,7 +130,8 @@ const buildMergedCustomers = (apiCustomers: any[], ordersData: any[]): Customer[
       totalSpent: Number(c.totalSpent) || 0,
       lastOrderDate: c.lastOrderDate || undefined,
       purchases: Array.isArray(c.purchases) ? c.purchases : [],
-      createdAt: c.createdAt || undefined
+      createdAt: c.createdAt || undefined,
+      updatedAt: c.updatedAt || undefined
     });
   });
 
@@ -115,6 +153,9 @@ const buildMergedCustomers = (apiCustomers: any[], ordersData: any[]): Customer[
             if (!exists) existing.productEnquiries.push(pe);
           });
         }
+        if (track.updatedAt && (!existing.updatedAt || new Date(track.updatedAt).getTime() > new Date(existing.updatedAt).getTime())) {
+          existing.updatedAt = track.updatedAt;
+        }
       } else {
         map.set(pKey, {
           id: pKey,
@@ -125,7 +166,8 @@ const buildMergedCustomers = (apiCustomers: any[], ordersData: any[]): Customer[
           productEnquiries: track.productEnquiries || [],
           totalOrders: 0,
           totalSpent: 0,
-          purchases: []
+          purchases: [],
+          updatedAt: track.updatedAt || track.createdAt || new Date().toISOString()
         });
       }
     });
@@ -153,7 +195,8 @@ const buildMergedCustomers = (apiCustomers: any[], ordersData: any[]): Customer[
         productEnquiries: [],
         totalOrders: 0,
         totalSpent: 0,
-        purchases: []
+        purchases: [],
+        createdAt: o.createdAt || undefined
       };
       map.set(pKey, existing);
     }
@@ -276,8 +319,8 @@ const AdminCustomers = () => {
         return phone.includes(q) || name.includes(q) || email.includes(q);
       })
       .sort((a, b) => {
-        const dateA = a.lastOrderDate ? new Date(a.lastOrderDate).getTime() : 0;
-        const dateB = b.lastOrderDate ? new Date(b.lastOrderDate).getTime() : 0;
+        const dateA = getCustomerLatestTimestamp(a);
+        const dateB = getCustomerLatestTimestamp(b);
         return dateB - dateA;
       });
   }, [customers, sourceTab, phoneFilter]);
@@ -389,7 +432,7 @@ const AdminCustomers = () => {
                   <TableHead className="font-bold">Source</TableHead>
                   <TableHead className="font-bold">Orders</TableHead>
                   <TableHead className="font-bold">Total Spent</TableHead>
-                  <TableHead className="hidden md:table-cell font-bold">Last Order</TableHead>
+                  <TableHead className="hidden md:table-cell font-bold">Last Login / Activity</TableHead>
                   <TableHead className="text-right font-bold">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -421,8 +464,13 @@ const AdminCustomers = () => {
                           <span className="text-muted-foreground font-normal">—</span>
                         )}
                       </TableCell>
-                      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
-                        {c.lastOrderDate ? new Date(c.lastOrderDate).toLocaleDateString() : "—"}
+                      <TableCell className="hidden md:table-cell text-xs font-semibold text-muted-foreground">
+                        {(() => {
+                          const ts = getCustomerLatestTimestamp(c);
+                          if (!ts) return "—";
+                          const d = new Date(ts);
+                          return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                        })()}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button variant="outline" size="sm" onClick={() => { setSelectedCustomer(c); setSortAsc(false); }} className="rounded-xl font-bold cursor-pointer">
