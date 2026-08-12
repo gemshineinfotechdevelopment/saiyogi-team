@@ -74,7 +74,7 @@ export const createChitScheme = async (req, res, next) => {
     const finalStatus = status && ['Upcoming', 'Active', 'Completed', 'Closed'].includes(status) ? status : 'Active';
 
     const imageResult = await processChitImageUpload(req);
-    const imageUrl = imageResult?.url || 'https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=1200&auto=format&fit=crop';
+    const imageUrl = imageResult?.url || '';
 
     const chitScheme = new ChitScheme({
       title: finalTitle,
