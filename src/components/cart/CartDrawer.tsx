@@ -17,9 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createOrder, trackCustomerAction } from "@/lib/api";
-import { promptAndDownloadOrderReceiptPDF, promptAndPrintOrderReceipt } from "@/lib/pdf-generator";
 import { getCookie, setCookie } from "@/lib/cookieUtils";
-import { downloadOrderReceiptPDF, printOrderReceipt } from "@/lib/pdf-generator";
+import { promptAndDownloadOrderReceiptPDF, promptAndPrintOrderReceipt, downloadOrderReceiptPDF, printOrderReceipt } from "@/lib/pdf-generator";
 import {
   Select,
   SelectContent,
@@ -28,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
+
 import indiaStatesData from "@/lib/indiaStates.json";
 
 const getAllStates = () => Object.keys(indiaStatesData);
@@ -274,7 +274,7 @@ const CartDrawer = () => {
   const handleConfirmAndSubmitTerms = () => {
     if (savedOrderData) {
       try {
-        promptAndPrintOrderReceipt(savedOrderData);
+        downloadOrderReceiptPDF(savedOrderData);
       } catch (pdfErr) {
         console.error("PDF download failed:", pdfErr);
       }
