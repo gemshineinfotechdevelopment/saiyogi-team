@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminNavbar from "@/components/layout/AdminNavbar";
 import { getOrders, getCustomers } from "@/lib/api";
-import { downloadOrderReceiptPDF, printOrderReceipt } from "@/lib/pdf-generator";
+import { promptAndDownloadOrderReceiptPDF, promptAndPrintOrderReceipt } from "@/lib/pdf-generator";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -226,9 +226,9 @@ const handleInvoiceAction = (order: any, settings: any, action: 'download' | 'pr
   };
   
   if (action === 'download') {
-    downloadOrderReceiptPDF(orderData);
+    promptAndDownloadOrderReceiptPDF(orderData);
   } else {
-    printOrderReceipt(orderData);
+    promptAndPrintOrderReceipt(orderData);
   }
 };
 

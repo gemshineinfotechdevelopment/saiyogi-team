@@ -327,25 +327,13 @@ const AdminChitScheme: React.FC = () => {
       toast.loading("Uploading scheme image...", { id: "img-toast" });
       const cloudinaryUrl = await uploadImageToCloudinary(uploadImageFile, "chit_schemes");
 
-      if (uploadImageSelectedSchemeId) {
-        const targetScheme = schemes.find(s => String(s.id) === String(uploadImageSelectedSchemeId));
-        if (targetScheme) {
-          await updateChitScheme(targetScheme.id, { url: cloudinaryUrl });
-          toast.success("Scheme image updated successfully!", { id: "img-toast" });
-        }
-      } else if (schemes.length > 0) {
-        // Update first active scheme or create scheme image entry
-        await updateChitScheme(schemes[0].id, { url: cloudinaryUrl });
-        toast.success("Scheme image uploaded successfully!", { id: "img-toast" });
-      } else {
-        await createChitScheme({
-          title: "Sai Yogi Chit Scheme",
-          schemeName: "Sai Yogi Chit Scheme",
-          url: cloudinaryUrl,
-          status: "Active"
-        });
-        toast.success("Scheme image uploaded successfully!", { id: "img-toast" });
-      }
+      await createChitScheme({
+        title: "",
+        schemeName: "",
+        url: cloudinaryUrl,
+        status: "Active"
+      });
+      toast.success("Promotional image uploaded successfully!", { id: "img-toast" });
 
       setIsUploadImageModalOpen(false);
       setUploadImageFile(null);

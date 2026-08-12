@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createOrder, trackCustomerAction } from "@/lib/api";
+import { promptAndDownloadOrderReceiptPDF, promptAndPrintOrderReceipt } from "@/lib/pdf-generator";
 import { getCookie, setCookie } from "@/lib/cookieUtils";
 import { downloadOrderReceiptPDF, printOrderReceipt } from "@/lib/pdf-generator";
 import {
@@ -61,6 +62,18 @@ const CartDrawer = () => {
     preferredTransport: "",
   });
 
+  // Auto sync user name & phone from auth context / storage into cart checkout form
+  React.useEffect(() => {
+    const activePhone = userPhone || localStorage.getItem("user_phone") || getCookie("saiyogi_user_phone") || "";
+    const activeName = userName || localStorage.getItem("user_name") || getCookie("saiyogi_user_name") || "";
+
+    setFormData((prev) => ({
+      ...prev,
+      phoneNumber: prev.phoneNumber || activePhone,
+      name: prev.name || (activeName && activeName !== "Customer" ? activeName : "")
+    }));
+  }, [isUserLoggedIn, userPhone, userName, isCartOpen, viewMode]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     let { name, value } = e.target;
     if (name === "phoneNumber") {
@@ -80,10 +93,13 @@ const CartDrawer = () => {
 
     // If already logged in, no need to ask for mobile number verification
     if (isUserLoggedIn || isPhoneVerified) {
-      const activePhone = userPhone || formData.phoneNumber || "";
-      if (activePhone) {
-        setFormData((prev) => ({ ...prev, phoneNumber: activePhone }));
-      }
+      const activePhone = userPhone || formData.phoneNumber || localStorage.getItem("user_phone") || getCookie("saiyogi_user_phone") || "";
+      const activeName = userName || formData.name || localStorage.getItem("user_name") || getCookie("saiyogi_user_name") || "";
+      setFormData((prev) => ({
+        ...prev,
+        phoneNumber: activePhone || prev.phoneNumber,
+        name: (activeName && activeName !== "Customer") ? activeName : prev.name
+      }));
       setIsPhoneVerified(true);
       setViewMode("checkout");
     } else {
@@ -273,7 +289,7 @@ const CartDrawer = () => {
   const handleConfirmAndSubmitTerms = () => {
     if (savedOrderData) {
       try {
-        printOrderReceipt(savedOrderData);
+        promptAndPrintOrderReceipt(savedOrderData);
       } catch (pdfErr) {
         console.error("PDF download failed:", pdfErr);
       }

@@ -14,7 +14,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { downloadOrderReceiptPDF, printOrderReceipt } from "@/lib/pdf-generator";
+import { promptAndDownloadOrderReceiptPDF, promptAndPrintOrderReceipt } from "@/lib/pdf-generator";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 
 const AdminOrders = () => {
@@ -55,12 +55,12 @@ const AdminOrders = () => {
   });
 
   const handleDownloadPDF = (order: any) => {
-    downloadOrderReceiptPDF(getOrderData(order));
+    promptAndDownloadOrderReceiptPDF(getOrderData(order));
     toast.success("Downloading PDF...");
   };
 
   const handlePrintPDF = (order: any) => {
-    printOrderReceipt(getOrderData(order));
+    promptAndPrintOrderReceipt(getOrderData(order));
     toast.success("Preparing Print...");
   };
   const [phoneFilter, setPhoneFilter] = useState("");

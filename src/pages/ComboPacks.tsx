@@ -164,7 +164,7 @@ const ComboPacks = () => {
         </div>
 
         {/* Product Cards Grid (4 columns) */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mb-10">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-10">
           {comboPacks.map((pack) => (
             <ProductCard key={pack.id || pack._id} product={pack} />
           ))}

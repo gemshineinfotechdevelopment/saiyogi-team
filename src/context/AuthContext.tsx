@@ -90,8 +90,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem("user_name", cleanName);
       setCookie("saiyogi_user_name", cleanName, 365);
     } else {
-      setUserName(null);
-      localStorage.removeItem("user_name");
+      const existingName = userName || localStorage.getItem("user_name") || getCookie("saiyogi_user_name");
+      if (existingName && existingName !== "Customer") {
+        cleanName = existingName;
+        setUserName(existingName);
+      } else {
+        setUserName(null);
+        localStorage.removeItem("user_name");
+      }
     }
     setIsAuthenticated(true);
 

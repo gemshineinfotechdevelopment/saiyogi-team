@@ -363,17 +363,34 @@ const AdminProducts = () => {
 
                           if (selectedCat && selectedCat.categoryCode && selectedCat.categoryCode !== 'N/A' && !editing) {
                             const code = selectedCat.categoryCode;
+                            const catNum = parseInt(code, 10);
+                            const isNumericCat = !isNaN(catNum);
+                            const base = isNumericCat ? (code.length === 3 ? catNum * 10 : catNum) : null;
                             let maxSeq = 0;
+
                             productList.forEach(p => {
-                              if (p.sku && p.sku.startsWith(code)) {
-                                const seqStr = p.sku.substring(code.length).trim();
-                                const seqNum = parseInt(seqStr, 10);
-                                if (!isNaN(seqNum) && seqNum > maxSeq) {
-                                  maxSeq = seqNum;
+                              if (p.sku) {
+                                if (isNumericCat && base !== null) {
+                                  const pSkuNum = parseInt(p.sku, 10);
+                                  if (!isNaN(pSkuNum) && pSkuNum > base && pSkuNum < base + 100) {
+                                    const seqNum = pSkuNum - base;
+                                    if (seqNum > maxSeq) maxSeq = seqNum;
+                                  }
+                                } else if (p.sku.startsWith(code)) {
+                                  const seqStr = p.sku.substring(code.length).trim();
+                                  const seqNum = parseInt(seqStr, 10);
+                                  if (!isNaN(seqNum) && seqNum > maxSeq) {
+                                    maxSeq = seqNum;
+                                  }
                                 }
                               }
                             });
-                            calculatedSku = `${code}${maxSeq + 1}`;
+
+                            if (isNumericCat && base !== null) {
+                              calculatedSku = (base + maxSeq + 1).toString();
+                            } else {
+                              calculatedSku = `${code}${maxSeq + 1}`;
+                            }
                           }
 
                           setForm({ 

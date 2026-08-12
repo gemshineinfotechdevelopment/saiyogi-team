@@ -14,8 +14,8 @@ const chitSchemeSchema = new mongoose.Schema(
     },
     url: {
       type: String,
-      required: true,
-      trim: true
+      trim: true,
+      default: ''
     },
     public_id: {
       type: String,

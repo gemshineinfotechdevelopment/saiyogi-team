@@ -8,10 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { toast } from "sonner";
 import { getChitSchemes, ChitSchemeItem, submitChitSubscription, trackCustomerAction, getChitSubscriptions, ChitSubscriptionItem } from "@/lib/api";
 
-interface ChitSchemeImage {
+interface SchemeOption {
   id: string;
-  url?: string;
-  title?: string;
+  title: string;
   description?: string;
   startDate?: string;
   totalMonths?: number;
@@ -19,16 +18,20 @@ interface ChitSchemeImage {
   monthlyAmount?: number;
 }
 
-const DEFAULT_IMAGES: ChitSchemeImage[] = [
+interface BannerImage {
+  id: string;
+  url: string;
+  title?: string;
+  monthlyAmount?: number;
+}
+
+const DEFAULT_SCHEMES: SchemeOption[] = [
   {
     id: "1",
     title: "Diwali Special Savings Scheme 2026",
-    description: "Pay monthly advance & get 50% extra bonus fireworks free on Diwali!"
-  },
-  {
-    id: "2",
-    title: "Monthly Firecracker Advance Booking Perks",
-    description: "Guaranteed locked prices and zero festival price hikes."
+    description: "Pay monthly advance & get extra bonus fireworks free on Diwali!",
+    totalMonths: 9,
+    monthlyAmount: 2000
   }
 ];
 
@@ -58,8 +61,9 @@ const getMonthNameForIndex = (monthIndex: number, startDateStr?: string): { mont
 
 const ChitScheme: React.FC = () => {
   const { isUserLoggedIn, userPhone, userName, loginWithPhone, openLoginModal } = useAuth();
-  const [images, setImages] = useState<ChitSchemeImage[]>([]);
-  const [activeZoomImage, setActiveZoomImage] = useState<ChitSchemeImage | null>(null);
+  const [schemes, setSchemes] = useState<SchemeOption[]>([]);
+  const [bannerImages, setBannerImages] = useState<BannerImage[]>([]);
+  const [activeZoomImage, setActiveZoomImage] = useState<BannerImage | null>(null);
   const [userSubscriptions, setUserSubscriptions] = useState<ChitSubscriptionItem[]>([]);
 
   // Form states
@@ -126,32 +130,48 @@ const ChitScheme: React.FC = () => {
       getChitSchemes()
         .then((data) => {
           if (Array.isArray(data) && data.length > 0) {
-            const mapped = data.map((item: ChitSchemeItem) => ({
-              id: item._id || item.id || '',
-              url: item.url,
-              title: item.title || item.schemeName || '',
-              description: item.description || '',
-              startDate: item.startDate || '',
-              totalMonths: item.totalMonths || item.numberOfMonths || 9,
-              dueDateDay: item.dueDateDay || item.paymentDueDay || 10,
-              monthlyAmount: item.monthlyAmount || 0
-            }));
-            setImages(mapped);
-            if (mapped.length > 0 && mapped[0].title && !selectedScheme) {
-              setSelectedScheme(mapped[0].title);
+            const schemeList = data
+              .filter((item: ChitSchemeItem) => item.title || item.schemeName)
+              .map((item: ChitSchemeItem) => ({
+                id: item._id || item.id || '',
+                title: item.title || item.schemeName || '',
+                description: item.description || '',
+                startDate: item.startDate || '',
+                totalMonths: item.totalMonths || item.numberOfMonths || 9,
+                dueDateDay: item.dueDateDay || item.paymentDueDay || 10,
+                monthlyAmount: item.monthlyAmount || 0
+              }));
+
+            const imageList = data
+              .filter((item: ChitSchemeItem) => item.url && item.url.trim().length > 0)
+              .map((item: ChitSchemeItem) => ({
+                id: item._id || item.id || '',
+                url: item.url || '',
+                title: item.title || item.schemeName || '',
+                monthlyAmount: item.monthlyAmount || 0
+              }));
+
+            const finalSchemes = schemeList.length > 0 ? schemeList : DEFAULT_SCHEMES;
+            setSchemes(finalSchemes);
+            setBannerImages(imageList);
+
+            if (finalSchemes.length > 0 && !selectedScheme) {
+              setSelectedScheme(finalSchemes[0].title);
             }
           } else {
-            setImages(DEFAULT_IMAGES);
+            setSchemes(DEFAULT_SCHEMES);
+            setBannerImages([]);
             if (!selectedScheme) {
-              setSelectedScheme(DEFAULT_IMAGES[0].title || "Diwali Special Savings Scheme 2026");
+              setSelectedScheme(DEFAULT_SCHEMES[0].title);
             }
           }
         })
         .catch((err) => {
           console.error("Failed to fetch chit schemes from API:", err);
-          setImages(DEFAULT_IMAGES);
+          setSchemes(DEFAULT_SCHEMES);
+          setBannerImages([]);
           if (!selectedScheme) {
-            setSelectedScheme(DEFAULT_IMAGES[0].title || "Diwali Special Savings Scheme 2026");
+            setSelectedScheme(DEFAULT_SCHEMES[0].title);
           }
         });
     };
@@ -205,7 +225,7 @@ const ChitScheme: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const activeSchemeObj = images.find(img => img.title === selectedScheme);
+      const activeSchemeObj = schemes.find(sch => sch.title === selectedScheme);
       const payload = {
         schemeId: activeSchemeObj?.id,
         schemeName: selectedScheme,
@@ -325,12 +345,12 @@ const ChitScheme: React.FC = () => {
                     className="w-full text-xs font-semibold p-3 pr-8 bg-gray-50 border border-gray-300 rounded-2xl appearance-none focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none transition-all"
                     required
                   >
-                    {images.map((img) => (
-                      <option key={img.id} value={img.title || "Standard Scheme"}>
-                        {img.title || "Diwali Savings Scheme"}
+                    {schemes.map((sch) => (
+                      <option key={sch.id} value={sch.title}>
+                        {sch.title}
                       </option>
                     ))}
-                    {images.length === 0 && (
+                    {schemes.length === 0 && (
                       <option value="Diwali Special Savings Scheme 2026">
                         Diwali Special Savings Scheme 2026
                       </option>
@@ -445,14 +465,14 @@ const ChitScheme: React.FC = () => {
               <span>Explore promotional scheme offers below! Click any image to enlarge.</span>
             </div>
 
-            {images.length === 0 ? (
+            {bannerImages.length === 0 ? (
               <div className="py-16 text-center text-gray-400 font-medium text-sm border-2 border-dashed border-gray-200 rounded-3xl bg-white p-6">
                 <Gift className="w-10 h-10 mx-auto mb-2 opacity-40 text-amber-700" />
                 No promotional images uploaded yet.
               </div>
             ) : (
               <div className="space-y-5">
-                {images.map((img) => (
+                {bannerImages.map((img) => (
                   <div
                     key={img.id}
                     className="bg-white rounded-3xl border border-gray-200/90 p-4 sm:p-5 shadow-xs hover:shadow-md transition-all"
@@ -522,8 +542,8 @@ const ChitScheme: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
                   {userSubscriptions.map((sub, sIdx) => {
-                    const matchedScheme = images.find(
-                      img => img.title === sub.schemeName || img.id === sub.schemeId
+                    const matchedScheme = schemes.find(
+                      s => s.title === sub.schemeName || s.id === sub.schemeId
                     );
                     const totalMonths = matchedScheme?.totalMonths || 9;
                     const monthlyAmount = matchedScheme?.monthlyAmount || 0;
@@ -537,7 +557,7 @@ const ChitScheme: React.FC = () => {
                       >
                         <div className="space-y-3">
                           <div className="flex items-start justify-between gap-2">
-                            <h3 className="font-extrabold text-gray-900 text-base group-hover:text-[#7A1416] transition-colors">
+                            <h3 className="font-extrabold text-[#7A1416] text-base group-hover:text-[#900000] transition-colors">
                               {sub.schemeName}
                             </h3>
                             <span className={`shrink-0 px-2.5 py-0.5 rounded-full font-extrabold text-[11px] ${
@@ -602,8 +622,8 @@ const ChitScheme: React.FC = () => {
               <div>
                 {(() => {
                   const sub = selectedPurchasedSub;
-                  const matchedScheme = images.find(
-                    img => img.title === sub.schemeName || img.id === sub.schemeId
+                  const matchedScheme = schemes.find(
+                    s => s.title === sub.schemeName || s.id === sub.schemeId
                   );
                   const totalMonths = matchedScheme?.totalMonths || 9;
                   const startDateStr = matchedScheme?.startDate;
@@ -787,21 +807,11 @@ const ChitScheme: React.FC = () => {
       {activeZoomImage && (
         <Dialog open={!!activeZoomImage} onOpenChange={(open) => !open && setActiveZoomImage(null)}>
           <DialogContent className="max-w-4xl p-4 bg-white rounded-3xl overflow-hidden font-sans border-0 shadow-2xl">
-            <DialogHeader className="p-2 border-b border-gray-100 flex flex-col items-start">
-              <DialogTitle className="text-lg font-bold text-gray-900">
-                {activeZoomImage.title || "Chit Scheme Image"}
-              </DialogTitle>
-              {activeZoomImage.description && (
-                <DialogDescription className="text-xs text-gray-600 font-medium mt-1">
-                  {activeZoomImage.description}
-                </DialogDescription>
-              )}
-            </DialogHeader>
-            <div className="mt-3 relative w-full overflow-hidden rounded-2xl bg-gray-900 flex items-center justify-center max-h-[80vh]">
+            <div className="relative w-full overflow-hidden rounded-2xl bg-gray-900 flex items-center justify-center max-h-[85vh]">
               <img
                 src={activeZoomImage.url}
-                alt={activeZoomImage.title || "Chit Scheme Large View"}
-                className="w-full h-auto max-h-[80vh] object-contain rounded-2xl"
+                alt="Chit Scheme Banner Large View"
+                className="w-full h-auto max-h-[85vh] object-contain rounded-2xl"
               />
             </div>
           </DialogContent>
