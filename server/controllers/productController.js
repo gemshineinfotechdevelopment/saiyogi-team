@@ -113,11 +113,22 @@ export const createProduct = async (req, res, next) => {
     try {
       const allProducts = await Product.find({}, 'sku');
       const seqs = [];
+      const catNum = parseInt(categoryCode, 10);
+      const isNumericCat = !isNaN(catNum);
+      const base = isNumericCat ? (categoryCode.length === 3 ? catNum * 10 : catNum) : null;
+
       for (const p of allProducts) {
-        if (p.sku && p.sku.startsWith(categoryCode)) {
-          const seqStr = p.sku.substring(categoryCode.length).trim();
-          if (/^\d+$/.test(seqStr)) {
-            seqs.push(parseInt(seqStr, 10));
+        if (p.sku) {
+          if (isNumericCat && base !== null) {
+            const pSkuNum = parseInt(p.sku, 10);
+            if (!isNaN(pSkuNum) && pSkuNum > base && pSkuNum < base + 100) {
+              seqs.push(pSkuNum - base);
+            }
+          } else if (p.sku.startsWith(categoryCode)) {
+            const seqStr = p.sku.substring(categoryCode.length).trim();
+            if (/^\d+$/.test(seqStr)) {
+              seqs.push(parseInt(seqStr, 10));
+            }
           }
         }
       }
@@ -132,7 +143,12 @@ export const createProduct = async (req, res, next) => {
           expectedSeq++;
         }
       }
-      newSkuStr = categoryCode + expectedSeq.toString();
+
+      if (isNumericCat && base !== null) {
+        newSkuStr = (base + expectedSeq).toString();
+      } else {
+        newSkuStr = categoryCode + expectedSeq.toString();
+      }
     } catch (err) {
       console.error('Error generating SKU', err);
       newSkuStr = categoryCode + Date.now().toString().substring(5);
