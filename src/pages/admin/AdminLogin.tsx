@@ -45,7 +45,7 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-red-50 p-4">
+    <div className="admin-scope min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-red-50 p-4">
       <Card className="w-full max-w-md shadow-lg">
         <div className="p-8">
           <div className="text-center mb-8">

@@ -53,19 +53,40 @@ export const getAdminChitSchemes = async (req, res, next) => {
 // CREATE chit scheme
 export const createChitScheme = async (req, res, next) => {
   try {
-    const { title, description, displayOrder, isActive } = req.body;
+    const {
+      title,
+      schemeName,
+      description,
+      displayOrder,
+      isActive,
+      startDate,
+      totalMonths,
+      numberOfMonths,
+      dueDateDay,
+      paymentDueDay,
+      monthlyAmount,
+      status
+    } = req.body;
+
+    const finalTitle = (schemeName || title || '').trim();
+    const finalMonths = numberOfMonths ? parseInt(numberOfMonths, 10) : (totalMonths ? parseInt(totalMonths, 10) : 11);
+    const finalDueDay = paymentDueDay ? parseInt(paymentDueDay, 10) : (dueDateDay ? parseInt(dueDateDay, 10) : 10);
+    const finalStatus = status && ['Upcoming', 'Active', 'Completed', 'Closed'].includes(status) ? status : 'Active';
 
     const imageResult = await processChitImageUpload(req);
-    if (!imageResult || !imageResult.url) {
-      return next(new AppError('Chit Scheme image is required', 400));
-    }
+    const imageUrl = imageResult?.url || 'https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=1200&auto=format&fit=crop';
 
     const chitScheme = new ChitScheme({
-      title: (title || '').trim(),
+      title: finalTitle,
       description: (description || '').trim(),
-      url: imageResult.url,
-      public_id: imageResult.public_id || '',
+      url: imageUrl,
+      public_id: imageResult?.public_id || '',
       displayOrder: displayOrder ? parseInt(displayOrder, 10) : 0,
+      startDate: startDate ? String(startDate).trim() : '',
+      totalMonths: finalMonths,
+      dueDateDay: finalDueDay,
+      monthlyAmount: monthlyAmount ? parseFloat(monthlyAmount) : 0,
+      status: finalStatus,
       isActive: typeof isActive === 'boolean' ? isActive : isActive !== 'false'
     });
 
@@ -80,7 +101,20 @@ export const createChitScheme = async (req, res, next) => {
 export const updateChitScheme = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, description, displayOrder, isActive } = req.body;
+    const {
+      title,
+      schemeName,
+      description,
+      displayOrder,
+      isActive,
+      startDate,
+      totalMonths,
+      numberOfMonths,
+      dueDateDay,
+      paymentDueDay,
+      monthlyAmount,
+      status
+    } = req.body;
 
     const chitScheme = await ChitScheme.findById(id);
     if (!chitScheme) {
@@ -99,9 +133,20 @@ export const updateChitScheme = async (req, res, next) => {
       }
     }
 
-    if (title !== undefined) chitScheme.title = title.trim();
-    if (description !== undefined) chitScheme.description = description.trim();
+    const newTitle = schemeName || title;
+    if (newTitle !== undefined) chitScheme.title = String(newTitle).trim();
+    if (description !== undefined) chitScheme.description = String(description).trim();
     if (displayOrder !== undefined) chitScheme.displayOrder = parseInt(displayOrder, 10);
+    if (startDate !== undefined) chitScheme.startDate = String(startDate).trim();
+
+    const newMonths = numberOfMonths || totalMonths;
+    if (newMonths !== undefined) chitScheme.totalMonths = parseInt(newMonths, 10);
+
+    const newDueDay = paymentDueDay || dueDateDay;
+    if (newDueDay !== undefined) chitScheme.dueDateDay = parseInt(newDueDay, 10);
+
+    if (monthlyAmount !== undefined) chitScheme.monthlyAmount = parseFloat(monthlyAmount);
+    if (status && ['Upcoming', 'Active', 'Completed', 'Closed'].includes(status)) chitScheme.status = status;
     if (isActive !== undefined) chitScheme.isActive = typeof isActive === 'boolean' ? isActive : isActive !== 'false';
 
     const updated = await chitScheme.save();

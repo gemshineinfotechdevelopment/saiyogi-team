@@ -69,10 +69,11 @@ const QuickEnquiry = () => {
   }, [products]);
 
   const uniqueCategoryNames = useMemo(() => {
-    return ["All Categories", ...categories.map(c => c.name)];
+    const names = new Set(categories.map(c => c.name).filter(Boolean));
+    return ["All Categories", ...Array.from(names)];
   }, [categories]);
 
-  // Group and filter products
+  // Group and filter products cleanly without duplicates
   const groupedProducts = useMemo(() => {
     let filtered = products;
 
@@ -88,40 +89,45 @@ const QuickEnquiry = () => {
       filtered = filtered.filter(p => p.brand === selectedBrand);
     }
 
-    const catMap: Record<string, { categoryName: string; items: Product[] }> = {};
+    // Map each category uniquely by category ID or normalized name
+    const catGroupMap = new Map<string, { categoryName: string; items: Product[] }>();
+
     categories.forEach((cat) => {
-      const key = cat._id || cat.id;
-      if (key) {
-        catMap[key] = { categoryName: cat.name.toUpperCase(), items: [] };
-      }
-      if (cat.name) {
-        const nameKey = cat.name.toLowerCase();
-        if (!catMap[nameKey]) {
-          catMap[nameKey] = catMap[key] || { categoryName: cat.name.toUpperCase(), items: [] };
-        }
+      const key = String(cat._id || cat.id || cat.name).toLowerCase();
+      if (!catGroupMap.has(key)) {
+        catGroupMap.set(key, {
+          categoryName: cat.name.toUpperCase(),
+          items: [],
+        });
       }
     });
-    catMap["uncategorized"] = { categoryName: "OTHER PRODUCTS", items: [] };
+
+    const fallbackKey = "uncategorized";
+    catGroupMap.set(fallbackKey, { categoryName: "OTHER PRODUCTS", items: [] });
 
     filtered.forEach((p) => {
       const cat = p.category as any;
-      const catId = typeof cat === 'object' && cat !== null ? (cat._id || cat.id) : cat;
-      const catName = typeof cat === 'object' && cat !== null ? cat.name : (categories.find(c => (c._id || c.id) === catId)?.name || String(cat || "OTHER PRODUCTS"));
+      const catId = typeof cat === 'object' && cat !== null ? String(cat._id || cat.id || '').toLowerCase() : (cat ? String(cat).toLowerCase() : '');
+      const catName = typeof cat === 'object' && cat !== null ? cat.name : (categories.find(c => String(c._id || c.id || '').toLowerCase() === catId)?.name || String(cat || ""));
 
-      if (selectedCategory !== "All Categories" && catName.toLowerCase() !== selectedCategory.toLowerCase()) {
-        return; // skip this product
+      if (selectedCategory !== "All Categories" && catName && catName.toLowerCase() !== selectedCategory.toLowerCase()) {
+        return; // skip product if filtering by category
       }
 
-      if (catId && catMap[catId]) {
-        catMap[catId].items.push(p);
-      } else if (catName && catMap[catName.toLowerCase()]) {
-        catMap[catName.toLowerCase()].items.push(p);
-      } else {
-        catMap["uncategorized"].items.push(p);
+      // Find matching group
+      let groupKey = catId && catGroupMap.has(catId) ? catId : (catName && catGroupMap.has(catName.toLowerCase()) ? catName.toLowerCase() : fallbackKey);
+      
+      const group = catGroupMap.get(groupKey) || catGroupMap.get(fallbackKey)!;
+
+      // Prevent pushing duplicate product instances into the group
+      const pId = String(p._id || p.id);
+      if (!group.items.some(item => String(item._id || item.id) === pId)) {
+        group.items.push(p);
       }
     });
 
-    return Object.values(catMap).filter((g) => g.items.length > 0);
+    // Return unique category groups that contain items
+    return Array.from(catGroupMap.values()).filter((g) => g.items.length > 0);
   }, [products, categories, searchQuery, selectedBrand, selectedCategory]);
 
   const handleQtyChange = (product: Product, delta: number) => {
@@ -167,8 +173,8 @@ const QuickEnquiry = () => {
       <UserHeader isHidden={isNavbarHidden} />
 
       <main className={`flex-1 w-full pb-12 px-0 transition-all duration-300 ${isNavbarHidden
-        ? 'pt-[144px] md:pt-[64px]'
-        : 'pt-[204px] md:pt-[172px]'
+        ? 'pt-[68px] md:pt-[35px]'
+        : 'pt-[144px] md:pt-[157px]'
         }`}>
         {/* Sticky Filters & Cart Total Component */}
         <QuickEnquiryFilters
@@ -185,8 +191,8 @@ const QuickEnquiry = () => {
           isNavbarHidden={isNavbarHidden}
         />
 
-        <div className="w-full bg-white shadow-xl border-y border-gray-150 rounded-none mb-8 mt-4 md:mt-6">
-          <div className="flex-1 container mx-auto px-0 md:px-4 py-8">
+        <div className="w-full bg-white shadow-xl border-y border-gray-150 rounded-none mb-8 mt-1 md:mt-2">
+          <div className="flex-1 container mx-auto px-0 md:px-4 py-2 md:py-3">
 
             <div className="space-y-6 md:space-y-4">
               {loading ? (
@@ -228,7 +234,7 @@ const QuickEnquiry = () => {
                           <div className="flex justify-between items-start gap-2">
                             <div>
                               <h3 className="font-black text-gray-800 text-[13px] leading-snug uppercase">{item.name}</h3>
-                              <p className="text-gray-400 text-[10px] font-bold mt-0.5">#{pId.substring(0, 8).toUpperCase()}</p>
+                              <p className="text-gray-400 text-[10px] font-bold mt-0.5">{item.sku || item.code || (pId ? `#${pId.substring(0, 8).toUpperCase()}` : 'N/A')}</p>
                             </div>
                             <div className="text-right shrink-0">
                                <div className="font-black text-[#D35400] text-[13px]">₹{dp.toLocaleString('en-IN')}</div>
@@ -267,7 +273,7 @@ const QuickEnquiry = () => {
                         </div>
 
                             <div className="col-span-2 text-center text-xs font-bold text-gray-600 font-sans tracking-wider">
-                              #{pId.substring(0, 8).toUpperCase()}
+                              {item.sku || item.code || (pId ? `#${pId.substring(0, 8).toUpperCase()}` : 'N/A')}
                             </div>
 
                             <div className="col-span-2 flex justify-center">

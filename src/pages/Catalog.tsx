@@ -28,6 +28,24 @@ const Catalog = () => {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [isNavbarHidden, setIsNavbarHidden] = useState(false);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > 50 && currentScrollY > lastScrollY) {
+        setIsNavbarHidden(true);
+      } else if (currentScrollY < lastScrollY || currentScrollY <= 20) {
+        setIsNavbarHidden(false);
+      }
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Cart totals calculation
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
@@ -203,8 +221,8 @@ const Catalog = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative" style={{ backgroundColor: '#EFF6FF' }}>
-      <UserHeader />
+    <div className="min-h-screen flex flex-col relative bg-white" style={{ backgroundColor: '#ffffff' }}>
+      <UserHeader isHidden={isNavbarHidden} />
 
       {/* Shared Fixed Filter Component */}
       <QuickEnquiryFilters
@@ -219,6 +237,7 @@ const Catalog = () => {
         totalPrice={totalPrice}
         totalItems={totalItems}
         showTableHeader={false}
+        isNavbarHidden={isNavbarHidden}
       />
 
       {/* Search Overlay for "Search without scrolling" */}
@@ -240,7 +259,7 @@ const Catalog = () => {
             </button>
           </div>
 
-          <div className="bg-[#fefae0] rounded-2xl shadow-2xl border-2 border-red-200 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-2xl border-2 border-red-200 overflow-hidden">
             <div className="p-4 flex items-center gap-3">
               <Search className="h-6 w-6 text-red-600" />
               <input
@@ -291,7 +310,11 @@ const Catalog = () => {
         <Search className="h-6 w-6 group-hover:rotate-12 transition-transform" />
       </button>
 
-      <main className="container pb-12 pt-[100px] md:pt-[100px] flex-1">
+      <main className={`container pb-12 flex-1 transition-all duration-300 ${
+        isNavbarHidden
+          ? 'pt-[120px] md:pt-[80px]'
+          : 'pt-[195px] md:pt-[190px]'
+      }`}>
         {filtered.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 mt-0 animate-in fade-in duration-700">
             {filtered.map((p) => {

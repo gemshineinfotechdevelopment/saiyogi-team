@@ -42,7 +42,7 @@ const SafetyTips = () => {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 mb-12 bg-gray-50 border border-gray-150 p-2.5 rounded-3xl max-w-2xl mx-auto shadow-inner">
+        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 mb-12 bg-white border border-gray-200 p-2.5 rounded-3xl max-w-2xl mx-auto shadow-sm">
           <button
             onClick={() => setActiveTab('dos')}
             className={`flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all duration-300 ${

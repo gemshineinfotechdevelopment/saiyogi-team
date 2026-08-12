@@ -1,23 +1,34 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+﻿import React, { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
+import { loadUserEnquiries, EnquiryItem, formatAddress, formatString } from "@/lib/enquiryUtils";
 import { downloadOrderReceiptPDF, OrderData } from "@/lib/pdf-generator";
-import { FileText } from "lucide-react";
+import { FileText, User, ShoppingBag } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { getCookie, setCookie } from "@/lib/cookieUtils";
 import { getOrders } from "@/lib/api";
-import { EnquiryItem, loadUserEnquiries, formatAddress, formatString } from "@/lib/enquiryUtils";
 
-export type { EnquiryItem };
-export { loadUserEnquiries, formatAddress, formatString };
+const MyAccount: React.FC = () => {
+  const { userPhone, userName, isUserLoggedIn, openLoginModal } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  const initialTab = searchParams.get("tab") === "enquiry" ? "enquiry" : "account";
+  const [activeTab, setActiveTab] = useState<"account" | "enquiry">(initialTab);
 
-const MyEnquiry: React.FC = () => {
-  const { userPhone, isUserLoggedIn, openLoginModal } = useAuth();
   const [enquiries, setEnquiries] = useState<EnquiryItem[]>([]);
   const [selectedEnquiry, setSelectedEnquiry] = useState<EnquiryItem | null>(null);
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam === "enquiry") {
+      setActiveTab("enquiry");
+    } else if (tabParam === "account") {
+      setActiveTab("account");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const effectivePhone = userPhone || getCookie("saiyogi_user_phone") || localStorage.getItem("user_phone");
@@ -25,7 +36,6 @@ const MyEnquiry: React.FC = () => {
       const localCookieItems = loadUserEnquiries(effectivePhone);
       setEnquiries(localCookieItems);
 
-      // Async sync with server API
       const cleanPhone = effectivePhone.replace(/\D/g, "");
       getOrders()
         .then((backendOrders) => {
@@ -74,6 +84,11 @@ const MyEnquiry: React.FC = () => {
     }
   }, [userPhone]);
 
+  const handleTabChange = (tab: "account" | "enquiry") => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
+
   const handleDownloadEstimate = (enquiry: EnquiryItem) => {
     const pdfData: OrderData = {
       orderNumber: enquiry.enquiryNumber,
@@ -100,6 +115,9 @@ const MyEnquiry: React.FC = () => {
     downloadOrderReceiptPDF(pdfData);
   };
 
+  const displayName = userName || getCookie("saiyogi_user_name") || localStorage.getItem("user_name") || "User";
+  const displayPhone = userPhone || getCookie("saiyogi_user_phone") || localStorage.getItem("user_phone") || "-";
+
   return (
     <div className="min-h-screen flex flex-col bg-white font-sans">
       {/* Header */}
@@ -112,92 +130,145 @@ const MyEnquiry: React.FC = () => {
             Home
           </Link>
           <span>/</span>
-          <span className="text-[#4C1D95] font-bold">My Enquiry</span>
+          <span className="text-[#4C1D95] font-bold">
+            {activeTab === "enquiry" ? "My Enquiry" : "My Account"}
+          </span>
         </div>
       </div>
 
       {/* Main Content */}
       <main className="flex-1 py-8 px-4 sm:px-12 max-w-5xl mx-auto w-full">
-        <h1 className="text-2xl sm:text-3xl font-medium text-[#2A1B54] mb-8">
-          My Enquiry
-        </h1>
+        {/* Navigation Tabs Bar */}
+        <div className="flex items-center gap-3 border-b border-gray-200 mb-8">
+          <button
+            onClick={() => handleTabChange("account")}
+            className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors cursor-pointer border-b-2 ${
+              activeTab === "account"
+                ? "border-[#4C1D95] text-[#4C1D95]"
+                : "border-transparent text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            <User className="w-4 h-4" />
+            <span>Account Details</span>
+          </button>
+          <button
+            onClick={() => handleTabChange("enquiry")}
+            className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors cursor-pointer border-b-2 ${
+              activeTab === "enquiry"
+                ? "border-[#4C1D95] text-[#4C1D95]"
+                : "border-transparent text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            <ShoppingBag className="w-4 h-4" />
+            <span>My Enquiry</span>
+          </button>
+        </div>
 
-        {!isUserLoggedIn && (
-          <div className="mb-6 bg-white border border-gray-200 text-gray-900 p-4 rounded-2xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
-            <div>
-              <span>ℹ️ Log in with your mobile number to view and track your active inquiries and download PDF receipts.</span>
+        {activeTab === "account" ? (
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-medium text-[#2A1B54] mb-8">
+              My Account
+            </h1>
+
+            {/* User Account Details Table */}
+            <div className="space-y-4 text-xs sm:text-sm text-gray-900 font-medium max-w-2xl bg-white p-6 rounded-2xl border border-gray-100 shadow-2xs">
+              <div className="grid grid-cols-12 items-center py-2 border-b border-gray-100 pb-3">
+                <span className="col-span-4 font-bold text-gray-900">Name</span>
+                <span className="col-span-1 text-center font-bold">:</span>
+                <span className="col-span-7 text-gray-800 font-semibold">{displayName}</span>
+              </div>
+
+              <div className="grid grid-cols-12 items-center py-2 border-b border-gray-100 pb-3">
+                <span className="col-span-4 font-bold text-gray-900">Mobile Number</span>
+                <span className="col-span-1 text-center font-bold">:</span>
+                <span className="col-span-7 text-gray-800 font-semibold">{displayPhone}</span>
+              </div>
             </div>
-            <button
-              onClick={openLoginModal}
-              className="bg-[#A80000] hover:bg-red-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-md shrink-0 cursor-pointer uppercase tracking-wider"
-            >
-              Login with Mobile
-            </button>
+          </div>
+        ) : (
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-medium text-[#2A1B54] mb-8">
+              My Enquiry
+            </h1>
+
+            {!isUserLoggedIn && (
+              <div className="mb-6 bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-2xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+                <div>
+                  <span>Γä╣∩╕Å Log in with your mobile number to view and track your active inquiries and download PDF receipts.</span>
+                </div>
+                <button
+                  onClick={openLoginModal}
+                  className="bg-[#A80000] hover:bg-red-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-md shrink-0 cursor-pointer uppercase tracking-wider"
+                >
+                  Login with Mobile
+                </button>
+              </div>
+            )}
+
+            {/* Enquiry Table */}
+            <div className="overflow-x-auto bg-white rounded-lg border-b border-gray-200">
+              <table className="w-full text-left border-collapse min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-gray-300 text-xs font-bold text-gray-900 pb-3">
+                    <th className="py-3 px-2 w-12 text-center">#</th>
+                    <th className="py-3 px-4">Enquiry Number</th>
+                    <th className="py-3 px-6 text-left">Total</th>
+                    <th className="py-3 px-6 text-left">Status</th>
+                    <th className="py-3 px-4 text-right"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-xs sm:text-sm">
+                  {enquiries.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-12 text-center text-gray-400 font-medium">
+                        No enquiries found.
+                      </td>
+                    </tr>
+                  ) : (
+                    enquiries.map((item, index) => (
+                      <tr key={item.id || index} className="hover:bg-gray-50/60 transition-colors">
+                        <td className="py-4 px-2 text-center text-gray-500 font-medium">
+                          {index + 1}
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="font-semibold text-gray-900">{item.enquiryNumber}</div>
+                          <div className="text-[11px] text-blue-600 font-medium mt-0.5">
+                            {item.date}
+                          </div>
+                        </td>
+                        <td className="py-4 px-6 font-bold text-emerald-600">
+                          Γé╣ {item.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="text-rose-600 font-medium">
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-right">
+                          <div className="flex items-center justify-end gap-3 text-xs">
+                            <button
+                              onClick={() => setSelectedEnquiry(item)}
+                              className="text-blue-600 hover:text-blue-800 font-medium cursor-pointer flex items-center gap-1 transition-colors"
+                            >
+                              View
+                            </button>
+                            <button
+                              onClick={() => handleDownloadEstimate(item)}
+                              className="text-blue-600 hover:text-blue-800 font-medium cursor-pointer flex items-center gap-1 transition-colors"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              <span>Estimate</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
-
-        {/* Enquiry Table */}
-        <div className="overflow-x-auto bg-white rounded-lg border-b border-gray-200">
-          <table className="w-full text-left border-collapse min-w-[600px]">
-            <thead>
-              <tr className="border-b border-gray-300 text-xs font-bold text-gray-900 pb-3">
-                <th className="py-3 px-2 w-12 text-center">#</th>
-                <th className="py-3 px-4">Enquiry Number</th>
-                <th className="py-3 px-6 text-left">Total</th>
-                <th className="py-3 px-6 text-left">Status</th>
-                <th className="py-3 px-4 text-right"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 text-xs sm:text-sm">
-              {enquiries.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="py-12 text-center text-gray-400 font-medium">
-                    No enquiries found.
-                  </td>
-                </tr>
-              ) : (
-                enquiries.map((item, index) => (
-                  <tr key={item.id || index} className="hover:bg-gray-50/60 transition-colors">
-                    <td className="py-4 px-2 text-center text-gray-500 font-medium">
-                      {index + 1}
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="font-semibold text-gray-900">{item.enquiryNumber}</div>
-                      <div className="text-[11px] text-blue-600 font-medium mt-0.5">
-                        {item.date}
-                      </div>
-                    </td>
-                    <td className="py-4 px-6 font-bold text-emerald-600">
-                      ₹ {item.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="text-rose-600 font-medium">
-                        {item.status}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      <div className="flex items-center justify-end gap-3 text-xs">
-                        <button
-                          onClick={() => setSelectedEnquiry(item)}
-                          className="text-blue-600 hover:text-blue-800 font-medium cursor-pointer flex items-center gap-1 transition-colors"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => handleDownloadEstimate(item)}
-                          className="text-blue-600 hover:text-blue-800 font-medium cursor-pointer flex items-center gap-1 transition-colors"
-                        >
-                          <FileText className="w-3.5 h-3.5" />
-                          <span>Estimate</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
       </main>
 
       {/* Enquiry Details Modal */}
@@ -233,7 +304,7 @@ const MyEnquiry: React.FC = () => {
                           <span className="font-semibold text-gray-800">{formatString(prod.productName, "Product")}</span>
                           <span className="text-gray-400 ml-2">x {prod.quantity || 1}</span>
                         </div>
-                        <span className="font-bold text-gray-900">₹ {((prod.price || 0) * (prod.quantity || 1)).toLocaleString("en-IN")}</span>
+                        <span className="font-bold text-gray-900">Γé╣ {((prod.price || 0) * (prod.quantity || 1)).toLocaleString("en-IN")}</span>
                       </div>
                     ))
                   )}
@@ -243,7 +314,7 @@ const MyEnquiry: React.FC = () => {
               <div className="flex justify-between items-center pt-2 border-t border-gray-100 text-sm">
                 <span className="font-bold text-gray-700">Grand Total:</span>
                 <span className="font-black text-emerald-600 text-base">
-                  ₹ {selectedEnquiry.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                  Γé╣ {selectedEnquiry.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                 </span>
               </div>
             </div>
@@ -273,4 +344,4 @@ const MyEnquiry: React.FC = () => {
   );
 };
 
-export default MyEnquiry;
+export default MyAccount;

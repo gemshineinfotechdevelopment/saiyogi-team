@@ -16,7 +16,7 @@ const UserFooter = () => {
   return (
     <footer className="mt-auto font-body flex flex-col">
       {/* Features Bar */}
-      <div className="bg-[#F9F6F0] py-4 md:py-8 border-t border-b border-gray-200">
+      <div className="bg-white py-4 md:py-8 border-t border-b border-gray-200">
         <div className="container mx-auto px-3 sm:px-4">
           <div className="flex flex-col md:grid md:grid-cols-5 gap-3 md:gap-6 text-center md:divide-x divide-gray-200">
             {/* Top Row for Mobile: 2 Items */}
@@ -59,7 +59,7 @@ const UserFooter = () => {
       </div>
 
       {/* Main Footer */}
-      <div className="bg-[#EBEBEB] text-gray-800">
+      <div className="bg-white border-t border-gray-200 text-gray-800">
         <div className="container mx-auto px-4 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* About Section */}
           <div>
@@ -146,9 +146,11 @@ const UserFooter = () => {
 
           {/* Contact Us */}
           <div>
-            <h4 className="font-bold text-black mb-6 text-sm uppercase">Contact Us</h4>
-            <div className="flex flex-col gap-3 text-xs text-gray-600 font-semibold mb-4">
-              <span>{settings.contact?.address || "Sai Yogi Crackers, Sivakasi."}</span>
+            <h4 className="font-bold text-black mb-6 text-sm uppercase">Factory & Contact Info</h4>
+            <div className="flex flex-col gap-3 text-xs text-gray-600 font-semibold mb-4 leading-relaxed">
+              <span>📍 {settings.contact?.address || "Aanoor & Co, Sivakasi Crackers Main Market, Sivakasi - 626123, Tamil Nadu."}</span>
+              <span>📜 License Operator: <b>E/SC/TN/24/937 (E79455)</b></span>
+              <span>🏢 GST Registration: <b>33ACBPI9592C2ZP</b></span>
               <div className="flex flex-col gap-1 mt-2">
                 {settings.contact?.phone && (
                   <a href={`tel:${settings.contact.phone.replace(/[^0-9+]/g, '')}`} className="flex items-center gap-2 border border-gray-300 bg-white px-3 py-1.5 rounded text-[#A80000] hover:bg-gray-50 transition-colors w-max">
@@ -165,16 +167,18 @@ const UserFooter = () => {
           </div>
         </div>
 
+        {/* Legal Disclaimer Bar */}
+        <div className="bg-[#e2e2e2] py-3 text-[11px] text-gray-600 border-t border-gray-300">
+          <div className="container mx-auto px-4 text-center font-medium leading-normal">
+            <b>Supreme Court Order Compliance:</b> As per the 2018 Supreme Court directive, online selling of firecrackers is strictly prohibited. This portal functions solely as a digital catalog & price estimator. All deliveries are strictly handled through licensed offline transport partners.
+          </div>
+        </div>
+
         {/* Bottom bar */}
         <div className="bg-[#EBEBEB] border-t border-gray-300 py-4">
-          <div className="container mx-auto px-4 flex flex-col sm:flex-row justify-between items-center text-[10px] text-gray-500 uppercase tracking-widest font-semibold gap-2">
+          <div className="container mx-auto px-4 flex flex-col sm:flex-row justify-between items-center text-[10px] text-gray-500 uppercase tracking-widest font-semibold gap-2 text-center sm:text-left">
             <div>
               © 2026 {settings.siteName || "Sai Yogi Crackers"}. All rights reserved.
-            </div>
-            <div className="flex gap-2 opacity-60">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/320px-Visa_Inc._logo.svg.png" alt="Visa" className="h-4 object-contain" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/320px-Mastercard-logo.svg.png" alt="Mastercard" className="h-4 object-contain" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/320px-PayPal.svg.png" alt="PayPal" className="h-4 object-contain" />
             </div>
           </div>
         </div>
