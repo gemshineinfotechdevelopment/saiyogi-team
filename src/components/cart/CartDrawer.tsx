@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createOrder, trackCustomerAction } from "@/lib/api";
+import { promptAndDownloadOrderReceiptPDF, promptAndPrintOrderReceipt } from "@/lib/pdf-generator";
 import { getCookie, setCookie } from "@/lib/cookieUtils";
 import { downloadOrderReceiptPDF, printOrderReceipt } from "@/lib/pdf-generator";
 import {
@@ -273,7 +274,7 @@ const CartDrawer = () => {
   const handleConfirmAndSubmitTerms = () => {
     if (savedOrderData) {
       try {
-        printOrderReceipt(savedOrderData);
+        promptAndPrintOrderReceipt(savedOrderData);
       } catch (pdfErr) {
         console.error("PDF download failed:", pdfErr);
       }
