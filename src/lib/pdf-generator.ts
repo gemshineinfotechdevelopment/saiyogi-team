@@ -38,14 +38,14 @@ export interface OrderData {
   gstNumber?: string;
 }
 
-export function downloadOrderReceiptPDF(orderData: OrderData) {
-  const html = generateReceiptHTML(orderData);
+export function downloadOrderReceiptPDF(orderData: OrderData, copies: number = 1) {
+  const html = generateReceiptHTML(orderData, copies);
 
   const tempDiv = document.createElement("div");
   tempDiv.innerHTML = html;
   tempDiv.style.position = "absolute";
   tempDiv.style.left = "-9999px";
-  tempDiv.style.width = "800px";
+  tempDiv.style.width = "210mm";
   document.body.appendChild(tempDiv);
 
   const cleanup = () => {
@@ -75,21 +75,22 @@ export function downloadOrderReceiptPDF(orderData: OrderData) {
             const imgData = canvas.toDataURL("image/jpeg", 0.8);
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
-            const margin = 10;
-            const imgWidth = pdfWidth - (margin * 2);
+            
+            // The HTML already has 10mm padding in .page, so no extra jsPDF margin needed.
+            const imgWidth = pdfWidth;
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            const pageHeight = pdfHeight - (margin * 2);
+            const pageHeight = pdfHeight;
 
             let heightLeft = imgHeight;
-            let position = margin;
+            let position = 0;
 
-            pdf.addImage(imgData, "JPEG", margin, position, imgWidth, imgHeight, undefined, 'MEDIUM');
+            pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, 'MEDIUM');
             heightLeft -= pageHeight;
 
-            while (heightLeft > 0) {
-              position = margin - (imgHeight - heightLeft);
+            while (heightLeft > 0.5) { // 0.5 buffer to prevent tiny floating pixel page
+              position -= pageHeight;
               pdf.addPage();
-              pdf.addImage(imgData, "JPEG", margin, position, imgWidth, imgHeight, undefined, 'MEDIUM');
+              pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, 'MEDIUM');
               heightLeft -= pageHeight;
             }
 
@@ -114,8 +115,8 @@ export function downloadOrderReceiptPDF(orderData: OrderData) {
   }
 }
 
-export function printOrderReceipt(orderData: OrderData) {
-  const html = generateReceiptHTML(orderData);
+export function printOrderReceipt(orderData: OrderData, copies: number = 1) {
+  const html = generateReceiptHTML(orderData, copies);
   const iframe = document.createElement('iframe');
   iframe.style.position = 'fixed';
   iframe.style.right = '0';
@@ -143,6 +144,22 @@ export function printOrderReceipt(orderData: OrderData) {
   }
 }
 
+export function promptAndPrintOrderReceipt(orderData: OrderData) {
+  const copiesStr = window.prompt("How many copies would you like to print? (e.g., 2 for Original & Duplicate)", "1");
+  if (copiesStr === null) return;
+  const copies = parseInt(copiesStr, 10);
+  if (isNaN(copies) || copies < 1) return;
+  printOrderReceipt(orderData, copies);
+}
+
+export function promptAndDownloadOrderReceiptPDF(orderData: OrderData) {
+  const copiesStr = window.prompt("How many copies would you like to include in the PDF? (e.g., 2 for Original & Duplicate)", "1");
+  if (copiesStr === null) return;
+  const copies = parseInt(copiesStr, 10);
+  if (isNaN(copies) || copies < 1) return;
+  downloadOrderReceiptPDF(orderData, copies);
+}
+
 function numberToWords(n: number): string {
   const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
     'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
@@ -163,13 +180,9 @@ function numberToWords(n: number): string {
   return result + ' Only';
 }
 
-function generateReceiptHTML(order: OrderData): string {
+function generateReceiptHTML(order: OrderData, copies: number = 1): string {
   const allItems = order.items;
   const discountPct = order.discountPercent || 0;
-
-  let totalValue = 0;
-  let totalDiscountAmount = 0;
-  let totalNetRateAmount = 0;
 
   const formatAmt = (num: number) => Number(num).toLocaleString('en-IN', {
     minimumFractionDigits: 2,
@@ -194,24 +207,31 @@ function generateReceiptHTML(order: OrderData): string {
   let sNo = 1;
 
   if (discountItems.length > 0) {
-    allRows.push({
-      type: 'header',
-      content: `
-      <tr style="background:#f9f9f9;">
-        <td colspan="8" style="padding:4px; border-left:1px solid #000; border-right:1px solid #000; text-align:center; font-weight:bold; background:#fef2f2; color:#900000;">Retail Products</td>
-      </tr>
-      `
-    });
+    if (netRateItems.length > 0) {
+      allRows.push({
+        type: 'header',
+        content: `
+        <tr style="background:#f9f9f9;">
+          <td colspan="8" style="padding:4px; border-left:1px solid #000; border-right:1px solid #000; text-align:center; font-weight:bold; background:#fef2f2; color:#900000;">Retail Products</td>
+        </tr>
+        `
+      });
+    }
+
     discountItems.forEach(item => {
-      const originalPrice = item.originalPrice || item.price;
+      const originalPrice = item.originalPrice !== undefined ? item.originalPrice : (item.price || 0);
       const qty = item.quantity;
       const mrpTotal = originalPrice * qty;
-      const lessAmt = mrpTotal - (item.price * qty);
-      const lineTotal = item.price * qty;
+      
+      const lineTotal = (item.price || 0) * qty;
+      const lessAmt = mrpTotal - lineTotal;
+      
+      // Calculate effective discount percentage to show
+      let effectiveDiscPct = '0';
+      if (mrpTotal > 0 && lessAmt > 0) {
+          effectiveDiscPct = String(Math.round((lessAmt / mrpTotal) * 100));
+      }
 
-      totalValue += mrpTotal;
-      totalDiscountAmount += lessAmt;
-      const discPct = (item.hasDiscount && discountPct > 0) ? String(discountPct) : '0';
       allRows.push({
         type: 'item',
         content: `
@@ -221,7 +241,7 @@ function generateReceiptHTML(order: OrderData): string {
           <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center; font-weight:bold;">${qty} Box</td>
           <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center;">${formatAmt(originalPrice)}</td>
           <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center;">${formatAmt(mrpTotal)}</td>
-          <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center;">${discPct}%</td>
+          <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center;">${effectiveDiscPct}%</td>
           <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center;">${formatAmt(lessAmt)}</td>
           <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center; font-weight:bold;">${formatAmt(lineTotal)}</td>
         </tr>
@@ -242,12 +262,9 @@ function generateReceiptHTML(order: OrderData): string {
     netRateItems.forEach(item => {
       const qty = item.quantity;
       const netPrice = item.netRate || item.price;
-      const originalPrice = netPrice;
       const mrpTotal = netPrice * qty;
       const lineTotal = netPrice * qty;
 
-      totalNetRateAmount += lineTotal;
-      totalValue += lineTotal;
       allRows.push({
         type: 'item',
         content: `
@@ -255,10 +272,10 @@ function generateReceiptHTML(order: OrderData): string {
           <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center;">${sNo++}</td>
           <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center; font-weight: 500;">${item.productName.toUpperCase()}</td>
           <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center; font-weight:bold;">${qty} Box</td>
-          <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center;">${formatAmt(originalPrice)}</td>
+          <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center;">${formatAmt(netPrice)}</td>
           <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center;">${formatAmt(mrpTotal)}</td>
-          <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center;">-</td>
-          <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center;">-</td>
+          <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center; color:#94a3b8;">-</td>
+          <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center; color:#94a3b8;">-</td>
           <td style="padding:7px 4px; border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #e2e8f0; text-align:center; font-weight:bold;">${formatAmt(lineTotal)}</td>
         </tr>
         `
@@ -266,45 +283,92 @@ function generateReceiptHTML(order: OrderData): string {
     });
   }
 
-  const ROWS_PER_PAGE_NORMAL = 28;
-  const ROWS_PER_PAGE_LAST = 15;
+  const MAX_ROWS_FIRST_AND_LAST = 14;  // Page 1 AND Last Page (Must be small to fit both header and footer)
+  const MAX_ROWS_FIRST_PAGE = 22;     // Page 1, NOT Last Page
+  const MAX_ROWS_OTHER_PAGE = 22;     // Middle pages (no header, no footer)
+  const MAX_ROWS_LAST_PAGE = 22;      // Last Page, NOT Page 1 (no header, yes footer)
 
-  const pages: { rows: any[], isLastPage: boolean }[] = [];
+  const pages: { rows: any[], isLastPage: boolean, isFirstPage: boolean }[] = [];
   let currentRowIndex = 0;
+  let isFirstPage = true;
 
   while (currentRowIndex < allRows.length) {
     const rowsRemaining = allRows.length - currentRowIndex;
     
-    if (rowsRemaining <= ROWS_PER_PAGE_LAST) {
-      pages.push({
-        rows: allRows.slice(currentRowIndex),
-        isLastPage: true
-      });
-      break;
-    } else {
-      const rowsForThisPage = Math.min(rowsRemaining, ROWS_PER_PAGE_NORMAL);
-      pages.push({
-        rows: allRows.slice(currentRowIndex, currentRowIndex + rowsForThisPage),
-        isLastPage: false
-      });
-      currentRowIndex += rowsForThisPage;
-      
-      if (currentRowIndex >= allRows.length) {
-        pages.push({ rows: [], isLastPage: true });
+    if (isFirstPage) {
+      if (rowsRemaining <= MAX_ROWS_FIRST_AND_LAST) {
+        pages.push({
+          rows: allRows.slice(currentRowIndex),
+          isLastPage: true,
+          isFirstPage: true
+        });
         break;
+      } else {
+        const rowsForThisPage = Math.min(rowsRemaining, MAX_ROWS_FIRST_PAGE);
+        pages.push({
+          rows: allRows.slice(currentRowIndex, currentRowIndex + rowsForThisPage),
+          isLastPage: false,
+          isFirstPage: true
+        });
+        currentRowIndex += rowsForThisPage;
+      }
+    } else {
+      if (rowsRemaining <= MAX_ROWS_LAST_PAGE) {
+        pages.push({
+          rows: allRows.slice(currentRowIndex),
+          isLastPage: true,
+          isFirstPage: false
+        });
+        break;
+      } else {
+        const rowsForThisPage = Math.min(rowsRemaining, MAX_ROWS_OTHER_PAGE);
+        pages.push({
+          rows: allRows.slice(currentRowIndex, currentRowIndex + rowsForThisPage),
+          isLastPage: false,
+          isFirstPage: false
+        });
+        currentRowIndex += rowsForThisPage;
       }
     }
+    isFirstPage = false;
   }
+  
   if (pages.length === 0) {
-    pages.push({ rows: [], isLastPage: true });
+    pages.push({ rows: [], isLastPage: true, isFirstPage: true });
+  } else if (!pages[pages.length - 1].isLastPage) {
+    pages.push({ rows: [], isLastPage: true, isFirstPage: false });
   }
 
-  const netAmount1 = totalValue - totalDiscountAmount - totalNetRateAmount;
+  let grossRetailValue = 0;
+  let totalDiscountAmount = 0;
+  let totalNetRateAmount = 0;
+
+  allItems.forEach(item => {
+    const isNetRate = (item.displayNetRate === true || String(item.displayNetRate) === 'true') && item.netRate !== undefined && item.netRate > 0;
+    const qty = item.quantity;
+    
+    if (!isNetRate) {
+      const originalPrice = item.originalPrice !== undefined ? item.originalPrice : (item.price || 0);
+      const itemMrpTotal = originalPrice * qty;
+      const lineTotal = (item.price || 0) * qty;
+      
+      grossRetailValue += itemMrpTotal;
+      totalDiscountAmount += (itemMrpTotal - lineTotal);
+    } else {
+      totalNetRateAmount += (item.netRate! * qty);
+    }
+  });
+
+  const netAmount1 = grossRetailValue - totalDiscountAmount;
   const netAmount2 = netAmount1 + totalNetRateAmount;
   const packingCharge = order.packingCharge ?? (netAmount2 <= 3999 ? 120 : Math.round(netAmount2 * 0.03));
   const packingPct = netAmount2 > 0 ? (netAmount2 <= 3999 ? "Flat" : Math.round((packingCharge / netAmount2) * 100).toString()) : "3";
   const grandTotal = netAmount2 + packingCharge;
   const inWords = numberToWords(grandTotal);
+  
+  if (pages.length === 0) {
+    pages.push({ rows: [], isLastPage: true, isFirstPage: true });
+  }
 
   const shopName = (order.companyName?.trim() || order.siteName?.trim()) ? (order.companyName || order.siteName) : 'NARENDIRAA ENTERPRISES';
   const shopPhone = (order.sitePhone && order.sitePhone.trim()) ? order.sitePhone : '+91 95859 75756';
@@ -340,7 +404,7 @@ function generateReceiptHTML(order: OrderData): string {
             <div class="totals-row" style="padding-top: 10px;">
               <span style="width: 50%; color:#475569;">Retail Amount</span>
               <span style="width: 5%; text-align: center;">:</span>
-              <span style="width: 45%; text-align: right; font-weight:500;">${formatAmt(totalValue - totalNetRateAmount)}</span>
+              <span style="width: 45%; text-align: right; font-weight:500;">${formatAmt(grossRetailValue)}</span>
             </div>
             <div class="totals-row">
               <span style="width: 50%; color:#475569;">Discount <span style="display:inline-block; float:right; background:#f1f5f9; padding:0 4px; border-radius:3px;">${discountPct}%</span></span>
@@ -352,11 +416,13 @@ function generateReceiptHTML(order: OrderData): string {
               <span style="width: 5%; text-align: center;">:</span>
               <span style="width: 45%; text-align: right; color:#900000;">${formatAmt(netAmount1)}</span>
             </div>
+            ${totalNetRateAmount > 0 ? `
             <div class="totals-row" style="margin-top:4px;">
               <span style="width: 50%; color:#475569;">Net-Rate Total</span>
               <span style="width: 5%; text-align: center;">:</span>
               <span style="width: 45%; text-align: right; font-weight:500;">${formatAmt(totalNetRateAmount)}</span>
             </div>
+            ` : ''}
             <div class="totals-row" style="font-weight: bold;">
               <span style="width: 50%;">Subtotal</span>
               <span style="width: 5%; text-align: center;">:</span>
@@ -377,13 +443,7 @@ function generateReceiptHTML(order: OrderData): string {
         </div>
       ` : '';
 
-      return `
-        <div class="page">
-          <div class="page-content">
-            <div class="watermark">
-              <img src="${saiyogiLogo}" />
-            </div>
-            
+      const headerHTML = page.isFirstPage ? `
             <div class="header">
               <table width="100%" border="0" cellpadding="0" cellspacing="0">
                 <tr>
@@ -392,8 +452,7 @@ function generateReceiptHTML(order: OrderData): string {
                     <div style="font-size: 11px; font-weight: bold; color: #64748b; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Proforma Estimate</div>
                   </td>
                   <td valign="top" align="right">
-                    <div style="font-size: 10px; font-weight: bold; margin-bottom: 5px; color: #64748b;">Page ${pageNum} of ${totalPages}</div>
-                    <img src="${saiyogiLogo}" style="height: 120px; width: auto; max-width: 300px; object-fit: contain;" />
+                    <img src="${saiyogiLogo}" style="height: 160px; width: auto; max-width: 350px; object-fit: contain;" />
                   </td>
                 </tr>
               </table>
@@ -426,30 +485,47 @@ function generateReceiptHTML(order: OrderData): string {
                 </div>
               </div>
             </div>
+      ` : ``;
 
-            <table class="main-table">
-              <thead>
-                <tr>
-                  <th style="width: 4%;">S No.</th>
-                  <th style="width: 38%;">Product Name</th>
-                  <th style="width: 8%;">Qty</th>
-                  <th style="width: 10%;">Price</th>
-                  <th style="width: 10%;">Total</th>
-                  <th style="width: 8%;">Disc%</th>
-                  <th style="width: 10%;">Less</th>
-                  <th style="width: 12%;">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${page.rows.map(r => r.content).join('')}
-              </tbody>
-            </table>
+      return `
+        <div class="page" style="position: relative;">
+          <div class="watermark">
+            <img src="${saiyogiLogo}" />
+          </div>
+          <div class="page-content">
+            ${headerHTML}
+
+            <div style="position: relative;">
+              <table class="main-table">
+                <thead>
+                  <tr>
+                    <th style="width: 4%;">S No.</th>
+                    <th style="width: 38%;">Product Name</th>
+                    <th style="width: 8%;">Qty</th>
+                    <th style="width: 10%;">Price</th>
+                    <th style="width: 10%;">Total</th>
+                    <th style="width: 8%;">Disc%</th>
+                    <th style="width: 10%;">Less</th>
+                    <th style="width: 12%;">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${page.rows.map(r => r.content).join('')}
+                </tbody>
+              </table>
+            </div>
             
             ${footerHTML}
           </div>
         </div>
       `;
     }).join('');
+
+  let finalMultiCopyHTML = '';
+  
+  for(let c=0; c<copies; c++) {
+    finalMultiCopyHTML += finalHTML;
+  }
 
   return `
 <!DOCTYPE html>
@@ -472,15 +548,19 @@ body {
   print-color-adjust: exact;
 }
 .page {
+  position: relative;
   width: 210mm;
   height: 297mm;
+  max-height: 297mm;
   padding: 10mm;
+  margin: 0 auto;
+  background: white;
   box-sizing: border-box;
+  overflow: hidden;
   page-break-after: always;
   display: flex;
   flex-direction: column;
   position: relative;
-  background: #fff;
 }
 .page-content {
   border: 1px solid #000000;
@@ -489,18 +569,19 @@ body {
   flex-direction: column;
   position: relative;
   z-index: 1;
+  overflow: hidden;
 }
 .watermark {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, calc(-50% + 60px));
   opacity: 0.15;
   z-index: 0;
   pointer-events: none;
 }
 .watermark img {
-  width: 700px;
+  width: 450px;
   height: auto;
   object-fit: contain;
 }
@@ -556,7 +637,7 @@ table.main-table {
 </style>
 </head>
 <body>
-  ${finalHTML}
+  ${finalMultiCopyHTML}
 </body>
 </html>
 `;

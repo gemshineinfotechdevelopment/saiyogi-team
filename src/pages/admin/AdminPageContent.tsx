@@ -204,9 +204,12 @@ const AdminPageContent = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Banner Images</CardTitle>
+                <CardTitle>Main Banner Images</CardTitle>
                 <CardDescription>
-                  Upload high-quality images. Recommended resolution: 1920x600 pixels.
+                  Upload high-quality images for the main left-side carousel. 
+                  <br />
+                  <strong className="text-[#A80000]">Recommended Size: 1920 x 600 pixels (Landscape)</strong>
+                  <br />
                   Supported formats: JPG, PNG, WebP. Banners are saved automatically.
                 </CardDescription>
               </CardHeader>
@@ -291,7 +294,11 @@ const AdminPageContent = () => {
               <CardHeader>
                 <CardTitle>Secondary Banners (Notice Board)</CardTitle>
                 <CardDescription>
-                  Upload images for the secondary carousel on the right side of the home page. These will automatically cycle like the main banners.
+                  Upload images for the secondary carousel on the right side of the home page.
+                  <br />
+                  <strong className="text-[#A80000]">Recommended Size: 600 x 800 pixels (Portrait / 3:4 Ratio)</strong>
+                  <br />
+                  These will automatically cycle like the main banners.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
