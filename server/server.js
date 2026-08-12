@@ -44,27 +44,47 @@ const allowedOrigins = [
   'http://localhost:5000',
   'http://localhost:8080',
   'http://localhost:8081',
-  process.env.CLIENT_URL
-].filter(Boolean);
+];
+
+if (process.env.CLIENT_URL) {
+  const envOrigins = process.env.CLIENT_URL.split(',').map(u => u.trim()).filter(Boolean);
+  allowedOrigins.push(...envOrigins);
+}
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Check if origin is in allowedOrigins, is a vercel preview, or if it's a development environment
+    // 1. Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+    if (!origin) {
+      return callback(null, true);
+    }
+    // 2. Allow explicitly configured origins
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    // 3. Allow all Vercel previews (*.vercel.app), Netlify (*.netlify.app) & Render (*.onrender.com)
     if (
-      !origin || 
-      allowedOrigins.includes(origin) || 
-      (origin && origin.endsWith('.vercel.app')) ||
+      origin.endsWith('.vercel.app') ||
+      origin.endsWith('.netlify.app') ||
+      origin.endsWith('.onrender.com')
+    ) {
+      return callback(null, true);
+    }
+    // 4. Allow local development origins
+    if (
+      origin.startsWith('http://localhost:') ||
+      origin.startsWith('http://127.0.0.1:') ||
       process.env.NODE_ENV === 'development'
     ) {
-      callback(null, true);
-    } else {
-      logger.warn('Blocked by CORS', { origin });
-      callback(new Error("Not allowed by CORS"));
+      return callback(null, true);
     }
+
+    logger.warn('CORS request blocked from origin:', { origin });
+    return callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'Cache-Control', 'Pragma', 'Origin'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
   optionsSuccessStatus: 200,
   preflightContinue: false
 };
@@ -84,8 +104,14 @@ app.use(requestLogger);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+import fs from 'fs';
+
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
-app.use(express.static(path.join(__dirname, '../dist')));
+
+const distPath = path.join(__dirname, '../dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+}
 
 import connectDB from './config/db.js';
 
@@ -94,9 +120,17 @@ connectDB();
 
 logger.info('Server initialized');
 
-// Health Check
+// Health Check Endpoints
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Server is healthy', uptime: process.uptime() });
+});
+
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'API is healthy', uptime: process.uptime() });
+});
+
 app.get('/', (req, res) => {
-  res.json({ status: 'ok', message: 'Server is running' });
+  res.json({ status: 'ok', message: 'Sai Yogi Crackers Backend API Server' });
 });
 
 // Routes
@@ -114,15 +148,19 @@ app.use('/api/chit-schemes', chitSchemesRouter);
 app.use('/api/chit-subscriptions', chitSubscriptionsRouter);
 app.use('/api/chit-applications', chitSubscriptionsRouter);
 
-
 // 404 Handler for API routes
 app.use('/api', (req, res) => {
   res.status(404).json({ error: 'API route not found' });
 });
 
-// For any other route, serve the frontend index.html (SPA routing)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
+// For any other route, serve frontend index.html if dist exists
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  const indexPath = path.join(__dirname, '../dist', 'index.html');
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  res.status(200).json({ status: 'ok', message: 'Sai Yogi Crackers Backend API Server' });
 });
 
 // Error Handler (must be last)

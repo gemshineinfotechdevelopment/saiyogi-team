@@ -120,7 +120,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, password: string) => {
-    const primaryBase = isLocalhost ? "" : ((import.meta.env.VITE_API_URL as string) || "http://localhost:5000");
+    const rawBase = isLocalhost ? "" : ((import.meta.env.VITE_API_URL as string) || "http://localhost:5000");
+    const primaryBase = rawBase.trim().replace(/\/+$/, "");
     const urlsToTry = isLocalhost
       ? [
           `${primaryBase}/api/auth/login`,
