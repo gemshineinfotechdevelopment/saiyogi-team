@@ -27,6 +27,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
+import ProductCard from "@/components/ProductCard";
+import { Product } from "@/data/products";
 
 import indiaStatesData from "@/lib/indiaStates.json";
 
@@ -42,6 +44,7 @@ const CartDrawer = () => {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [completedOrderNumber, setCompletedOrderNumber] = useState<string>("");
+  const [selectedCartProduct, setSelectedCartProduct] = useState<Product | null>(null);
   
   // WhatsApp OTP Verification states
   const [otpStep, setOtpStep] = useState<"number" | "otp">("number");
@@ -391,10 +394,18 @@ const CartDrawer = () => {
                   const stockVal = product.storeStockPieces !== undefined ? Number(product.storeStockPieces) : (product.stock !== undefined ? Number(product.stock) : 999);
                   return (
                     <div key={productId} className="py-3.5 flex gap-3 items-start">
-                      <img src={stockVal <= 0 ? '/saiyogi-logo-1.png' : product.image} alt={product.name} className="w-14 h-14 rounded-md object-contain shrink-0 border border-gray-100 p-0.5" />
+                      <img
+                        src={stockVal <= 0 ? '/saiyogi-logo-1.png' : product.image}
+                        alt={product.name}
+                        className="w-14 h-14 rounded-md object-contain shrink-0 border border-gray-100 p-0.5 cursor-pointer hover:border-[#A80000]/40 transition-colors"
+                        onClick={() => setSelectedCartProduct(product)}
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2 mb-1">
-                          <h4 className="product-title-font font-extrabold sm:font-bold text-base sm:text-sm text-gray-900 truncate">{product.name}</h4>
+                          <h4
+                            className="product-title-font font-extrabold sm:font-bold text-base sm:text-sm text-gray-900 truncate cursor-pointer hover:text-[#A80000] transition-colors"
+                            onClick={() => setSelectedCartProduct(product)}
+                          >{product.name}</h4>
                           <button 
                             onClick={() => removeFromCart(productId)} 
                             className="text-gray-400 hover:text-red-500 transition-colors p-0.5 shrink-0"
@@ -426,6 +437,15 @@ const CartDrawer = () => {
                 })
               )}
             </div>
+
+            {/* Product Detail Modal */}
+            {selectedCartProduct && (
+              <ProductCard
+                product={selectedCartProduct}
+                showDetailOnly
+                onDetailClose={() => setSelectedCartProduct(null)}
+              />
+            )}
 
             {/* Cart Footer */}
             {items.length > 0 && (
