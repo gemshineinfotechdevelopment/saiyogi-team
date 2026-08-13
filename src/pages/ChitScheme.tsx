@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
-import { Lock, LogIn, Gift, Send, CheckCircle2, MapPin, User, Mail, Phone, ChevronDown, Sparkles, Calendar, Clock, ArrowLeft, ChevronRight, Eye, ZoomIn } from "lucide-react";
+import { Lock, LogIn, Gift, Send, CheckCircle2, MapPin, User, Mail, Phone, ChevronDown, Sparkles, Calendar, Clock, ArrowLeft, ChevronRight, Eye, ZoomIn, FileText } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { getChitSchemes, ChitSchemeItem, submitChitSubscription, trackCustomerAction, getChitSubscriptions, ChitSubscriptionItem } from "@/lib/api";
+import { calculatePaymentTimingStatus, downloadChitReceiptPDF } from "@/lib/chitUtils";
 
 interface SchemeOption {
   id: string;
@@ -552,6 +553,15 @@ const ChitScheme: React.FC = () => {
                   </DialogDescription>
                 </DialogHeader>
 
+                {/* Admin Contact Notice Banner */}
+                <div className="bg-amber-50 border border-amber-300/80 rounded-2xl p-4 flex items-start gap-3 text-xs text-amber-950 shadow-2xs">
+                  <Clock className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-extrabold text-amber-950 text-sm mb-0.5">Please wait, Admin will contact you soon</h4>
+                    <p className="text-amber-800 font-medium">Your scheme subscription request has been received. Our admin team will contact you shortly to confirm your subscription and assist with payments.</p>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
                   {userSubscriptions.map((sub, sIdx) => {
                     const matchedScheme = schemes.find(
@@ -560,6 +570,7 @@ const ChitScheme: React.FC = () => {
                     const totalMonths = matchedScheme?.totalMonths || 9;
                     const monthlyAmount = matchedScheme?.monthlyAmount || 0;
                     const paidCount = sub.monthsPaid || 0;
+                    const isPending = sub.approvalStatus !== "Approved" && sub.status !== "Approved" && sub.status !== "Paid" && sub.approvalStatus !== "Rejected" && sub.status !== "Rejected";
 
                     return (
                       <div
@@ -604,26 +615,37 @@ const ChitScheme: React.FC = () => {
                             ) : null}
                           </div>
 
-                          <div className="flex items-center justify-between text-xs bg-amber-50/70 border border-amber-200/70 p-2.5 rounded-xl">
-                            <span className="font-medium text-amber-950">Payment Progress</span>
-                            <span className="bg-[#7A1416] text-white font-extrabold px-2.5 py-0.5 rounded-lg text-[11px]">
-                              {paidCount} / {totalMonths} Months Paid
-                            </span>
-                          </div>
+                          {isPending && (
+                            <div className="bg-amber-50 border border-amber-300/80 rounded-xl p-3 text-xs text-amber-950 flex items-center gap-2 font-bold shadow-2xs">
+                              <Clock className="w-4 h-4 text-amber-700 shrink-0" />
+                              <span>Please wait, Admin will contact you soon.</span>
+                            </div>
+                          )}
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedPurchasedSub(sub);
-                          }}
-                          className="w-full bg-[#7A1416] hover:bg-[#900000] text-white text-xs font-extrabold py-2.5 rounded-xl transition-all shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer"
-                        >
-                          <Eye className="w-4 h-4" />
-                          <span>View Passbook</span>
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
+                        {sub.approvalStatus !== "Rejected" && sub.status !== "Rejected" && (
+                          <>
+                            <div className="flex items-center justify-between text-xs bg-amber-50/70 border border-amber-200/70 p-2.5 rounded-xl">
+                              <span className="font-medium text-amber-950">Payment Progress</span>
+                              <span className="bg-[#7A1416] text-white font-extrabold px-2.5 py-0.5 rounded-lg text-[11px]">
+                                {paidCount} / {totalMonths} Months Paid
+                              </span>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedPurchasedSub(sub);
+                              }}
+                              className="w-full bg-[#7A1416] hover:bg-[#900000] text-white text-xs font-extrabold py-2.5 rounded-xl transition-all shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                              <Eye className="w-4 h-4" />
+                              <span>View Passbook</span>
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     );
                   })}
@@ -673,6 +695,16 @@ const ChitScheme: React.FC = () => {
                         </DialogDescription>
                       </DialogHeader>
 
+                      {sub.approvalStatus !== "Approved" && sub.status !== "Approved" && sub.status !== "Paid" && sub.approvalStatus !== "Rejected" && sub.status !== "Rejected" && (
+                        <div className="bg-amber-50 border border-amber-300/80 rounded-2xl p-4 flex items-center gap-3 text-xs text-amber-950 shadow-2xs">
+                          <Clock className="w-5 h-5 text-amber-700 shrink-0" />
+                          <div>
+                            <span className="font-extrabold text-sm block text-amber-950 mb-0.5">Please wait, Admin will contact you soon</span>
+                            <span className="text-amber-800 font-medium">Your application is currently pending admin verification. Our team will reach out to you shortly to confirm details.</span>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Monthwise Payment Passbook Table */}
                       <div className="space-y-3">
                         <div className="flex items-center justify-between text-xs bg-amber-50 border border-amber-200/80 p-3 rounded-2xl">
@@ -699,10 +731,8 @@ const ChitScheme: React.FC = () => {
                               {monthList.map((mNum, mIdx) => {
                                 const { monthName } = getMonthNameForIndex(mNum, startDateStr);
                                 const existingLog = (sub.monthlyPayments || []).find(p => p.monthNumber === mNum);
-                                const currentStatus = existingLog?.status || 'Pending';
-                                const isPaid = currentStatus === 'Paid' || currentStatus === 'Late Pay';
-                                const paidDay = existingLog?.paidAt ? new Date(existingLog.paidAt).getDate() : 0;
-                                const timingStatus = isPaid ? (paidDay > 0 && paidDay <= dueDateDay ? 'On-time Payment' : 'Delay Payment') : 'Pending';
+                                const isPaid = existingLog && (existingLog.status === 'Paid' || existingLog.status === 'Late Pay' || existingLog.status === 'Advanced Payment' || existingLog.status === 'Advance Payment' || existingLog.status === 'On-time Payment' || existingLog.status === 'Delay Payment');
+                                const timingStatus = isPaid ? calculatePaymentTimingStatus(existingLog?.paidAt, mNum, dueDateDay, startDateStr) : 'Pending';
 
                                 return (
                                   <tr
@@ -725,25 +755,42 @@ const ChitScheme: React.FC = () => {
 
                                     <td className="p-3.5">
                                       <div className="flex flex-col gap-1 items-start">
-                                        {isPaid && timingStatus === 'On-time Payment' && (
-                                          <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-xs px-3 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
-                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> On-time Payment
-                                          </span>
-                                        )}
-                                        {isPaid && timingStatus === 'Delay Payment' && (
-                                          <span className="bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-xs px-3 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
-                                            <Clock className="w-3.5 h-3.5 text-amber-700" /> Delay Payment
-                                          </span>
-                                        )}
-                                        {!isPaid && (
+                                        {isPaid ? (
+                                          <>
+                                            {timingStatus === 'Advanced Payment' && (
+                                              <span className="bg-blue-100 text-blue-900 border border-blue-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                                                <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Advanced Payment
+                                              </span>
+                                            )}
+                                            {timingStatus === 'On-time Payment' && (
+                                              <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> On-time Payment
+                                              </span>
+                                            )}
+                                            {timingStatus === 'Delay Payment' && (
+                                              <span className="bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                                                <Clock className="w-3.5 h-3.5 text-amber-700" /> Delay Payment
+                                              </span>
+                                            )}
+                                             <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                                               {existingLog?.paidAt && (
+                                                 <span className="text-[11px] text-gray-500 font-medium">
+                                                   Paid on: {new Date(existingLog.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                 </span>
+                                               )}
+                                               <button
+                                                 type="button"
+                                                 onClick={() => downloadChitReceiptPDF(sub, mNum, monthlyAmount, dueDateDay, startDateStr, totalMonths)}
+                                                 className="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-md text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer transition-all"
+                                                 title="Download Official Bill & Passbook Statement PDF"
+                                               >
+                                                 <FileText className="w-3 h-3 text-emerald-700" /> Bill / Receipt
+                                               </button>
+                                             </div>
+                                          </>
+                                        ) : (
                                           <span className="bg-gray-100 text-gray-600 font-bold text-xs px-3 py-0.5 rounded-full">
                                             Unpaid / Pending
-                                          </span>
-                                        )}
-
-                                        {existingLog?.paidAt && isPaid && (
-                                          <span className="text-[11px] text-gray-500 font-medium">
-                                            Paid on: {new Date(existingLog.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                                           </span>
                                         )}
                                       </div>

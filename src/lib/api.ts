@@ -656,7 +656,7 @@ export interface MonthlyPaymentLog {
   monthName?: string;
   dueDate?: string;
   amount?: number;
-  status?: 'Pending' | 'Paid' | 'Late Pay';
+  status?: 'Pending' | 'Paid' | 'Late Pay' | 'Advanced Payment' | 'Advance Payment' | 'On-time Payment' | 'Delay Payment';
   paidAt?: string;
   paymentMethod?: 'Cash' | 'UPI' | 'Bank Transfer' | 'Other' | '';
   transactionNumber?: string;
@@ -683,6 +683,8 @@ export interface ChitSubscriptionItem {
   monthlyPayments?: MonthlyPaymentLog[];
   paidAt?: string;
   createdAt?: string;
+  updatedAt?: string;
+  date?: string;
 }
 
 export async function submitChitSubscription(data: {
@@ -882,7 +884,7 @@ export async function updateMonthPaymentStatusApi(
     monthName?: string;
     dueDate?: string;
     amount?: number;
-    status: 'Pending' | 'Paid' | 'Late Pay';
+    status: 'Pending' | 'Paid' | 'Late Pay' | 'Advanced Payment' | 'Advance Payment' | 'On-time Payment' | 'Delay Payment';
     paymentDate?: string;
     paymentMethod?: 'Cash' | 'UPI' | 'Bank Transfer' | 'Other' | '';
     transactionNumber?: string;
