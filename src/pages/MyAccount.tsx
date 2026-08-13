@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
-import { getChitSubscriptions, getChitSchemes, ChitSubscriptionItem, ChitSchemeItem, getOrders } from "@/lib/api";
+import { getChitSubscriptions, getChitSchemes, ChitSubscriptionItem, ChitSchemeItem, getMyEnquiries } from "@/lib/api";
 import { Calendar, Clock, CheckCircle2, Gift, FileText, User, ShoppingBag } from "lucide-react";
 import { loadUserEnquiries, EnquiryItem, formatAddress, formatString } from "@/lib/enquiryUtils";
 import { downloadOrderReceiptPDF, OrderData } from "@/lib/pdf-generator";
@@ -34,6 +34,22 @@ const getMonthNameForIndex = (monthIndex: number, startDateStr?: string): { mont
   return { monthName: `Month ${monthIndex}`, dueDateStr: `Month ${monthIndex}` };
 };
 
+const getEnquiryStatus = (ord: any): string => {
+  const pStatus = String(ord.packingStatus || "").toLowerCase();
+  const mainStatus = String(ord.status || "").toLowerCase();
+  
+  if (pStatus === 'packed' || mainStatus === 'shipped') {
+    return "Shipped";
+  }
+  if (ord.approved || mainStatus === 'approved') {
+    return "Approved";
+  }
+  if (ord.status && ord.status !== 'pending') {
+    return ord.status;
+  }
+  return "Pending";
+};
+
 const MyAccount: React.FC = () => {
   const { userPhone, userName, isUserLoggedIn, openLoginModal } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -58,17 +74,17 @@ const MyAccount: React.FC = () => {
 
   useEffect(() => {
     const effectivePhone = userPhone || getCookie("saiyogi_user_phone") || localStorage.getItem("user_phone");
-    if (effectivePhone) {
-      const localCookieItems = loadUserEnquiries(effectivePhone);
+    if (isUserLoggedIn && effectivePhone) {
+      const cleanPhone = effectivePhone.replace(/\D/g, "").slice(-10);
+      const localCookieItems = loadUserEnquiries(cleanPhone);
       setEnquiries(localCookieItems);
 
-      const cleanPhone = effectivePhone.replace(/\D/g, "");
-      getOrders()
+      getMyEnquiries()
         .then((backendOrders) => {
           if (Array.isArray(backendOrders) && backendOrders.length > 0) {
             const matching = backendOrders.filter((ord: any) => {
-              const ordPhone = (ord.customerPhone || "").replace(/\D/g, "");
-              return ordPhone && ordPhone === cleanPhone;
+              const ordPhone = (ord.customerPhone || "").replace(/\D/g, "").slice(-10);
+              return !ordPhone || ordPhone === cleanPhone;
             });
 
             if (matching.length > 0) {
@@ -79,7 +95,7 @@ const MyAccount: React.FC = () => {
                   ? `${new Date(ord.createdAt).toLocaleDateString('en-IN')} ${new Date(ord.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
                   : (ord.date || new Date().toLocaleDateString('en-IN')),
                 total: ord.total || ord.subtotal || 0,
-                status: (ord.status as any) || "Pending",
+                status: getEnquiryStatus(ord) as any,
                 customerName: formatString(ord.customerName, "Customer"),
                 customerPhone: formatString(ord.customerPhone, effectivePhone),
                 customerEmail: formatString(ord.customerEmail, ""),
@@ -108,7 +124,7 @@ const MyAccount: React.FC = () => {
     } else {
       setEnquiries([]);
     }
-  }, [userPhone]);
+  }, [userPhone, isUserLoggedIn]);
 
   const displayName = userName || getCookie("saiyogi_user_name") || localStorage.getItem("user_name") || "Customer";
   const displayPhone = userPhone || getCookie("saiyogi_user_phone") || localStorage.getItem("user_phone") || "-";
@@ -459,8 +475,14 @@ const MyAccount: React.FC = () => {
                           ₹ {item.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                         </td>
                         <td className="py-4 px-6">
-                          <span className="text-rose-600 font-medium">
-                            {item.status}
+                          <span className={
+                            item.status === 'Shipped'
+                              ? 'bg-red-50 text-[#A80000] border border-red-200 text-xs font-black px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-2xs'
+                              : item.status === 'Approved'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-black px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-2xs'
+                              : 'bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-2xs'
+                          }>
+                            {item.status === 'Shipped' ? '🚚 Shipped' : item.status === 'Approved' ? '✓ Approved' : item.status || 'Pending'}
                           </span>
                         </td>
                         <td className="py-4 px-4 text-right">

@@ -17,9 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createOrder, trackCustomerAction } from "@/lib/api";
-import { promptAndDownloadOrderReceiptPDF, promptAndPrintOrderReceipt } from "@/lib/pdf-generator";
 import { getCookie, setCookie } from "@/lib/cookieUtils";
-import { downloadOrderReceiptPDF, printOrderReceipt } from "@/lib/pdf-generator";
+import { promptAndDownloadOrderReceiptPDF, promptAndPrintOrderReceipt, downloadOrderReceiptPDF, printOrderReceipt } from "@/lib/pdf-generator";
 import {
   Select,
   SelectContent,
@@ -28,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
+
 import indiaStatesData from "@/lib/indiaStates.json";
 
 const getAllStates = () => Object.keys(indiaStatesData);
@@ -230,7 +230,7 @@ const CartDrawer = () => {
 
         // Save enquiry to user's phone-specific key in localStorage and cookie for MyEnquiry page
         try {
-          const cleanPhone = formData.phoneNumber.replace(/\D/g, "");
+          const cleanPhone = formData.phoneNumber.replace(/\D/g, "").slice(-10);
           const userPhoneKey = `user_saved_enquiries_${cleanPhone}`;
           const cookieKey = `saiyogi_enquiries_${cleanPhone}`;
 
@@ -289,7 +289,7 @@ const CartDrawer = () => {
   const handleConfirmAndSubmitTerms = () => {
     if (savedOrderData) {
       try {
-        promptAndPrintOrderReceipt(savedOrderData);
+        downloadOrderReceiptPDF(savedOrderData);
       } catch (pdfErr) {
         console.error("PDF download failed:", pdfErr);
       }
@@ -380,7 +380,7 @@ const CartDrawer = () => {
                       <img src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : product.image} alt={product.name} className="w-14 h-14 rounded-md object-contain shrink-0 border border-gray-100 p-0.5" />
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2 mb-1">
-                          <h4 className="product-title-font font-bold text-sm text-gray-900 truncate">{product.name}</h4>
+                          <h4 className="product-title-font font-extrabold sm:font-bold text-base sm:text-sm text-gray-900 truncate">{product.name}</h4>
                           <button 
                             onClick={() => removeFromCart(productId)} 
                             className="text-gray-400 hover:text-red-500 transition-colors p-0.5 shrink-0"

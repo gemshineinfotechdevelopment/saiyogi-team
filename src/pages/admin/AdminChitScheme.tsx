@@ -778,6 +778,10 @@ _Sai Yogi Crackers_`;
       (paymentFilter === "Pending" && (sub.monthsPaid || 0) === 0);
 
     return matchesSearch && matchesScheme && matchesApproval && matchesPayment;
+  }).sort((a, b) => {
+    const timeA = new Date(a.createdAt || a.date || a.updatedAt || 0).getTime();
+    const timeB = new Date(b.createdAt || b.date || b.updatedAt || 0).getTime();
+    return timeB - timeA;
   });
 
   // Calculate Summary Statistics

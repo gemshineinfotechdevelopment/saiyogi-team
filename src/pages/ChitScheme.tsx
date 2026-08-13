@@ -125,6 +125,7 @@ const ChitScheme: React.FC = () => {
     }
   }, [isUserLoggedIn, userPhone, userName]);
 
+
   useEffect(() => {
     const loadChit = () => {
       getChitSchemes()
@@ -312,212 +313,246 @@ const ChitScheme: React.FC = () => {
             )}
           </div>
         </div>
-
-        {/* Content Layout: Form First (5 cols), Scheme Cards Second (7 cols) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Left Column (FIRST): Chit Scheme Registration Form (5 Cols) */}
-          <div ref={formRef} className="lg:col-span-5 bg-white border border-gray-200 rounded-3xl p-6 sm:p-7 shadow-md space-y-5 sticky top-6">
-            <div className="border-b border-gray-100 pb-4">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider bg-amber-100 text-amber-900 px-3 py-1 rounded-full inline-block mb-2">
-                Easy Registration
-              </span>
-              <h2 className="text-xl font-bold text-gray-900">
-                Join Chit Scheme
+        {!isUserLoggedIn ? (
+          <div className="bg-white border border-gray-200/90 rounded-3xl p-8 sm:p-12 shadow-sm text-center max-w-2xl mx-auto my-6 space-y-6">
+            <div className="w-16 h-16 rounded-3xl bg-amber-100 text-[#7A1416] flex items-center justify-center mx-auto border border-amber-200 shadow-2xs">
+              <Lock className="w-8 h-8" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-extrabold text-[#2A1B54]">
+                Login Required to Access Chit Schemes
               </h2>
-              <p className="text-xs text-gray-500 font-medium mt-1">
-                Fill details below to subscribe. Admin will update your payment status.
+              <p className="text-xs text-gray-600 leading-relaxed max-w-lg mx-auto font-medium">
+                Please log in with your WhatsApp mobile number to view available savings schemes, promotional offer banners, and submit your chit scheme application.
               </p>
             </div>
-
-            <form onSubmit={handleSubmitForm} className="space-y-4">
-              {/* 1. Scheme (Dropdown) */}
-              <div className="space-y-1.5">
-                <label htmlFor="scheme" className="block text-xs font-bold text-gray-700 uppercase tracking-wide">
-                  1. Select Scheme *
-                </label>
-                <div className="relative">
-                  <select
-                    id="scheme"
-                    name="scheme"
-                    value={selectedScheme}
-                    onChange={(e) => setSelectedScheme(e.target.value)}
-                    className="w-full text-xs font-semibold p-3 pr-8 bg-gray-50 border border-gray-300 rounded-2xl appearance-none focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none transition-all"
-                    required
-                  >
-                    {schemes.map((sch) => (
-                      <option key={sch.id} value={sch.title}>
-                        {sch.title}
-                      </option>
-                    ))}
-                    {schemes.length === 0 && (
-                      <option value="Diwali Special Savings Scheme 2026">
-                        Diwali Special Savings Scheme 2026
-                      </option>
-                    )}
-                  </select>
-                </div>
-              </div>
-
-              {/* 2. Full Name */}
-              <div className="space-y-1.5">
-                <label htmlFor="name" className="block text-xs font-bold text-gray-700 uppercase tracking-wide">
-                  2. Full Name *
-                </label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    id="name"
-                    type="text"
-                    name="name"
-                    placeholder="Enter your full name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="w-full text-xs font-semibold p-3 pl-10 bg-gray-50 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none transition-all"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* 3. Mobile Number */}
-              <div className="space-y-1.5">
-                <label htmlFor="phone" className="block text-xs font-bold text-gray-700 uppercase tracking-wide">
-                  3. Mobile Number *
-                </label>
-                <div className="relative flex items-center">
-                  <div className="absolute left-3 font-bold text-xs text-gray-500">
-                    +91
-                  </div>
-                  <input
-                    id="phone"
-                    type="tel"
-                    name="phone"
-                    placeholder="10-digit mobile number"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    maxLength={10}
-                    className="w-full text-xs font-bold p-3 pl-12 bg-gray-50 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none transition-all"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* 4. Email ID */}
-              <div className="space-y-1.5">
-                <label htmlFor="email" className="block text-xs font-bold text-gray-700 uppercase tracking-wide">
-                  4. Email ID
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    id="email"
-                    type="email"
-                    name="email"
-                    placeholder="yourname@example.com"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="w-full text-xs font-medium p-3 pl-10 bg-gray-50 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* 5. Location */}
-              <div className="space-y-1.5">
-                <label htmlFor="location" className="block text-xs font-bold text-gray-700 uppercase tracking-wide">
-                  5. Location *
-                </label>
-                <div className="relative">
-                  <MapPin className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    id="location"
-                    type="text"
-                    name="location"
-                    placeholder="City, District, or State"
-                    value={formData.location}
-                    onChange={handleInputChange}
-                    className="w-full text-xs font-medium p-3 pl-10 bg-gray-50 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none transition-all"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Submit Button */}
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-[#7A1416] hover:bg-[#900000] text-white font-bold text-xs py-3.5 px-6 rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] disabled:opacity-50 mt-2"
+                onClick={openLoginModal}
+                className="w-full sm:w-auto bg-[#7A1416] hover:bg-[#900000] text-white text-xs font-bold px-6 py-3.5 rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider"
               >
-                {isSubmitting ? (
-                  <span>Submitting Application...</span>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" />
-                    <span>Submit Scheme Application</span>
-                  </>
-                )}
+                <LogIn className="w-4 h-4 text-amber-300" />
+                <span>Login with Mobile Number</span>
               </button>
-            </form>
-          </div>
-          {/* Right Column (SECOND): Promotional Scheme Offers List (7 Cols) */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="bg-amber-50 border border-amber-200/90 text-amber-950 p-4 rounded-2xl text-xs font-bold flex items-center gap-2.5 shadow-2xs">
-              <Sparkles className="w-5 h-5 text-amber-600 shrink-0" />
-              <span>Explore promotional scheme offers below! Click any image to enlarge.</span>
             </div>
-
-            {bannerImages.length === 0 ? (
-              <div className="py-16 text-center text-gray-400 font-medium text-sm border-2 border-dashed border-gray-200 rounded-3xl bg-white p-6">
-                <Gift className="w-10 h-10 mx-auto mb-2 opacity-40 text-amber-700" />
-                No promotional images uploaded yet.
+            {/*
+            <div className="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-4 text-left text-xs text-amber-950 space-y-1">
+              <div className="font-bold flex items-center gap-1.5 text-amber-900">
+                <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>Already logged in or submitted a product enquiry?</span>
               </div>
-            ) : (
-              <div className="space-y-5">
-                {bannerImages.map((img) => (
-                  <div
-                    key={img.id}
-                    className="bg-white rounded-3xl border border-gray-200/90 p-4 sm:p-5 shadow-xs hover:shadow-md transition-all"
-                  >
-                    {img.url ? (
-                      <div className="aspect-[16/9] w-full overflow-hidden bg-white relative flex items-center justify-center rounded-2xl border border-gray-100 group">
-                        <img
-                          src={img.url}
-                          alt={img.title || "Chit Scheme Offer"}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <button
-                          onClick={() => setActiveZoomImage(img)}
-                          className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-2 font-bold text-xs cursor-pointer"
-                        >
-                          <ZoomIn className="w-5 h-5" />
-                          <span>Click to Enlarge</span>
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="p-6 text-center text-gray-400 text-xs">
-                        {img.title || "Chit Scheme Promotional Offer"}
-                      </div>
-                    )}
-                    {img.monthlyAmount ? (
-                      <div className="mt-3 bg-emerald-50 border border-emerald-200/80 rounded-xl p-2.5 flex items-center justify-between text-emerald-950 font-medium">
-                        <span>Monthly Amount:</span>
-                        <span className="font-extrabold text-emerald-900 text-sm">₹{img.monthlyAmount.toLocaleString()} / month</span>
-                      </div>
-                    ) : null}
-                    {img.title && (
-                      <button
-                        onClick={() => handleSelectSchemeToApply(img.title!)}
-                        className="mt-3 w-full bg-[#7A1416] hover:bg-[#900000] text-white px-4 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-2xs whitespace-nowrap cursor-pointer shrink-0"
-                      >
-                        Apply for this Scheme →
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+              <p className="text-[11px] text-amber-800/90 leading-relaxed">
+                If you previously entered your mobile number for a product enquiry or estimate request, your active session gives you immediate access to view and join chit schemes.
+              </p>
+            </div>
+            */}
           </div>
+        ) : (
+          /* Content Layout: Form First (5 cols), Scheme Cards Second (7 cols) */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* Left Column (FIRST): Chit Scheme Registration Form (5 Cols) */}
+            <div ref={formRef} className="lg:col-span-5 bg-white border border-gray-200 rounded-3xl p-6 sm:p-7 shadow-md space-y-5 lg:sticky lg:top-6">
+              <div className="border-b border-gray-100 pb-4">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider bg-amber-100 text-amber-900 px-3 py-1 rounded-full inline-block mb-2">
+                  Easy Registration
+                </span>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Join Chit Scheme
+                </h2>
+                <p className="text-xs text-gray-500 font-medium mt-1">
+                  Fill details below to subscribe. Admin will update your payment status.
+                </p>
+              </div>
 
-        </div>
+              <form onSubmit={handleSubmitForm} className="space-y-4">
+                {/* 1. Scheme (Dropdown) */}
+                <div className="space-y-1.5">
+                  <label htmlFor="scheme" className="block text-xs font-bold text-gray-700 uppercase tracking-wide">
+                    1. Select Scheme *
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="scheme"
+                      name="scheme"
+                      value={selectedScheme}
+                      onChange={(e) => setSelectedScheme(e.target.value)}
+                      className="w-full text-xs font-semibold p-3 pr-8 bg-gray-50 border border-gray-300 rounded-2xl appearance-none focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none transition-all"
+                      required
+                    >
+                      {schemes.map((sch) => (
+                        <option key={sch.id} value={sch.title}>
+                          {sch.title}
+                        </option>
+                      ))}
+                      {schemes.length === 0 && (
+                        <option value="Diwali Special Savings Scheme 2026">
+                          Diwali Special Savings Scheme 2026
+                        </option>
+                      )}
+                    </select>
+                  </div>
+                </div>
+
+                {/* 2. Full Name */}
+                <div className="space-y-1.5">
+                  <label htmlFor="name" className="block text-xs font-bold text-gray-700 uppercase tracking-wide">
+                    2. Full Name *
+                  </label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      id="name"
+                      type="text"
+                      name="name"
+                      placeholder="Enter your full name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="w-full text-xs font-semibold p-3 pl-10 bg-gray-50 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none transition-all"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* 3. Mobile Number */}
+                <div className="space-y-1.5">
+                  <label htmlFor="phone" className="block text-xs font-bold text-gray-700 uppercase tracking-wide">
+                    3. Mobile Number *
+                  </label>
+                  <div className="relative flex items-center">
+                    <div className="absolute left-3 font-bold text-xs text-gray-500">
+                      +91
+                    </div>
+                    <input
+                      id="phone"
+                      type="tel"
+                      name="phone"
+                      placeholder="10-digit mobile number"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      maxLength={10}
+                      className="w-full text-xs font-bold p-3 pl-12 bg-gray-50 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none transition-all"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* 4. Email ID */}
+                <div className="space-y-1.5">
+                  <label htmlFor="email" className="block text-xs font-bold text-gray-700 uppercase tracking-wide">
+                    4. Email ID
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      id="email"
+                      type="email"
+                      name="email"
+                      placeholder="yourname@example.com"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="w-full text-xs font-medium p-3 pl-10 bg-gray-50 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* 5. Location */}
+                <div className="space-y-1.5">
+                  <label htmlFor="location" className="block text-xs font-bold text-gray-700 uppercase tracking-wide">
+                    5. Location *
+                  </label>
+                  <div className="relative">
+                    <MapPin className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      id="location"
+                      type="text"
+                      name="location"
+                      placeholder="City, District, or State"
+                      value={formData.location}
+                      onChange={handleInputChange}
+                      className="w-full text-xs font-medium p-3 pl-10 bg-gray-50 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none transition-all"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-[#7A1416] hover:bg-[#900000] text-white font-bold text-xs py-3.5 px-6 rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] disabled:opacity-50 mt-2"
+                >
+                  {isSubmitting ? (
+                    <span>Submitting Application...</span>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Submit Scheme Application</span>
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
+            {/* Right Column (SECOND): Promotional Scheme Offers List (7 Cols) */}
+            <div className="lg:col-span-7 space-y-6">
+              <div className="bg-amber-50 border border-amber-200/90 text-amber-950 p-4 rounded-2xl text-xs font-bold flex items-center gap-2.5 shadow-2xs">
+                <Sparkles className="w-5 h-5 text-amber-600 shrink-0" />
+                <span>Explore promotional scheme offers below! Click any image to enlarge.</span>
+              </div>
+
+              {bannerImages.length === 0 ? (
+                <div className="py-16 text-center text-gray-400 font-medium text-sm border-2 border-dashed border-gray-200 rounded-3xl bg-white p-6">
+                  <Gift className="w-10 h-10 mx-auto mb-2 opacity-40 text-amber-700" />
+                  No promotional images uploaded yet.
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  {bannerImages.map((img) => (
+                    <div
+                      key={img.id}
+                      className="bg-white rounded-3xl border border-gray-200/90 p-4 sm:p-5 shadow-xs hover:shadow-md transition-all"
+                    >
+                      {img.url ? (
+                        <div className="aspect-[16/9] w-full overflow-hidden bg-white relative flex items-center justify-center rounded-2xl border border-gray-100 group">
+                          <img
+                            src={img.url}
+                            alt={img.title || "Chit Scheme Offer"}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <button
+                            onClick={() => setActiveZoomImage(img)}
+                            className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-2 font-bold text-xs cursor-pointer"
+                          >
+                            <ZoomIn className="w-5 h-5" />
+                            <span>Click to Enlarge</span>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="p-6 text-center text-gray-400 text-xs">
+                          {img.title || "Chit Scheme Promotional Offer"}
+                        </div>
+                      )}
+                      {img.monthlyAmount ? (
+                        <div className="mt-3 bg-emerald-50 border border-emerald-200/80 rounded-xl p-2.5 flex items-center justify-between text-emerald-950 font-medium">
+                          <span>Monthly Amount:</span>
+                          <span className="font-extrabold text-emerald-900 text-sm">₹{img.monthlyAmount.toLocaleString()} / month</span>
+                        </div>
+                      ) : null}
+                      {img.title && (
+                        <button
+                          onClick={() => handleSelectSchemeToApply(img.title!)}
+                          className="mt-3 w-full bg-[#7A1416] hover:bg-[#900000] text-white px-4 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-2xs whitespace-nowrap cursor-pointer shrink-0"
+                        >
+                          Apply for this Scheme →
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Purchased Schemes & Passbook Details Modal */}

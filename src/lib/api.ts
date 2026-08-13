@@ -3,12 +3,30 @@ import { Product, Category, Order } from "@/data/products";
 const isLocalhost = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
+const rawEnvUrl = (import.meta.env.VITE_API_URL as string) || "";
 export const API_BASE_URL = isLocalhost
   ? "http://localhost:5000" 
-  : ((import.meta.env.VITE_API_URL as string) || "");
+  : rawEnvUrl.trim().replace(/\/+$/, "");
+
+function resolveAuthToken(path: string): string | null {
+  const adminToken = localStorage.getItem("admin_token");
+  const customerToken = localStorage.getItem("customer_token");
+
+  const cleanPath = path.toLowerCase();
+  const isCustomerRoute = cleanPath.includes('/my-enquiries') || cleanPath.includes('/my-orders') || cleanPath.includes('/customer');
+  const isAdminOnlyRoute = cleanPath === '/api/orders' || cleanPath.startsWith('/api/orders/') || cleanPath === '/orders' || cleanPath === '/api/settings' || cleanPath.startsWith('/api/settings/') || cleanPath === '/settings' || cleanPath.includes('/admin/');
+
+  if (isCustomerRoute) {
+    return customerToken || adminToken;
+  }
+  if (isAdminOnlyRoute) {
+    return adminToken; // Never send customer token to admin routes
+  }
+  return adminToken || customerToken;
+}
 
 async function fetchJSON<T>(path: string, method: string = 'GET', body?: any): Promise<T> {
-  const token = localStorage.getItem("admin_token");
+  const token = resolveAuthToken(path);
   const headers: HeadersInit = {
     'Content-Type': 'application/json'
   };
@@ -28,15 +46,17 @@ async function fetchJSON<T>(path: string, method: string = 'GET', body?: any): P
     options.body = JSON.stringify(body);
   }
 
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+
   const urlsToTry = path.startsWith('http')
     ? [path]
     : isLocalhost
       ? [
-          `http://127.0.0.1:5000${path}`,
-          `http://localhost:5000${path}`,
-          `${API_BASE_URL}${path}`,
+          `http://127.0.0.1:5000${cleanPath}`,
+          `http://localhost:5000${cleanPath}`,
+          `${API_BASE_URL}${cleanPath}`,
         ].filter((v, i, a) => a.indexOf(v) === i && !!v)
-      : [`${API_BASE_URL}${path}`];
+      : [`${API_BASE_URL}${cleanPath}`];
 
   let res: Response | null = null;
   let lastError: any = null;
@@ -287,6 +307,20 @@ export async function getOrders(): Promise<Order[]> {
   }
 }
 
+export async function getMyEnquiries(): Promise<Order[]> {
+  try {
+    const data = await fetchJSON<{ orders: Order[] } | Order[]>('/api/orders/my-enquiries');
+    return Array.isArray(data) ? data : (data?.orders || []);
+  } catch (error) {
+    console.warn('Failed to fetch my enquiries from API:', error);
+    return [];
+  }
+}
+
+export async function customerPhoneLoginAPI(phone: string, name?: string): Promise<{ token: string; user: any }> {
+  return await fetchJSON<{ token: string; user: any }>('/api/auth/customer-login', 'POST', { phone, name });
+}
+
 export async function createOrder(orderData: {
   customerName: string;
   customerEmail: string;
@@ -389,6 +423,7 @@ export interface SiteSettings {
   };
   enablePackingCharge?: boolean;
   youtubeVideos?: { title: string; url: string }[];
+  priceListPdf?: string;
   heroBanners?: string[];
   noticeBanners?: string[];
 }
@@ -422,7 +457,7 @@ export async function getSiteInfo(): Promise<SiteSettings> {
 }
 
 export const apiRequest = async (path: string, options: any = {}) => {
-  const token = localStorage.getItem('admin_token');
+  const token = resolveAuthToken(path);
 
   const headers: Record<string, string> = {
     ...(token && { 'Authorization': `Bearer ${token}` }),
