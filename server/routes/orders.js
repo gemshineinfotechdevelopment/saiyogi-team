@@ -6,6 +6,7 @@ import {
   updateOrderStatus,
   cancelOrder,
   getUserOrders,
+  getMyEnquiries,
   approveOrder,
   updatePackingStatus,
   updateHoldDays,
@@ -17,6 +18,7 @@ import { validate, validateOrder } from '../middleware/validation.js';
 const router = express.Router();
 
 router.post('/', validateOrder, validate, createOrder);
+router.get('/my-enquiries', auth, getMyEnquiries);
 router.get('/user/my-orders', auth, getUserOrders);
 
 router.get('/', auth, adminOnly, getAllOrders);

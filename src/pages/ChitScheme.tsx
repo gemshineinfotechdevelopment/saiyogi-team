@@ -1,3 +1,4 @@
+// Sai Yogi Chit Scheme Component
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import UserHeader from "@/components/layout/UserHeader";
@@ -22,6 +23,8 @@ interface SchemeOption {
 interface BannerImage {
   id: string;
   url: string;
+  title?: string;
+  monthlyAmount?: number;
 }
 
 const DEFAULT_SCHEMES: SchemeOption[] = [
@@ -155,7 +158,9 @@ const ChitScheme: React.FC = () => {
               .filter((item: ChitSchemeItem) => item.url && item.url.trim().length > 0)
               .map((item: ChitSchemeItem) => ({
                 id: item._id || item.id || '',
-                url: item.url || ''
+                url: item.url || '',
+                title: item.title || item.schemeName || '',
+                monthlyAmount: item.monthlyAmount || 0
               }));
 
             const finalSchemes = schemeList.length > 0 ? schemeList : DEFAULT_SCHEMES;
@@ -518,26 +523,45 @@ const ChitScheme: React.FC = () => {
                       key={img.id}
                       className="bg-white rounded-3xl border border-gray-200/90 p-4 sm:p-5 shadow-xs hover:shadow-md transition-all"
                     >
-                      <div className="aspect-[16/9] w-full overflow-hidden bg-white relative flex items-center justify-center rounded-2xl border border-gray-100 group">
-                        <img
-                          src={img.url}
-                          alt="Chit Scheme Promotional Offer"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
+                      {img.url ? (
+                        <div className="aspect-[16/9] w-full overflow-hidden bg-white relative flex items-center justify-center rounded-2xl border border-gray-100 group">
+                          <img
+                            src={img.url}
+                            alt={img.title || "Chit Scheme Offer"}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <button
+                            onClick={() => setActiveZoomImage(img)}
+                            className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-2 font-bold text-xs cursor-pointer"
+                          >
+                            <ZoomIn className="w-5 h-5" />
+                            <span>Click to Enlarge</span>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="p-6 text-center text-gray-400 text-xs">
+                          {img.title || "Chit Scheme Promotional Offer"}
+                        </div>
+                      )}
+                      {img.monthlyAmount ? (
+                        <div className="mt-3 bg-emerald-50 border border-emerald-200/80 rounded-xl p-2.5 flex items-center justify-between text-emerald-950 font-medium">
+                          <span>Monthly Amount:</span>
+                          <span className="font-extrabold text-emerald-900 text-sm">₹{img.monthlyAmount.toLocaleString()} / month</span>
+                        </div>
+                      ) : null}
+                      {img.title && (
                         <button
-                          onClick={() => setActiveZoomImage(img)}
-                          className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-2 font-bold text-xs cursor-pointer"
+                          onClick={() => handleSelectSchemeToApply(img.title!)}
+                          className="mt-3 w-full bg-[#7A1416] hover:bg-[#900000] text-white px-4 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-2xs whitespace-nowrap cursor-pointer shrink-0"
                         >
-                          <ZoomIn className="w-5 h-5" />
-                          <span>Click to Enlarge</span>
+                          Apply for this Scheme →
                         </button>
-                      </div>
+                      )}
                     </div>
                   ))}
                 </div>
               )}
             </div>
-
           </div>
         )}
       </main>

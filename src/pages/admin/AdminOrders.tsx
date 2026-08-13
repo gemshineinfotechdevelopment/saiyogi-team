@@ -102,15 +102,16 @@ const AdminOrders = () => {
     
     try {
       setIsApproving(true);
-      await approveOrder(selectedOrder._id);
+      const resOrder = await approveOrder(selectedOrder._id);
+      const newStatus = resOrder?.status || (selectedOrder.packingStatus === 'packed' ? 'Shipped' : 'Approved');
       
       setOrderList((prev) =>
         prev.map((o) =>
-          o._id === selectedOrder._id ? { ...o, approved: true } : o
+          o._id === selectedOrder._id ? { ...o, approved: true, status: newStatus } : o
         )
       );
       
-      setSelectedOrder((prev: any) => ({ ...prev, approved: true }));
+      setSelectedOrder((prev: any) => ({ ...prev, approved: true, status: newStatus }));
       toast.success("Order approved and customer updated!");
     } catch (error) {
       console.error("Error approving order:", error);
@@ -125,17 +126,18 @@ const AdminOrders = () => {
     
     try {
       setIsUpdatingPacking(true);
-      const newStatus = selectedOrder.packingStatus === 'packed' ? 'unpacked' : 'packed';
-      await updatePackingStatus(selectedOrder._id, newStatus);
+      const newPackingStatus = selectedOrder.packingStatus === 'packed' ? 'unpacked' : 'packed';
+      const resOrder = await updatePackingStatus(selectedOrder._id, newPackingStatus);
+      const newStatus = resOrder?.status || (newPackingStatus === 'packed' ? 'Shipped' : (selectedOrder.approved ? 'Approved' : 'Pending'));
       
       setOrderList((prev) =>
         prev.map((o) =>
-          o._id === selectedOrder._id ? { ...o, packingStatus: newStatus } : o
+          o._id === selectedOrder._id ? { ...o, packingStatus: newPackingStatus, status: newStatus } : o
         )
       );
       
-      setSelectedOrder((prev: any) => ({ ...prev, packingStatus: newStatus }));
-      toast.success(`Order marked as ${newStatus}!`);
+      setSelectedOrder((prev: any) => ({ ...prev, packingStatus: newPackingStatus, status: newStatus }));
+      toast.success(`Order marked as ${newPackingStatus === 'packed' ? 'Shipped' : 'Unshipped'}!`);
     } catch (error) {
       console.error("Error updating packing status:", error);
       toast.error(error instanceof Error ? error.message : "Failed to update packing status");
