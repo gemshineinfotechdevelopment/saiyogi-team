@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
+import ProductCard from "@/components/ProductCard";
+import { Product } from "@/data/products";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
 import { useAuth } from "@/context/AuthContext";
@@ -27,6 +29,7 @@ const Cart: React.FC = () => {
   const { settings } = useSiteSettings();
   const { isUserLoggedIn, openLoginModal } = useAuth();
   const navigate = useNavigate();
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const packingCharge = settings.enablePackingCharge !== false 
     ? (totalPrice <= 3999 ? 120 : Math.round(totalPrice * 0.03)) 
@@ -148,7 +151,11 @@ const Cart: React.FC = () => {
                     >
                       {/* Product Info & Thumbnail */}
                       <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-white border border-gray-200 p-1 flex items-center justify-center shrink-0 shadow-2xs">
+                        <div 
+                          onClick={() => setSelectedProduct(product)}
+                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-white border border-gray-200 p-1 flex items-center justify-center shrink-0 shadow-2xs cursor-pointer hover:scale-105 hover:border-[#900000]/50 transition-all"
+                          title="Click to view product details"
+                        >
                           <img 
                             src={stockVal <= 0 ? '/saiyogi-logo-1.png' : product.image} 
                             alt={product.name} 
@@ -157,8 +164,9 @@ const Cart: React.FC = () => {
                         </div>
                         <div className="min-w-0">
                           <h3 
-                            onClick={() => navigate(`/product/${productId}`)}
+                            onClick={() => setSelectedProduct(product)}
                             className="font-extrabold text-gray-900 text-sm sm:text-base truncate hover:text-[#900000] transition-colors cursor-pointer"
+                            title="Click to view product details"
                           >
                             {product.name}
                           </h3>
@@ -292,6 +300,15 @@ const Cart: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Product Details Modal Popup */}
+      {selectedProduct && (
+        <ProductCard
+          product={selectedProduct}
+          showDetailOnly={true}
+          onDetailClose={() => setSelectedProduct(null)}
+        />
+      )}
 
       <UserFooter />
     </div>
