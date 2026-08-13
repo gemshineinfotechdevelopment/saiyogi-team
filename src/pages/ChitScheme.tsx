@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
-import { Lock, LogIn, Gift, Send, CheckCircle2, MapPin, User, Mail, Phone, ChevronDown, Sparkles, Calendar, Clock, ArrowLeft, ChevronRight, Eye, ZoomIn, FileText } from "lucide-react";
+import { Lock, LogIn, Gift, Send, CheckCircle2, MapPin, User, Mail, Phone, ChevronDown, Sparkles, Calendar, Clock, ArrowLeft, ChevronRight, Eye, ZoomIn, FileText, XCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { getChitSchemes, ChitSchemeItem, submitChitSubscription, trackCustomerAction, getChitSubscriptions, ChitSubscriptionItem } from "@/lib/api";
@@ -81,16 +81,25 @@ const ChitScheme: React.FC = () => {
 
   const formRef = useRef<HTMLDivElement>(null);
 
-  // Pre-fill form from logged in user profile
+  // Pre-fill form from logged in user profile or existing subscriptions
   useEffect(() => {
-    if (isUserLoggedIn) {
+    if (userSubscriptions && userSubscriptions.length > 0) {
+      const latestSub = userSubscriptions[0];
       setFormData(prev => ({
-        ...prev,
+        name: prev.name || latestSub.name || userName || "",
+        phone: prev.phone || latestSub.phone || userPhone || "",
+        email: prev.email || latestSub.email || localStorage.getItem("user_email") || "",
+        location: prev.location || latestSub.location || localStorage.getItem("user_location") || ""
+      }));
+    } else if (isUserLoggedIn) {
+      setFormData(prev => ({
         name: prev.name || userName || "",
-        phone: prev.phone || userPhone || ""
+        phone: prev.phone || userPhone || "",
+        email: prev.email || localStorage.getItem("user_email") || "",
+        location: prev.location || localStorage.getItem("user_location") || ""
       }));
     }
-  }, [isUserLoggedIn, userPhone, userName]);
+  }, [isUserLoggedIn, userPhone, userName, userSubscriptions]);
 
   // Fetch logged in user subscriptions to display passbook
   const loadUserSubscriptions = () => {
@@ -244,11 +253,11 @@ const ChitScheme: React.FC = () => {
       setShowSuccessModal(true);
       toast.success("Chit scheme application submitted successfully! 🎉");
 
-      // Reset form location
-      setFormData(prev => ({
-        ...prev,
-        location: ""
-      }));
+      if (formData.email) localStorage.setItem("user_email", formData.email.trim());
+      if (formData.location) localStorage.setItem("user_location", formData.location.trim());
+
+      // Refresh subscriptions list - form details stay autofilled for next scheme purchase!
+      loadUserSubscriptions();
     } catch (err: any) {
       toast.error(err.message || "Failed to submit chit scheme application");
     } finally {
@@ -570,13 +579,25 @@ const ChitScheme: React.FC = () => {
                     const totalMonths = matchedScheme?.totalMonths || 9;
                     const monthlyAmount = matchedScheme?.monthlyAmount || 0;
                     const paidCount = sub.monthsPaid || 0;
-                    const isPending = sub.approvalStatus !== "Approved" && sub.status !== "Approved" && sub.status !== "Paid" && sub.approvalStatus !== "Rejected" && sub.status !== "Rejected";
+                    const isApproved = sub.approvalStatus === "Approved" || sub.status === "Approved" || sub.status === "Paid";
+                    const isRejected = sub.approvalStatus === "Rejected" || sub.status === "Rejected";
+                    const isPending = !isApproved && !isRejected;
 
                     return (
                       <div
                         key={sub._id || sub.id || sIdx}
-                        onClick={() => setSelectedPurchasedSub(sub)}
-                        className="bg-white border-2 border-gray-200 hover:border-[#7A1416] rounded-3xl p-5 shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between space-y-4 group"
+                        onClick={() => {
+                          if (isApproved) {
+                            setSelectedPurchasedSub(sub);
+                          } else if (isRejected) {
+                            toast.error("This chit scheme application has been rejected by Admin.");
+                          } else {
+                            toast.info("Your chit scheme application is currently pending Admin approval.");
+                          }
+                        }}
+                        className={`bg-white border-2 border-gray-200 rounded-3xl p-5 shadow-2xs transition-all flex flex-col justify-between space-y-4 group ${
+                          isApproved ? 'hover:border-[#7A1416] hover:shadow-md cursor-pointer' : 'cursor-default'
+                        }`}
                       >
                         <div className="space-y-3">
                           <div className="flex items-start justify-between gap-2">
@@ -584,13 +605,13 @@ const ChitScheme: React.FC = () => {
                               {sub.schemeName}
                             </h3>
                             <span className={`shrink-0 px-2.5 py-0.5 rounded-full font-extrabold text-[11px] ${
-                              sub.approvalStatus === "Approved" || sub.status === "Approved" || sub.status === "Paid"
+                              isApproved
                                 ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                                : sub.approvalStatus === "Rejected" || sub.status === "Rejected"
+                                : isRejected
                                 ? "bg-rose-100 text-rose-800 border border-rose-300"
                                 : "bg-amber-100 text-amber-800 border border-amber-300"
                             }`}>
-                              {sub.approvalStatus || sub.status}
+                              {isApproved ? "Approved" : isRejected ? "Rejected" : "Pending Approval"}
                             </span>
                           </div>
 
@@ -618,12 +639,19 @@ const ChitScheme: React.FC = () => {
                           {isPending && (
                             <div className="bg-amber-50 border border-amber-300/80 rounded-xl p-3 text-xs text-amber-950 flex items-center gap-2 font-bold shadow-2xs">
                               <Clock className="w-4 h-4 text-amber-700 shrink-0" />
-                              <span>Please wait, Admin will contact you soon.</span>
+                              <span>Please wait, Admin will contact you soon. Application pending approval.</span>
+                            </div>
+                          )}
+
+                          {isRejected && (
+                            <div className="bg-rose-50 border border-rose-300/80 rounded-xl p-3 text-xs text-rose-950 flex items-center gap-2 font-bold shadow-2xs">
+                              <XCircle className="w-4 h-4 text-rose-700 shrink-0" />
+                              <span>Application rejected by Admin. Passbook is unavailable.</span>
                             </div>
                           )}
                         </div>
 
-                        {sub.approvalStatus !== "Rejected" && sub.status !== "Rejected" && (
+                        {isApproved && (
                           <>
                             <div className="flex items-center justify-between text-xs bg-amber-50/70 border border-amber-200/70 p-2.5 rounded-xl">
                               <span className="font-medium text-amber-950">Payment Progress</span>
@@ -665,6 +693,10 @@ const ChitScheme: React.FC = () => {
                   const monthlyAmount = matchedScheme?.monthlyAmount || 0;
                   const monthList = Array.from({ length: totalMonths }, (_, i) => i + 1);
 
+                  const isApproved = sub.approvalStatus === "Approved" || sub.status === "Approved" || sub.status === "Paid";
+                  const isRejected = sub.approvalStatus === "Rejected" || sub.status === "Rejected";
+                  const isPending = !isApproved && !isRejected;
+
                   return (
                     <div className="space-y-6">
                       <DialogHeader className="border-b border-gray-100 pb-4">
@@ -678,13 +710,13 @@ const ChitScheme: React.FC = () => {
                             <span>Back to Purchased Schemes</span>
                           </button>
                           <span className={`px-3 py-1 rounded-full font-extrabold text-xs ${
-                            sub.approvalStatus === "Approved" || sub.status === "Approved" || sub.status === "Paid"
+                            isApproved
                               ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                              : sub.approvalStatus === "Rejected" || sub.status === "Rejected"
+                              : isRejected
                               ? "bg-rose-100 text-rose-800 border border-rose-300"
                               : "bg-amber-100 text-amber-800 border border-amber-300"
                           }`}>
-                            Status: {sub.approvalStatus || sub.status}
+                            Status: {isApproved ? "Approved" : isRejected ? "Rejected" : "Pending Approval"}
                           </span>
                         </div>
                         <DialogTitle className="text-xl font-extrabold text-[#2A1B54] mt-2">
@@ -695,113 +727,125 @@ const ChitScheme: React.FC = () => {
                         </DialogDescription>
                       </DialogHeader>
 
-                      {sub.approvalStatus !== "Approved" && sub.status !== "Approved" && sub.status !== "Paid" && sub.approvalStatus !== "Rejected" && sub.status !== "Rejected" && (
+                      {isPending && (
                         <div className="bg-amber-50 border border-amber-300/80 rounded-2xl p-4 flex items-center gap-3 text-xs text-amber-950 shadow-2xs">
                           <Clock className="w-5 h-5 text-amber-700 shrink-0" />
                           <div>
                             <span className="font-extrabold text-sm block text-amber-950 mb-0.5">Please wait, Admin will contact you soon</span>
-                            <span className="text-amber-800 font-medium">Your application is currently pending admin verification. Our team will reach out to you shortly to confirm details.</span>
+                            <span className="text-amber-800 font-medium">Your application is currently pending admin verification. Passbook schedule will be enabled once approved.</span>
                           </div>
                         </div>
                       )}
 
-                      {/* Monthwise Payment Passbook Table */}
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between text-xs bg-amber-50 border border-amber-200/80 p-3 rounded-2xl">
-                          <span className="font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
-                            <Calendar className="w-4 h-4 text-[#7A1416]" />
-                            Monthwise Payment Schedule ({totalMonths} Months)
-                          </span>
-                          <span className="text-xs font-extrabold text-[#7A1416] bg-amber-100/90 px-3 py-1 rounded-xl border border-amber-300">
-                            🔔 Monthly Due Date: Before {dueDateDay}th of every month
-                          </span>
+                      {isRejected && (
+                        <div className="bg-rose-50 border border-rose-300/80 rounded-2xl p-4 flex items-center gap-3 text-xs text-rose-950 shadow-2xs">
+                          <XCircle className="w-5 h-5 text-rose-700 shrink-0" />
+                          <div>
+                            <span className="font-extrabold text-sm block text-rose-950 mb-0.5">Scheme Application Rejected</span>
+                            <span className="text-rose-800 font-medium">This chit scheme application was rejected by Admin. Passbook is not available.</span>
+                          </div>
                         </div>
+                      )}
 
-                        <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-2xs">
-                          <table className="w-full text-left border-collapse">
-                            <thead>
-                              <tr className="bg-gray-100/80 text-gray-700 text-xs uppercase font-extrabold tracking-wider border-b border-gray-200">
-                                <th className="p-3.5 w-16 text-center">S.No</th>
-                                <th className="p-3.5">Month</th>
-                                <th className="p-3.5">Amount</th>
-                                <th className="p-3.5">Payment Status</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100 text-xs">
-                              {monthList.map((mNum, mIdx) => {
-                                const { monthName } = getMonthNameForIndex(mNum, startDateStr);
-                                const existingLog = (sub.monthlyPayments || []).find(p => p.monthNumber === mNum);
-                                const isPaid = existingLog && (existingLog.status === 'Paid' || existingLog.status === 'Late Pay' || existingLog.status === 'Advanced Payment' || existingLog.status === 'Advance Payment' || existingLog.status === 'On-time Payment' || existingLog.status === 'Delay Payment');
-                                const timingStatus = isPaid ? calculatePaymentTimingStatus(existingLog?.paidAt, mNum, dueDateDay, startDateStr) : 'Pending';
+                      {/* Monthwise Payment Passbook Table (ONLY FOR APPROVED SCHEMES) */}
+                      {isApproved && (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between text-xs bg-amber-50 border border-amber-200/80 p-3 rounded-2xl">
+                            <span className="font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
+                              <Calendar className="w-4 h-4 text-[#7A1416]" />
+                              Monthwise Payment Schedule ({totalMonths} Months)
+                            </span>
+                            <span className="text-xs font-extrabold text-[#7A1416] bg-amber-100/90 px-3 py-1 rounded-xl border border-amber-300">
+                              🔔 Monthly Due Date: Before {dueDateDay}th of every month
+                            </span>
+                          </div>
 
-                                return (
-                                  <tr
-                                    key={mNum}
-                                    className={`hover:bg-gray-50/80 transition-colors ${
-                                      isPaid ? 'bg-emerald-50/30' : ''
-                                    }`}
-                                  >
-                                    <td className="p-3.5 font-bold text-gray-500 text-center">
-                                      {mIdx + 1}
-                                    </td>
+                          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-2xs">
+                            <table className="w-full text-left border-collapse">
+                              <thead>
+                                <tr className="bg-gray-100/80 text-gray-700 text-xs uppercase font-extrabold tracking-wider border-b border-gray-200">
+                                  <th className="p-3.5 w-16 text-center">S.No</th>
+                                  <th className="p-3.5">Month</th>
+                                  <th className="p-3.5">Amount</th>
+                                  <th className="p-3.5">Payment Status</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100 text-xs">
+                                {monthList.map((mNum, mIdx) => {
+                                  const { monthName } = getMonthNameForIndex(mNum, startDateStr);
+                                  const existingLog = (sub.monthlyPayments || []).find(p => p.monthNumber === mNum);
+                                  const isPaid = existingLog && (existingLog.status === 'Paid' || existingLog.status === 'Late Pay' || existingLog.status === 'Advanced Payment' || existingLog.status === 'Advance Payment' || existingLog.status === 'On-time Payment' || existingLog.status === 'Delay Payment');
+                                  const timingStatus = isPaid ? calculatePaymentTimingStatus(existingLog?.paidAt, mNum, dueDateDay, startDateStr) : 'Pending';
 
-                                    <td className="p-3.5 font-extrabold text-gray-900 text-sm">
-                                      {monthName}
-                                    </td>
+                                  return (
+                                    <tr
+                                      key={mNum}
+                                      className={`hover:bg-gray-50/80 transition-colors ${
+                                        isPaid ? 'bg-emerald-50/30' : ''
+                                      }`}
+                                    >
+                                      <td className="p-3.5 font-bold text-gray-500 text-center">
+                                        {mIdx + 1}
+                                      </td>
 
-                                    <td className="p-3.5 font-extrabold text-emerald-800 text-sm">
-                                      ₹{monthlyAmount.toLocaleString()}
-                                    </td>
+                                      <td className="p-3.5 font-extrabold text-gray-900 text-sm">
+                                        {monthName}
+                                      </td>
 
-                                    <td className="p-3.5">
-                                      <div className="flex flex-col gap-1 items-start">
-                                        {isPaid ? (
-                                          <>
-                                            {timingStatus === 'Advanced Payment' && (
-                                              <span className="bg-blue-100 text-blue-900 border border-blue-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
-                                                <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Advanced Payment
-                                              </span>
-                                            )}
-                                            {timingStatus === 'On-time Payment' && (
-                                              <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
-                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> On-time Payment
-                                              </span>
-                                            )}
-                                            {timingStatus === 'Delay Payment' && (
-                                              <span className="bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
-                                                <Clock className="w-3.5 h-3.5 text-amber-700" /> Delay Payment
-                                              </span>
-                                            )}
-                                             <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                                               {existingLog?.paidAt && (
-                                                 <span className="text-[11px] text-gray-500 font-medium">
-                                                   Paid on: {new Date(existingLog.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                                 </span>
-                                               )}
-                                               <button
-                                                 type="button"
-                                                 onClick={() => downloadChitReceiptPDF(sub, mNum, monthlyAmount, dueDateDay, startDateStr, totalMonths)}
-                                                 className="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-md text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer transition-all"
-                                                 title="Download Official Bill & Passbook Statement PDF"
-                                               >
-                                                 <FileText className="w-3 h-3 text-emerald-700" /> Bill / Receipt
-                                               </button>
-                                             </div>
-                                          </>
-                                        ) : (
-                                          <span className="bg-gray-100 text-gray-600 font-bold text-xs px-3 py-0.5 rounded-full">
-                                            Unpaid / Pending
-                                          </span>
-                                        )}
-                                      </div>
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
+                                      <td className="p-3.5 font-extrabold text-emerald-800 text-sm">
+                                        ₹{monthlyAmount.toLocaleString()}
+                                      </td>
+
+                                      <td className="p-3.5">
+                                        <div className="flex flex-col gap-1 items-start">
+                                          {isPaid ? (
+                                            <>
+                                              {timingStatus === 'Advanced Payment' && (
+                                                <span className="bg-blue-100 text-blue-900 border border-blue-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                                                  <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Advanced Payment
+                                                </span>
+                                              )}
+                                              {timingStatus === 'On-time Payment' && (
+                                                <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> On-time Payment
+                                                </span>
+                                              )}
+                                              {timingStatus === 'Delay Payment' && (
+                                                <span className="bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                                                  <Clock className="w-3.5 h-3.5 text-amber-700" /> Delay Payment
+                                                </span>
+                                              )}
+                                               <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                                                 {existingLog?.paidAt && (
+                                                   <span className="text-[11px] text-gray-500 font-medium">
+                                                     Paid on: {new Date(existingLog.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                   </span>
+                                                 )}
+                                                 <button
+                                                   type="button"
+                                                   onClick={() => downloadChitReceiptPDF(sub, mNum, monthlyAmount, dueDateDay, startDateStr, totalMonths)}
+                                                   className="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-md text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer transition-all"
+                                                   title="Download Official Bill & Passbook Statement PDF"
+                                                 >
+                                                   <FileText className="w-3 h-3 text-emerald-700" /> Bill / Receipt
+                                                 </button>
+                                               </div>
+                                            </>
+                                          ) : (
+                                            <span className="bg-gray-100 text-gray-600 font-bold text-xs px-3 py-0.5 rounded-full">
+                                              Unpaid / Pending
+                                            </span>
+                                          )}
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   );
                 })()}

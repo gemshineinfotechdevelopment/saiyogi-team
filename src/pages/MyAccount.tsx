@@ -4,7 +4,7 @@ import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
 import { getChitSubscriptions, getChitSchemes, ChitSubscriptionItem, ChitSchemeItem, getOrders } from "@/lib/api";
-import { Calendar, Clock, CheckCircle2, Gift, FileText, User, ShoppingBag, Sparkles } from "lucide-react";
+import { Calendar, Clock, CheckCircle2, Gift, FileText, User, ShoppingBag, Sparkles, XCircle } from "lucide-react";
 import { calculatePaymentTimingStatus, downloadChitReceiptPDF } from "@/lib/chitUtils";
 import { loadUserEnquiries, EnquiryItem, formatAddress, formatString } from "@/lib/enquiryUtils";
 import { downloadOrderReceiptPDF, OrderData } from "@/lib/pdf-generator";
@@ -283,6 +283,10 @@ const MyAccount: React.FC = () => {
 
                     const monthList = Array.from({ length: totalMonths }, (_, i) => i + 1);
 
+                    const isApproved = sub.approvalStatus === "Approved" || sub.status === "Approved" || sub.status === "Paid";
+                    const isRejected = sub.approvalStatus === "Rejected" || sub.status === "Rejected";
+                    const isPending = !isApproved && !isRejected;
+
                     return (
                       <div key={sub._id || sub.id || sIdx} className="bg-white border border-gray-200/90 rounded-3xl p-6 shadow-xs space-y-5">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
@@ -299,29 +303,39 @@ const MyAccount: React.FC = () => {
 
                           <div>
                             <span className={`px-3 py-1 rounded-full font-extrabold text-xs ${
-                              sub.approvalStatus === "Approved" || sub.status === "Approved" || sub.status === "Paid"
+                              isApproved
                                 ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                                : sub.approvalStatus === "Rejected" || sub.status === "Rejected"
+                                : isRejected
                                 ? "bg-rose-100 text-rose-800 border border-rose-300"
                                 : "bg-amber-100 text-amber-800 border border-amber-300"
                             }`}>
-                              Status: {sub.approvalStatus || sub.status}
+                              Status: {isApproved ? "Approved" : isRejected ? "Rejected" : "Pending Approval"}
                             </span>
                           </div>
                         </div>
 
-                        {sub.approvalStatus !== "Approved" && sub.status !== "Approved" && sub.status !== "Paid" && sub.approvalStatus !== "Rejected" && sub.status !== "Rejected" && (
+                        {isPending && (
                           <div className="bg-amber-50 border border-amber-300/80 rounded-2xl p-3.5 flex items-center gap-3 text-xs text-amber-950 shadow-2xs">
                             <Clock className="w-5 h-5 text-amber-700 shrink-0" />
                             <div>
                               <span className="font-extrabold text-sm block text-amber-950 mb-0.5">Please wait, Admin will contact you soon</span>
-                              <span className="text-amber-800 font-medium">Your scheme application is pending admin verification. Our team will contact you shortly.</span>
+                              <span className="text-amber-800 font-medium">Your scheme application is pending admin verification. Passbook schedule will be shown once approved.</span>
                             </div>
                           </div>
                         )}
 
-                        {/* Monthwise Payment Passbook Table */}
-                        {sub.approvalStatus !== "Rejected" && sub.status !== "Rejected" && (
+                        {isRejected && (
+                          <div className="bg-rose-50 border border-rose-300/80 rounded-2xl p-3.5 flex items-center gap-3 text-xs text-rose-950 shadow-2xs">
+                            <XCircle className="w-5 h-5 text-rose-700 shrink-0" />
+                            <div>
+                              <span className="font-extrabold text-sm block text-rose-950 mb-0.5">Application Rejected by Admin</span>
+                              <span className="text-rose-800 font-medium">This chit scheme application has been rejected by Admin. Passbook is unavailable.</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Monthwise Payment Passbook Table (ONLY FOR APPROVED SCHEMES) */}
+                        {isApproved && (
                           <div className="space-y-3">
                             <div className="flex items-center justify-between text-xs">
                               <span className="font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
