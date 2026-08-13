@@ -17,9 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createOrder, trackCustomerAction } from "@/lib/api";
-import { promptAndDownloadOrderReceiptPDF, promptAndPrintOrderReceipt } from "@/lib/pdf-generator";
 import { getCookie, setCookie } from "@/lib/cookieUtils";
-import { downloadOrderReceiptPDF, printOrderReceipt } from "@/lib/pdf-generator";
+import { promptAndDownloadOrderReceiptPDF, promptAndPrintOrderReceipt, downloadOrderReceiptPDF, printOrderReceipt } from "@/lib/pdf-generator";
 import {
   Select,
   SelectContent,
@@ -28,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
+
 import indiaStatesData from "@/lib/indiaStates.json";
 
 const getAllStates = () => Object.keys(indiaStatesData);
@@ -62,6 +62,18 @@ const CartDrawer = () => {
     preferredTransport: "",
   });
 
+  // Auto sync user name & phone from auth context / storage into cart checkout form
+  React.useEffect(() => {
+    const activePhone = userPhone || localStorage.getItem("user_phone") || getCookie("saiyogi_user_phone") || "";
+    const activeName = userName || localStorage.getItem("user_name") || getCookie("saiyogi_user_name") || "";
+
+    setFormData((prev) => ({
+      ...prev,
+      phoneNumber: prev.phoneNumber || activePhone,
+      name: prev.name || (activeName && activeName !== "Customer" ? activeName : "")
+    }));
+  }, [isUserLoggedIn, userPhone, userName, isCartOpen, viewMode]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     let { name, value } = e.target;
     if (name === "phoneNumber") {
@@ -81,10 +93,13 @@ const CartDrawer = () => {
 
     // If already logged in, no need to ask for mobile number verification
     if (isUserLoggedIn || isPhoneVerified) {
-      const activePhone = userPhone || formData.phoneNumber || "";
-      if (activePhone) {
-        setFormData((prev) => ({ ...prev, phoneNumber: activePhone }));
-      }
+      const activePhone = userPhone || formData.phoneNumber || localStorage.getItem("user_phone") || getCookie("saiyogi_user_phone") || "";
+      const activeName = userName || formData.name || localStorage.getItem("user_name") || getCookie("saiyogi_user_name") || "";
+      setFormData((prev) => ({
+        ...prev,
+        phoneNumber: activePhone || prev.phoneNumber,
+        name: (activeName && activeName !== "Customer") ? activeName : prev.name
+      }));
       setIsPhoneVerified(true);
       setViewMode("checkout");
     } else {
@@ -215,7 +230,7 @@ const CartDrawer = () => {
 
         // Save enquiry to user's phone-specific key in localStorage and cookie for MyEnquiry page
         try {
-          const cleanPhone = formData.phoneNumber.replace(/\D/g, "");
+          const cleanPhone = formData.phoneNumber.replace(/\D/g, "").slice(-10);
           const userPhoneKey = `user_saved_enquiries_${cleanPhone}`;
           const cookieKey = `saiyogi_enquiries_${cleanPhone}`;
 
@@ -238,13 +253,26 @@ const CartDrawer = () => {
             id: String(Date.now()),
             enquiryNumber: String(response.order.orderNumber || Math.floor(100000 + Math.random() * 900000)),
             date: `${new Date().toLocaleDateString('en-IN')} ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`,
+            subtotal: response.order.subtotal,
+            discountPercent: settings.discountPercent,
+            packingCharge: response.order.packingCharge,
             total: response.order.total || response.order.subtotal || 0,
             status: "Pending",
             customerName: formData.name,
             customerPhone: formData.phoneNumber,
             customerEmail: formData.email,
             deliveryAddress: fullDeliveryAddress,
-            items: items.map(i => ({ productName: i.product.name, quantity: i.quantity, price: i.product.price }))
+            state: formData.state,
+            district: formData.district,
+            items: orderItems.map(i => ({
+              productName: i.productName,
+              quantity: i.quantity,
+              price: i.price,
+              originalPrice: i.originalPrice,
+              hasDiscount: i.hasDiscount,
+              netRate: i.netRate,
+              displayNetRate: i.displayNetRate
+            }))
           };
           const updatedEnquiries = [newEnquiry, ...existing];
           localStorage.setItem(userPhoneKey, JSON.stringify(updatedEnquiries));
@@ -274,7 +302,7 @@ const CartDrawer = () => {
   const handleConfirmAndSubmitTerms = () => {
     if (savedOrderData) {
       try {
-        promptAndPrintOrderReceipt(savedOrderData);
+        downloadOrderReceiptPDF(savedOrderData);
       } catch (pdfErr) {
         console.error("PDF download failed:", pdfErr);
       }
@@ -360,9 +388,10 @@ const CartDrawer = () => {
                 items.map(({ product, quantity }) => {
                   const productId = String(product._id || product.id);
                   const dp = getDiscountPrice(product.price, product.hasDiscount, settings.discountPercent, product.netRate, product.displayNetRate);
+                  const stockVal = product.storeStockPieces !== undefined ? Number(product.storeStockPieces) : (product.stock !== undefined ? Number(product.stock) : 999);
                   return (
                     <div key={productId} className="py-3.5 flex gap-3 items-start">
-                      <img src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : product.image} alt={product.name} className="w-14 h-14 rounded-md object-contain shrink-0 border border-gray-100 p-0.5" />
+                      <img src={stockVal <= 0 ? '/saiyogi-logo-1.png' : product.image} alt={product.name} className="w-14 h-14 rounded-md object-contain shrink-0 border border-gray-100 p-0.5" />
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2 mb-1">
                           <h4 className="product-title-font font-extrabold sm:font-bold text-base sm:text-sm text-gray-900 truncate">{product.name}</h4>
@@ -384,7 +413,7 @@ const CartDrawer = () => {
                               <Minus className="h-3 w-3" />
                             </button>
                             <span className="px-2 py-0.5 text-xs font-semibold text-gray-800 text-center min-w-[22px]">{quantity}</span>
-                            <button onClick={() => updateQuantity(productId, Math.min(product.storeStockPieces || 0, quantity + 1))} className="px-2 py-0.5 hover:bg-gray-100 disabled:opacity-30 text-gray-700 transition-colors" disabled={quantity >= (product.storeStockPieces || 0)}>
+                            <button onClick={() => updateQuantity(productId, Math.min(stockVal, quantity + 1))} className="px-2 py-0.5 hover:bg-gray-100 disabled:opacity-30 text-gray-700 transition-colors" disabled={quantity >= stockVal}>
                               <Plus className="h-3 w-3" />
                             </button>
                           </div>

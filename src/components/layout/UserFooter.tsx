@@ -1,14 +1,13 @@
 import companyLogo from "@/assets/saiyogi-logo-1.png";
 import { Link } from "react-router-dom";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
-import { Facebook, Twitter, Instagram, Youtube, ShieldCheck, Tag, Truck, CreditCard, HeadphonesIcon } from "lucide-react";
+import { Facebook, Instagram, Youtube, ShieldCheck, Tag, Truck, CreditCard, HeadphonesIcon } from "lucide-react";
 
 const UserFooter = () => {
   const { settings } = useSiteSettings();
 
   const socialIcons = {
     facebook: <Facebook className="h-5 w-5" />,
-    twitter: <Twitter className="h-5 w-5" />,
     instagram: <Instagram className="h-5 w-5" />,
     youtube: <Youtube className="h-5 w-5" />,
   };
@@ -132,14 +131,8 @@ const UserFooter = () => {
               <Link to="/my-account" className="hover:text-[#A80000] cursor-pointer transition-colors duration-200">
                 My Account
               </Link>
-              <Link to="/my-account" className="hover:text-[#A80000] cursor-pointer transition-colors duration-200">
-                Track Your Order
-              </Link>
               <Link to="/contact" className="hover:text-[#A80000] cursor-pointer transition-colors duration-200">
                 Returns/Exchange
-              </Link>
-              <Link to="/contact" className="hover:text-[#A80000] cursor-pointer transition-colors duration-200">
-                FAQs
               </Link>
             </nav>
           </div>

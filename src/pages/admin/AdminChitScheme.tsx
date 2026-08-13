@@ -5,8 +5,9 @@ import {
   Image as ImageIcon, Upload, Trash2, AlertCircle, Edit2, FileText, Loader2, X, Users,
   CheckCircle2, Clock, Search, Filter, Phone, MapPin, Mail, RefreshCw, Check, XCircle,
   Eye, CheckCheck, Calendar, Plus, ArrowLeft, User, DollarSign, Award, ChevronRight, AlertTriangle,
-  Share2, MessageCircle
+  Share2, MessageCircle, Sparkles
 } from "lucide-react";
+import { calculatePaymentTimingStatus, getMonthTargetDate, getPaidHistoryList } from "@/lib/chitUtils";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import {
@@ -537,19 +538,27 @@ const AdminChitScheme: React.FC = () => {
     try {
       toast.loading("Recording monthly payment...", { id: "pay-toast" });
       const id = subscription._id || subscription.id || "";
+      const matchedScheme = schemes.find(s => (s.title || s.schemeName) === subscription.schemeName);
+      const calculatedStatus = calculatePaymentTimingStatus(
+        paymentDate,
+        monthNumber,
+        matchedScheme?.dueDateDay || 10,
+        matchedScheme?.startDate
+      );
+
       await updateMonthPaymentStatusApi(id, {
         monthNumber,
         monthName,
         dueDate,
         amount,
-        status: 'Paid',
+        status: calculatedStatus,
         paymentDate,
         paymentMethod,
         transactionNumber,
-        notes: notes || `Paid via ${paymentMethod} on ${paymentDate}`
+        notes: notes || `Paid (${calculatedStatus}) via ${paymentMethod} on ${paymentDate}`
       });
 
-      toast.success(`Payment for ${monthName} recorded as Paid!`, { id: "pay-toast" });
+      toast.success(`Payment for ${monthName} recorded as ${calculatedStatus}!`, { id: "pay-toast" });
       setPaymentModalState(prev => ({ ...prev, isOpen: false }));
       loadSubscriptions();
     } catch (err: any) {
@@ -590,16 +599,17 @@ const AdminChitScheme: React.FC = () => {
     });
   };
 
-  // Helper to determine On-time vs Delay Payment based on due day
-  const getPaymentTimingStatus = (paidDateStr: string | undefined, dueDateDay: number): "On-time Payment" | "Delay Payment" => {
-    if (!paidDateStr) return "On-time Payment";
-    const paidDate = new Date(paidDateStr);
-    if (isNaN(paidDate.getTime())) return "On-time Payment";
-    const paidDay = paidDate.getDate();
-    return paidDay <= dueDateDay ? "On-time Payment" : "Delay Payment";
+  // Helper to determine Payment Status (Advanced Payment, On-time Payment, Delay Payment)
+  const getPaymentTimingStatus = (
+    paidDateStr: string | undefined,
+    monthNumber: number,
+    dueDateDay: number,
+    startDateStr?: string
+  ): "Advanced Payment" | "On-time Payment" | "Delay Payment" => {
+    return calculatePaymentTimingStatus(paidDateStr, monthNumber, dueDateDay, startDateStr);
   };
 
-  // PDF Receipt Generation & WhatsApp Share Function
+  // PDF Receipt Generation & WhatsApp Share Function with Previous Paid History
   const handleShareWhatsAppReceipt = (
     sub: ChitSubscriptionItem,
     monthNumber: number,
@@ -614,84 +624,174 @@ const AdminChitScheme: React.FC = () => {
     const customerName = sub.name || sub.customerName || 'Customer';
     const schemeName = sub.schemeName || 'Chit Scheme';
     const formattedDate = paidAt ? new Date(paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    const timingStatus = getPaymentTimingStatus(paidAt, dueDateDay);
-    const receiptNo = `REC-${monthNumber}-${Date.now().toString().slice(-6)}`;
+    
+    const matchedScheme = schemes.find(s => (s.title || s.schemeName) === sub.schemeName);
+    const startDateStr = matchedScheme?.startDate;
+    const totalMonths = matchedScheme?.totalMonths || matchedScheme?.numberOfMonths || 9;
+    const monthlyAmount = matchedScheme?.monthlyAmount || amount || 0;
+    const totalSchemeAmount = monthlyAmount * totalMonths;
+
+    const existingLog = (sub.monthlyPayments || []).find(p => p.monthNumber === monthNumber);
+    const rawStatus = existingLog?.status;
+    let timingStatus: "Advanced Payment" | "On-time Payment" | "Delay Payment" = "On-time Payment";
+    if (rawStatus === 'Advanced Payment' || rawStatus === 'Advance Payment') {
+      timingStatus = 'Advanced Payment';
+    } else if (rawStatus === 'On-time Payment') {
+      timingStatus = 'On-time Payment';
+    } else if (rawStatus === 'Delay Payment') {
+      timingStatus = 'Delay Payment';
+    } else {
+      timingStatus = calculatePaymentTimingStatus(paidAt || new Date(), monthNumber, dueDateDay, startDateStr);
+    }
+
+    const receiptNo = `REC-M${monthNumber}-${Date.now().toString().slice(-6)}`;
+
+    // Build paid history list for all months from 1 up to monthNumber
+    const historyList = getPaidHistoryList(sub, monthNumber, monthlyAmount, dueDateDay, startDateStr);
+    const currentIdx = historyList.findIndex(h => h.monthNumber === monthNumber);
+    if (currentIdx !== -1) {
+      historyList[currentIdx].amount = amount;
+      historyList[currentIdx].status = timingStatus;
+      historyList[currentIdx].paidAt = paidAt || new Date();
+      historyList[currentIdx].isPaid = true;
+      if (paymentMethod) historyList[currentIdx].paymentMethod = paymentMethod;
+      if (transactionNumber) historyList[currentIdx].transactionNumber = transactionNumber;
+    }
+
+    const paidItems = historyList.filter(item => item.isPaid);
+    const totalPaidTillNow = paidItems.reduce((sum, item) => sum + item.amount, 0);
+    const remainingBalance = Math.max(0, totalSchemeAmount - totalPaidTillNow);
+
+    // Build HTML rows for paid history table
+    const paidHistoryRowsHTML = historyList.map(item => {
+      const itemDate = item.paidAt ? new Date(item.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+      let statusColor = '#64748b';
+      let statusBg = '#f1f5f9';
+
+      if (item.status === 'Advanced Payment') {
+        statusColor = '#1d4ed8';
+        statusBg = '#dbeafe';
+      } else if (item.status === 'On-time Payment') {
+        statusColor = '#047857';
+        statusBg = '#d1fae5';
+      } else if (item.status === 'Delay Payment') {
+        statusColor = '#b45309';
+        statusBg = '#fef3c7';
+      }
+
+      return `
+        <tr style="border-bottom: 1px solid #e2e8f0; background: ${item.isPaid ? '#ffffff' : '#fafafa'};">
+          <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold;">#${item.monthNumber}</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: bold; color: #0f172a;">${item.monthName}</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: center;">${itemDate}</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: center;">
+            <span style="background: ${statusBg}; color: ${statusColor}; font-weight: bold; font-size: 10px; padding: 2px 6px; border-radius: 4px; display: inline-block;">
+              ${item.status}
+            </span>
+          </td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; color: #475569;">${item.paymentMethod || '-'} ${item.transactionNumber ? `(#${item.transactionNumber})` : ''}</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; color: ${item.isPaid ? '#047857' : '#94a3b8'};">
+            ${item.isPaid ? `₹${item.amount.toLocaleString()}` : `₹${item.amount.toLocaleString()} (Pending)`}
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    const statusBadgeColor = timingStatus === 'Advanced Payment' ? '#1d4ed8' : timingStatus === 'On-time Payment' ? '#047857' : '#b45309';
 
     // Create offscreen container for PDF receipt
     const html = `
-      <div style="font-family: Arial, sans-serif; padding: 25px; max-width: 650px; background: #ffffff; color: #1e293b; border: 2px solid #7A1416; border-radius: 16px;">
-        <div style="text-align: center; border-bottom: 2px solid #7A1416; padding-bottom: 15px; margin-bottom: 20px;">
-          <h1 style="color: #7A1416; margin: 0; font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">SAI YOGI CRACKERS</h1>
-          <p style="margin: 4px 0 0 0; font-size: 13px; font-weight: bold; color: #475569;">MONTHLY CHIT SCHEME PAYMENT RECEIPT</p>
+      <div style="font-family: Arial, sans-serif; padding: 24px; max-width: 680px; background: #ffffff; color: #1e293b; border: 2px solid #7A1416; border-radius: 16px;">
+        <div style="text-align: center; border-bottom: 2px solid #7A1416; padding-bottom: 12px; margin-bottom: 16px;">
+          <h1 style="color: #7A1416; margin: 0; font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">SAI YOGI CRACKERS</h1>
+          <p style="margin: 3px 0 0 0; font-size: 13px; font-weight: bold; color: #334155;">MONTHLY CHIT SCHEME PAYMENT RECEIPT & PASSBOOK STATEMENT</p>
           <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b;">Sattur, Virudhunagar District, Tamil Nadu • Mobile: +91 95859 75756</p>
         </div>
 
-        <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 12px; background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 16px; font-size: 12px; background: #f8fafc; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1;">
           <div>
             <strong>Receipt No:</strong> ${receiptNo}<br/>
-            <strong>Payment Date:</strong> ${formattedDate}
+            <strong>Receipt Date:</strong> ${formattedDate}
           </div>
           <div style="text-align: right;">
             <strong>Scheme:</strong> ${schemeName}<br/>
-            <strong>Due Date:</strong> Before ${dueDateDay}th of month
+            <strong>Monthly Due Date:</strong> Before ${dueDateDay}th of month
           </div>
         </div>
 
-        <div style="margin-bottom: 20px; font-size: 13px;">
-          <div style="font-weight: bold; color: #7A1416; font-size: 14px; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">Subscriber Details</div>
+        <div style="margin-bottom: 16px; font-size: 12px;">
+          <div style="font-weight: bold; color: #7A1416; font-size: 13px; margin-bottom: 6px; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">Subscriber Details</div>
           <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
             <tr>
-              <td style="padding: 4px 0; color: #64748b; width: 130px;">Customer Name:</td>
-              <td style="padding: 4px 0; font-weight: bold; color: #0f172a;">${customerName}</td>
+              <td style="padding: 3px 0; color: #64748b; width: 130px;">Customer Name:</td>
+              <td style="padding: 3px 0; font-weight: bold; color: #0f172a;">${customerName}</td>
             </tr>
             <tr>
-              <td style="padding: 4px 0; color: #64748b;">Mobile Number:</td>
-              <td style="padding: 4px 0; font-weight: bold; color: #0f172a;">${sub.phone || sub.mobileNumber}</td>
+              <td style="padding: 3px 0; color: #64748b;">Mobile Number:</td>
+              <td style="padding: 3px 0; font-weight: bold; color: #0f172a;">${sub.phone || sub.mobileNumber}</td>
             </tr>
             <tr>
-              <td style="padding: 4px 0; color: #64748b;">Location:</td>
-              <td style="padding: 4px 0; font-weight: bold; color: #0f172a;">${sub.location || 'N/A'}</td>
+              <td style="padding: 3px 0; color: #64748b;">Location:</td>
+              <td style="padding: 3px 0; font-weight: bold; color: #0f172a;">${sub.location || 'N/A'}</td>
             </tr>
           </table>
         </div>
 
-        <div style="margin-bottom: 25px;">
-          <div style="font-weight: bold; color: #7A1416; font-size: 14px; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">Payment Particulars</div>
-          <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+        <div style="margin-bottom: 16px; background: #fef2f2; border: 1px solid #fca5a5; padding: 10px 14px; border-radius: 10px; font-size: 12px;">
+          <div style="font-weight: bold; color: #7A1416; font-size: 13px; margin-bottom: 4px; text-transform: uppercase;">CURRENT PAYMENT RECEIVED</div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span><strong>Month:</strong> Month ${monthNumber} (${monthName})</span>
+            <span><strong>Status:</strong> <strong style="color: ${statusBadgeColor};">${timingStatus}</strong></span>
+            <span><strong>Amount Paid:</strong> <strong style="color: #047857; font-size: 15px;">₹${amount.toLocaleString()}</strong></span>
+          </div>
+          <div style="font-size: 11px; color: #475569; margin-top: 4px;">
+            Payment Method: ${paymentMethod || 'Cash / UPI'}${transactionNumber ? ` (Ref #${transactionNumber})` : ''} • Date: ${formattedDate}
+          </div>
+        </div>
+
+        <!-- PREVIOUS PAYMENT HISTORY TABLE -->
+        <div style="margin-bottom: 16px;">
+          <div style="font-weight: bold; color: #7A1416; font-size: 13px; margin-bottom: 6px; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+            <span>PAID HISTORY STATEMENT (Months 1 to ${monthNumber})</span>
+            <span style="font-size: 11px; color: #047857; font-weight: bold;">Total Paid: ₹${totalPaidTillNow.toLocaleString()}</span>
+          </div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
             <thead>
-              <tr style="background: #f1f5f9; color: #334155; font-size: 11px; text-transform: uppercase;">
-                <th style="padding: 8px; border: 1px solid #cbd5e1;">Description</th>
-                <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">Month</th>
-                <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">Status</th>
-                <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">Amount Paid</th>
+              <tr style="background: #f1f5f9; color: #334155; font-size: 10px; text-transform: uppercase;">
+                <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: center;">Month #</th>
+                <th style="padding: 6px; border: 1px solid #cbd5e1;">Month Name</th>
+                <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: center;">Paid Date</th>
+                <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: center;">Status</th>
+                <th style="padding: 6px; border: 1px solid #cbd5e1;">Method / Ref</th>
+                <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: right;">Amount (₹)</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td style="padding: 10px 8px; border: 1px solid #cbd5e1; font-weight: bold;">${schemeName} Installment</td>
-                <td style="padding: 10px 8px; border: 1px solid #cbd5e1; text-align: center;">Month ${monthNumber} (${monthName})</td>
-                <td style="padding: 10px 8px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: ${timingStatus === 'On-time Payment' ? '#047857' : '#b45309'};">
-                  ${timingStatus}
-                </td>
-                <td style="padding: 10px 8px; border: 1px solid #cbd5e1; text-align: right; font-weight: 900; color: #047857; font-size: 14px;">₹${amount.toLocaleString()}</td>
-              </tr>
+              ${paidHistoryRowsHTML}
             </tbody>
+            <tfoot>
+              <tr style="background: #f8fafc; font-weight: bold;">
+                <td colspan="5" style="padding: 6px; border: 1px solid #cbd5e1; text-align: right;">Cumulative Total Amount Paid Till Date:</td>
+                <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: right; color: #047857; font-size: 12px;">₹${totalPaidTillNow.toLocaleString()}</td>
+              </tr>
+            </tfoot>
           </table>
         </div>
 
-        <div style="margin-bottom: 25px; background: #fef2f2; border: 1px solid #fca5a5; padding: 12px; border-radius: 10px; font-size: 12px;">
-          <div style="display: flex; justify-content: space-between;">
-            <span><strong>Payment Method:</strong> ${paymentMethod || 'Cash / UPI'}${transactionNumber ? ` (Ref #${transactionNumber})` : ''}</span>
-            <span><strong>Total Paid:</strong> <strong style="color: #7A1416; font-size: 14px;">₹${amount.toLocaleString()}</strong></span>
+        <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px 14px; border-radius: 10px; font-size: 11px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; font-weight: bold;">
+            <span>Total Scheme: ₹${totalSchemeAmount.toLocaleString()} (${totalMonths} Months)</span>
+            <span>Progress: <span style="color: #047857;">₹${totalPaidTillNow.toLocaleString()} (${paidItems.length}/${totalMonths} Paid)</span></span>
+            <span>Balance Remaining: <span style="color: #b91c1c;">₹${remainingBalance.toLocaleString()}</span></span>
           </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; font-size: 11px; color: #64748b;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px; font-size: 11px; color: #64748b;">
           <div>
             <p style="margin: 0;">Thank you for your payment!</p>
-            <p style="margin: 2px 0 0 0;">This is an official computer generated receipt.</p>
+            <p style="margin: 2px 0 0 0;">This is an official computer generated receipt & passbook statement.</p>
           </div>
-          <div style="text-align: center; border-top: 1px dashed #94a3b8; padding-top: 5px; width: 160px;">
+          <div style="text-align: center; border-top: 1px dashed #94a3b8; padding-top: 4px; width: 160px;">
             <strong style="color: #7A1416;">Sai Yogi Crackers</strong><br/>
             Authorized Signatory
           </div>
@@ -703,7 +803,7 @@ const AdminChitScheme: React.FC = () => {
     tempDiv.innerHTML = html;
     tempDiv.style.position = 'absolute';
     tempDiv.style.left = '-9999px';
-    tempDiv.style.width = '650px';
+    tempDiv.style.width = '680px';
     document.body.appendChild(tempDiv);
 
     toast.loading("Generating & Downloading PDF Receipt...", { id: "pdf-toast" });
@@ -724,18 +824,34 @@ const AdminChitScheme: React.FC = () => {
 
           if (document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
 
+          // Build WhatsApp history text lines
+          const waHistoryText = historyList.map(item => {
+            const itemDate = item.paidAt ? new Date(item.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '-';
+            if (item.isPaid) {
+              return `• Month ${item.monthNumber} (${item.monthName}): ₹${item.amount.toLocaleString()} [${item.status} on ${itemDate}]`;
+            } else {
+              return `• Month ${item.monthNumber} (${item.monthName}): ₹${item.amount.toLocaleString()} [Pending]`;
+            }
+          }).join('\n');
+
           // Open WhatsApp with pre-formatted summary text & PDF note
           const text = 
-`*SAI YOGI CRACKERS - CHIT SCHEME PAYMENT RECEIPT (PDF)* 🧾
+`*SAI YOGI CRACKERS - CHIT SCHEME RECEIPT & PASSBOOK* 🧾
 --------------------------------------------
 *Subscriber:* ${customerName}
 *Scheme:* ${schemeName}
-*Month:* Month ${monthNumber} (${monthName})
+*Current Payment:* Month ${monthNumber} (${monthName})
 *Amount Paid:* ₹${amount.toLocaleString()}
-*Payment Date:* ${formattedDate}
 *Status:* ${timingStatus}
+*Payment Date:* ${formattedDate}
 --------------------------------------------
-📄 PDF Receipt generated & downloaded to your device. Please attach the PDF receipt to this chat.
+*PREVIOUS PAID HISTORY (Months 1 to ${monthNumber}):*
+${waHistoryText}
+
+*Total Paid Till Date:* ₹${totalPaidTillNow.toLocaleString()} (${historyList.length}/${totalMonths} Months)
+*Remaining Balance:* ₹${remainingBalance.toLocaleString()}
+--------------------------------------------
+📄 PDF Receipt & Passbook Statement downloaded to your device. Please attach the PDF receipt to this chat.
 Thank you for your payment! 🙏
 _Sai Yogi Crackers_`;
 
@@ -1140,14 +1256,6 @@ _Sai Yogi Crackers_`;
                   Configure scheme names, starting dates, duration, monthly amounts, and payment due date rules.
                 </p>
               </div>
-
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300/80 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
-              >
-                <Plus className="w-4 h-4 text-[#7A1416]" />
-                <span>Add Scheme</span>
-              </button>
             </div>
 
             {loadingSchemes ? (
@@ -2037,8 +2145,8 @@ _Sai Yogi Crackers_`;
                         <tbody className="divide-y divide-gray-100 text-xs">
                           {monthSchedule.map((m) => {
                             const existingLog = (sub.monthlyPayments || []).find(p => p.monthNumber === m.monthNumber);
-                            const isPaid = existingLog?.status === 'Paid' || existingLog?.status === 'Late Pay';
-                            const timingStatus = getPaymentTimingStatus(existingLog?.paidAt, dueDateDay);
+                            const isPaid = existingLog && (existingLog.status === 'Paid' || existingLog.status === 'Late Pay' || existingLog.status === 'Advanced Payment' || existingLog.status === 'Advance Payment' || existingLog.status === 'On-time Payment' || existingLog.status === 'Delay Payment');
+                            const timingStatus = getPaymentTimingStatus(existingLog?.paidAt, m.monthNumber, dueDateDay, startDateStr);
 
                             return (
                               <tr
@@ -2062,11 +2170,17 @@ _Sai Yogi Crackers_`;
                                 <td className="p-3.5">
                                   {isPaid ? (
                                     <div className="space-y-1">
-                                      {timingStatus === 'On-time Payment' ? (
+                                      {timingStatus === 'Advanced Payment' && (
+                                        <span className="bg-blue-100 text-blue-900 border border-blue-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                                          <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Advanced Payment
+                                        </span>
+                                      )}
+                                      {timingStatus === 'On-time Payment' && (
                                         <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
                                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> On-time Payment
                                         </span>
-                                      ) : (
+                                      )}
+                                      {timingStatus === 'Delay Payment' && (
                                         <span className="bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
                                           <Clock className="w-3.5 h-3.5 text-amber-700" /> Delay Payment
                                         </span>
@@ -2178,15 +2292,42 @@ _Sai Yogi Crackers_`;
             </DialogHeader>
 
             <form onSubmit={handleConfirmPaymentEntry} className="space-y-4 py-2 text-xs">
-              <div className="bg-amber-50 p-3.5 rounded-2xl border border-amber-200/80 space-y-1">
-                <div className="text-xs font-extrabold text-[#7A1416]">
-                  {paymentModalState.monthName}
-                </div>
-                <div className="text-xs text-gray-700 font-medium flex justify-between">
-                  <span>Monthly Amount:</span>
-                  <strong className="text-emerald-800 font-extrabold text-sm">₹{paymentModalState.amount.toLocaleString()}</strong>
-                </div>
-              </div>
+              {(() => {
+                const matchedScheme = schemes.find(s => (s.title || s.schemeName) === paymentModalState.subscription?.schemeName);
+                const previewStatus = calculatePaymentTimingStatus(
+                  paymentModalState.paymentDate,
+                  paymentModalState.monthNumber,
+                  matchedScheme?.dueDateDay || 10,
+                  matchedScheme?.startDate
+                );
+
+                return (
+                  <div className="bg-amber-50 p-3.5 rounded-2xl border border-amber-200/80 space-y-1.5">
+                    <div className="text-xs font-extrabold text-[#7A1416] flex justify-between items-center">
+                      <span>{paymentModalState.monthName}</span>
+                      <span className="text-emerald-800 font-extrabold text-sm">₹{paymentModalState.amount.toLocaleString()}</span>
+                    </div>
+                    <div className="pt-1 flex items-center justify-between text-xs font-bold border-t border-amber-200/60 mt-1">
+                      <span className="text-gray-700">Auto Classification:</span>
+                      {previewStatus === 'Advanced Payment' && (
+                        <span className="bg-blue-100 text-blue-900 border border-blue-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                          <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Advanced Payment
+                        </span>
+                      )}
+                      {previewStatus === 'On-time Payment' && (
+                        <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> On-time Payment
+                        </span>
+                      )}
+                      {previewStatus === 'Delay Payment' && (
+                        <span className="bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5 text-amber-700" /> Delay Payment
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">

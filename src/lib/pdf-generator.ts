@@ -219,17 +219,25 @@ function generateReceiptHTML(order: OrderData, copies: number = 1): string {
     }
 
     discountItems.forEach(item => {
-      const originalPrice = item.originalPrice !== undefined ? item.originalPrice : (item.price || 0);
+      let originalPrice = item.originalPrice !== undefined ? item.originalPrice : (item.price || 0);
+      let discountedPrice = item.price || 0;
+
+      if (originalPrice === discountedPrice && discountPct > 0 && item.hasDiscount !== false) {
+        discountedPrice = Math.round(originalPrice * (1 - discountPct / 100));
+      }
+
       const qty = item.quantity;
       const mrpTotal = originalPrice * qty;
       
-      const lineTotal = (item.price || 0) * qty;
+      const lineTotal = discountedPrice * qty;
       const lessAmt = mrpTotal - lineTotal;
       
       // Calculate effective discount percentage to show
       let effectiveDiscPct = '0';
       if (mrpTotal > 0 && lessAmt > 0) {
           effectiveDiscPct = String(Math.round((lessAmt / mrpTotal) * 100));
+      } else if (discountPct > 0 && item.hasDiscount !== false) {
+          effectiveDiscPct = String(discountPct);
       }
 
       allRows.push({
@@ -348,9 +356,15 @@ function generateReceiptHTML(order: OrderData, copies: number = 1): string {
     const qty = item.quantity;
     
     if (!isNetRate) {
-      const originalPrice = item.originalPrice !== undefined ? item.originalPrice : (item.price || 0);
-      const itemMrpTotal = originalPrice * qty;
-      const lineTotal = (item.price || 0) * qty;
+      let origPrice = item.originalPrice !== undefined ? item.originalPrice : (item.price || 0);
+      let discountedPrice = item.price || 0;
+
+      if (origPrice === discountedPrice && discountPct > 0 && item.hasDiscount !== false) {
+        discountedPrice = Math.round(origPrice * (1 - discountPct / 100));
+      }
+
+      const itemMrpTotal = origPrice * qty;
+      const lineTotal = discountedPrice * qty;
       
       grossRetailValue += itemMrpTotal;
       totalDiscountAmount += (itemMrpTotal - lineTotal);
@@ -409,7 +423,7 @@ function generateReceiptHTML(order: OrderData, copies: number = 1): string {
               <span style="width: 45%; text-align: right; font-weight:500;">${formatAmt(grossRetailValue)}</span>
             </div>
             <div class="totals-row">
-              <span style="width: 50%; color:#475569;">Discount <span style="display:inline-block; float:right; background:#f1f5f9; padding:0 4px; border-radius:3px;">${discountPct}%</span></span>
+              <span style="width: 50%; color:#475569;">Discount <span style="display:inline-block; float:right; background:#f1f5f9; padding:0 4px; border-radius:3px;">${discountPct || (grossRetailValue > 0 && totalDiscountAmount > 0 ? Math.round((totalDiscountAmount / grossRetailValue) * 100) : 0)}%</span></span>
               <span style="width: 5%; text-align: center;">:</span>
               <span style="width: 45%; text-align: right; font-weight:500;">${formatAmt(totalDiscountAmount)}</span>
             </div>

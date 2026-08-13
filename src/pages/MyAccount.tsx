@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { getChitSubscriptions, getChitSchemes, ChitSubscriptionItem, ChitSchemeItem, getMyEnquiries } from "@/lib/api";
 import { Calendar, Clock, CheckCircle2, Gift, FileText, User, ShoppingBag } from "lucide-react";
 import { loadUserEnquiries, EnquiryItem, formatAddress, formatString } from "@/lib/enquiryUtils";
@@ -52,11 +53,11 @@ const getEnquiryStatus = (ord: any): string => {
 
 const MyAccount: React.FC = () => {
   const { userPhone, userName, isUserLoggedIn, openLoginModal } = useAuth();
+  const { settings } = useSiteSettings();
   const [searchParams, setSearchParams] = useSearchParams();
   
   const initialTab = searchParams.get("tab") === "enquiry" ? "enquiry" : "account";
   const [activeTab, setActiveTab] = useState<"account" | "enquiry">(initialTab);
-
   const [subscriptions, setSubscriptions] = useState<ChitSubscriptionItem[]>([]);
   const [schemes, setSchemes] = useState<ChitSchemeItem[]>([]);
   const [loadingChit, setLoadingChit] = useState(false);
@@ -95,17 +96,26 @@ const MyAccount: React.FC = () => {
                 date: ord.createdAt
                   ? `${new Date(ord.createdAt).toLocaleDateString('en-IN')} ${new Date(ord.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
                   : (ord.date || new Date().toLocaleDateString('en-IN')),
+                subtotal: ord.subtotal || ord.total || 0,
+                discountPercent: ord.discountPercent !== undefined ? ord.discountPercent : settings.discountPercent,
+                packingCharge: ord.packingCharge,
                 total: ord.total || ord.subtotal || 0,
                 status: getEnquiryStatus(ord) as any,
                 customerName: formatString(ord.customerName, "Customer"),
                 customerPhone: formatString(ord.customerPhone, effectivePhone),
                 customerEmail: formatString(ord.customerEmail, ""),
                 deliveryAddress: formatAddress(ord.deliveryAddress || ord.shippingAddress),
+                state: ord.deliveryAddress?.state || ord.state || "",
+                district: ord.deliveryAddress?.district || ord.district || "",
                 items: Array.isArray(ord.items)
                   ? ord.items.map((i: any) => ({
                       productName: formatString(i.productName || i.product?.name, "Product"),
                       quantity: i.quantity || 1,
                       price: i.price || 0,
+                      originalPrice: i.originalPrice !== undefined ? i.originalPrice : (i.product?.price || i.price || 0),
+                      hasDiscount: i.hasDiscount !== undefined ? i.hasDiscount : i.product?.hasDiscount,
+                      netRate: i.netRate !== undefined ? i.netRate : i.product?.netRate,
+                      displayNetRate: i.displayNetRate !== undefined ? i.displayNetRate : i.product?.displayNetRate,
                     }))
                   : [],
               }));
@@ -125,7 +135,7 @@ const MyAccount: React.FC = () => {
     } else {
       setEnquiries([]);
     }
-  }, [userPhone, isUserLoggedIn]);
+  }, [userPhone, isUserLoggedIn, settings.discountPercent]);
 
   const displayName = userName || getCookie("saiyogi_user_name") || localStorage.getItem("user_name") || "Customer";
   const displayPhone = userPhone || getCookie("saiyogi_user_phone") || localStorage.getItem("user_phone") || "-";
@@ -161,21 +171,30 @@ const MyAccount: React.FC = () => {
       orderNumber: enquiry.enquiryNumber,
       customerName: formatString(enquiry.customerName, "Customer"),
       customerPhone: formatString(enquiry.customerPhone, userPhone || ""),
-      customerEmail: formatString(enquiry.customerEmail, "customer@example.com"),
+      customerEmail: formatString(enquiry.customerEmail, ""),
       deliveryAddress: formatAddress(enquiry.deliveryAddress),
+      state: enquiry.state || "",
+      district: enquiry.district || "",
       date: enquiry.date,
-      subtotal: enquiry.total,
+      subtotal: enquiry.subtotal || enquiry.total,
+      discountPercent: enquiry.discountPercent !== undefined ? enquiry.discountPercent : settings.discountPercent,
+      packingCharge: enquiry.packingCharge,
       total: enquiry.total,
-      items: Array.isArray(enquiry.items) ? enquiry.items.map((item) => ({
+      items: Array.isArray(enquiry.items) ? enquiry.items.map((item: any) => ({
         productName: formatString(item.productName, "Product"),
         quantity: item.quantity || 1,
-        price: item.price || 0,
-        originalPrice: item.price || 0,
+        price: item.price !== undefined ? item.price : 0,
+        originalPrice: item.originalPrice !== undefined ? item.originalPrice : (item.price || 0),
+        hasDiscount: item.hasDiscount,
+        netRate: item.netRate,
+        displayNetRate: item.displayNetRate,
       })) : [],
-      siteName: "Sai Yogi Crackers",
-      siteAddress: "Sivakasi, Virudhunagar District, Tamil Nadu",
-      sitePhone: "+91 98765 43210",
-      siteEmail: "contact@saiyogicrackers.com",
+      siteName: settings.siteName,
+      companyName: settings.billing?.companyName || settings.siteName,
+      siteAddress: settings.contact?.address || "Sattur, Virudhunagar District, Tamil Nadu",
+      sitePhone: settings.contact?.phone || "+91 95859 75756",
+      siteEmail: settings.contact?.email || "contact@saiyogicrackers.com",
+      gstNumber: settings.billing?.gstNumber || "",
     };
 
     toast.info("Generating estimate PDF...");
@@ -325,95 +344,120 @@ const MyAccount: React.FC = () => {
                           </div>
                         </div>
 
+                        {sub.approvalStatus !== "Approved" && sub.status !== "Approved" && sub.status !== "Paid" && sub.approvalStatus !== "Rejected" && sub.status !== "Rejected" && (
+                          <div className="bg-amber-50 border border-amber-300/80 rounded-2xl p-3.5 flex items-center gap-3 text-xs text-amber-950 shadow-2xs">
+                            <Clock className="w-5 h-5 text-amber-700 shrink-0" />
+                            <div>
+                              <span className="font-extrabold text-sm block text-amber-950 mb-0.5">Please wait, Admin will contact you soon</span>
+                              <span className="text-amber-800 font-medium">Your scheme application is pending admin verification. Our team will contact you shortly.</span>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Monthwise Payment Passbook Table */}
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
-                              <Calendar className="w-4 h-4 text-[#7A1416]" />
-                              Monthwise Payment Schedule ({totalMonths} Months)
-                            </span>
-                            <span className="text-[11px] font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg">
-                              Due: {dueDateDay}th of each month
-                            </span>
-                          </div>
+                        {sub.approvalStatus !== "Rejected" && sub.status !== "Rejected" && (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
+                                <Calendar className="w-4 h-4 text-[#7A1416]" />
+                                Monthwise Payment Schedule ({totalMonths} Months)
+                              </span>
+                              <span className="text-[11px] font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg">
+                                Due: {dueDateDay}th of each month
+                              </span>
+                            </div>
 
-                          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
-                            <table className="w-full text-left border-collapse">
-                              <thead>
-                                <tr className="bg-gray-100/80 text-gray-700 text-xs uppercase font-extrabold tracking-wider border-b border-gray-200">
-                                  <th className="p-3.5 w-16 text-center">S.No</th>
-                                  <th className="p-3.5">Month</th>
-                                  <th className="p-3.5">Due Date &amp; Amount</th>
-                                  <th className="p-3.5">Payment Status</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-gray-100 text-xs">
-                                {monthList.map((mNum, mIdx) => {
-                                  const { monthName } = getMonthNameForIndex(mNum, startDateStr);
-                                  const existingLog = (sub.monthlyPayments || []).find(p => p.monthNumber === mNum);
-                                  const currentStatus = existingLog?.status || 'Pending';
+                            <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
+                              <table className="w-full text-left border-collapse">
+                                <thead>
+                                  <tr className="bg-gray-100/80 text-gray-700 text-xs uppercase font-extrabold tracking-wider border-b border-gray-200">
+                                    <th className="p-3.5 w-16 text-center">S.No</th>
+                                    <th className="p-3.5">Month</th>
+                                    <th className="p-3.5">Due Date &amp; Amount</th>
+                                    <th className="p-3.5">Payment Status</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 text-xs">
+                                  {monthList.map((mNum, mIdx) => {
+                                    const { monthName } = getMonthNameForIndex(mNum, startDateStr);
+                                    const existingLog = (sub.monthlyPayments || []).find(p => p.monthNumber === mNum);
+                                    const isPaid = existingLog && (existingLog.status === 'Paid' || existingLog.status === 'Late Pay' || existingLog.status === 'Advanced Payment' || existingLog.status === 'Advance Payment' || existingLog.status === 'On-time Payment' || existingLog.status === 'Delay Payment');
+                                    const timingStatus = isPaid ? calculatePaymentTimingStatus(existingLog?.paidAt, mNum, dueDateDay, startDateStr) : 'Pending';
 
-                                  return (
-                                    <tr
-                                      key={mNum}
-                                      className={`hover:bg-gray-50/80 transition-colors ${
-                                        currentStatus === 'Paid'
-                                          ? 'bg-emerald-50/30'
-                                          : currentStatus === 'Late Pay'
-                                          ? 'bg-amber-50/40'
-                                          : ''
-                                      }`}
-                                    >
-                                      <td className="p-3.5 font-bold text-gray-500 text-center">
-                                        {mIdx + 1}
-                                      </td>
+                                    return (
+                                      <tr
+                                        key={mNum}
+                                        className={`hover:bg-gray-50/80 transition-colors ${
+                                          isPaid ? 'bg-emerald-50/30' : ''
+                                        }`}
+                                      >
+                                        <td className="p-3.5 font-bold text-gray-500 text-center">
+                                          {mIdx + 1}
+                                        </td>
 
-                                      <td className="p-3.5 font-extrabold text-gray-900 text-sm">
-                                        {monthName}
-                                      </td>
+                                        <td className="p-3.5 font-extrabold text-gray-900 text-sm">
+                                          {monthName}
+                                        </td>
 
-                                      <td className="p-3.5 text-gray-700">
-                                        <div className="font-semibold">Due: {dueDateDay}th {monthName}</div>
-                                        {monthlyAmount ? (
-                                          <div className="text-[11px] font-bold text-[#7A1416] mt-0.5">
-                                            ₹{monthlyAmount.toLocaleString()} / month
+                                        <td className="p-3.5 text-gray-700">
+                                          <div className="font-semibold">Due: {dueDateDay}th {monthName}</div>
+                                          {monthlyAmount ? (
+                                            <div className="text-[11px] font-bold text-[#7A1416] mt-0.5">
+                                              ₹{monthlyAmount.toLocaleString()} / month
+                                            </div>
+                                          ) : null}
+                                        </td>
+
+                                        <td className="p-3.5">
+                                          <div className="flex flex-col gap-1 items-start">
+                                            {isPaid ? (
+                                              <>
+                                                {timingStatus === 'Advanced Payment' && (
+                                                  <span className="bg-blue-100 text-blue-900 border border-blue-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                                                    <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Advanced Payment
+                                                  </span>
+                                                )}
+                                                {timingStatus === 'On-time Payment' && (
+                                                  <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> On-time Payment
+                                                  </span>
+                                                )}
+                                                {timingStatus === 'Delay Payment' && (
+                                                  <span className="bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                                                    <Clock className="w-3.5 h-3.5 text-amber-700" /> Delay Payment
+                                                  </span>
+                                                )}
+                                                <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                                                  {existingLog?.paidAt && (
+                                                    <span className="text-[11px] text-gray-500 font-medium">
+                                                      Paid on: {new Date(existingLog.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                    </span>
+                                                  )}
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => downloadChitReceiptPDF(sub, mNum, monthlyAmount, dueDateDay, startDateStr, totalMonths)}
+                                                    className="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-md text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer transition-all"
+                                                    title="Download Official Bill & Passbook Statement PDF"
+                                                  >
+                                                    <FileText className="w-3 h-3 text-emerald-700" /> Bill / Receipt
+                                                  </button>
+                                                </div>
+                                              </>
+                                            ) : (
+                                              <span className="bg-gray-200 text-gray-700 font-bold text-xs px-3 py-1 rounded-full">
+                                                Unpaid / Pending
+                                              </span>
+                                            )}
                                           </div>
-                                        ) : null}
-                                      </td>
-
-                                      <td className="p-3.5">
-                                        <div className="flex flex-col gap-1 items-start">
-                                          {currentStatus === 'Paid' && (
-                                            <span className="bg-emerald-600 text-white font-extrabold text-xs px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs">
-                                              <CheckCircle2 className="w-3.5 h-3.5" /> Paid
-                                            </span>
-                                          )}
-                                          {currentStatus === 'Late Pay' && (
-                                            <span className="bg-amber-600 text-white font-extrabold text-xs px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs">
-                                              <Clock className="w-3.5 h-3.5" /> Late Pay
-                                            </span>
-                                          )}
-                                          {currentStatus === 'Pending' && (
-                                            <span className="bg-gray-200 text-gray-700 font-bold text-xs px-3 py-1 rounded-full">
-                                              Unpaid / Pending
-                                            </span>
-                                          )}
-
-                                          {existingLog?.paidAt && currentStatus !== 'Pending' && (
-                                            <span className="text-[11px] text-gray-500 font-medium">
-                                              Paid on: {new Date(existingLog.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                            </span>
-                                          )}
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
                           </div>
-                        </div>
-                      </div>
+                        )}      </div>
                     );
                   })}
                 </div>
@@ -512,6 +556,73 @@ const MyAccount: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Enquiry Details Modal */}
+      {selectedEnquiry && (
+        <Dialog open={!!selectedEnquiry} onOpenChange={() => setSelectedEnquiry(null)}>
+          <DialogContent className="sm:max-w-lg p-6 bg-white rounded-2xl">
+            <DialogHeader className="border-b border-gray-100 pb-3">
+              <DialogTitle className="text-lg font-bold text-gray-900 flex items-center justify-between">
+                <span>Enquiry #{selectedEnquiry.enquiryNumber}</span>
+                <span className="text-xs bg-rose-50 text-rose-600 font-bold px-2.5 py-1 rounded-full border border-rose-100">
+                  {selectedEnquiry.status}
+                </span>
+              </DialogTitle>
+              <p className="text-xs text-gray-500 mt-1">Date: {selectedEnquiry.date}</p>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2 text-xs">
+              <div className="bg-gray-50 p-3.5 rounded-xl space-y-1.5 text-gray-700">
+                <div><strong className="text-gray-900">Name:</strong> {formatString(selectedEnquiry.customerName, "Customer")}</div>
+                <div><strong className="text-gray-900">Phone:</strong> {formatString(selectedEnquiry.customerPhone, "-")}</div>
+                <div><strong className="text-gray-900">Delivery Address:</strong> {formatAddress(selectedEnquiry.deliveryAddress)}</div>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-gray-900 mb-2 uppercase text-[11px] tracking-wider">Enquired Products</h4>
+                <div className="space-y-2 border border-gray-100 rounded-xl p-3 max-h-48 overflow-y-auto">
+                  {(Array.isArray(selectedEnquiry.items) ? selectedEnquiry.items : []).length === 0 ? (
+                    <div className="text-gray-400 italic py-2 text-center">No item breakdown available</div>
+                  ) : (
+                    (Array.isArray(selectedEnquiry.items) ? selectedEnquiry.items : []).map((prod, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-xs pb-1.5 border-b border-gray-50 last:border-0 last:pb-0">
+                        <div>
+                          <span className="font-semibold text-gray-800">{formatString(prod.productName, "Product")}</span>
+                          <span className="text-gray-400 ml-2">x {prod.quantity || 1}</span>
+                        </div>
+                        <span className="font-bold text-gray-900">₹ {((prod.price || 0) * (prod.quantity || 1)).toLocaleString("en-IN")}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center pt-2 border-t border-gray-100 text-sm">
+                <span className="font-bold text-gray-700">Grand Total:</span>
+                <span className="font-black text-emerald-600 text-base">
+                  ₹ {selectedEnquiry.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3">
+              <button
+                onClick={() => setSelectedEnquiry(null)}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => handleDownloadEstimate(selectedEnquiry)}
+                className="px-4 py-2 bg-[#A80000] hover:bg-red-800 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Download Estimate</span>
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Footer */}
       <UserFooter />

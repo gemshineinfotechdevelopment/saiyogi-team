@@ -77,8 +77,15 @@ const ProductDetail = () => {
   const discountPrice = getDiscountPrice(product.price, product.hasDiscount, settings.discountPercent, product.netRate, product.displayNetRate);
   const discount = product.hasDiscount ? settings.discountPercent : 0;
 
+  const stockVal = product.storeStockPieces !== undefined ? Number(product.storeStockPieces) : (product.stock !== undefined ? Number(product.stock) : 0);
+  const isOutOfStock = stockVal <= 0;
+
   const handleAdd = () => {
-    for (let i = 0; i < qty; i++) addToCart(product);
+    if (isOutOfStock) {
+      toast.error(`${product.name} is out of stock`);
+      return;
+    }
+    addToCart(product, qty);
     toast.success(`${qty}x ${product.name} added to cart!`);
   };
 
@@ -96,7 +103,7 @@ const ProductDetail = () => {
 
         <div className="grid md:grid-cols-2 gap-8 mb-16">
           <div className="rounded-2xl overflow-hidden bg-[#FAF2E6] border border-[#FED7AA] aspect-square cursor-pointer p-4 flex items-center justify-center" onClick={handleImageClick}>
-            <img src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : product.image} alt={product.name} className="w-full h-full object-contain hover:scale-105 transition-transform duration-300 mix-blend-multiply" />
+            <img src={isOutOfStock ? '/saiyogi-logo-1.png' : product.image} alt={product.name} className="w-full h-full object-contain hover:scale-105 transition-transform duration-300 mix-blend-multiply" />
           </div>
 
           <div className="space-y-4">
@@ -120,21 +127,21 @@ const ProductDetail = () => {
             <p className="text-red-800">{product.description}</p>
 
             <div className="space-y-2 text-sm text-red-800">
-              <p><span className="font-semibold">Availability:</span> {(product.storeStockPieces || 0) > 0 ? <span className="text-green-600 font-bold">In Stock ({(product.storeStockPieces || 0)} left)</span> : <span className="text-red-600 font-bold">Out of Stock</span>}</p>
+              <p><span className="font-semibold">Availability:</span> {!isOutOfStock ? <span className="text-green-600 font-bold">In Stock ({stockVal} left)</span> : <span className="text-red-600 font-bold">Out of Stock</span>}</p>
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4">
               <div className="flex items-center border-2 border-red-300 rounded-lg">
-                <button onClick={() => setQty(Math.max(1, qty - 1))} className="p-2 hover:bg-red-100 transition-colors text-red-700" disabled={(product.storeStockPieces || 0) <= 0}><Minus className="h-4 w-4" /></button>
+                <button onClick={() => setQty(Math.max(1, qty - 1))} className="p-2 hover:bg-red-100 transition-colors text-red-700" disabled={isOutOfStock}><Minus className="h-4 w-4" /></button>
                 <span className="px-4 font-semibold text-red-900">{qty}</span>
-                <button onClick={() => setQty(Math.min((product.storeStockPieces || 0), qty + 1))} className="p-2 hover:bg-red-100 transition-colors text-red-700" disabled={(product.storeStockPieces || 0) <= 0}><Plus className="h-4 w-4" /></button>
+                <button onClick={() => setQty(Math.min(stockVal, qty + 1))} className="p-2 hover:bg-red-100 transition-colors text-red-700" disabled={isOutOfStock || qty >= stockVal}><Plus className="h-4 w-4" /></button>
               </div>
               <Button
                 onClick={handleAdd}
-                className={`flex-1 ${(product.storeStockPieces || 0) <= 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'} text-white`}
-                disabled={(product.storeStockPieces || 0) <= 0}
+                className={`flex-1 ${isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'} text-white`}
+                disabled={isOutOfStock}
               >
-                <ShoppingCart className="h-4 w-4 mr-2" /> {(product.storeStockPieces || 0) <= 0 ? 'Out of Stock' : 'Add to Cart'}
+                <ShoppingCart className="h-4 w-4 mr-2" /> {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
               </Button>
             </div>
           </div>
