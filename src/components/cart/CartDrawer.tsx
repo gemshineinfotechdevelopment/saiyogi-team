@@ -107,21 +107,8 @@ const CartDrawer = () => {
       return;
     }
 
-    // If already logged in, no need to ask for mobile number verification
-    if (isUserLoggedIn || isPhoneVerified) {
-      const activePhone = userPhone || formData.phoneNumber || localStorage.getItem("user_phone") || getCookie("saiyogi_user_phone") || "";
-      const activeName = userName || formData.name || localStorage.getItem("user_name") || getCookie("saiyogi_user_name") || "";
-      setFormData((prev) => ({
-        ...prev,
-        phoneNumber: activePhone || prev.phoneNumber,
-        name: (activeName && activeName !== "Customer") ? activeName : prev.name
-      }));
-      setIsPhoneVerified(true);
-      setViewMode("checkout");
-    } else {
-      toast.info("Please log in with your mobile number to proceed to checkout.");
-      openLoginModal();
-    }
+    setIsCartOpen(false);
+    navigate("/cart");
   };
 
   const handleSendWhatsAppCode = () => {
