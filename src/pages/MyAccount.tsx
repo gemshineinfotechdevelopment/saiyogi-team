@@ -58,7 +58,6 @@ const MyAccount: React.FC = () => {
   
   const initialTab = searchParams.get("tab") === "enquiry" ? "enquiry" : "account";
   const [activeTab, setActiveTab] = useState<"account" | "enquiry">(initialTab);
-
   const [subscriptions, setSubscriptions] = useState<ChitSubscriptionItem[]>([]);
   const [schemes, setSchemes] = useState<ChitSchemeItem[]>([]);
   const [loadingChit, setLoadingChit] = useState(false);
@@ -532,6 +531,73 @@ const MyAccount: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Enquiry Details Modal */}
+      {selectedEnquiry && (
+        <Dialog open={!!selectedEnquiry} onOpenChange={() => setSelectedEnquiry(null)}>
+          <DialogContent className="sm:max-w-lg p-6 bg-white rounded-2xl">
+            <DialogHeader className="border-b border-gray-100 pb-3">
+              <DialogTitle className="text-lg font-bold text-gray-900 flex items-center justify-between">
+                <span>Enquiry #{selectedEnquiry.enquiryNumber}</span>
+                <span className="text-xs bg-rose-50 text-rose-600 font-bold px-2.5 py-1 rounded-full border border-rose-100">
+                  {selectedEnquiry.status}
+                </span>
+              </DialogTitle>
+              <p className="text-xs text-gray-500 mt-1">Date: {selectedEnquiry.date}</p>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2 text-xs">
+              <div className="bg-gray-50 p-3.5 rounded-xl space-y-1.5 text-gray-700">
+                <div><strong className="text-gray-900">Name:</strong> {formatString(selectedEnquiry.customerName, "Customer")}</div>
+                <div><strong className="text-gray-900">Phone:</strong> {formatString(selectedEnquiry.customerPhone, "-")}</div>
+                <div><strong className="text-gray-900">Delivery Address:</strong> {formatAddress(selectedEnquiry.deliveryAddress)}</div>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-gray-900 mb-2 uppercase text-[11px] tracking-wider">Enquired Products</h4>
+                <div className="space-y-2 border border-gray-100 rounded-xl p-3 max-h-48 overflow-y-auto">
+                  {(Array.isArray(selectedEnquiry.items) ? selectedEnquiry.items : []).length === 0 ? (
+                    <div className="text-gray-400 italic py-2 text-center">No item breakdown available</div>
+                  ) : (
+                    (Array.isArray(selectedEnquiry.items) ? selectedEnquiry.items : []).map((prod, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-xs pb-1.5 border-b border-gray-50 last:border-0 last:pb-0">
+                        <div>
+                          <span className="font-semibold text-gray-800">{formatString(prod.productName, "Product")}</span>
+                          <span className="text-gray-400 ml-2">x {prod.quantity || 1}</span>
+                        </div>
+                        <span className="font-bold text-gray-900">₹ {((prod.price || 0) * (prod.quantity || 1)).toLocaleString("en-IN")}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center pt-2 border-t border-gray-100 text-sm">
+                <span className="font-bold text-gray-700">Grand Total:</span>
+                <span className="font-black text-emerald-600 text-base">
+                  ₹ {selectedEnquiry.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3">
+              <button
+                onClick={() => setSelectedEnquiry(null)}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => handleDownloadEstimate(selectedEnquiry)}
+                className="px-4 py-2 bg-[#A80000] hover:bg-red-800 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Download Estimate</span>
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Footer */}
       <UserFooter />
