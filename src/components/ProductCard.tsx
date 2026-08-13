@@ -94,7 +94,7 @@ const ProductCard = ({ product, categoryName, onCardClick, className }: { produc
     <>
       <div className="group h-full">
         <div
-          className={cn("rounded-2xl overflow-hidden bg-white border border-gray-200/80 hover:border-red-300 transition-all duration-300 hover:shadow-lg flex flex-col h-full relative cursor-pointer", className)}
+          className={cn("rounded-2xl overflow-hidden bg-[#FAF2E6] border border-[#FED7AA] hover:border-amber-400 transition-all duration-300 hover:shadow-lg flex flex-col h-full relative cursor-pointer", className)}
           onClick={() => onCardClick ? onCardClick() : setShowDetails(true)}
         >
 
@@ -107,11 +107,11 @@ const ProductCard = ({ product, categoryName, onCardClick, className }: { produc
             </div>
           )}
 
-          <div className="relative aspect-square overflow-hidden bg-transparent p-2 md:p-2.5 border-b border-gray-100/60">
+          <div className="relative aspect-square overflow-hidden bg-[#FAF2E6] p-2 md:p-2.5 border-b border-amber-100/70">
             <img
               src={isOutOfStock ? '/saiyogi-logo-1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
               alt={product.name}
-              className="w-full h-full object-contain p-0.5 group-hover:scale-105 transition-transform duration-500 ease-out"
+              className="w-full h-full object-contain p-0.5 group-hover:scale-105 transition-transform duration-500 ease-out mix-blend-multiply"
               loading="lazy"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300?text=No+Image';
@@ -250,11 +250,11 @@ const ProductCard = ({ product, categoryName, onCardClick, className }: { produc
               <X className="h-5 w-5 text-red-900" />
             </button>
 
-            <div className="w-full md:w-1/2 aspect-square md:aspect-auto bg-white p-4 md:p-8 flex items-center justify-center">
+            <div className="w-full md:w-1/2 aspect-square md:aspect-auto bg-[#FAF2E6] p-4 md:p-8 flex items-center justify-center">
               <img
                 src={isOutOfStock ? '/saiyogi-logo-1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
                 alt={product.name}
-                className="w-full h-full object-contain max-h-[350px] md:max-h-[400px]"
+                className="w-full h-full object-contain max-h-[350px] md:max-h-[400px] mix-blend-multiply"
               />
             </div>
 
