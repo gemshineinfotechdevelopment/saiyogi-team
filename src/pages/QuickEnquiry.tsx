@@ -237,57 +237,55 @@ const QuickEnquiry = () => {
                               <div className="w-[72px] h-[72px] bg-[#FDFBF7] border border-amber-200/60 rounded-xl overflow-hidden flex items-center justify-center cursor-pointer relative" onClick={() => setActiveProduct(item)}>
                                 <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain p-1 mix-blend-multiply" />
                               </div>
-                              <div className="bg-[#fef2f2] text-[#A80000] text-[9px] font-extrabold text-center px-2 py-1 rounded-md w-full whitespace-nowrap font-sans">
+                              <div className="bg-[#fef2f2] text-[#A80000] text-[8px] font-extrabold text-center px-1 py-0.5 rounded-md w-full whitespace-nowrap font-sans leading-none">
                                 {item.quantity || "1 Item"}
                               </div>
                             </div>
-
-                        <div className="flex-1 flex flex-col justify-between py-0.5">
-                          <div className="flex justify-between items-start gap-2">
-                            <div>
-                              <h3 className="font-black text-black text-base leading-snug uppercase">{item.name}</h3>
-                              <p className="text-gray-400 text-[10px] font-bold mt-0.5">{item.sku || item.code || (pId ? `#${pId.substring(0, 8).toUpperCase()}` : 'N/A')}</p>
+                        <div className="flex-1 flex items-center justify-between gap-1 overflow-hidden">
+                          {/* Middle: Title, SKU, Total Price */}
+                          <div className="flex flex-col flex-1 min-w-0 py-0.5 justify-center">
+                            <h3 className="font-black text-black text-[10px] sm:text-[11px] leading-tight uppercase truncate" title={item.name}>{item.name}</h3>
+                            <p className="text-gray-400 text-[8px] font-bold truncate">{item.sku || item.code || (pId ? `#${pId.substring(0, 8).toUpperCase()}` : 'N/A')}</p>
+                            <div className="font-extrabold text-[#A80000] text-[10px] mt-0.5">
+                              {lineTotal > 0 ? `Total: ₹${lineTotal.toLocaleString('en-IN')}` : ''}
                             </div>
-                            <div className="text-right shrink-0">
-                               <div className="font-black text-[#D35400] text-[13px]">₹{dp.toLocaleString('en-IN')}</div>
+                          </div>
+
+                          {/* Right: Price and Quantity */}
+                          <div className="flex flex-col items-end shrink-0 gap-1">
+                            <div className="flex items-center gap-1">
                                {(item.hasDiscount || settings.discountPercent > 0) && item.price > dp && (
-                                 <div className="text-[10px] text-gray-400 line-through font-bold">₹{item.price.toLocaleString('en-IN')}</div>
+                                 <span className="text-[8px] text-gray-400 line-through font-bold">₹{item.price.toLocaleString('en-IN')}</span>
                                )}
+                               <span className="font-black text-[#D35400] text-[11px]">₹{dp.toLocaleString('en-IN')}</span>
                             </div>
-                          </div>
 
-                              <div className="flex justify-between items-center mt-3">
-                                {isOutOfStock && qty === 0 ? (
-                                  <span className="text-xs font-black text-red-600 bg-red-50 border border-red-200 px-3 py-1 rounded-md shadow-2xs">
-                                    Sold Out
-                                  </span>
-                                ) : (
-                                  <div className="flex items-center bg-white border border-gray-300 rounded-lg shadow-2xs h-8 font-sans">
-                                    <button 
-                                      onClick={() => handleQtyChange(item, -1)} 
-                                      disabled={qty <= 0}
-                                      className="w-8 h-full flex items-center justify-center text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors rounded-l-lg font-bold text-base leading-none pb-0.5 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#A80000]"
-                                    >
-                                      -
-                                    </button>
-                                    <div className="w-8 text-center font-extrabold text-sm text-gray-800 border-x border-gray-100 flex items-center justify-center h-full font-sans">{qty}</div>
-                                    <button 
-                                      onClick={() => handleQtyChange(item, 1)} 
-                                      disabled={isOutOfStock || qty >= stockVal}
-                                      className="w-8 h-full flex items-center justify-center text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors rounded-r-lg font-bold text-base leading-none pb-0.5 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#A80000]"
-                                    >
-                                      +
-                                    </button>
-                                  </div>
-                                )}
-
-                                <div className="font-extrabold text-[#A80000] text-[15px] font-sans">
-                                  {lineTotal > 0 ? `₹ ${lineTotal.toLocaleString('en-IN')}` : '₹ 0'}
-                                </div>
+                            {isOutOfStock && qty === 0 ? (
+                              <span className="text-[9px] font-black text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded shadow-2xs">
+                                Sold Out
+                              </span>
+                            ) : (
+                              <div className="flex items-center bg-white border border-gray-300 rounded shadow-2xs h-6 font-sans">
+                                <button 
+                                  onClick={() => handleQtyChange(item, -1)} 
+                                  disabled={qty <= 0}
+                                  className="w-6 h-full flex items-center justify-center text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors rounded-l font-bold text-sm leading-none pb-0.5 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#A80000]"
+                                >
+                                  -
+                                </button>
+                                <div className="w-6 text-center font-extrabold text-[11px] text-gray-800 border-x border-gray-100 flex items-center justify-center h-full font-sans">{qty}</div>
+                                <button 
+                                  onClick={() => handleQtyChange(item, 1)} 
+                                  disabled={isOutOfStock || qty >= stockVal}
+                                  className="w-6 h-full flex items-center justify-center text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors rounded-r font-bold text-sm leading-none pb-0.5 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#A80000]"
+                                >
+                                  +
+                                </button>
                               </div>
-                            </div>
+                            )}
                           </div>
-                        );
+                        </div>    </div>
+                          );
 
                     const desktopView = (
                       <div className={`hidden md:grid md:grid-cols-12 gap-4 ${bgColor} border-b border-amber-100/80 last:border-0 p-4 items-center hover:bg-[#F7F5F0] transition-colors`}>

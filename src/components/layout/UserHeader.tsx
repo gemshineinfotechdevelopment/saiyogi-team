@@ -196,7 +196,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
       </div>
 
       {/* Responsive layout spacer so fixed header doesn't cover top of page content */}
-      <div className={isHomePage ? "w-full shrink-0 h-[112px] md:h-[192px]" : "w-full shrink-0 h-[60px] md:h-[108px]"} />
+      <div className={isHomePage ? "w-full shrink-0 h-[112px] md:h-[142px]" : "w-full shrink-0 h-[60px] md:h-[108px]"} />
     </>
   );
 };
