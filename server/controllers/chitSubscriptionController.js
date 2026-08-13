@@ -293,8 +293,9 @@ export const updateMonthPaymentStatus = async (req, res, next) => {
     if (!monthNumber || monthNumber < 1) {
       return next(new AppError('Valid monthNumber is required', 400));
     }
-    if (!['Pending', 'Paid', 'Late Pay'].includes(status)) {
-      return next(new AppError('Status must be Pending, Paid, or Late Pay', 400));
+    const validPaidStatuses = ['Paid', 'Late Pay', 'Advanced Payment', 'Advance Payment', 'On-time Payment', 'Delay Payment'];
+    if (!['Pending', ...validPaidStatuses].includes(status)) {
+      return next(new AppError('Invalid payment status', 400));
     }
 
     const subscription = await ChitSubscription.findById(id);
@@ -320,7 +321,7 @@ export const updateMonthPaymentStatus = async (req, res, next) => {
       if (transactionNumber !== undefined) subscription.monthlyPayments[paymentIndex].transactionNumber = transactionNumber;
       if (notes !== undefined) subscription.monthlyPayments[paymentIndex].notes = notes;
       
-      if (status === 'Paid' || status === 'Late Pay') {
+      if (validPaidStatuses.includes(status)) {
         subscription.monthlyPayments[paymentIndex].paidAt = paymentDate ? new Date(paymentDate) : new Date();
       } else {
         subscription.monthlyPayments[paymentIndex].paidAt = null;
@@ -332,7 +333,7 @@ export const updateMonthPaymentStatus = async (req, res, next) => {
         dueDate: dueDate || '',
         amount: amount ? parseFloat(amount) : 0,
         status: status,
-        paidAt: (status === 'Paid' || status === 'Late Pay') ? (paymentDate ? new Date(paymentDate) : new Date()) : null,
+        paidAt: validPaidStatuses.includes(status) ? (paymentDate ? new Date(paymentDate) : new Date()) : null,
         paymentMethod: paymentMethod || '',
         transactionNumber: transactionNumber || '',
         markedAsRead: true,
@@ -340,8 +341,8 @@ export const updateMonthPaymentStatus = async (req, res, next) => {
       });
     }
 
-    // Recalculate total months paid (Paid or Late Pay)
-    const paidCount = subscription.monthlyPayments.filter(p => p.status === 'Paid' || p.status === 'Late Pay').length;
+    // Recalculate total months paid (Paid or Late Pay or Advanced Payment or On-time Payment or Delay Payment)
+    const paidCount = subscription.monthlyPayments.filter(p => validPaidStatuses.includes(p.status)).length;
     subscription.monthsPaid = paidCount;
     subscription.stage = calculateSubscriptionStage(subscription);
 
