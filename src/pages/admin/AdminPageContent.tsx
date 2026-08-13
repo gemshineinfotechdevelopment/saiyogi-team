@@ -204,13 +204,18 @@ const AdminPageContent = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Main Banner Images</CardTitle>
-                <CardDescription>
-                  Upload high-quality images for the main left-side carousel. 
-                  <br />
-                  <strong className="text-[#A80000]">Recommended Size: 1920 x 600 pixels (Landscape)</strong>
-                  <br />
-                  Supported formats: JPG, PNG, WebP. Banners are saved automatically.
+                <CardTitle className="flex items-center justify-between">
+                  <span>Main Banner Images</span>
+                  <span className="text-xs font-semibold px-2.5 py-1 bg-amber-100 text-amber-900 border border-amber-300 rounded-full">
+                    Recommended: 1920 × 800 px (16:7 ratio)
+                  </span>
+                </CardTitle>
+                <CardDescription className="space-y-1 mt-1">
+                  <div>Upload high-quality images for the main left-side hero carousel.</div>
+                  <div className="text-xs bg-gray-100 p-2.5 rounded-md border border-gray-200 text-gray-700 font-mono mt-2">
+                    <strong className="text-[#A80000] font-sans">Ideal Dimensions:</strong> 1920 × 800 px (Landscape, ~16:7 aspect ratio) or 1920 × 1080 px (16:9 aspect ratio).<br />
+                    <strong>Formats:</strong> JPG, PNG, WebP | <strong>Max File Size:</strong> &lt; 500 KB per image.
+                  </div>
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -292,13 +297,18 @@ const AdminPageContent = () => {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Secondary Banners (Notice Board)</CardTitle>
-                <CardDescription>
-                  Upload images for the secondary carousel on the right side of the home page.
-                  <br />
-                  <strong className="text-[#A80000]">Recommended Size: 600 x 800 pixels (Portrait / 3:4 Ratio)</strong>
-                  <br />
-                  These will automatically cycle like the main banners.
+                <CardTitle className="flex items-center justify-between">
+                  <span>Secondary Banners (Notice Board)</span>
+                  <span className="text-xs font-semibold px-2.5 py-1 bg-blue-100 text-blue-900 border border-blue-300 rounded-full">
+                    Recommended: 800 × 1200 px (2:3 ratio)
+                  </span>
+                </CardTitle>
+                <CardDescription className="space-y-1 mt-1">
+                  <div>Upload images for the secondary carousel on the right side of the home page.</div>
+                  <div className="text-xs bg-gray-100 p-2.5 rounded-md border border-gray-200 text-gray-700 font-mono mt-2">
+                    <strong className="text-[#A80000] font-sans">Ideal Dimensions:</strong> 800 × 1200 px or 600 × 800 px (Portrait / 2:3 or 3:4 aspect ratio).<br />
+                    <strong>Formats:</strong> JPG, PNG, WebP | <strong>Max File Size:</strong> &lt; 500 KB per image.
+                  </div>
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
