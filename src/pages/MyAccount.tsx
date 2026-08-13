@@ -3,15 +3,9 @@ import { Link, useSearchParams } from "react-router-dom";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
-<<<<<<< HEAD
-import { getChitSubscriptions, getChitSchemes, ChitSubscriptionItem, ChitSchemeItem, getOrders } from "@/lib/api";
-import { Calendar, Clock, CheckCircle2, Gift, FileText, User, ShoppingBag, Sparkles, XCircle } from "lucide-react";
-import { calculatePaymentTimingStatus, downloadChitReceiptPDF } from "@/lib/chitUtils";
-=======
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { getChitSubscriptions, getChitSchemes, ChitSubscriptionItem, ChitSchemeItem, getMyEnquiries } from "@/lib/api";
-import { Calendar, Clock, CheckCircle2, Gift, FileText, User, ShoppingBag, Sparkles } from "lucide-react";
->>>>>>> ea247bac6b78fdbd67c78eede4f2f2ce7419f153
+import { Calendar, Clock, CheckCircle2, Gift, FileText, User, ShoppingBag, Sparkles, XCircle } from "lucide-react";
 import { loadUserEnquiries, EnquiryItem, formatAddress, formatString } from "@/lib/enquiryUtils";
 import { downloadOrderReceiptPDF, OrderData } from "@/lib/pdf-generator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
