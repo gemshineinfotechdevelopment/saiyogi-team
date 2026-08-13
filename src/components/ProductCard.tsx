@@ -8,8 +8,13 @@ import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { DiscountTag } from "@/components/ui/DiscountTag";
 
-const ProductCard = ({ product, categoryName, onCardClick, className }: { product: Product; categoryName?: string; onCardClick?: () => void; className?: string }) => {
-  const [showDetails, setShowDetails] = useState(false);
+const ProductCard = ({ product, categoryName, onCardClick, className, showDetailOnly, onDetailClose }: { product: Product; categoryName?: string; onCardClick?: () => void; className?: string; showDetailOnly?: boolean; onDetailClose?: () => void }) => {
+  const [showDetails, setShowDetails] = useState(!!showDetailOnly);
+
+  const handleCloseDetails = () => {
+    setShowDetails(false);
+    if (onDetailClose) onDetailClose();
+  };
   const { items, addToCart, updateQuantity, removeFromCart } = useCart();
   const { settings } = useSiteSettings();
 
@@ -92,9 +97,10 @@ const ProductCard = ({ product, categoryName, onCardClick, className }: { produc
 
   return (
     <>
+      {!showDetailOnly && (
       <div className="group h-full">
         <div
-          className={cn("rounded-2xl overflow-hidden bg-[#FAF2E6] border border-[#FED7AA] hover:border-amber-400 transition-all duration-300 hover:shadow-lg flex flex-col h-full relative cursor-pointer", className)}
+          className={cn("rounded-2xl overflow-hidden bg-[#FDFBF7] border border-[#FED7AA] hover:border-amber-400 transition-all duration-300 hover:shadow-lg flex flex-col h-full relative cursor-pointer", className)}
           onClick={() => onCardClick ? onCardClick() : setShowDetails(true)}
         >
 
@@ -107,7 +113,7 @@ const ProductCard = ({ product, categoryName, onCardClick, className }: { produc
             </div>
           )}
 
-          <div className="relative aspect-square overflow-hidden bg-[#FAF2E6] p-2 md:p-2.5 border-b border-amber-100/70">
+          <div className="relative aspect-square overflow-hidden bg-[#FDFBF7] p-2 md:p-2.5 border-b border-amber-100/70">
             <img
               src={isOutOfStock ? '/saiyogi-logo-1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
               alt={product.name}
@@ -233,24 +239,25 @@ const ProductCard = ({ product, categoryName, onCardClick, className }: { produc
           </div>
         </div>
       </div>
+      )}
 
       {showDetails && (
         <div
           className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md overflow-y-auto p-4 flex items-center justify-center animate-in fade-in duration-300"
-          onClick={() => setShowDetails(false)}
+          onClick={handleCloseDetails}
         >
           <div
-            className="relative bg-[#fefae0] max-w-lg md:max-w-2xl w-full rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-in zoom-in-95 duration-500 my-auto"
+            className="relative bg-[#FDFBF7] max-w-lg md:max-w-2xl w-full rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-in zoom-in-95 duration-500 my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              onClick={() => setShowDetails(false)}
+              onClick={handleCloseDetails}
               className="absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-md border border-white/30 rounded-full p-2 hover:bg-white transition-colors shadow-lg"
             >
               <X className="h-5 w-5 text-red-900" />
             </button>
 
-            <div className="w-full md:w-1/2 aspect-square md:aspect-auto bg-[#FAF2E6] p-4 md:p-8 flex items-center justify-center">
+            <div className="w-full md:w-1/2 aspect-square md:aspect-auto bg-[#FDFBF7] p-4 md:p-8 flex items-center justify-center">
               <img
                 src={isOutOfStock ? '/saiyogi-logo-1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
                 alt={product.name}
