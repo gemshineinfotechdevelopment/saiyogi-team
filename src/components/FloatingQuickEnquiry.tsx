@@ -33,7 +33,7 @@ export const FloatingQuickEnquiry: React.FC = () => {
   return (
     <Link
       to="/quick-enquiry"
-      className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-40 group cursor-pointer select-none outline-none focus:outline-none focus:ring-0 border-0 bg-transparent shadow-none"
+      className="fixed bottom-20 right-3 sm:bottom-24 sm:right-6 z-40 group cursor-pointer select-none outline-none focus:outline-none focus:ring-0 border-0 bg-transparent shadow-none"
       title="Quick Enquiry"
     >
       <div className="relative flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 outline-none border-0 bg-transparent shadow-none">
