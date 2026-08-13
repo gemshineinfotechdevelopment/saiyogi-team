@@ -238,13 +238,26 @@ const CartDrawer = () => {
             id: String(Date.now()),
             enquiryNumber: String(response.order.orderNumber || Math.floor(100000 + Math.random() * 900000)),
             date: `${new Date().toLocaleDateString('en-IN')} ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`,
+            subtotal: response.order.subtotal,
+            discountPercent: settings.discountPercent,
+            packingCharge: response.order.packingCharge,
             total: response.order.total || response.order.subtotal || 0,
             status: "Pending",
             customerName: formData.name,
             customerPhone: formData.phoneNumber,
             customerEmail: formData.email,
             deliveryAddress: fullDeliveryAddress,
-            items: items.map(i => ({ productName: i.product.name, quantity: i.quantity, price: i.product.price }))
+            state: formData.state,
+            district: formData.district,
+            items: orderItems.map(i => ({
+              productName: i.productName,
+              quantity: i.quantity,
+              price: i.price,
+              originalPrice: i.originalPrice,
+              hasDiscount: i.hasDiscount,
+              netRate: i.netRate,
+              displayNetRate: i.displayNetRate
+            }))
           };
           const updatedEnquiries = [newEnquiry, ...existing];
           localStorage.setItem(userPhoneKey, JSON.stringify(updatedEnquiries));

@@ -4,16 +4,25 @@ export interface EnquiryItem {
   id: string;
   enquiryNumber: string;
   date: string;
+  subtotal?: number;
+  discountPercent?: number;
+  packingCharge?: number;
   total: number;
   status: "Pending" | "Confirmed" | "Completed" | "Cancelled" | "Shipped" | "Approved" | (string & {});
   customerName: string;
   customerPhone: string;
   customerEmail: string;
   deliveryAddress: string;
+  state?: string;
+  district?: string;
   items: Array<{
     productName: string;
     quantity: number;
     price: number;
+    originalPrice?: number;
+    hasDiscount?: boolean;
+    netRate?: number;
+    displayNetRate?: boolean;
   }>;
 }
 

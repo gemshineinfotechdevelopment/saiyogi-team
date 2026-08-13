@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { getChitSubscriptions, getChitSchemes, ChitSubscriptionItem, ChitSchemeItem, getMyEnquiries } from "@/lib/api";
 import { Calendar, Clock, CheckCircle2, Gift, FileText, User, ShoppingBag } from "lucide-react";
 import { loadUserEnquiries, EnquiryItem, formatAddress, formatString } from "@/lib/enquiryUtils";
@@ -52,6 +53,7 @@ const getEnquiryStatus = (ord: any): string => {
 
 const MyAccount: React.FC = () => {
   const { userPhone, userName, isUserLoggedIn, openLoginModal } = useAuth();
+  const { settings } = useSiteSettings();
   const [searchParams, setSearchParams] = useSearchParams();
   
   const initialTab = searchParams.get("tab") === "enquiry" ? "enquiry" : "account";
@@ -95,17 +97,26 @@ const MyAccount: React.FC = () => {
                 date: ord.createdAt
                   ? `${new Date(ord.createdAt).toLocaleDateString('en-IN')} ${new Date(ord.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
                   : (ord.date || new Date().toLocaleDateString('en-IN')),
+                subtotal: ord.subtotal || ord.total || 0,
+                discountPercent: ord.discountPercent !== undefined ? ord.discountPercent : settings.discountPercent,
+                packingCharge: ord.packingCharge,
                 total: ord.total || ord.subtotal || 0,
                 status: getEnquiryStatus(ord) as any,
                 customerName: formatString(ord.customerName, "Customer"),
                 customerPhone: formatString(ord.customerPhone, effectivePhone),
                 customerEmail: formatString(ord.customerEmail, ""),
                 deliveryAddress: formatAddress(ord.deliveryAddress || ord.shippingAddress),
+                state: ord.deliveryAddress?.state || ord.state || "",
+                district: ord.deliveryAddress?.district || ord.district || "",
                 items: Array.isArray(ord.items)
                   ? ord.items.map((i: any) => ({
                       productName: formatString(i.productName || i.product?.name, "Product"),
                       quantity: i.quantity || 1,
                       price: i.price || 0,
+                      originalPrice: i.originalPrice !== undefined ? i.originalPrice : (i.product?.price || i.price || 0),
+                      hasDiscount: i.hasDiscount !== undefined ? i.hasDiscount : i.product?.hasDiscount,
+                      netRate: i.netRate !== undefined ? i.netRate : i.product?.netRate,
+                      displayNetRate: i.displayNetRate !== undefined ? i.displayNetRate : i.product?.displayNetRate,
                     }))
                   : [],
               }));
@@ -125,7 +136,7 @@ const MyAccount: React.FC = () => {
     } else {
       setEnquiries([]);
     }
-  }, [userPhone, isUserLoggedIn]);
+  }, [userPhone, isUserLoggedIn, settings.discountPercent]);
 
   const displayName = userName || getCookie("saiyogi_user_name") || localStorage.getItem("user_name") || "Customer";
   const displayPhone = userPhone || getCookie("saiyogi_user_phone") || localStorage.getItem("user_phone") || "-";
@@ -161,21 +172,30 @@ const MyAccount: React.FC = () => {
       orderNumber: enquiry.enquiryNumber,
       customerName: formatString(enquiry.customerName, "Customer"),
       customerPhone: formatString(enquiry.customerPhone, userPhone || ""),
-      customerEmail: formatString(enquiry.customerEmail, "customer@example.com"),
+      customerEmail: formatString(enquiry.customerEmail, ""),
       deliveryAddress: formatAddress(enquiry.deliveryAddress),
+      state: enquiry.state || "",
+      district: enquiry.district || "",
       date: enquiry.date,
-      subtotal: enquiry.total,
+      subtotal: enquiry.subtotal || enquiry.total,
+      discountPercent: enquiry.discountPercent !== undefined ? enquiry.discountPercent : settings.discountPercent,
+      packingCharge: enquiry.packingCharge,
       total: enquiry.total,
-      items: Array.isArray(enquiry.items) ? enquiry.items.map((item) => ({
+      items: Array.isArray(enquiry.items) ? enquiry.items.map((item: any) => ({
         productName: formatString(item.productName, "Product"),
         quantity: item.quantity || 1,
-        price: item.price || 0,
-        originalPrice: item.price || 0,
+        price: item.price !== undefined ? item.price : 0,
+        originalPrice: item.originalPrice !== undefined ? item.originalPrice : (item.price || 0),
+        hasDiscount: item.hasDiscount,
+        netRate: item.netRate,
+        displayNetRate: item.displayNetRate,
       })) : [],
-      siteName: "Sai Yogi Crackers",
-      siteAddress: "Sivakasi, Virudhunagar District, Tamil Nadu",
-      sitePhone: "+91 98765 43210",
-      siteEmail: "contact@saiyogicrackers.com",
+      siteName: settings.siteName,
+      companyName: settings.billing?.companyName || settings.siteName,
+      siteAddress: settings.contact?.address || "Sattur, Virudhunagar District, Tamil Nadu",
+      sitePhone: settings.contact?.phone || "+91 95859 75756",
+      siteEmail: settings.contact?.email || "contact@saiyogicrackers.com",
+      gstNumber: settings.billing?.gstNumber || "",
     };
 
     toast.info("Generating estimate PDF...");
