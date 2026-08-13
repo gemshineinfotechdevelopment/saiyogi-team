@@ -370,9 +370,9 @@ const Index = () => {
       <UserHeader />
 
       {/* Hero Section */}
-      <section className="bg-white py-4 md:py-6 select-none overflow-hidden">
-        <div className="container mx-auto px-2 sm:px-4 max-w-[1400px]">
-          <div className="flex flex-col lg:flex-row w-full h-auto lg:h-[calc(100vh-220px)] lg:max-h-[500px] lg:min-h-[400px] gap-2 sm:gap-4">
+      <section className="bg-white pt-5 pb-4 md:pt-5 md:pb-[20px] select-none overflow-hidden">
+        <div className="container mx-auto px-2 sm:px-2 lg:px-3 max-w-[1600px]">
+          <div className="flex flex-col lg:flex-row w-full h-auto lg:h-[calc(100vh-200px)] lg:max-h-[650px] lg:min-h-[450px] gap-2 sm:gap-4">
 
             {/* Main Carousel (Left Side) */}
             <div className={`relative w-full ${noticeImages.length > 0 ? "lg:w-2/3 xl:w-3/4" : ""} h-[320px] sm:h-[450px] lg:h-full overflow-hidden bg-black group rounded-2xl shadow-xl border border-gray-200/50`}>
