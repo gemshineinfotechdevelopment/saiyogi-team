@@ -5,12 +5,13 @@ import UserFooter from "@/components/layout/UserFooter";
 import { useAuth } from "@/context/AuthContext";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { getChitSubscriptions, getChitSchemes, ChitSubscriptionItem, ChitSchemeItem, getMyEnquiries } from "@/lib/api";
-import { Calendar, Clock, CheckCircle2, Gift, FileText, User, ShoppingBag } from "lucide-react";
+import { Calendar, Clock, CheckCircle2, Gift, FileText, User, ShoppingBag, Sparkles } from "lucide-react";
 import { loadUserEnquiries, EnquiryItem, formatAddress, formatString } from "@/lib/enquiryUtils";
 import { downloadOrderReceiptPDF, OrderData } from "@/lib/pdf-generator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { getCookie, setCookie } from "@/lib/cookieUtils";
+import { calculatePaymentTimingStatus, downloadChitReceiptPDF } from "@/lib/chitUtils";
 const getMonthNameForIndex = (monthIndex: number, startDateStr?: string): { monthName: string; dueDateStr: string } => {
   if (startDateStr && startDateStr.trim()) {
     const cleanStr = startDateStr.trim();
