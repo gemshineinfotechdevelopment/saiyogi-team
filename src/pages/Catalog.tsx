@@ -301,14 +301,6 @@ const Catalog = () => {
         </div>
       </div>
 
-      {/* Floating Action Button */}
-      <button
-        onClick={toggleQuickSearch}
-        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-red-600 text-white shadow-2xl hover:bg-red-700 hover:scale-110 active:scale-95 transition-all flex items-center justify-center group"
-        aria-label="Search"
-      >
-        <Search className="h-6 w-6 group-hover:rotate-12 transition-transform" />
-      </button>
 
       <main className={`container pb-12 flex-1 transition-all duration-300 ${
         isNavbarHidden
