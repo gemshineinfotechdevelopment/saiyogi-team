@@ -186,7 +186,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
             <Link to="/quick-enquiry" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/quick-enquiry') + " flex items-center gap-2"}>
               QUICK ENQUIRY <span className="bg-[#DDAA55] text-white text-[8px] px-1 py-0.5 rounded">NEW</span>
             </Link>
-            <Link to="/price-list" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/price-list')}>PRICE LIST</Link>
+            <Link to="/price-list" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/price-list')}>Price List</Link>
             <Link to="/chit-scheme" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/chit-scheme')}>CHIT SCHEME</Link>
             <Link to="/about-us" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/about-us')}>ABOUT US</Link>
             <Link to="/safety-tips" onClick={() => setMenuOpen(false)} className={getMobileLinkClass('/safety-tips')}>SAFETY TIPS</Link>
@@ -196,7 +196,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
       </div>
 
       {/* Responsive layout spacer so fixed header doesn't cover top of page content */}
-      <div className={isHomePage ? "w-full shrink-0 h-[92px] md:h-[172px]" : "w-full shrink-0 h-[60px] md:h-[108px]"} />
+      <div className={isHomePage ? "w-full shrink-0 h-[112px] md:h-[192px]" : "w-full shrink-0 h-[60px] md:h-[108px]"} />
     </>
   );
 };

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { setCookie, getCookie, deleteCookie } from "@/lib/cookieUtils";
 import { toast } from "sonner";
-import { trackCustomerAction } from "@/lib/api";
+import { trackCustomerAction, customerPhoneLoginAPI } from "@/lib/api";
 
 const isLocalhost = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -24,7 +24,7 @@ interface AuthContextType {
   userName: string | null;
   isUserLoggedIn: boolean;
   login: (email: string, password: string) => Promise<void>;
-  loginWithPhone: (phone: string, name?: string) => void;
+  loginWithPhone: (phone: string, name?: string) => Promise<void>;
   logout: () => void;
   logoutUser: () => void;
   isLoginModalOpen: boolean;
@@ -54,7 +54,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (storedPhone) {
       setUserPhone(storedPhone);
       setUserName(storedName || null);
-      // Ensure sync between cookie and localStorage
       setCookie("saiyogi_user_phone", storedPhone, 30);
       localStorage.setItem("user_phone", storedPhone);
       if (storedName) {
@@ -68,20 +67,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsAdmin(true);
       setIsAuthenticated(true);
     } else {
-      setToken(null);
+      // Clean up stale admin_token if it belonged to a customer phone login
+      if (!["admin", "SUPER ADMIN", "ADMIN"].includes(storedRole || "")) {
+        localStorage.removeItem("admin_token");
+        localStorage.removeItem("admin_role");
+      }
+      const custToken = localStorage.getItem("customer_token");
+      setToken(custToken);
       setIsAdmin(false);
       setIsAuthenticated(!!storedPhone);
     }
     setLoading(false);
   }, []);
 
-  const loginWithPhone = (phone: string, name?: string) => {
-    setUserPhone(phone);
-    localStorage.setItem("user_phone", phone);
-    localStorage.setItem("saiyogi_last_phone", phone);
-    setCookie("saiyogi_user_phone", phone, 365);
-    setCookie("saiyogi_last_phone", phone, 365);
-    setCookie(SESSION_COOKIE_NAME, phone, 365);
+  const loginWithPhone = async (phone: string, name?: string) => {
+    const cleanPhone = phone.replace(/\D/g, "").slice(-10);
+    setUserPhone(cleanPhone);
+    localStorage.setItem("user_phone", cleanPhone);
+    setCookie("saiyogi_user_phone", cleanPhone, 365);
+    setCookie(SESSION_COOKIE_NAME, cleanPhone, 365);
 
     let cleanName: string | undefined = undefined;
     if (name && name.trim()) {
@@ -90,13 +94,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem("user_name", cleanName);
       setCookie("saiyogi_user_name", cleanName, 365);
     } else {
-      setUserName(null);
-      localStorage.removeItem("user_name");
+      const existingName = userName || localStorage.getItem("user_name") || getCookie("saiyogi_user_name");
+      if (existingName && existingName !== "Customer") {
+        cleanName = existingName;
+        setUserName(existingName);
+      } else {
+        setUserName(null);
+        localStorage.removeItem("user_name");
+      }
     }
     setIsAuthenticated(true);
 
+    try {
+      const authRes = await customerPhoneLoginAPI(cleanPhone, cleanName);
+      if (authRes && authRes.token) {
+        setToken(authRes.token);
+        localStorage.setItem("customer_token", authRes.token);
+        if (authRes.user?.id) {
+          localStorage.setItem("customer_id", authRes.user.id);
+        }
+      }
+    } catch (err) {
+      console.warn("Backend customer auth sync failed:", err);
+    }
+
     trackCustomerAction({
-      phone,
+      phone: cleanPhone,
       name: cleanName,
       source: "normal_login"
     }).catch((err) => console.warn("Failed to track login action:", err));
@@ -106,21 +129,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const closeLoginModal = () => setIsLoginModalOpen(false);
 
   const logoutUser = () => {
-    // Preserve last logged in user phone in cookie so enquiries remain permanently accessible
-    if (userPhone) {
-      setCookie("saiyogi_last_phone", userPhone, 365);
-      localStorage.setItem("saiyogi_last_phone", userPhone);
-    }
     setUserPhone(null);
     setUserName(null);
-    deleteCookie(SESSION_COOKIE_NAME);
     if (!isAdmin) {
+      setToken(null);
+      localStorage.removeItem("customer_token");
       setIsAuthenticated(false);
     }
+    deleteCookie("saiyogi_user_phone");
+    deleteCookie("saiyogi_user_name");
+    deleteCookie(SESSION_COOKIE_NAME);
+    localStorage.removeItem("user_phone");
+    localStorage.removeItem("user_name");
+    localStorage.removeItem("customer_id");
+    localStorage.removeItem("customer_token");
   };
 
   const login = async (email: string, password: string) => {
-    const primaryBase = isLocalhost ? "" : ((import.meta.env.VITE_API_URL as string) || "http://localhost:5000");
+    const rawBase = isLocalhost ? "" : ((import.meta.env.VITE_API_URL as string) || "http://localhost:5000");
+    const primaryBase = rawBase.trim().replace(/\/+$/, "");
     const urlsToTry = isLocalhost
       ? [
           `${primaryBase}/api/auth/login`,
