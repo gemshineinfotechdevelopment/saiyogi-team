@@ -102,7 +102,7 @@ const ProductDetail = () => {
         </Link>
 
         <div className="grid md:grid-cols-2 gap-8 mb-16">
-          <div className="rounded-2xl overflow-hidden bg-[#FAF2E6] border border-[#FED7AA] aspect-square cursor-pointer p-4 flex items-center justify-center" onClick={handleImageClick}>
+          <div className="rounded-2xl overflow-hidden bg-[#FDFBF7] border border-[#FED7AA] aspect-square cursor-pointer p-4 flex items-center justify-center" onClick={handleImageClick}>
             <img src={isOutOfStock ? '/saiyogi-logo-1.png' : product.image} alt={product.name} className="w-full h-full object-contain hover:scale-105 transition-transform duration-300 mix-blend-multiply" />
           </div>
 

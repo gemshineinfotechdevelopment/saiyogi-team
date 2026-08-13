@@ -131,7 +131,7 @@ const Index = () => {
       videoScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
-  const [comboIndex, setComboIndex] = useState(0);
+
   const [isMobileView, setIsMobileView] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
   useEffect(() => {
@@ -405,7 +405,7 @@ const Index = () => {
                 <ProductCard
                   product={item as Product}
                   onCardClick={() => navigate(`/catalog?search=${encodeURIComponent(item.name)}`)}
-                  className="bg-[#FAF2E6] border-amber-200/90 hover:border-[#A80000]/70 hover:shadow-xl hover:shadow-amber-900/10 transition-all duration-300"
+                  className="bg-[#FDFBF7] border-amber-200/90 hover:border-[#A80000]/70 hover:shadow-xl hover:shadow-amber-900/10 transition-all duration-300"
                 />
               </div>
             ))}
@@ -729,62 +729,32 @@ const Index = () => {
 
       {/* Combo Packs */}
       <section className="py-16 bg-white border-b border-gray-100">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="text-center mb-10">
-            <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
-              🎁 GREAT VALUE COMBOS 🎁
-            </span>
-            <h2 className="font-black text-[#A80000] text-3xl md:text-4xl uppercase tracking-widest mb-2 font-display">Combo Packs</h2>
-            <p className="text-gray-700 text-xs font-bold uppercase">Our Special combo packages for you and your whole family</p>
-          </div>
+        <div className="text-center mb-10 container mx-auto px-4">
+          <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
+            🎁 GREAT VALUE COMBOS 🎁
+          </span>
+          <h2 className="font-black text-[#A80000] text-3xl md:text-4xl uppercase tracking-widest mb-2 font-display">Combo Packs</h2>
+          <p className="text-gray-700 text-xs font-bold uppercase">Our Special combo packages for you and your whole family</p>
+        </div>
 
-          <div className="relative flex items-center justify-center">
-            {/* Left Button */}
-            <button
-              onClick={() => setComboIndex((prev) => {
-                const comboPacksList = products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).length > 0
-                  ? products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack'))
-                  : staticFamilyPacks;
-                return (prev - 1 + comboPacksList.length) % comboPacksList.length;
-              })}
-              className="absolute -left-4 md:-left-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all cursor-pointer"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
+        {/* Infinite scrolling combo packs marquee from right to left */}
+        <div className="relative w-full overflow-hidden py-4">
+          <div className="flex flex-nowrap gap-4 sm:gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+            {(() => {
+              const comboPacksList = products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).length > 0
+                ? products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack'))
+                : staticFamilyPacks;
+              const displayList = [...comboPacksList, ...comboPacksList, ...comboPacksList];
 
-            {/* Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8 w-full px-2 sm:px-4">
-              {[0, 1, 2].map((offset) => {
-                const comboPacksList = (products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).length > 0
-                  ? products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack'))
-                  : staticFamilyPacks) as any[];
-
-                const idx = (comboIndex + offset) % comboPacksList.length;
-                const item = comboPacksList[idx] as Product;
-
-                return (
-                  <div
-                    key={`combo-${offset}-${item._id || item.id || offset}`}
-                    className={`w-full max-w-[260px] sm:max-w-none mx-auto ${offset > 0 ? "hidden md:block" : "block"}`}
-                  >
-                    <ProductCard product={item} />
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Right Button */}
-            <button
-              onClick={() => setComboIndex((prev) => {
-                const comboPacksList = products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).length > 0
-                  ? products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack'))
-                  : staticFamilyPacks;
-                return (prev + 1) % comboPacksList.length;
-              })}
-              className="absolute -right-4 md:-right-8 z-20 w-10 h-10 rounded-full bg-white text-[#A80000] border border-gray-200 flex items-center justify-center shadow-lg hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-all cursor-pointer"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
+              return displayList.map((item: Product, idx: number) => (
+                <div
+                  key={`combo-marquee-${item._id || item.id || idx}-${idx}`}
+                  className="w-[250px] sm:w-[280px] md:w-[320px] shrink-0"
+                >
+                  <ProductCard product={item} />
+                </div>
+              ));
+            })()}
           </div>
         </div>
       </section>
