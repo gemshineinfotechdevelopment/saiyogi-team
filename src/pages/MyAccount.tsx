@@ -344,95 +344,120 @@ const MyAccount: React.FC = () => {
                           </div>
                         </div>
 
+                        {sub.approvalStatus !== "Approved" && sub.status !== "Approved" && sub.status !== "Paid" && sub.approvalStatus !== "Rejected" && sub.status !== "Rejected" && (
+                          <div className="bg-amber-50 border border-amber-300/80 rounded-2xl p-3.5 flex items-center gap-3 text-xs text-amber-950 shadow-2xs">
+                            <Clock className="w-5 h-5 text-amber-700 shrink-0" />
+                            <div>
+                              <span className="font-extrabold text-sm block text-amber-950 mb-0.5">Please wait, Admin will contact you soon</span>
+                              <span className="text-amber-800 font-medium">Your scheme application is pending admin verification. Our team will contact you shortly.</span>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Monthwise Payment Passbook Table */}
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
-                              <Calendar className="w-4 h-4 text-[#7A1416]" />
-                              Monthwise Payment Schedule ({totalMonths} Months)
-                            </span>
-                            <span className="text-[11px] font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg">
-                              Due: {dueDateDay}th of each month
-                            </span>
-                          </div>
+                        {sub.approvalStatus !== "Rejected" && sub.status !== "Rejected" && (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
+                                <Calendar className="w-4 h-4 text-[#7A1416]" />
+                                Monthwise Payment Schedule ({totalMonths} Months)
+                              </span>
+                              <span className="text-[11px] font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg">
+                                Due: {dueDateDay}th of each month
+                              </span>
+                            </div>
 
-                          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
-                            <table className="w-full text-left border-collapse">
-                              <thead>
-                                <tr className="bg-gray-100/80 text-gray-700 text-xs uppercase font-extrabold tracking-wider border-b border-gray-200">
-                                  <th className="p-3.5 w-16 text-center">S.No</th>
-                                  <th className="p-3.5">Month</th>
-                                  <th className="p-3.5">Due Date &amp; Amount</th>
-                                  <th className="p-3.5">Payment Status</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-gray-100 text-xs">
-                                {monthList.map((mNum, mIdx) => {
-                                  const { monthName } = getMonthNameForIndex(mNum, startDateStr);
-                                  const existingLog = (sub.monthlyPayments || []).find(p => p.monthNumber === mNum);
-                                  const currentStatus = existingLog?.status || 'Pending';
+                            <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
+                              <table className="w-full text-left border-collapse">
+                                <thead>
+                                  <tr className="bg-gray-100/80 text-gray-700 text-xs uppercase font-extrabold tracking-wider border-b border-gray-200">
+                                    <th className="p-3.5 w-16 text-center">S.No</th>
+                                    <th className="p-3.5">Month</th>
+                                    <th className="p-3.5">Due Date &amp; Amount</th>
+                                    <th className="p-3.5">Payment Status</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 text-xs">
+                                  {monthList.map((mNum, mIdx) => {
+                                    const { monthName } = getMonthNameForIndex(mNum, startDateStr);
+                                    const existingLog = (sub.monthlyPayments || []).find(p => p.monthNumber === mNum);
+                                    const isPaid = existingLog && (existingLog.status === 'Paid' || existingLog.status === 'Late Pay' || existingLog.status === 'Advanced Payment' || existingLog.status === 'Advance Payment' || existingLog.status === 'On-time Payment' || existingLog.status === 'Delay Payment');
+                                    const timingStatus = isPaid ? calculatePaymentTimingStatus(existingLog?.paidAt, mNum, dueDateDay, startDateStr) : 'Pending';
 
-                                  return (
-                                    <tr
-                                      key={mNum}
-                                      className={`hover:bg-gray-50/80 transition-colors ${
-                                        currentStatus === 'Paid'
-                                          ? 'bg-emerald-50/30'
-                                          : currentStatus === 'Late Pay'
-                                          ? 'bg-amber-50/40'
-                                          : ''
-                                      }`}
-                                    >
-                                      <td className="p-3.5 font-bold text-gray-500 text-center">
-                                        {mIdx + 1}
-                                      </td>
+                                    return (
+                                      <tr
+                                        key={mNum}
+                                        className={`hover:bg-gray-50/80 transition-colors ${
+                                          isPaid ? 'bg-emerald-50/30' : ''
+                                        }`}
+                                      >
+                                        <td className="p-3.5 font-bold text-gray-500 text-center">
+                                          {mIdx + 1}
+                                        </td>
 
-                                      <td className="p-3.5 font-extrabold text-gray-900 text-sm">
-                                        {monthName}
-                                      </td>
+                                        <td className="p-3.5 font-extrabold text-gray-900 text-sm">
+                                          {monthName}
+                                        </td>
 
-                                      <td className="p-3.5 text-gray-700">
-                                        <div className="font-semibold">Due: {dueDateDay}th {monthName}</div>
-                                        {monthlyAmount ? (
-                                          <div className="text-[11px] font-bold text-[#7A1416] mt-0.5">
-                                            ₹{monthlyAmount.toLocaleString()} / month
+                                        <td className="p-3.5 text-gray-700">
+                                          <div className="font-semibold">Due: {dueDateDay}th {monthName}</div>
+                                          {monthlyAmount ? (
+                                            <div className="text-[11px] font-bold text-[#7A1416] mt-0.5">
+                                              ₹{monthlyAmount.toLocaleString()} / month
+                                            </div>
+                                          ) : null}
+                                        </td>
+
+                                        <td className="p-3.5">
+                                          <div className="flex flex-col gap-1 items-start">
+                                            {isPaid ? (
+                                              <>
+                                                {timingStatus === 'Advanced Payment' && (
+                                                  <span className="bg-blue-100 text-blue-900 border border-blue-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                                                    <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Advanced Payment
+                                                  </span>
+                                                )}
+                                                {timingStatus === 'On-time Payment' && (
+                                                  <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> On-time Payment
+                                                  </span>
+                                                )}
+                                                {timingStatus === 'Delay Payment' && (
+                                                  <span className="bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                                                    <Clock className="w-3.5 h-3.5 text-amber-700" /> Delay Payment
+                                                  </span>
+                                                )}
+                                                <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                                                  {existingLog?.paidAt && (
+                                                    <span className="text-[11px] text-gray-500 font-medium">
+                                                      Paid on: {new Date(existingLog.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                    </span>
+                                                  )}
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => downloadChitReceiptPDF(sub, mNum, monthlyAmount, dueDateDay, startDateStr, totalMonths)}
+                                                    className="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-md text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer transition-all"
+                                                    title="Download Official Bill & Passbook Statement PDF"
+                                                  >
+                                                    <FileText className="w-3 h-3 text-emerald-700" /> Bill / Receipt
+                                                  </button>
+                                                </div>
+                                              </>
+                                            ) : (
+                                              <span className="bg-gray-200 text-gray-700 font-bold text-xs px-3 py-1 rounded-full">
+                                                Unpaid / Pending
+                                              </span>
+                                            )}
                                           </div>
-                                        ) : null}
-                                      </td>
-
-                                      <td className="p-3.5">
-                                        <div className="flex flex-col gap-1 items-start">
-                                          {currentStatus === 'Paid' && (
-                                            <span className="bg-emerald-600 text-white font-extrabold text-xs px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs">
-                                              <CheckCircle2 className="w-3.5 h-3.5" /> Paid
-                                            </span>
-                                          )}
-                                          {currentStatus === 'Late Pay' && (
-                                            <span className="bg-amber-600 text-white font-extrabold text-xs px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs">
-                                              <Clock className="w-3.5 h-3.5" /> Late Pay
-                                            </span>
-                                          )}
-                                          {currentStatus === 'Pending' && (
-                                            <span className="bg-gray-200 text-gray-700 font-bold text-xs px-3 py-1 rounded-full">
-                                              Unpaid / Pending
-                                            </span>
-                                          )}
-
-                                          {existingLog?.paidAt && currentStatus !== 'Pending' && (
-                                            <span className="text-[11px] text-gray-500 font-medium">
-                                              Paid on: {new Date(existingLog.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                            </span>
-                                          )}
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
                           </div>
-                        </div>
-                      </div>
+                        )}      </div>
                     );
                   })}
                 </div>

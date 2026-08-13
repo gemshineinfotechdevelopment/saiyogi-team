@@ -59,7 +59,7 @@ const chitSubscriptionSchema = new mongoose.Schema(
         amount: { type: Number, default: 0 },
         status: {
           type: String,
-          enum: ['Pending', 'Paid', 'Late Pay'],
+          enum: ['Pending', 'Paid', 'Late Pay', 'Advanced Payment', 'Advance Payment', 'On-time Payment', 'Delay Payment'],
           default: 'Pending'
         },
         paidAt: { type: Date },
