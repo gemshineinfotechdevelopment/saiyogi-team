@@ -53,6 +53,18 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
 
   const isHomePage = location.pathname === "/";
 
+  const handleUserClick = () => {
+    if (isUserLoggedIn) {
+      openLoginModal();
+    } else {
+      if (totalItems > 0) {
+        navigate("/cart");
+      } else {
+        openLoginModal();
+      }
+    }
+  };
+
   return (
     <>
       <header className={`fixed top-0 left-0 right-0 z-50 bg-white shadow-md border-b border-gray-100 transition-transform duration-300 w-full ${isHidden ? "-translate-y-full" : "translate-y-0"}`}>
@@ -109,7 +121,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
           <div className="flex items-center gap-3 shrink-0">
             {/* User Symbol Button / Phone Badge */}
             <button
-              onClick={openLoginModal}
+              onClick={handleUserClick}
               className={`p-2 sm:p-2.5 rounded-xl border transition-all flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95 cursor-pointer ${isUserLoggedIn
                 ? "bg-red-50 border-[#A80000] text-[#A80000] font-bold"
                 : "bg-gray-50 border-gray-200 text-gray-700 hover:text-[#A80000] hover:border-[#A80000]"

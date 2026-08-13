@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Phone, Lock, ArrowRight, RefreshCw, CheckCircle2, ShieldCheck, X, LogOut, User, Crown, Gift, Sparkles, ChevronRight, ShoppingBag, Smartphone } from "lucide-react";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { 
+  Phone, 
+  MessageSquare, 
+  ChevronDown, 
+  X, 
+  ShieldCheck, 
+  RefreshCw, 
+  User, 
+  CheckCircle2, 
+  LogOut, 
+  ShoppingBag, 
+  ChevronRight
+} from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { useCart } from "@/context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { getCustomers } from "@/lib/api";
+
 interface UserLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -54,7 +66,6 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
   }, [isOpen]);
 
   const validatePhone = (inputPhone: string) => {
-    // Standard Indian 10 digit mobile number starting with 6,7,8,9
     const phoneRegex = /^[6-9]\d{9}$/;
     return phoneRegex.test(inputPhone);
   };
@@ -161,254 +172,221 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[92vw] max-w-[360px] sm:max-w-[420px] p-0 overflow-hidden rounded-2xl sm:rounded-3xl border-0 shadow-2xl bg-[#F7F5F0] [&>button]:hidden max-h-[90vh] flex flex-col">
-        {/* Header decoration */}
-        <div className="bg-gradient-to-r from-[#7A1416] via-[#A80000] to-[#7A1416] text-white px-3.5 py-3 sm:px-4 sm:py-3.5 relative flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20 shrink-0">
-              <ShieldCheck className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#F4C542]" />
-            </div>
-            <div>
-              <DialogTitle className="text-xs sm:text-sm font-black uppercase tracking-wide text-white leading-tight">
-                Sai Yogi Crackers
-              </DialogTitle>
-              <DialogDescription className="text-[8.5px] sm:text-[9.5px] text-amber-300 font-bold tracking-wider uppercase">
-                Celebrate Every Moment ✨
-              </DialogDescription>
-            </div>
-          </div>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent 
+        side="bottom" 
+        className="p-0 border-t-0 rounded-t-[28px] sm:rounded-t-[36px] bg-white max-w-xl sm:max-w-2xl mx-auto overflow-hidden shadow-2xl [&>button]:hidden flex flex-col max-h-[90vh]"
+      >
+        {/* Top Header Bar */}
+        <div className="relative flex items-center justify-between px-6 pt-5 pb-3 border-b border-gray-100 shrink-0">
+          <div className="w-8" />
+          
+          <SheetTitle className="text-base sm:text-lg font-black tracking-widest text-[#A80000] uppercase text-center flex-1">
+            {isUserLoggedIn ? "MY ACCOUNT" : step === "phone" ? "LOGIN" : "VERIFY OTP"}
+          </SheetTitle>
 
           <button
             onClick={onClose}
             type="button"
-            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer border border-white/20 shrink-0"
-            aria-label="Close modal"
+            className="p-1.5 rounded-full hover:bg-red-50 text-[#A80000] hover:text-[#7A1416] transition-colors cursor-pointer border-0 shrink-0"
+            aria-label="Close"
           >
-            <X className="w-4 h-4 text-white" />
+            <X className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="p-3 sm:p-4 bg-[#F7F5F0] overflow-y-auto custom-scrollbar flex-1">
+        <div className="p-6 sm:p-8 overflow-y-auto custom-scrollbar flex-1 bg-white">
           {isUserLoggedIn ? (
-            <div className="space-y-2.5 sm:space-y-3 font-sans">
-              {/* Profile Card */}
-              <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-gray-200/80 shadow-xs text-center relative overflow-hidden">
-                {/* Clean Avatar */}
-                <div className="relative inline-block mx-auto mb-1">
-                  <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-red-50 border-2 border-red-100 flex items-center justify-center shadow-xs">
-                    <User className="w-5 h-5 sm:w-7 sm:h-7 text-[#7A1416]" />
+            /* LOGGED IN USER PROFILE VIEW */
+            <div className="space-y-4 font-sans max-w-md mx-auto">
+              <div className="bg-red-50/60 rounded-2xl p-4 border border-red-100 text-center relative overflow-hidden">
+                <div className="relative inline-block mx-auto mb-2">
+                  <div className="w-14 h-14 rounded-full bg-red-100 border-2 border-red-200 flex items-center justify-center shadow-xs">
+                    <User className="w-7 h-7 text-[#7A1416]" />
                   </div>
                 </div>
 
-                <h3 className="text-base sm:text-lg font-black text-gray-900 tracking-tight">
+                <h3 className="text-lg font-black text-gray-900 tracking-tight">
                   {userName || localStorage.getItem("user_name") || "User"}
                 </h3>
 
-                <p className="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 mt-0.5">
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-2 mt-0.5">
                   Registered Mobile Number
                 </p>
 
-                {/* Mobile Number Box */}
-                <div className="bg-red-50/70 border border-red-100 rounded-lg sm:rounded-xl p-2 sm:p-2.5 flex items-center justify-between shadow-2xs">
+                <div className="bg-white border border-red-200 rounded-xl p-3 flex items-center justify-between shadow-2xs">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#7A1416] text-white flex items-center justify-center shadow-xs shrink-0">
-                      <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    <div className="w-7 h-7 rounded-full bg-[#7A1416] text-white flex items-center justify-center shadow-xs shrink-0">
+                      <Phone className="w-3.5 h-3.5" />
                     </div>
-                    <span className="text-xs sm:text-sm font-black text-gray-900 tracking-wider">
+                    <span className="text-sm font-black text-gray-900 tracking-wider">
                       +91 {userPhone || "98765 43210"}
                     </span>
                   </div>
-                  <span className="bg-emerald-100 text-emerald-800 text-[8.5px] sm:text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs border border-emerald-200 shrink-0">
-                    <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-600" />
-                    <span>Active Session</span>
+                  <span className="bg-emerald-100 text-emerald-800 text-xs font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-emerald-200">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                    <span>Active</span>
                   </span>
                 </div>
               </div>
 
-              {/* Middle Festive Banner */}
-              <div className="bg-amber-50/90 border border-amber-200/80 rounded-xl p-2.5 sm:p-3 flex items-center justify-between shadow-2xs">
-                <div className="flex items-center gap-2 sm:gap-2.5">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-100 text-[#7A1416] flex items-center justify-center shrink-0 border border-red-200/50">
-                    <Gift className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7A1416]" />
-                  </div>
-                  <div>
-                    <h4 className="font-display font-black text-gray-900 text-[11px] sm:text-xs leading-snug">
-                      Thank you for being with Sai Yogi Crackers!
-                    </h4>
-                    <p className="text-[9px] sm:text-[10px] text-amber-900/80 font-semibold mt-0.5">
-                      Light up more celebrations with us
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Cards Grid: My Account & My Enquiry */}
-              <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
-                {/* My Account Card */}
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => {
                     onClose();
                     navigate("/my-account");
                   }}
-                  className="bg-white hover:bg-red-50/40 border border-gray-200/80 rounded-xl p-2.5 sm:p-3 flex items-center justify-between text-left transition-all group cursor-pointer shadow-2xs"
+                  className="bg-white hover:bg-red-50/50 border border-gray-200 hover:border-red-200 rounded-xl p-3 flex items-center justify-between text-left transition-all group cursor-pointer shadow-2xs"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-50 text-[#7A1416] border border-red-100 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7A1416]" />
+                    <div className="w-8 h-8 rounded-lg bg-red-50 text-[#7A1416] border border-red-100 flex items-center justify-center shrink-0">
+                      <User className="w-4 h-4 text-[#7A1416]" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h5 className="font-black text-gray-900 text-[11px] sm:text-xs truncate">My Account</h5>
-                      <p className="text-[8.5px] sm:text-[9.5px] text-gray-500 font-medium truncate">View details</p>
+                      <h5 className="font-black text-gray-900 text-xs truncate">My Account</h5>
+                      <p className="text-[10px] text-gray-500 font-medium truncate">View details</p>
                     </div>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#7A1416] transition-colors shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#7A1416] transition-colors shrink-0" />
                 </button>
 
-                {/* My Enquiry Card */}
                 <button
                   onClick={() => {
                     onClose();
                     navigate("/my-enquiry");
                   }}
-                  className="bg-white hover:bg-red-50/40 border border-gray-200/80 rounded-xl p-2.5 sm:p-3 flex items-center justify-between text-left transition-all group cursor-pointer shadow-2xs"
+                  className="bg-white hover:bg-red-50/50 border border-gray-200 hover:border-red-200 rounded-xl p-3 flex items-center justify-between text-left transition-all group cursor-pointer shadow-2xs"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-50 text-[#7A1416] border border-red-100 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7A1416]" />
+                    <div className="w-8 h-8 rounded-lg bg-red-50 text-[#7A1416] border border-red-100 flex items-center justify-center shrink-0">
+                      <ShoppingBag className="w-4 h-4 text-[#7A1416]" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h5 className="font-black text-gray-900 text-[11px] sm:text-xs truncate">My Enquiry</h5>
-                      <p className="text-[8.5px] sm:text-[9.5px] text-gray-500 font-medium truncate">Track enquiries</p>
+                      <h5 className="font-black text-gray-900 text-xs truncate">My Enquiry</h5>
+                      <p className="text-[10px] text-gray-500 font-medium truncate">Track enquiries</p>
                     </div>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#7A1416] transition-colors shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#7A1416] transition-colors shrink-0" />
                 </button>
               </div>
 
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
-                className="w-full py-2 sm:py-2.5 bg-white hover:bg-red-50 text-gray-700 hover:text-red-700 border border-gray-200 rounded-xl font-black text-[11px] sm:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                className="w-full py-3 bg-white hover:bg-red-50 text-gray-700 hover:text-red-700 border border-gray-200 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
               >
-                <LogOut className="w-3.5 h-3.5 text-red-600" />
+                <LogOut className="w-4 h-4 text-red-600" />
                 <span>Logout Account</span>
               </button>
             </div>
           ) : step === "phone" ? (
-            <form onSubmit={handleSendOtp} className="space-y-3 sm:space-y-4 font-sans">
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex flex-col items-center text-center space-y-1.5">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-2xs">
-                  <Smartphone className="w-4 h-4 sm:w-5 sm:h-5" />
-                </div>
-                <h3 className="font-extrabold text-gray-900 text-xs sm:text-sm uppercase tracking-wide">
-                  WhatsApp Mobile Verification
-                </h3>
-                <p className="text-[11px] sm:text-xs text-gray-600 leading-relaxed max-w-xs">
-                  Please enter your WhatsApp mobile number. A 6-digit verification code will be sent to verify your account.
-                </p>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-red-900 font-semibold text-[11px] sm:text-xs mb-0.5 block">
-                  WhatsApp Mobile Number *
+            /* STEP 1: PHONE NUMBER INPUT - BOTTOM SHEET WITH ORIGINAL BRAND RED COLORS */
+            <form onSubmit={handleSendOtp} className="space-y-4 font-sans max-w-lg mx-auto">
+              <div className="text-center">
+                <label className="text-slate-700 font-semibold text-xs sm:text-sm text-center mb-3 block">
+                  Whatsapp Number <span className="text-red-500">*</span>
                 </label>
-                <div className="flex gap-2">
-                  <div className="flex items-center px-3 bg-gray-100 border border-gray-300 rounded-md text-xs font-black text-gray-700">
-                    +91
+
+                {/* Pill Shaped Input Box */}
+                <div className="flex items-center bg-[#F8FAFC] border border-[#E2E8F0] focus-within:border-[#A80000] focus-within:ring-2 focus-within:ring-[#A80000]/20 rounded-xl sm:rounded-2xl overflow-hidden transition-all shadow-2xs max-w-lg mx-auto">
+                  {/* +91 Badge */}
+                  <div className="bg-red-50/80 text-[#7A1416] font-bold text-xs sm:text-sm px-3.5 sm:px-4 py-3 border-r border-[#E2E8F0] flex items-center gap-1.5 shrink-0 select-none">
+                    <span>+91</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-[#7A1416]" />
                   </div>
+
+                  {/* Input Field */}
                   <input
                     type="tel"
                     value={phone}
                     onChange={handlePhoneChange}
-                    placeholder="10-digit mobile number"
+                    placeholder="Whatsapp Number"
                     maxLength={10}
                     autoFocus
-                    className={`flex-1 border ${
-                      error ? "border-red-500 bg-red-50/20" : "border-red-200 focus:border-red-500"
-                    } bg-white h-9 sm:h-10 px-3 text-xs font-bold rounded-md focus:outline-none transition-all`}
+                    className="flex-1 bg-transparent text-slate-800 text-xs sm:text-sm font-semibold px-3.5 sm:px-4 py-3 outline-none focus:outline-none placeholder:text-slate-400 placeholder:font-medium"
                   />
                 </div>
-                {error && <p className="text-xs text-red-600 font-bold mt-1">{error}</p>}
+
+                {error && <p className="text-xs text-red-600 font-bold mt-2 text-center">{error}</p>}
               </div>
 
-              <div className="space-y-2 pt-2 border-t border-gray-100">
+              {/* Action Button: SEND OTP */}
+              <div className="pt-2 flex justify-center">
                 <button
                   type="submit"
                   disabled={isSubmitting || phone.length !== 10}
-                  className="w-full bg-[#00a859] hover:bg-[#008f4c] text-white font-bold tracking-wider py-2.5 sm:py-3 rounded-md uppercase text-xs shadow-md disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  className="w-full sm:w-auto bg-gradient-to-r from-[#7A1416] via-[#A80000] to-[#7A1416] hover:opacity-95 text-white font-extrabold tracking-wider py-3.5 px-8 sm:px-12 rounded-xl sm:rounded-2xl uppercase text-xs sm:text-sm shadow-md disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer transition-all min-w-[200px]"
                 >
                   {isSubmitting ? (
-                    <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                    <RefreshCw className="w-4 h-4 animate-spin" />
                   ) : (
-                    "SEND VERIFICATION CODE"
+                    <>
+                      <MessageSquare className="w-4 h-4 text-white fill-white/20" />
+                      <span>SEND OTP</span>
+                    </>
                   )}
                 </button>
-                <p className="text-center text-[10px] sm:text-[11px] text-gray-500 font-normal">
-                  * By continuing, you agree to Sai Yogi Crackers Terms of Service & Privacy Policy.
-                </p>
               </div>
+
+              <p className="text-center text-[10px] sm:text-xs text-slate-400 font-medium pt-1">
+                * A 6-digit verification code will be sent to your WhatsApp number.
+              </p>
             </form>
           ) : (
-            <form onSubmit={handleVerifyOtp} className="space-y-2.5 sm:space-y-3 font-sans">
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 sm:p-3 flex flex-col items-center text-center space-y-1">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-2xs">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <h3 className="font-extrabold text-gray-900 text-xs sm:text-sm uppercase tracking-wide">
-                  Enter Verification Code
-                </h3>
-                <p className="text-[10px] sm:text-xs text-gray-600 leading-tight">
-                  We sent a 6-digit verification code to <strong className="text-gray-900 font-black">+91 {phone}</strong>.
+            /* STEP 2: OTP & NAME INPUT */
+            <form onSubmit={handleVerifyOtp} className="space-y-4 font-sans max-w-lg mx-auto">
+              <div className="text-center space-y-1.5">
+                <p className="text-xs sm:text-sm text-slate-600 font-semibold">
+                  Enter verification code sent to <strong className="text-slate-900 font-black">+91 {phone}</strong>
                 </p>
-                <div className="bg-emerald-100/90 border border-emerald-300/60 px-2.5 py-0.5 rounded-md text-emerald-950 text-[10px] sm:text-[11px] font-black tracking-widest mt-0.5 shadow-2xs">
+                <div className="bg-amber-100 text-amber-950 font-black text-xs px-3.5 py-1 rounded-full border border-amber-300 inline-block">
                   DEMO CODE: {generatedOtp || "1234"}
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-red-900 font-semibold text-[10px] sm:text-[11px] block">
-                  6-Digit Verification Code *
-                </label>
-                <input
-                  type="text"
-                  value={otp}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, "");
-                    if (val.length <= 6) {
-                      setOtp(val);
+              <div className="space-y-3 pt-1">
+                <div>
+                  <label className="text-slate-700 font-semibold text-xs mb-1 block text-left">
+                    6-Digit Verification Code <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={otp}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      if (val.length <= 6) {
+                        setOtp(val);
+                        if (error) setError("");
+                      }
+                    }}
+                    placeholder="Enter 6-digit code"
+                    maxLength={6}
+                    autoFocus
+                    className="w-full bg-[#F8FAFC] border border-[#E2E8F0] focus:border-[#A80000] focus:ring-2 focus:ring-[#A80000]/20 h-11 px-4 text-center font-black tracking-widest text-base sm:text-lg rounded-xl sm:rounded-2xl outline-none transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-700 font-semibold text-xs mb-1 block text-left">
+                    Your Full Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
                       if (error) setError("");
-                    }
-                  }}
-                  placeholder="Enter 6-digit code"
-                  maxLength={6}
-                  autoFocus
-                  className={`w-full border ${
-                    error ? "border-red-500 bg-red-50/20" : "border-red-200 focus:border-red-500"
-                  } bg-white h-8 sm:h-9 text-center font-black tracking-widest text-sm sm:text-base rounded-md focus:outline-none transition-all`}
-                />
+                    }}
+                    placeholder="Enter your full name"
+                    className="w-full bg-[#F8FAFC] border border-[#E2E8F0] focus:border-[#A80000] focus:ring-2 focus:ring-[#A80000]/20 h-11 px-4 text-xs sm:text-sm font-semibold rounded-xl sm:rounded-2xl outline-none transition-all"
+                    required
+                  />
+                </div>
               </div>
 
-              {/* Name Input Below OTP */}
-              <div className="space-y-1">
-                <label className="text-red-900 font-semibold text-[10px] sm:text-[11px] block">
-                  Your Full Name *
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    if (error) setError("");
-                  }}
-                  placeholder="Enter your full name"
-                  className="w-full border border-red-200 focus:border-red-500 bg-white h-8 sm:h-9 px-3 text-xs font-semibold rounded-md focus:outline-none transition-all"
-                  required
-                />
-              </div>
-
-              <div className="flex justify-between items-center text-[10px] sm:text-[11px] pt-0.5">
+              <div className="flex justify-between items-center text-xs pt-1">
                 <button
                   type="button"
                   onClick={() => {
@@ -416,42 +394,47 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
                     setName("");
                     setError("");
                   }}
-                  className="text-red-700 font-bold hover:underline cursor-pointer"
+                  className="text-[#A80000] font-bold hover:underline cursor-pointer"
                 >
-                  ← Change Phone Number
+                  ← Change Number
                 </button>
                 {isResendDisabled ? (
-                  <span className="text-gray-400 font-bold">Resend Code in {timer}s</span>
+                  <span className="text-slate-400 font-bold">Resend in {timer}s</span>
                 ) : (
                   <button
                     type="button"
                     onClick={handleResendOtp}
-                    className="text-emerald-700 font-bold hover:underline cursor-pointer"
+                    className="text-[#A80000] font-bold hover:underline cursor-pointer"
                   >
                     Resend Code
                   </button>
                 )}
               </div>
 
-              {error && <p className="text-xs text-red-600 font-bold mt-1">{error}</p>}
+              {error && <p className="text-xs text-red-600 font-bold text-center mt-1">{error}</p>}
 
-              <div className="space-y-1.5 pt-1.5 border-t border-gray-100">
+              <div className="pt-2 flex justify-center">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-[#00a859] hover:bg-[#008f4c] text-white font-bold tracking-wider py-2 sm:py-2.5 rounded-md uppercase text-xs shadow-md disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  className="w-full sm:w-auto bg-gradient-to-r from-[#7A1416] via-[#A80000] to-[#7A1416] hover:opacity-95 text-white font-extrabold tracking-wider py-3.5 px-8 sm:px-12 rounded-xl sm:rounded-2xl uppercase text-xs sm:text-sm shadow-md disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer transition-all min-w-[200px]"
                 >
                   {isSubmitting ? (
                     <RefreshCw className="w-4 h-4 animate-spin" />
                   ) : (
-                    "VERIFY CODE & CONTINUE"
+                    <>
+                      <ShieldCheck className="w-4 h-4 text-white" />
+                      <span>VERIFY CODE &amp; CONTINUE</span>
+                    </>
                   )}
                 </button>
               </div>
             </form>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 };
+
+export default UserLoginModal;
