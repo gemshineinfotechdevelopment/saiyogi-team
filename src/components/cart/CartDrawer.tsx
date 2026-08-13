@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose, SheetDescription } from "@/components/ui/sheet";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
@@ -27,6 +27,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
+import ProductCard from "@/components/ProductCard";
+import { Product } from "@/data/products";
 
 import indiaStatesData from "@/lib/indiaStates.json";
 
@@ -34,14 +36,28 @@ const getAllStates = () => Object.keys(indiaStatesData);
 const getDistrictsByState = (state: string) => (indiaStatesData as Record<string, string[]>)[state] || [];
 
 const CartDrawer = () => {
-  const { items, updateQuantity, removeFromCart, clearCart, totalItems, totalPrice, isCartOpen, setIsCartOpen } = useCart();
+  const { items, updateQuantity, removeFromCart, clearCart, totalItems, totalPrice, isCartOpen, setIsCartOpen, cartViewMode, setCartViewMode } = useCart();
   const { settings } = useSiteSettings();
   const { isUserLoggedIn, userPhone, userName, loginWithPhone, openLoginModal } = useAuth();
-  const [viewMode, setViewMode] = useState<"cart" | "whatsapp-verify" | "checkout">("cart");
+  const navigate = useNavigate();
+  const [viewMode, setViewModeState] = useState<"cart" | "whatsapp-verify" | "checkout">("cart");
+
+  const setViewMode = (mode: "cart" | "whatsapp-verify" | "checkout") => {
+    setViewModeState(mode);
+    setCartViewMode(mode);
+  };
+
+  useEffect(() => {
+    if (isCartOpen) {
+      setViewModeState(cartViewMode || "cart");
+    }
+  }, [isCartOpen, cartViewMode]);
+
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [completedOrderNumber, setCompletedOrderNumber] = useState<string>("");
+  const [selectedCartProduct, setSelectedCartProduct] = useState<Product | null>(null);
   
   // WhatsApp OTP Verification states
   const [otpStep, setOtpStep] = useState<"number" | "otp">("number");
@@ -391,10 +407,18 @@ const CartDrawer = () => {
                   const stockVal = product.storeStockPieces !== undefined ? Number(product.storeStockPieces) : (product.stock !== undefined ? Number(product.stock) : 999);
                   return (
                     <div key={productId} className="py-3.5 flex gap-3 items-start">
-                      <img src={stockVal <= 0 ? '/saiyogi-logo-1.png' : product.image} alt={product.name} className="w-14 h-14 rounded-md object-contain shrink-0 border border-gray-100 p-0.5" />
+                      <img
+                        src={stockVal <= 0 ? '/saiyogi-logo-1.png' : product.image}
+                        alt={product.name}
+                        className="w-14 h-14 rounded-md object-contain shrink-0 border border-gray-100 p-0.5 cursor-pointer hover:border-[#A80000]/40 transition-colors"
+                        onClick={() => setSelectedCartProduct(product)}
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2 mb-1">
-                          <h4 className="product-title-font font-extrabold sm:font-bold text-base sm:text-sm text-gray-900 truncate">{product.name}</h4>
+                          <h4
+                            className="product-title-font font-extrabold sm:font-bold text-base sm:text-sm text-gray-900 truncate cursor-pointer hover:text-[#A80000] transition-colors"
+                            onClick={() => setSelectedCartProduct(product)}
+                          >{product.name}</h4>
                           <button 
                             onClick={() => removeFromCart(productId)} 
                             className="text-gray-400 hover:text-red-500 transition-colors p-0.5 shrink-0"
@@ -427,6 +451,15 @@ const CartDrawer = () => {
               )}
             </div>
 
+            {/* Product Detail Modal */}
+            {selectedCartProduct && (
+              <ProductCard
+                product={selectedCartProduct}
+                showDetailOnly
+                onDetailClose={() => setSelectedCartProduct(null)}
+              />
+            )}
+
             {/* Cart Footer */}
             {items.length > 0 && (
               <div className="p-4 bg-white border-t border-gray-100 space-y-3">
@@ -449,24 +482,39 @@ const CartDrawer = () => {
                   <span className="font-black text-[#a41a1c] text-xl">₹{Math.round(estimatedTotal).toLocaleString('en-IN')}</span>
                 </div>
 
-                {/* Minimum Subtotal Limit Warning Card (NPK Crackers replica) */}
-                <div className="glamics-cart-warning-card my-2">
+                {/* Minimum Subtotal Limit Warning Card (Compact) */}
+                <div className="glamics-cart-warning-card my-1.5 py-2 px-3">
                   <div className="glamics-cart-glow" />
-                  <span className="glamics-cart-warning-title">
-                    <ShieldCheck className="w-4 h-4" /> Minimum Subtotal Limit
+                  <span className="glamics-cart-warning-title text-[10px]">
+                    <ShieldCheck className="w-3.5 h-3.5" /> Minimum Subtotal Limit
                   </span>
-                  <div className="glamics-cart-warning-text">
-                    Tamil Nadu: <b className="text-gray-900">₹ 3,000.00</b><br />
-                    Other States: <b className="text-gray-900">₹ 5,000.00</b>
+                  <div className="glamics-cart-warning-text text-[11px] flex justify-between items-center mt-1">
+                    <span>TN: <b className="text-gray-900 font-bold">₹3,000</b></span>
+                    <span className="text-[#f43f5e]/40">|</span>
+                    <span>Other States: <b className="text-gray-900 font-bold">₹5,000</b></span>
                   </div>
                 </div>
 
-                <Button 
-                  onClick={handleStartEnquiry}
-                  className="w-full bg-[#900000] hover:bg-[#700000] text-white font-bold tracking-wider py-5 rounded-md uppercase text-sm shadow-sm"
-                >
-                  REQUEST ENQUIRY
-                </Button>
+                {/* Action Buttons: VIEW CART & PROCEED TO CHECKOUT */}
+                <div className="space-y-2.5 pt-1">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setIsCartOpen(false);
+                      navigate("/cart");
+                    }}
+                    className="w-full border-2 border-[#900000] text-[#900000] hover:bg-[#900000] hover:text-white font-extrabold tracking-wider py-5 rounded-md uppercase text-xs sm:text-sm shadow-xs transition-all cursor-pointer"
+                  >
+                    VIEW CART
+                  </Button>
+
+                  <Button 
+                    onClick={handleStartEnquiry}
+                    className="w-full bg-[#900000] hover:bg-[#700000] text-white font-extrabold tracking-wider py-5 rounded-md uppercase text-xs sm:text-sm shadow-sm transition-all cursor-pointer"
+                  >
+                    PROCEED TO CHECKOUT
+                  </Button>
+                </div>
                 
                 <p className="text-center text-[11px] text-gray-500 mt-2 font-normal">
                   * This is just an enquiry only.

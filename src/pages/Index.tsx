@@ -250,118 +250,7 @@ const Index = () => {
     return () => window.removeEventListener("message", handleYTMessage);
   }, []);
 
-  // Realistic Flower Pot Effect
-  useEffect(() => {
-    const canvas = document.getElementById('flower-pot-canvas') as HTMLCanvasElement;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
 
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    let particles: any[] = [];
-
-    const createFlowerPotParticle = (x: number, y: number) => {
-      const isMobile = window.innerWidth < 768;
-      const angle = (Math.random() * Math.PI) / 4 - Math.PI / 8; // Narrower angle for realistic fountain
-      const speed = isMobile ? (Math.random() * 8 + 4) : (Math.random() * 12 + 6); // Stronger initial thrust, less on mobile
-      particles.push({
-        x, y,
-        vx: Math.sin(angle) * speed,
-        vy: -Math.cos(angle) * speed,
-        life: 1,
-        decay: Math.random() * 0.015 + 0.008,
-        color: Math.random() > 0.4 ? '255, 215, 0' : '255, 140, 0' // Gold and orange
-      });
-    };
-
-    let chakkarAngle = 0;
-    const createChakkarParticle = (x: number, y: number) => {
-      chakkarAngle += 0.8; // Spin speed
-      const isMobile = window.innerWidth < 768;
-      const speed = isMobile ? (Math.random() * 6 + 4) : (Math.random() * 10 + 5);
-      const angle = chakkarAngle + (Math.random() * 0.5 - 0.25);
-      particles.push({
-        x, y,
-        vx: Math.cos(angle) * speed,
-        vy: (Math.sin(angle) * speed * 0.5) - (isMobile ? 1 : 2), // Elliptical spin + slight upward drift
-        life: 1,
-        decay: Math.random() * 0.02 + 0.01,
-        color: Math.random() > 0.5 ? '255, 255, 255' : '150, 255, 150' // Silver & Green sparks
-      });
-    };
-
-    let animationId: number;
-    let isActive = true;
-    let lastToggleTime = performance.now();
-
-    const render = (time: number) => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const elapsed = time - lastToggleTime;
-      if (isActive && elapsed > 5000) {
-        isActive = false;
-        lastToggleTime = time;
-      } else if (!isActive && elapsed > 10000) {
-        isActive = true;
-        lastToggleTime = time;
-      }
-
-      const isMobile = window.innerWidth < 768;
-      // Move them more inward on mobile so they don't get cut off at the edges
-      const leftPotX = canvas.width * (isMobile ? 0.2 : 0.1);
-      const rightPotX = canvas.width * (isMobile ? 0.8 : 0.9);
-      const centerX = canvas.width * 0.5;
-
-      // Move the Y position slightly up on mobile to avoid bottom UI / notch covering it
-      const potY = canvas.height - (isMobile ? 40 : 10);
-
-      const particleCount = isMobile ? 3 : 5; // Slightly increased for better visibility
-      const chakkarCount = isMobile ? 3 : 6;
-
-      if (isActive) {
-        for (let i = 0; i < particleCount; i++) {
-          createFlowerPotParticle(leftPotX, potY);
-          createFlowerPotParticle(rightPotX, potY);
-        }
-        for (let i = 0; i < chakkarCount; i++) {
-          createChakkarParticle(centerX, potY);
-        }
-      }
-
-      particles.forEach((p, index) => {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.15; // Gravity
-        p.life -= p.decay;
-
-        if (p.life <= 0) {
-          particles.splice(index, 1);
-        } else {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, Math.random() * 2 + 1, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${p.color}, ${p.life})`;
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = `rgba(${p.color}, 1)`;
-          ctx.fill();
-        }
-      });
-
-      animationId = requestAnimationFrame(render);
-    };
-
-    animationId = requestAnimationFrame(render);
-
-    return () => {
-      window.removeEventListener('resize', resizeCanvas);
-      cancelAnimationFrame(animationId);
-    };
-  }, []);
 
 
 
@@ -456,28 +345,24 @@ const Index = () => {
         </div>
       </div> */}
 
-      {/* Realistic Flower Pot Canvas */}
-      <canvas
-        id="flower-pot-canvas"
-        className="fixed inset-0 pointer-events-none z-[45] opacity-90"
-      />
+
 
       {/* Background Fireworks Canvas */}
       <Fireworks
         options={{
           rocketsPoint: { min: 0, max: 100 },
           hue: { min: 0, max: 360 },
-          // Reduced sky shots frequency and intensity as requested
-          delay: isMobileView ? { min: 80, max: 120 } : { min: 80, max: 150 },
+          // Increased sky shots frequency and intensity for double sky cracker effect
+          delay: isMobileView ? { min: 60, max: 90 } : { min: 50, max: 100 },
 
           acceleration: 1.05,
           friction: 0.97,
           gravity: 1.5,
-          particles: isMobileView ? 20 : 35,
+          particles: isMobileView ? 25 : 45,
           traceLength: 3,
           traceSpeed: isMobileView ? 4 : 8,
-          explosion: isMobileView ? 3 : 4,
-          intensity: isMobileView ? 8 : 15, // Reduced intensity significantly
+          explosion: isMobileView ? 3 : 5,
+          intensity: isMobileView ? 12 : 20, // Adjusted intensity for double cracker effect without being too crowded
           flickering: 50,
           lineStyle: 'round',
           lineWidth: { explosion: { min: 1, max: 3 }, trace: { min: 1, max: 2 } },
@@ -520,7 +405,7 @@ const Index = () => {
                 <ProductCard
                   product={item as Product}
                   onCardClick={() => navigate(`/catalog?search=${encodeURIComponent(item.name)}`)}
-                  className="bg-[#FAF2E6] border-amber-200/90 hover:border-[#A80000]/70 hover:shadow-xl hover:shadow-amber-900/10 transition-all duration-300"
+                  className="bg-[#FDFBF7] border-amber-200/90 hover:border-[#A80000]/70 hover:shadow-xl hover:shadow-amber-900/10 transition-all duration-300"
                 />
               </div>
             ))}

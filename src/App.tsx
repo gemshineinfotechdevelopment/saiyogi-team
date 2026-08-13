@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import ComboPacks from "./pages/ComboPacks";
 import Catalog from "./pages/Catalog";
 import ProductDetail from "./pages/ProductDetail";
+import Cart from "./pages/Cart";
 import CartDrawer from "./components/cart/CartDrawer";
 import SafetyTips from "./pages/SafetyTips";
 import Contact from "./pages/Contact";
@@ -65,6 +66,8 @@ const App = () => (
                   <Route path="/my-enquiry" element={<MyEnquiry />} />
                   <Route path="/my-account" element={<MyAccount />} />
                   <Route path="/catalog" element={<Catalog />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/view-cart" element={<Navigate to="/cart" replace />} />
                   <Route path="/product/:id" element={<ProductDetail />} />
                   <Route path="/safety-tips" element={<SafetyTips />} />
                   <Route path="/contact" element={<Contact />} />
