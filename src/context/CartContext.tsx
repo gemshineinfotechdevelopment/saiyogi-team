@@ -20,6 +20,9 @@ interface CartContextType {
   totalPrice: number;
   isCartOpen: boolean;
   setIsCartOpen: (isOpen: boolean) => void;
+  cartViewMode: "cart" | "whatsapp-verify" | "checkout";
+  setCartViewMode: (mode: "cart" | "whatsapp-verify" | "checkout") => void;
+  openCart: (mode?: "cart" | "whatsapp-verify" | "checkout") => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -73,7 +76,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { userPhone } = useAuth();
   const { settings } = useSiteSettings();
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cartViewMode, setCartViewMode] = useState<"cart" | "whatsapp-verify" | "checkout">("cart");
   const prevUserPhoneRef = useRef<string | null>(null);
+
+  const openCart = useCallback((mode: "cart" | "whatsapp-verify" | "checkout" = "cart") => {
+    setCartViewMode(mode);
+    setIsCartOpen(true);
+  }, []);
 
   // Initialize cart state by merging all available persistent sources
   const [items, setItems] = useState<CartItem[]>(() => {
@@ -283,7 +292,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, 0);
 
   return (
-    <CartContext.Provider value={{ items, addToCart, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice, isCartOpen, setIsCartOpen }}>
+    <CartContext.Provider value={{ items, addToCart, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice, isCartOpen, setIsCartOpen, cartViewMode, setCartViewMode, openCart }}>
       {children}
     </CartContext.Provider>
   );
