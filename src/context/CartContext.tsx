@@ -26,70 +26,166 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 const CART_STORAGE_KEY = "saiyogi_cart_items";
 const CART_COOKIE_NAME = "saiyogi_cart";
 
+const getProductId = (product: any): string => {
+  if (!product) return "";
+  return String(product._id || product.id || "");
+};
+
+const sanitizeProductForStorage = (product: Product): Product => {
+  const pId = getProductId(product);
+  return {
+    _id: pId,
+    id: pId,
+    name: product.name || "",
+    price: Number(product.price || 0),
+    originalPrice: product.originalPrice !== undefined ? Number(product.originalPrice) : Number(product.price || 0),
+    hasDiscount: product.hasDiscount !== undefined ? Boolean(product.hasDiscount) : true,
+    netRate: product.netRate !== undefined ? Number(product.netRate) : undefined,
+    displayNetRate: product.displayNetRate !== undefined ? Boolean(product.displayNetRate) : undefined,
+    image: product.image || "/saiyogi-logo-1.png",
+    storeStockPieces: product.storeStockPieces !== undefined ? Number(product.storeStockPieces) : (product.stock !== undefined ? Number(product.stock) : 999),
+    stock: product.stock !== undefined ? Number(product.stock) : 999,
+    code: product.code || "",
+    sku: product.sku || "",
+    brand: product.brand || "Standard",
+  } as Product;
+};
+
+const sanitizeCartItems = (rawItems: any[]): CartItem[] => {
+  if (!Array.isArray(rawItems)) return [];
+  const valid: CartItem[] = [];
+  rawItems.forEach((item) => {
+    if (item && item.product && typeof item.product === "object") {
+      const pId = getProductId(item.product);
+      if (pId && item.quantity > 0) {
+        valid.push({
+          product: sanitizeProductForStorage(item.product),
+          quantity: Number(item.quantity || 1)
+        });
+      }
+    }
+  });
+  return valid;
+};
+
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { userPhone } = useAuth();
+  const { settings } = useSiteSettings();
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const prevUserPhoneRef = useRef<string | null>(null);
 
+  // Initialize cart state by merging all available persistent sources
   const [items, setItems] = useState<CartItem[]>(() => {
     try {
-      // 1. Try reading from cookie
-      const cookieCart = getCookie(CART_COOKIE_NAME);
-      if (cookieCart) {
-        const parsed = JSON.parse(cookieCart);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-      // 2. Try user-specific localStorage if user phone exists
-      const phone = localStorage.getItem("user_phone");
+      const candidateCarts: CartItem[][] = [];
+
+      // 1. User-specific localStorage
+      const phone = localStorage.getItem("user_phone") || getCookie("saiyogi_user_phone");
       if (phone) {
-        const savedUserCart = localStorage.getItem(`saiyogi_cart_${phone}`);
-        if (savedUserCart) {
-          const parsed = JSON.parse(savedUserCart);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        const cleanP = phone.replace(/\D/g, "").slice(-10);
+        if (cleanP) {
+          const userSavedStr = localStorage.getItem(`saiyogi_cart_${cleanP}`);
+          if (userSavedStr) {
+            const parsed = sanitizeCartItems(JSON.parse(userSavedStr));
+            if (parsed.length > 0) candidateCarts.push(parsed);
+          }
         }
       }
-      // 3. Fallback to general localStorage
-      const saved = localStorage.getItem(CART_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
+
+      // 2. General localStorage
+      const generalStr = localStorage.getItem(CART_STORAGE_KEY);
+      if (generalStr) {
+        const parsed = sanitizeCartItems(JSON.parse(generalStr));
+        if (parsed.length > 0) candidateCarts.push(parsed);
+      }
+
+      // 3. Cookie
+      const cookieCart = getCookie(CART_COOKIE_NAME);
+      if (cookieCart) {
+        const parsed = sanitizeCartItems(JSON.parse(cookieCart));
+        if (parsed.length > 0) candidateCarts.push(parsed);
+      }
+
+      if (candidateCarts.length === 0) return [];
+
+      // Reconcile and merge items across all candidate carts
+      const mergedMap = new Map<string, CartItem>();
+      candidateCarts.forEach((cart) => {
+        cart.forEach((item) => {
+          const pId = getProductId(item.product);
+          if (!mergedMap.has(pId)) {
+            mergedMap.set(pId, item);
+          } else {
+            const existing = mergedMap.get(pId)!;
+            mergedMap.set(pId, { ...existing, quantity: Math.max(existing.quantity, item.quantity) });
+          }
+        });
+      });
+
+      return Array.from(mergedMap.values());
     } catch {
       return [];
     }
   });
 
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const { settings } = useSiteSettings();
-  const prevUserPhoneRef = useRef<string | null>(null);
-
   // Synchronize cart with cookie and localStorage whenever items change
   useEffect(() => {
     try {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
-      setCookie(CART_COOKIE_NAME, JSON.stringify(items), 7);
-      if (userPhone) {
-        localStorage.setItem(`saiyogi_cart_${userPhone}`, JSON.stringify(items));
+      const sanitized = items.map((item) => ({
+        product: sanitizeProductForStorage(item.product),
+        quantity: item.quantity
+      }));
+      const jsonStr = JSON.stringify(sanitized);
+
+      localStorage.setItem(CART_STORAGE_KEY, jsonStr);
+      setCookie(CART_COOKIE_NAME, jsonStr, 30);
+
+      const effectivePhone = userPhone || localStorage.getItem("user_phone") || getCookie("saiyogi_user_phone");
+      if (effectivePhone) {
+        const cleanP = effectivePhone.replace(/\D/g, "").slice(-10);
+        if (cleanP) {
+          localStorage.setItem(`saiyogi_cart_${cleanP}`, jsonStr);
+        }
       }
     } catch (err) {
       console.error("Failed to save cart items", err);
     }
   }, [items, userPhone]);
 
+  // Listen for storage changes across tabs
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === CART_STORAGE_KEY && e.newValue) {
+        try {
+          const remoteItems = sanitizeCartItems(JSON.parse(e.newValue));
+          setItems(remoteItems);
+        } catch (_) {}
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
   // Restore & Merge User Cart on Mobile Login
   useEffect(() => {
     if (userPhone && userPhone !== prevUserPhoneRef.current) {
       prevUserPhoneRef.current = userPhone;
       try {
-        const userSavedCartKey = `saiyogi_cart_${userPhone}`;
+        const cleanP = userPhone.replace(/\D/g, "").slice(-10);
+        const userSavedCartKey = `saiyogi_cart_${cleanP}`;
         const userSavedStr = localStorage.getItem(userSavedCartKey);
         if (userSavedStr) {
-          const userSavedItems: CartItem[] = JSON.parse(userSavedStr);
-          if (Array.isArray(userSavedItems) && userSavedItems.length > 0) {
+          const userSavedItems = sanitizeCartItems(JSON.parse(userSavedStr));
+          if (userSavedItems.length > 0) {
             setItems((prevCurrent) => {
               if (prevCurrent.length === 0) return userSavedItems;
               const mergedMap = new Map<string, CartItem>();
               userSavedItems.forEach((item) => {
-                const pId = String(item.product._id || item.product.id || '');
+                const pId = getProductId(item.product);
                 mergedMap.set(pId, item);
               });
               prevCurrent.forEach((item) => {
-                const pId = String(item.product._id || item.product.id || '');
+                const pId = getProductId(item.product);
                 if (mergedMap.has(pId)) {
                   const existing = mergedMap.get(pId)!;
                   mergedMap.set(pId, { ...existing, quantity: Math.max(existing.quantity, item.quantity) });
@@ -107,10 +203,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [userPhone]);
 
-  const getProductId = (product: Product) => String(product._id || product.id || '');
-
   const addToCart = useCallback((product: Product, quantity: number = 1) => {
     const productId = getProductId(product);
+    const sanitizedProduct = sanitizeProductForStorage(product);
     setItems((prev) => {
       const existing = prev.find((i) => getProductId(i.product) === productId);
       if (existing) {
@@ -118,7 +213,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           getProductId(i.product) === productId ? { ...i, quantity: i.quantity + quantity } : i
         );
       }
-      return [...prev, { product, quantity }];
+      return [...prev, { product: sanitizedProduct, quantity }];
     });
   }, []);
 
@@ -141,8 +236,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       localStorage.removeItem(CART_STORAGE_KEY);
       deleteCookie(CART_COOKIE_NAME);
-      if (userPhone) {
-        localStorage.removeItem(`saiyogi_cart_${userPhone}`);
+      const effectivePhone = userPhone || localStorage.getItem("user_phone") || getCookie("saiyogi_user_phone");
+      if (effectivePhone) {
+        const cleanP = effectivePhone.replace(/\D/g, "").slice(-10);
+        if (cleanP) {
+          localStorage.removeItem(`saiyogi_cart_${cleanP}`);
+        }
       }
     } catch (_) {}
   }, [userPhone]);
