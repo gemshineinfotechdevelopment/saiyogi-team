@@ -404,7 +404,6 @@ const Index = () => {
                 </div>
                 <ProductCard
                   product={item as Product}
-                  onCardClick={() => navigate(`/catalog?search=${encodeURIComponent(item.name)}`)}
                   className="bg-[#FDFBF7] border-amber-200/90 hover:border-[#A80000]/70 hover:shadow-xl hover:shadow-amber-900/10 transition-all duration-300"
                 />
               </div>
