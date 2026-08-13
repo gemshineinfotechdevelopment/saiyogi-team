@@ -214,16 +214,16 @@ const QuickEnquiry = () => {
                         const qty = getProductQty(pId);
                         const lineTotal = dp * qty;
                         const isEven = index % 2 === 0;
-                        const bgColor = isEven ? 'bg-white' : 'bg-[rgb(254 242 242 / 0.3)]';
+                        const bgColor = isEven ? 'bg-[#FAF2E6]' : 'bg-[#FFF8EC]';
                         const stockVal = item.storeStockPieces !== undefined ? item.storeStockPieces : (item.stock || 0);
                         const isOutOfStock = stockVal <= 0;
                         const displayImg = isOutOfStock ? '/saiyogi-logo-1.png' : (item.image || '/saiyogi-logo-1.png');
 
                         const mobileView = (
-                          <div className={`md:hidden p-4 flex gap-3 ${bgColor} border-b border-gray-100 last:border-0 mx-2 md:mx-0 rounded-lg md:rounded-none mb-2 md:mb-0 shadow-sm md:shadow-none font-sans`}>
+                          <div className={`md:hidden p-4 flex gap-3 ${bgColor} border-b border-amber-100/80 last:border-0 mx-2 md:mx-0 rounded-lg md:rounded-none mb-2 md:mb-0 shadow-2xs font-sans`}>
                             <div className="w-[72px] shrink-0 flex flex-col items-center gap-2">
-                              <div className="w-[72px] h-[72px] bg-white border border-gray-200 rounded-xl overflow-hidden flex items-center justify-center cursor-pointer relative" onClick={() => setActiveImage(displayImg)}>
-                                <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain p-1" />
+                              <div className="w-[72px] h-[72px] bg-[#FAF2E6] border border-amber-200/60 rounded-xl overflow-hidden flex items-center justify-center cursor-pointer relative" onClick={() => setActiveImage(displayImg)}>
+                                <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain p-1 mix-blend-multiply" />
                               </div>
                               <div className="bg-[#fef2f2] text-[#A80000] text-[9px] font-extrabold text-center px-2 py-1 rounded-md w-full whitespace-nowrap font-sans">
                                 {item.quantity || "1 Item"}
@@ -264,10 +264,10 @@ const QuickEnquiry = () => {
                         );
 
                     const desktopView = (
-                      <div className={`hidden md:grid md:grid-cols-12 gap-4 ${bgColor} border-b border-gray-100 last:border-0 p-4 items-center hover:bg-gray-50 transition-colors`}>
+                      <div className={`hidden md:grid md:grid-cols-12 gap-4 ${bgColor} border-b border-amber-100/80 last:border-0 p-4 items-center hover:bg-[#F5EAD8] transition-colors`}>
                         <div className="col-span-4 flex items-center gap-4">
-                           <div className="w-12 h-12 bg-white border border-gray-200 rounded-lg overflow-hidden flex items-center justify-center shrink-0 cursor-pointer relative" onClick={() => setActiveImage(displayImg)}>
-                             <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain p-1" />
+                           <div className="w-12 h-12 bg-[#FAF2E6] border border-amber-200/60 rounded-lg overflow-hidden flex items-center justify-center shrink-0 cursor-pointer relative" onClick={() => setActiveImage(displayImg)}>
+                             <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain p-1 mix-blend-multiply" />
                            </div>
                            <h3 className="font-black text-black text-base uppercase leading-tight">{item.name}</h3>
                         </div>
