@@ -145,19 +145,11 @@ export function printOrderReceipt(orderData: OrderData, copies: number = 1) {
 }
 
 export function promptAndPrintOrderReceipt(orderData: OrderData) {
-  const copiesStr = window.prompt("How many copies would you like to print? (e.g., 2 for Original & Duplicate)", "1");
-  if (copiesStr === null) return;
-  const copies = parseInt(copiesStr, 10);
-  if (isNaN(copies) || copies < 1) return;
-  printOrderReceipt(orderData, copies);
+  printOrderReceipt(orderData, 1);
 }
 
 export function promptAndDownloadOrderReceiptPDF(orderData: OrderData) {
-  const copiesStr = window.prompt("How many copies would you like to include in the PDF? (e.g., 2 for Original & Duplicate)", "1");
-  if (copiesStr === null) return;
-  const copies = parseInt(copiesStr, 10);
-  if (isNaN(copies) || copies < 1) return;
-  downloadOrderReceiptPDF(orderData, copies);
+  downloadOrderReceiptPDF(orderData, 1);
 }
 
 function numberToWords(n: number): string {
