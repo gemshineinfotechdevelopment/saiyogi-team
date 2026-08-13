@@ -21,12 +21,18 @@ const ProductCard = ({ product, categoryName, onCardClick, className }: { produc
   const isNetRate = !!product.netRate && product.netRate > 0 && !!product.displayNetRate;
   const discount = (product.hasDiscount && !isNetRate) ? settings.discountPercent : 0;
 
+  const stockVal = product.storeStockPieces !== undefined ? Number(product.storeStockPieces) : (product.stock !== undefined ? Number(product.stock) : 0);
+  const isOutOfStock = stockVal <= 0;
+
   const selectedAmount = quantity * discountPrice;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if ((product.storeStockPieces || 0) <= 0) return;
+    if (isOutOfStock) {
+      toast.error(`${product.name} is out of stock`);
+      return;
+    }
     addToCart(product);
     toast.success(`${product.name} added to cart!`);
   };
@@ -34,8 +40,11 @@ const ProductCard = ({ product, categoryName, onCardClick, className }: { produc
   const handleIncrement = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if ((product.storeStockPieces || 0) <= 0) return;
-    if (quantity >= (product.storeStockPieces || 0)) {
+    if (isOutOfStock) {
+      toast.error(`${product.name} is out of stock`);
+      return;
+    }
+    if (quantity >= stockVal) {
       toast.error("Not enough stock available");
       return;
     }
@@ -72,7 +81,7 @@ const ProductCard = ({ product, categoryName, onCardClick, className }: { produc
       <button
         onClick={handleIncrement}
         className="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center rounded-xl bg-gradient-to-b from-white to-gray-100 border border-gray-300 border-b-4 border-b-gray-400 text-[#A80000] hover:bg-red-50 active:border-b-0 active:translate-y-0.5 transition-all font-black shadow-xs disabled:opacity-40 cursor-pointer"
-        disabled={(product.storeStockPieces || 0) <= 0 || quantity >= ((product.storeStockPieces || 0) || 999)}
+        disabled={isOutOfStock || quantity >= stockVal}
       >
         <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 stroke-[3]" />
       </button>
@@ -100,7 +109,7 @@ const ProductCard = ({ product, categoryName, onCardClick, className }: { produc
 
           <div className="relative aspect-square overflow-hidden bg-transparent p-2 md:p-2.5 border-b border-gray-100/60">
             <img
-              src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
+              src={isOutOfStock ? '/saiyogi-logo-1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
               alt={product.name}
               className="w-full h-full object-contain p-0.5 group-hover:scale-105 transition-transform duration-500 ease-out"
               loading="lazy"
@@ -126,13 +135,13 @@ const ProductCard = ({ product, categoryName, onCardClick, className }: { produc
               </span>
             )}
 
-            {(product.storeStockPieces || 0) <= 0 ? (
+            {isOutOfStock ? (
               <span className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[2px] z-10">
                 <span className="bg-gray-900 text-white text-xs font-bold px-3 py-1 rounded-full shadow-2xl">Sold Out</span>
               </span>
-            ) : (product.storeStockPieces || 0) < 20 && (
+            ) : stockVal < 20 && (
               <span className="absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 bg-amber-400 text-amber-950 text-xs sm:text-[10px] font-bold px-2 py-0.5 rounded shadow-sm z-10">
-                Only {product.storeStockPieces} left
+                Only {stockVal} left
               </span>
             )}
           </div>
@@ -207,16 +216,16 @@ const ProductCard = ({ product, categoryName, onCardClick, className }: { produc
                 ) : (
                   <button
                     onClick={handleAddToCart}
-                    disabled={(product.storeStockPieces || 0) <= 0}
+                    disabled={isOutOfStock}
                     className={cn(
                       "w-full h-9 sm:h-10 rounded-xl flex items-center justify-center gap-1.5 text-xs sm:text-sm font-black uppercase tracking-wider transition-all duration-150 transform active:translate-y-0.5 select-none",
-                      (product.storeStockPieces || 0) <= 0
+                      isOutOfStock
                         ? "bg-gray-200 text-gray-400 border-b-2 border-gray-300 cursor-not-allowed"
                         : "bg-gradient-to-b from-[#C80000] via-[#A80000] to-[#880000] text-white border-b-4 border-[#660000] hover:border-[#550000] shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_3px_6px_rgba(168,0,0,0.3)] hover:brightness-110 active:border-b-0 active:shadow-inner cursor-pointer"
                     )}
                   >
                     <ShoppingCart className="w-4 h-4 sm:w-4.5 sm:h-4.5 drop-shadow-xs" />
-                    <span>{(product.storeStockPieces || 0) <= 0 ? "Sold Out" : "Add to Cart"}</span>
+                    <span>{isOutOfStock ? "Sold Out" : "Add to Cart"}</span>
                   </button>
                 )}
               </div>
@@ -243,7 +252,7 @@ const ProductCard = ({ product, categoryName, onCardClick, className }: { produc
 
             <div className="w-full md:w-1/2 aspect-square md:aspect-auto bg-white p-4 md:p-8 flex items-center justify-center">
               <img
-                src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
+                src={isOutOfStock ? '/saiyogi-logo-1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
                 alt={product.name}
                 className="w-full h-full object-contain max-h-[350px] md:max-h-[400px]"
               />
@@ -304,14 +313,14 @@ const ProductCard = ({ product, categoryName, onCardClick, className }: { produc
                   <Button
                     className={cn(
                       "w-full h-11 md:h-14 rounded-2xl text-base md:text-lg font-black uppercase tracking-wider transition-all duration-150 transform active:translate-y-1 select-none",
-                      (product.storeStockPieces || 0) <= 0
+                      isOutOfStock
                         ? "bg-gray-200 text-gray-400 border-b-4 border-gray-300 cursor-not-allowed"
                         : "bg-gradient-to-b from-red-600 via-red-700 to-red-900 text-white border-b-4 border-red-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_6px_15px_rgba(185,28,28,0.4)] hover:brightness-110 active:border-b-0 active:shadow-inner cursor-pointer"
                     )}
                     onClick={handleAddToCart}
-                    disabled={(product.storeStockPieces || 0) <= 0}
+                    disabled={isOutOfStock}
                   >
-                    {(product.storeStockPieces || 0) <= 0 ? (
+                    {isOutOfStock ? (
                       <span className="flex items-center gap-1.5"><X className="h-5 w-5" /> Out of Stock</span>
                     ) : (
                       <span className="flex items-center gap-2"><ShoppingCart className="h-5 w-5 drop-shadow-xs" /> Add to Cart</span>

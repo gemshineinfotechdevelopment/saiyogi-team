@@ -388,9 +388,10 @@ const CartDrawer = () => {
                 items.map(({ product, quantity }) => {
                   const productId = String(product._id || product.id);
                   const dp = getDiscountPrice(product.price, product.hasDiscount, settings.discountPercent, product.netRate, product.displayNetRate);
+                  const stockVal = product.storeStockPieces !== undefined ? Number(product.storeStockPieces) : (product.stock !== undefined ? Number(product.stock) : 999);
                   return (
                     <div key={productId} className="py-3.5 flex gap-3 items-start">
-                      <img src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : product.image} alt={product.name} className="w-14 h-14 rounded-md object-contain shrink-0 border border-gray-100 p-0.5" />
+                      <img src={stockVal <= 0 ? '/saiyogi-logo-1.png' : product.image} alt={product.name} className="w-14 h-14 rounded-md object-contain shrink-0 border border-gray-100 p-0.5" />
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2 mb-1">
                           <h4 className="product-title-font font-extrabold sm:font-bold text-base sm:text-sm text-gray-900 truncate">{product.name}</h4>
@@ -412,7 +413,7 @@ const CartDrawer = () => {
                               <Minus className="h-3 w-3" />
                             </button>
                             <span className="px-2 py-0.5 text-xs font-semibold text-gray-800 text-center min-w-[22px]">{quantity}</span>
-                            <button onClick={() => updateQuantity(productId, Math.min(product.storeStockPieces || 0, quantity + 1))} className="px-2 py-0.5 hover:bg-gray-100 disabled:opacity-30 text-gray-700 transition-colors" disabled={quantity >= (product.storeStockPieces || 0)}>
+                            <button onClick={() => updateQuantity(productId, Math.min(stockVal, quantity + 1))} className="px-2 py-0.5 hover:bg-gray-100 disabled:opacity-30 text-gray-700 transition-colors" disabled={quantity >= stockVal}>
                               <Plus className="h-3 w-3" />
                             </button>
                           </div>

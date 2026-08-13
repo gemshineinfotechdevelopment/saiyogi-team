@@ -3,6 +3,7 @@ import { Product } from "@/data/products";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
 import { useAuth } from "@/context/AuthContext";
 import { setCookie, getCookie, deleteCookie } from "@/lib/cookieUtils";
+import { toast } from "sonner";
 
 export interface CartItem {
   product: Product;
@@ -205,15 +206,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addToCart = useCallback((product: Product, quantity: number = 1) => {
     const productId = getProductId(product);
+    const stockAvailable = product.storeStockPieces !== undefined
+      ? Number(product.storeStockPieces)
+      : (product.stock !== undefined ? Number(product.stock) : 0);
+
+    if (stockAvailable <= 0) {
+      toast.error(`${product.name || "Product"} is out of stock!`);
+      return;
+    }
+
     const sanitizedProduct = sanitizeProductForStorage(product);
     setItems((prev) => {
       const existing = prev.find((i) => getProductId(i.product) === productId);
       if (existing) {
+        const newQty = existing.quantity + quantity;
+        if (newQty > stockAvailable) {
+          toast.error(`Only ${stockAvailable} items available in stock`);
+          return prev.map((i) =>
+            getProductId(i.product) === productId ? { ...i, quantity: stockAvailable } : i
+          );
+        }
         return prev.map((i) =>
-          getProductId(i.product) === productId ? { ...i, quantity: i.quantity + quantity } : i
+          getProductId(i.product) === productId ? { ...i, quantity: newQty } : i
         );
       }
-      return [...prev, { product: sanitizedProduct, quantity }];
+      const initialQty = Math.min(quantity, stockAvailable);
+      return [...prev, { product: sanitizedProduct, quantity: initialQty }];
     });
   }, []);
 
@@ -227,7 +245,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
     setItems((prev) =>
-      prev.map((i) => (getProductId(i.product) === productId ? { ...i, quantity } : i))
+      prev.map((i) => {
+        if (getProductId(i.product) === productId) {
+          const stockAvailable = i.product.storeStockPieces !== undefined
+            ? Number(i.product.storeStockPieces)
+            : (i.product.stock !== undefined ? Number(i.product.stock) : 999);
+          if (quantity > stockAvailable) {
+            toast.error(`Only ${stockAvailable} items available in stock`);
+            return { ...i, quantity: stockAvailable };
+          }
+          return { ...i, quantity };
+        }
+        return i;
+      })
     );
   }, []);
 
