@@ -629,58 +629,10 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Trusted Manufacturers */}
-      <section className="py-16 bg-white border-b border-gray-100">
-        <div className="text-center mb-10 px-4">
-          <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
-            ⭐ AUTHENTIC PARTNERS ⭐
-          </span>
-          <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2 font-display">Trusted Manufacturers</h2>
-          <p className="text-gray-500 text-xs mt-1">We are supplying high quality fireworks from top brands in Sivakasi.</p>
-        </div>
-
-        {/* Infinite horizontal scrolling marquee for mobile and desktop */}
-        <div className="relative w-full overflow-hidden py-4">
-          <div className="flex flex-nowrap gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
-            {(() => {
-              const activeBrandsList = brands.length > 0 ? brands : manufacturers;
-              const displayList = [...activeBrandsList, ...activeBrandsList, ...activeBrandsList, ...activeBrandsList];
-
-              return displayList.map((brand: any, i: number) => {
-                const logoSrc = brand.logo || brand.image;
-                const isImageLogo = logoSrc && (logoSrc.startsWith('/') || logoSrc.startsWith('http') || logoSrc.startsWith('data:'));
-
-                return (
-                  <div
-                    key={`${brand.name || 'brand'}-${i}`}
-                    onClick={() => window.location.href = `/catalog?search=${encodeURIComponent(brand.name)}`}
-                    className="bg-white border-2 border-gray-100/80 rounded-2xl px-6 py-4 flex items-center gap-4 min-w-[220px] shrink-0 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-xl hover:border-[#A80000]/30 transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br hover:from-[#A80000] hover:to-[#8a0000] hover:text-white group cursor-pointer"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#A80000] to-[#750000] text-white flex items-center justify-center font-black text-xs tracking-wider shrink-0 transition-all duration-300 group-hover:from-[#F4C542] group-hover:to-[#d4a215] group-hover:text-[#1A1A1A] overflow-hidden p-1 bg-white border border-gray-200">
-                      {isImageLogo ? (
-                        <img src={logoSrc} alt={brand.name} className="w-full h-full object-contain rounded-full" />
-                      ) : (
-                        <span className="font-black text-xs">{brand.logo || brand.name?.substring(0, 2)?.toUpperCase() || "BR"}</span>
-                      )}
-                    </div>
-                    <div className="flex flex-col items-start text-left">
-                      <span className="font-black text-[9px] text-[#A80000]/80 tracking-widest uppercase transition-colors duration-300 group-hover:text-[#F4C542]">
-                        PARTNER
-                      </span>
-                      <span className="font-black text-sm text-gray-800 tracking-wider uppercase transition-colors duration-300 group-hover:text-white whitespace-nowrap">
-                        {brand.name}
-                      </span>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
-      </section>
       {/* Shop By Brand */}
       <section className="py-16 bg-white border-b border-gray-100">
         <div className="text-center mb-10 container mx-auto px-4">
+          <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2 font-display">Trusted Manufacturers</h2>
           <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs font-display">
             Shop By Brand
           </h2>
