@@ -107,7 +107,7 @@ const Contact = () => {
                     Sai Yogi Crackers
                   </p>
                   <p className="text-xs text-gray-600 font-semibold mt-0.5 leading-relaxed">
-                    Sivakasi Main Road, Virudhunagar District, Tamil Nadu – 626123
+                    3/1255/1B, Sri Ram Nagar, Paraipatti, Viswanatham, Sivakasi 626189
                   </p>
                 </div>
               </div>
