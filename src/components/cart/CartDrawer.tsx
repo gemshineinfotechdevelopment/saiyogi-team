@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose, SheetDescription } from "@/components/ui/sheet";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
-import { Minus, Plus, Trash2, X, User, MapPin, ArrowLeft, CheckCircle2, Check, MessageSquare, Smartphone, ShieldCheck, ArrowRight, RefreshCw } from "lucide-react";
+import { Minus, Plus, Trash2, X, User, MapPin, ArrowLeft, CheckCircle2, Check, MessageSquare, Smartphone, ShieldCheck, ArrowRight, RefreshCw, Loader2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -811,6 +811,11 @@ const CartDrawer = () => {
                   </Button>
                 )}
               </div>
+
+              <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-2 text-[11px] font-bold text-center mt-2 flex items-center justify-center gap-1">
+                <span>⚠️</span>
+                <span>Please don't refresh the page after placing your order!</span>
+              </div>
             </div>
           </div>
         )}
@@ -870,6 +875,11 @@ const CartDrawer = () => {
                   Read Full Transport Charges & Terms & Conditions →
                 </Link>
               </div>
+
+              <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-3 text-xs font-extrabold flex items-center justify-center gap-2 mt-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>⚠️ Don't refresh the page while your order estimate PDF is generating!</span>
+              </div>
             </div>
           </div>
 
@@ -905,9 +915,14 @@ const CartDrawer = () => {
               Success!
             </DialogTitle>
 
-            <DialogDescription className="text-sm text-gray-600 leading-relaxed mb-6 font-medium max-w-[260px]">
+            <DialogDescription className="text-sm text-gray-600 leading-relaxed mb-4 font-medium max-w-[260px]">
               You enquiry request <strong className="text-[#900000] font-bold">#{completedOrderNumber}</strong> was submitted successfully
             </DialogDescription>
+
+            <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-2.5 text-xs font-bold flex items-center justify-center gap-1.5 mb-4">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span>⚠️ Don't refresh the page until your estimate download is complete.</span>
+            </div>
 
             <Button
               onClick={handleCloseSuccessModal}
@@ -918,6 +933,24 @@ const CartDrawer = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Full-screen Loading Overlay for Order Placement */}
+      {isPlacingOrder && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center space-y-4 shadow-2xl border border-red-100 font-sans">
+            <div className="w-16 h-16 bg-red-50 text-[#900000] rounded-full flex items-center justify-center mx-auto border border-red-200 shadow-inner">
+              <Loader2 className="w-9 h-9 animate-spin" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">Processing Order...</h3>
+              <div className="text-xs font-black text-red-600 bg-red-50 border border-red-200/80 p-3 rounded-xl mt-3 flex items-center justify-center gap-1.5 shadow-2xs">
+                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+                <span>Please don't refresh or close the page!</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Sheet>
   );
 };

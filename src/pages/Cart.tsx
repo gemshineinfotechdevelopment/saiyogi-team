@@ -26,7 +26,8 @@ import {
   Smartphone,
   RefreshCw,
   FileText,
-  Check
+  Check,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -859,6 +860,11 @@ const Cart: React.FC = () => {
                     </Button>
                   )}
 
+                  <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-2.5 text-xs font-bold text-center mt-3 flex items-center justify-center gap-1.5 shadow-2xs">
+                    <span>⚠️</span>
+                    <span>Please don't refresh the page after placing your order!</span>
+                  </div>
+
                   <p className="text-center text-[11px] text-gray-500 font-normal mt-2">
                     * Prices are estimates for wholesale fireworks enquiry.
                   </p>
@@ -889,6 +895,11 @@ const Cart: React.FC = () => {
               <p>2. <strong>Delivery &amp; Transport:</strong> Goods will be dispatched via customer's preferred lorry transport service from Sivakasi, Tamil Nadu.</p>
               <p>3. <strong>Minimum Purchase:</strong> Orders must meet minimum subtotal requirements (TN: ₹3,000 / Other States: ₹5,000).</p>
               <p>4. <strong>Support:</strong> For any changes or clarifications, please contact our support desk at +91 95859 75756.</p>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200/90 text-amber-900 rounded-xl p-3 text-xs font-extrabold flex items-center justify-center gap-2 mt-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>⚠️ Don't refresh the page while your order estimate PDF is generating!</span>
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
@@ -923,6 +934,11 @@ const Cart: React.FC = () => {
                   Enquiry #{completedOrderNumber}
                 </div>
               )}
+
+              <div className="bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold px-3 py-2 rounded-xl flex items-center justify-center gap-1.5 mt-3">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>⚠️ Please don't refresh the page until your estimate download is complete.</span>
+              </div>
             </div>
 
             <div className="flex justify-center gap-3 pt-2">
@@ -947,6 +963,24 @@ const Cart: React.FC = () => {
           showDetailOnly={true}
           onDetailClose={() => setSelectedProduct(null)}
         />
+      )}
+
+      {/* Full-screen Loading Overlay for Order Placement */}
+      {isPlacingOrder && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center space-y-4 shadow-2xl border border-red-100 font-sans">
+            <div className="w-16 h-16 bg-red-50 text-[#900000] rounded-full flex items-center justify-center mx-auto border border-red-200 shadow-inner">
+              <Loader2 className="w-9 h-9 animate-spin" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">Processing Order...</h3>
+              <div className="text-xs font-black text-red-600 bg-red-50 border border-red-200/80 p-3 rounded-xl mt-3 flex items-center justify-center gap-1.5 shadow-2xs">
+                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+                <span>Please don't refresh or close the page!</span>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       <UserFooter />

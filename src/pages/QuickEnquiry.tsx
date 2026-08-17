@@ -421,6 +421,10 @@ const QuickEnquiry = () => {
                 <ShoppingCart className="w-5 h-5 fill-current" />
                 <span>Proceed to Checkout</span>
               </button>
+              <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-2 text-xs font-bold text-center mt-2 flex items-center justify-center gap-1.5 shadow-2xs">
+                <span>⚠️</span>
+                <span>Please don't refresh the page during checkout!</span>
+              </div>
             </div>
 
             {/* Minimum Order Warning Box */}
