@@ -151,70 +151,70 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
               </span>
             )}
           </div>
-
           <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between">
             <div>
-              <div className="flex justify-between items-center mb-1 gap-1 h-5 min-w-0 overflow-hidden">
-                <p className="text-xs sm:text-[10px] text-gray-500 font-extrabold uppercase tracking-wider truncate flex-1 min-w-0" title={product.brand || "Standard"}>
+              <div className="flex justify-between items-center mb-1 gap-1 min-w-0">
+                <p className="text-[10px] sm:text-xs text-gray-500 font-extrabold uppercase tracking-wider truncate flex-1 min-w-0" title={product.brand || "Standard"}>
                   {product.brand || "Standard"}
                 </p>
                 {product.isSaiYogiVerified && (
-                  <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-2xs shrink-0">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 fill-emerald-100" />
+                  <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] sm:text-[10px] font-black px-1.5 py-0.5 rounded-full shadow-2xs shrink-0">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600 fill-emerald-100" />
                     <span>Verified</span>
                   </span>
                 )}
               </div>
 
-              {/* Title with flexible height so 1-line and 2-line titles align perfectly with larger bold black font */}
-              <div className="min-h-[48px] flex items-center justify-center my-1">
-                <h3 className="product-title-font font-black text-lg sm:text-base md:text-lg text-black leading-snug tracking-tight line-clamp-2 text-center">
+              {/* Title with flexible min-height so 1-line and 2-line titles align cleanly */}
+              <div className="min-h-[44px] flex items-center justify-center my-1">
+                <h3 className="product-title-font font-black text-base sm:text-lg text-black leading-tight tracking-tight line-clamp-2 text-center">
                   {product.name}
                 </h3>
               </div>
 
-              {/* Sai Yogi Verified Ribbon Badge & Dynamic Star Rating with uniform height */}
-              <div className="flex flex-col items-center justify-center h-11 my-1">
+              {/* Sai Yogi Verified Ribbon Badge & Dynamic Star Rating */}
+              <div className="flex flex-col items-center justify-center min-h-[48px] my-1 gap-1">
                 {product.isSaiYogiVerified ? (
-                  <div className="flex items-center justify-center my-0.5 select-none shrink-0">
-                    <div className="bg-gradient-to-br from-amber-400 to-amber-600 text-white font-black text-[10px] sm:text-[10px] px-2 py-0.5 rounded-l-md shadow-md italic border-r border-amber-300 flex items-center justify-center">
+                  <div className="inline-flex items-center justify-center my-0.5 select-none shrink-0 shadow-xs rounded-md overflow-hidden border border-red-500/20">
+                    <div className="bg-gradient-to-r from-amber-400 to-amber-500 text-white font-black text-[10px] sm:text-[11px] px-2 py-0.5 italic border-r border-amber-300 flex items-center justify-center leading-none">
                       SY
                     </div>
-                    <div className="bg-gradient-to-r from-red-600 via-red-700 to-red-600 text-white font-extrabold text-[10px] sm:text-[10px] px-2 py-0.5 rounded-r-md shadow-md italic tracking-wide font-serif border-y border-r border-red-500">
+                    <div className="bg-gradient-to-r from-red-600 via-red-700 to-red-600 text-white font-black text-[10px] sm:text-[11px] px-2.5 py-0.5 italic tracking-wide font-serif leading-none whitespace-nowrap flex items-center justify-center">
                       Sai Yogi Verified
                     </div>
                   </div>
                 ) : (
-                  <div className="h-[22px]" />
+                  <div className="h-[20px]" />
                 )}
 
                 {/* Star Rating based on product.rating */}
-                <div className="flex items-center justify-center gap-0.5 my-0.5 shrink-0">
+                <div className="flex items-center justify-center gap-0.5 shrink-0">
                   {Array.from({ length: 5 }).map((_, i) => {
                     const isFilled = i < Math.floor(starRating);
                     const isHalf = i === Math.floor(starRating) && starRating % 1 >= 0.3;
                     if (isFilled) {
-                      return <Star key={i} className="w-4 h-4 sm:w-4 sm:h-4 fill-amber-400 text-amber-400 drop-shadow-2xs" />;
+                      return <Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400 text-amber-400 drop-shadow-2xs" />;
                     }
                     if (isHalf) {
-                      return <StarHalf key={i} className="w-4 h-4 sm:w-4 sm:h-4 fill-amber-400 text-amber-400 drop-shadow-2xs" />;
+                      return <StarHalf key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400 text-amber-400 drop-shadow-2xs" />;
                     }
-                    return <Star key={i} className="w-4 h-4 sm:w-4 sm:h-4 fill-gray-200 text-gray-200" />;
+                    return <Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-gray-200 text-gray-200" />;
                   })}
                 </div>
               </div>
             </div>
 
             <div className="pt-1 flex flex-col items-center gap-1">
-              <div className="flex items-baseline justify-center gap-1.5 flex-wrap h-6">
-                <span className="font-display font-black text-gray-900 text-base sm:text-lg md:text-xl leading-none">₹{discountPrice}</span>
+              <div className="flex items-baseline justify-center gap-1.5 flex-wrap min-h-[24px]">
+                <span className="font-display font-black text-gray-900 text-lg sm:text-xl leading-none">₹{discountPrice}</span>
                 {product.hasDiscount && !isNetRate && (
-                  <span className="text-xs sm:text-xs text-gray-400 line-through font-bold">₹{product.price}</span>
+                  <span className="text-xs text-gray-400 line-through font-bold">₹{product.price}</span>
                 )}
                 {isNetRate && (
                   <span className="text-[10px] sm:text-[9px] text-indigo-500 font-bold uppercase tracking-tighter">Fixed Price</span>
                 )}
               </div>
+            </div>
 
               <div className="flex justify-center w-full pt-1" onClick={e => e.stopPropagation()}>
                 {quantity > 0 ? (
@@ -238,7 +238,6 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
             </div>
           </div>
         </div>
-      </div>
       )}
 
       {showDetails && (
