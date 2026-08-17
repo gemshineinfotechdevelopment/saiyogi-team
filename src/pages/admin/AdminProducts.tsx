@@ -24,7 +24,7 @@ const AdminProducts = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
 
-  const [form, setForm] = useState({ name: "", sku: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", rating: "5", hasDiscount: false, displayNetRate: false, isSaiYogiVerified: true, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1" });
+  const [form, setForm] = useState({ name: "", sku: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", rating: "5", hasDiscount: false, displayNetRate: false, isSaiYogiVerified: true, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1", crackerType: "Day Crackers" });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
 
@@ -63,7 +63,8 @@ const AdminProducts = () => {
       wholesalePrice: (product.wholesalePrice ?? "").toString(),
       storeStockPieces: (product.storeStockPieces ?? 0).toString(),
       godownStockCases: (product.godownStockCases ?? 0).toString(),
-      piecesPerCase: (product.piecesPerCase ?? 1).toString()
+      piecesPerCase: (product.piecesPerCase ?? 1).toString(),
+      crackerType: product.crackerType || "Day Crackers"
     });
     setImageFile(null);
     setDialogOpen(true);
@@ -71,7 +72,7 @@ const AdminProducts = () => {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ name: "", sku: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", rating: "5", hasDiscount: false, displayNetRate: false, isSaiYogiVerified: true, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1" });
+    setForm({ name: "", sku: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", rating: "5", hasDiscount: false, displayNetRate: false, isSaiYogiVerified: true, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1", crackerType: "Day Crackers" });
     setImageFile(null);
     setDialogOpen(true);
   };
@@ -302,35 +303,46 @@ const AdminProducts = () => {
                           )}
                         </select>
                       </div>
-                      <div className="flex flex-col gap-2 pt-6">
-                        <div className="flex items-center gap-2">
-                          <Checkbox 
-                            id="hasDiscount" 
-                            checked={form.hasDiscount && !form.displayNetRate} 
-                            disabled={form.displayNetRate}
-                            onCheckedChange={(checked) => setForm({ ...form, hasDiscount: !!checked })} 
-                          />
-                          <Label htmlFor="hasDiscount" className={`cursor-pointer ${form.displayNetRate ? 'opacity-50' : ''}`}>
-                            Has Discount
-                          </Label>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Checkbox 
-                            id="displayNetRate" 
-                            checked={form.displayNetRate} 
-                            onCheckedChange={(checked) => {
-                              const isChecked = !!checked;
-                              setForm({ 
-                                ...form, 
-                                displayNetRate: isChecked,
-                                hasDiscount: isChecked ? false : form.hasDiscount
-                              });
-                            }} 
-                          />
-                          <Label htmlFor="displayNetRate" className="cursor-pointer">
-                            Display Net Rate on Shop
-                          </Label>
-                        </div>
+                      <div>
+                        <Label className="text-xs font-bold uppercase text-gray-700">Crackers Type *</Label>
+                        <select
+                          value={form.crackerType}
+                          onChange={(e) => setForm({ ...form, crackerType: e.target.value })}
+                          className="w-full mt-1 rounded-md border border-gray-300 bg-white p-2.5 text-sm text-gray-900 focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-none font-medium shadow-xs"
+                        >
+                          <option value="Day Crackers">☀️ Day Crackers</option>
+                          <option value="Night Crackers">🌙 Night Crackers</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 pt-2">
+                      <div className="flex items-center gap-2">
+                        <Checkbox 
+                          id="hasDiscount" 
+                          checked={form.hasDiscount && !form.displayNetRate} 
+                          disabled={form.displayNetRate}
+                          onCheckedChange={(checked) => setForm({ ...form, hasDiscount: !!checked })} 
+                        />
+                        <Label htmlFor="hasDiscount" className={`cursor-pointer ${form.displayNetRate ? 'opacity-50' : ''}`}>
+                          Has Discount
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Checkbox 
+                          id="displayNetRate" 
+                          checked={form.displayNetRate} 
+                          onCheckedChange={(checked) => {
+                            const isChecked = !!checked;
+                            setForm({ 
+                              ...form, 
+                              displayNetRate: isChecked,
+                              hasDiscount: isChecked ? false : form.hasDiscount
+                            });
+                          }} 
+                        />
+                        <Label htmlFor="displayNetRate" className="cursor-pointer">
+                          Display Net Rate on Shop
+                        </Label>
                       </div>
                     </div>
 
@@ -474,6 +486,7 @@ const AdminProducts = () => {
                       fd.append('storeStockPieces', form.storeStockPieces);
                       fd.append('godownStockCases', form.godownStockCases);
                       fd.append('piecesPerCase', form.piecesPerCase);
+                      fd.append('crackerType', form.crackerType || 'Day Crackers');
                       if (imageFile) {
                         fd.append('image', imageFile);
                       }
@@ -501,7 +514,7 @@ const AdminProducts = () => {
                         }
 
                         setDialogOpen(false);
-                        setForm({ name: '', sku: '', price: '', wholesalePrice: '', netRate: '', stock: '', brand: '', category: '', description: '', quantity: '', rating: '5', hasDiscount: false, displayNetRate: false, isSaiYogiVerified: true, storeStockPieces: '0', godownStockCases: '0', piecesPerCase: '1' });
+                        setForm({ name: '', sku: '', price: '', wholesalePrice: '', netRate: '', stock: '', brand: '', category: '', description: '', quantity: '', rating: '5', hasDiscount: false, displayNetRate: false, isSaiYogiVerified: true, storeStockPieces: '0', godownStockCases: '0', piecesPerCase: '1', crackerType: 'Day Crackers' });
                         setImageFile(null);
                         setEditing(null);
                         toast.success(editing ? 'Product updated!' : 'Product added!');
@@ -551,6 +564,7 @@ const AdminProducts = () => {
                     <th className="font-extrabold text-xs text-gray-700 uppercase p-4">SKU</th>
                     <th className="font-extrabold text-xs text-gray-700 uppercase p-4">Product</th>
                     <th className="font-extrabold text-xs text-gray-700 uppercase p-4 hidden sm:table-cell">Category</th>
+                    <th className="font-extrabold text-xs text-gray-700 uppercase p-4 hidden md:table-cell">Type</th>
                     <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-right">Price</th>
                     <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-right">Net Rate</th>
                     <th className="font-extrabold text-xs text-gray-700 uppercase p-4 text-center hidden md:table-cell">Discount</th>
@@ -582,6 +596,15 @@ const AdminProducts = () => {
                           </div>
                         </td>
                       <td className="p-3 hidden sm:table-cell capitalize text-muted-foreground">{getCategoryName(p.category)}</td>
+                      <td className="p-3 hidden md:table-cell">
+                        <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full border inline-flex items-center gap-1 ${
+                          p.crackerType === 'Night Crackers'
+                            ? 'bg-purple-50 text-purple-700 border-purple-200'
+                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                        }`}>
+                          {p.crackerType === 'Night Crackers' ? '🌙 Night' : '☀️ Day'}
+                        </span>
+                      </td>
                       <td className="p-3 text-right">
                         <span className="font-bold text-primary">₹{p.price}</span>
                       </td>

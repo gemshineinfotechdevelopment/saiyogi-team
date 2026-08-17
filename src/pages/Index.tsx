@@ -18,13 +18,22 @@ import { getUpcomingDiwaliInfo, calculateTimeLeft, UpcomingDiwaliInfo } from "@/
 import { Fireworks } from '@fireworks-js/react';
 
 // Static Data based on the design
-const staticBestSellers: Product[] = [
-  { id: 1, name: "Whistling Birds", price: 240, image: "/sky_rocket_box.png" },
-  { id: 2, name: "Flower Pots Big", price: 450, image: "/flower_pots.png" },
-  { id: 3, name: "1000 Wala", price: 1200, image: "/sky_rocket_box.png" },
-  { id: 4, name: "King Of Kings", price: 350, image: "/flower_pots.png" },
-  { id: 5, name: "Twinkling Star", price: 150, image: "/sky_rocket_box.png" },
-  { id: 6, name: "Chakkra Special", price: 280, image: "/flower_pots.png" },
+const staticDayCrackers: Product[] = [
+  { id: 1, name: "Whistling Birds", price: 240, image: "/sky_rocket_box.png", crackerType: "Day Crackers" },
+  { id: 2, name: "Flower Pots Big", price: 450, image: "/flower_pots.png", crackerType: "Day Crackers" },
+  { id: 3, name: "1000 Wala", price: 1200, image: "/sky_rocket_box.png", crackerType: "Day Crackers" },
+  { id: 4, name: "King Of Kings", price: 350, image: "/flower_pots.png", crackerType: "Day Crackers" },
+  { id: 5, name: "Twinkling Star", price: 150, image: "/sky_rocket_box.png", crackerType: "Day Crackers" },
+  { id: 6, name: "Chakkra Special", price: 280, image: "/flower_pots.png", crackerType: "Day Crackers" },
+];
+
+const staticNightCrackers: Product[] = [
+  { id: 13, name: "Aerial Sky Shots", price: 850, image: "/sky_rocket_box.png", crackerType: "Night Crackers" },
+  { id: 14, name: "Multi Color Fountain", price: 520, image: "/flower_pots.png", crackerType: "Night Crackers" },
+  { id: 15, name: "Golden Willow Rocket", price: 690, image: "/sky_rocket_box.png", crackerType: "Night Crackers" },
+  { id: 16, name: "Crackling Sparkler", price: 310, image: "/flower_pots.png", crackerType: "Night Crackers" },
+  { id: 17, name: "Night Queen Shells", price: 1450, image: "/sky_rocket_box.png", crackerType: "Night Crackers" },
+  { id: 18, name: "Dazzling Star Flowerpot", price: 480, image: "/flower_pots.png", crackerType: "Night Crackers" },
 ];
 
 const staticFamilyPacks: Product[] = [
@@ -121,6 +130,7 @@ const Index = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [selectedCrackerType, setSelectedCrackerType] = useState<'Day Crackers' | 'Night Crackers'>('Day Crackers');
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [videoIndex, setVideoIndex] = useState(0);
   const videoScrollRef = useRef<HTMLDivElement>(null);
@@ -383,31 +393,78 @@ const Index = () => {
         }}
       />
 
-      {/* Best Sellers Section */}
+      {/* Day Crackers & Night Crackers Section */}
       <section className="py-16 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 max-w-6xl">
-          <div className="text-center mb-10">
+          <div className="text-center mb-8">
             <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
-              🔥 POPULAR SELECTIONS 🔥
+              ✨ EXPLORE BY TYPE ✨
             </span>
-            <h2 className="font-black text-[#A80000] text-3xl md:text-4xl uppercase tracking-widest mb-2 font-display">Best Sellers</h2>
-            <p className="text-gray-600 text-xs font-bold uppercase tracking-wider">Handpicked customer favorites for grand celebrations</p>
+            <h2 className="font-black text-[#A80000] text-3xl md:text-4xl uppercase tracking-widest mb-3 font-display">
+              {selectedCrackerType === 'Day Crackers' ? '☀️ Day Crackers' : '🌙 Night Crackers'}
+            </h2>
+            <p className="text-gray-600 text-xs font-bold uppercase tracking-wider mb-6">
+              {selectedCrackerType === 'Day Crackers' 
+                ? 'Bright & vibrant fireworks for daytime celebrations' 
+                : 'Dazzling lights, rockets & aerial fireworks for night sky'}
+            </p>
+
+            {/* Type Selector Tabs */}
+            <div className="inline-flex p-1.5 bg-gray-100/90 rounded-2xl border border-gray-200/80 shadow-inner gap-2">
+              <button
+                onClick={() => setSelectedCrackerType('Day Crackers')}
+                className={`px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer ${
+                  selectedCrackerType === 'Day Crackers'
+                    ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30 scale-105'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
+                }`}
+              >
+                <span>☀️</span> Day Crackers
+              </button>
+              <button
+                onClick={() => setSelectedCrackerType('Night Crackers')}
+                className={`px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer ${
+                  selectedCrackerType === 'Night Crackers'
+                    ? 'bg-purple-700 text-white shadow-lg shadow-purple-700/30 scale-105'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
+                }`}
+              >
+                <span>🌙</span> Night Crackers
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-            {(products.length > 0 ? products.slice(0, 6) : staticBestSellers).map((item, idx) => (
-              <div key={`bestseller-${item.id || (item as any)._id}`} className="w-full relative group/card">
-                <div className="absolute -top-2.5 right-2 z-20 pointer-events-none">
-                  <span className="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md uppercase tracking-wider flex items-center gap-0.5 border border-amber-300/80">
-                    🔥 TOP PICK
-                  </span>
-                </div>
-                <ProductCard
-                  product={item as Product}
-                  className="bg-[#FDFBF7] border-amber-200/90 hover:border-[#A80000]/70 hover:shadow-xl hover:shadow-amber-900/10 transition-all duration-300"
-                />
-              </div>
-            ))}
+          <div key={selectedCrackerType} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 animate-slide-left transition-all duration-500">
+            {(() => {
+              const filteredList = products.filter(p => p.crackerType === selectedCrackerType);
+              const displayList = filteredList.length > 0
+                ? filteredList.slice(0, 6)
+                : (selectedCrackerType === 'Day Crackers'
+                    ? (products.length > 0 ? products.filter(p => !p.crackerType || p.crackerType === 'Day Crackers').slice(0, 6) : staticDayCrackers)
+                    : staticNightCrackers);
+
+              return displayList.map((item) => {
+                const prodId = item._id || item.id;
+                return (
+                  <div key={`cracker-type-${prodId}`} className="w-full relative group/card">
+                    <div className="absolute -top-2.5 right-2 z-20 pointer-events-none">
+                      <span className={`text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md uppercase tracking-wider flex items-center gap-0.5 border ${
+                        selectedCrackerType === 'Night Crackers'
+                          ? 'bg-gradient-to-r from-purple-600 to-indigo-600 border-purple-300'
+                          : 'bg-gradient-to-r from-amber-500 to-orange-600 border-amber-300'
+                      }`}>
+                        {selectedCrackerType === 'Night Crackers' ? '🌙 NIGHT' : '☀️ DAY'}
+                      </span>
+                    </div>
+                    <ProductCard
+                      product={item as Product}
+                      onCardClick={() => prodId && navigate(`/product/${prodId}`)}
+                      className="bg-[#FDFBF7] border-amber-200/90 hover:border-[#A80000]/70 hover:shadow-xl hover:shadow-amber-900/10 transition-all duration-300"
+                    />
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
       </section>

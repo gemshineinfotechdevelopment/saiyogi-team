@@ -127,7 +127,8 @@ const Catalog = () => {
   }, [products]);
 
   const uniqueCategoryNames = useMemo(() => {
-    return ["All Categories", ...categories.map(c => c.name)];
+    const names = categories.map(c => c.name);
+    return ["All Categories", "Day Crackers", "Night Crackers", ...names];
   }, [categories]);
 
   // Filtered and Sorted products
@@ -139,12 +140,18 @@ const Catalog = () => {
     }
 
     if (selectedCategory !== "All Categories") {
-      result = result.filter((p) => {
-        const cat = p.category as any;
-        const catId = typeof cat === 'object' && cat !== null ? (cat._id || cat.id || cat) : cat;
-        const catName = typeof cat === 'object' && cat !== null ? cat.name : (categories.find(c => (c._id || c.id) === catId)?.name || String(catId || ''));
-        return catName.toLowerCase() === selectedCategory.toLowerCase() || String(catId).toLowerCase() === selectedCategory.toLowerCase();
-      });
+      if (selectedCategory.toLowerCase() === "day crackers") {
+        result = result.filter(p => p.crackerType === "Day Crackers" || !p.crackerType);
+      } else if (selectedCategory.toLowerCase() === "night crackers") {
+        result = result.filter(p => p.crackerType === "Night Crackers");
+      } else {
+        result = result.filter((p) => {
+          const cat = p.category as any;
+          const catId = typeof cat === 'object' && cat !== null ? (cat._id || cat.id || cat) : cat;
+          const catName = typeof cat === 'object' && cat !== null ? cat.name : (categories.find(c => (c._id || c.id) === catId)?.name || String(catId || ''));
+          return catName.toLowerCase() === selectedCategory.toLowerCase() || String(catId).toLowerCase() === selectedCategory.toLowerCase();
+        });
+      }
     }
 
     if (searchQuery.trim()) {

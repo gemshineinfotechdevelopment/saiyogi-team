@@ -25,6 +25,7 @@ export interface Product {
   godownStockPieces?: number;
   minimumStock?: number;
   isSaiYogiVerified?: boolean;
+  crackerType?: 'Day Crackers' | 'Night Crackers' | string;
 }
 
 export interface Category {

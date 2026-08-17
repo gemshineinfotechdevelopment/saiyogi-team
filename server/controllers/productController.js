@@ -75,7 +75,7 @@ export const getProductById = async (req, res, next) => {
 
 export const createProduct = async (req, res, next) => {
   try {
-    const { name, code, sku, category, price, wholesalePrice, netRate, stock, minimumStock, description, brand, hasDiscount, displayNetRate, storeStockPieces, godownStockCases, piecesPerCase, isSaiYogiVerified, rating } = req.body;
+    const { name, code, sku, category, price, wholesalePrice, netRate, stock, minimumStock, description, brand, hasDiscount, displayNetRate, storeStockPieces, godownStockCases, piecesPerCase, isSaiYogiVerified, rating, crackerType } = req.body;
 
     let imageUrl = req.body.image || '';
     
@@ -177,7 +177,8 @@ export const createProduct = async (req, res, next) => {
       image: imageUrl,
       isActive: true,
       isSaiYogiVerified: isSaiYogiVerified === 'true' || isSaiYogiVerified === true,
-      rating: isNaN(parsedRating) ? 5 : parsedRating
+      rating: isNaN(parsedRating) ? 5 : parsedRating,
+      crackerType: crackerType || 'Day Crackers'
     });
 
     const savedProduct = await newProduct.save();
@@ -197,7 +198,7 @@ export const updateProduct = async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return next(new AppError('Product not found', 404));
     }
-    const { name, code, sku, category, price, wholesalePrice, netRate, stock, minimumStock, description, isActive, brand, hasDiscount, displayNetRate, storeStockPieces, godownStockCases, piecesPerCase, isSaiYogiVerified, rating, quantity } = req.body;
+    const { name, code, sku, category, price, wholesalePrice, netRate, stock, minimumStock, description, isActive, brand, hasDiscount, displayNetRate, storeStockPieces, godownStockCases, piecesPerCase, isSaiYogiVerified, rating, quantity, crackerType } = req.body;
 
     let imageUrl = req.body.image;
 
@@ -238,6 +239,7 @@ export const updateProduct = async (req, res, next) => {
     if (hasDiscount !== undefined) updateData.hasDiscount = hasDiscount === 'true' || hasDiscount === true;
     if (displayNetRate !== undefined) updateData.displayNetRate = displayNetRate === 'true' || displayNetRate === true;
     if (isSaiYogiVerified !== undefined) updateData.isSaiYogiVerified = isSaiYogiVerified === 'true' || isSaiYogiVerified === true;
+    if (crackerType !== undefined) updateData.crackerType = crackerType;
     if (rating !== undefined) {
       const r = parseFloat(rating);
       if (!isNaN(r)) updateData.rating = Math.min(5, Math.max(0, r));

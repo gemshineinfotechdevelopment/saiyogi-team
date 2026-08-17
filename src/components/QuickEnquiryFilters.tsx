@@ -36,18 +36,17 @@ export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
   const { setIsCartOpen } = useCart();
 
   return (
-    <div className={`fixed left-0 right-0 z-40 bg-white border-b border-gray-200 shadow-md py-2 sm:py-3 px-2.5 sm:px-4 transition-all duration-300 ${
-      isNavbarHidden ? "top-0" : "top-[84px] sm:top-[100px] md:top-[108px]"
-    }`}>
+    <div className={`fixed left-0 right-0 z-40 bg-white border-b border-gray-200 shadow-md py-2 sm:py-3 px-2.5 sm:px-4 transition-all duration-300 ${isNavbarHidden ? "top-0" : "top-[84px] sm:top-[100px] md:top-[108px]"
+      }`}>
       <div className="container mx-auto">
         {/* Filters & Cart Summary Row */}
         <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-2 sm:gap-4">
           <div className="flex flex-col md:flex-row items-stretch md:items-center w-full md:w-auto gap-2 sm:gap-3">
-            
+
             {/* Top Row in Mobile: All Brands & All Categories */}
             <div className="flex flex-row items-center gap-2 w-full md:w-auto">
-              <select 
-                value={selectedBrand} 
+              <select
+                value={selectedBrand}
                 onChange={e => setSelectedBrand(e.target.value)}
                 className="flex-1 md:flex-none md:w-40 p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl border border-gray-200 text-xs sm:text-sm font-bold outline-none focus:border-[#A80000] text-gray-700 bg-white shadow-xs appearance-none cursor-pointer truncate pr-6 sm:pr-8"
                 style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%238b2ce0\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.4rem center', backgroundSize: '0.75rem' }}
@@ -55,8 +54,8 @@ export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
                 {uniqueBrands.map(b => <option key={b} value={b}>{b}</option>)}
               </select>
 
-              <select 
-                value={selectedCategory} 
+              <select
+                value={selectedCategory}
                 onChange={e => setSelectedCategory(e.target.value)}
                 className="flex-1 md:flex-none md:w-48 p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl border border-gray-200 text-xs sm:text-sm font-bold outline-none focus:border-[#A80000] text-gray-700 bg-white shadow-xs appearance-none cursor-pointer truncate pr-6 sm:pr-8"
                 style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%238b2ce0\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.4rem center', backgroundSize: '0.75rem' }}
@@ -67,18 +66,18 @@ export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
 
             {/* Bottom Row in Mobile / 3rd Column in Desktop: Search Input Option */}
             <div className="relative w-full md:w-64">
-              <input 
-                type="text" 
-                placeholder="Search products..." 
+              <input
+                type="text"
+                placeholder="Search products..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="w-full px-3 sm:pr-4 p-1.5 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-200 text-xs sm:text-sm font-medium outline-none focus:border-[#A80000] bg-white shadow-xs text-gray-800 font-sans placeholder:text-gray-400"
               />
             </div>
           </div>
-          
+
           {/* Cart Total & Checkout Box */}
-          <div 
+          <div
             onClick={() => setIsCartOpen(true)}
             className="w-full md:w-auto bg-[#A80000] hover:bg-red-800 text-white rounded-lg sm:rounded-2xl px-3 sm:px-4 py-1.5 sm:py-2.5 flex items-center justify-between gap-3 shadow-md sm:shadow-lg border border-[#8a0000] cursor-pointer hover:scale-[1.02] active:scale-95 transition-all shrink-0"
             title="Click to view Cart & Checkout"

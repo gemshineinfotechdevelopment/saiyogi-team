@@ -71,7 +71,7 @@ const QuickEnquiry = () => {
 
   const uniqueCategoryNames = useMemo(() => {
     const names = new Set(categories.map(c => c.name).filter(Boolean));
-    return ["All Categories", ...Array.from(names)];
+    return ["All Categories", "Day Crackers", "Night Crackers", ...Array.from(names)];
   }, [categories]);
 
   // Group and filter products cleanly without duplicates
@@ -111,13 +111,19 @@ const QuickEnquiry = () => {
       const catId = typeof cat === 'object' && cat !== null ? String(cat._id || cat.id || '').toLowerCase() : (cat ? String(cat).toLowerCase() : '');
       const catName = typeof cat === 'object' && cat !== null ? cat.name : (categories.find(c => String(c._id || c.id || '').toLowerCase() === catId)?.name || String(cat || ""));
 
-      if (selectedCategory !== "All Categories" && catName && catName.toLowerCase() !== selectedCategory.toLowerCase()) {
-        return; // skip product if filtering by category
+      if (selectedCategory !== "All Categories") {
+        if (selectedCategory.toLowerCase() === "day crackers") {
+          if (p.crackerType && p.crackerType !== "Day Crackers") return;
+        } else if (selectedCategory.toLowerCase() === "night crackers") {
+          if (p.crackerType !== "Night Crackers") return;
+        } else if (catName && catName.toLowerCase() !== selectedCategory.toLowerCase()) {
+          return;
+        }
       }
 
       // Find matching group
       let groupKey = catId && catGroupMap.has(catId) ? catId : (catName && catGroupMap.has(catName.toLowerCase()) ? catName.toLowerCase() : fallbackKey);
-      
+
       const group = catGroupMap.get(groupKey) || catGroupMap.get(fallbackKey)!;
 
       // Prevent pushing duplicate product instances into the group
@@ -185,8 +191,8 @@ const QuickEnquiry = () => {
       <UserHeader isHidden={isNavbarHidden} />
 
       <main className={`flex-1 w-full pb-12 px-0 transition-all duration-300 ${isNavbarHidden
-        ? 'pt-[38px] md:pt-[5px]'
-        : 'pt-[114px] md:pt-[127px]'
+        ? 'pt-[120px] md:pt-[125px]'
+        : 'pt-[188px] md:pt-[160px]'
         }`}>
         {/* Sticky Filters & Cart Total Component */}
         <QuickEnquiryFilters
@@ -203,8 +209,8 @@ const QuickEnquiry = () => {
           isNavbarHidden={isNavbarHidden}
         />
 
-        <div className="w-full bg-white shadow-xl border-y border-gray-150 rounded-none mb-8 mt-1 md:mt-2">
-          <div className="flex-1 container mx-auto px-0 md:px-4 py-2 md:py-3">
+        <div className="w-full bg-white border-b border-gray-100 rounded-none mb-8 mt-0">
+          <div className="flex-1 container mx-auto px-0 md:px-4 py-0 md:py-3">
 
             <div className="space-y-6 md:space-y-4">
               {loading ? (
@@ -213,10 +219,17 @@ const QuickEnquiry = () => {
                 <div className="text-center py-10 text-gray-400 font-medium">No products found.</div>
               ) : (
                 groupedProducts.map((group, catIdx) => (
-                  <div key={catIdx} className="md:bg-white md:rounded-xl md:shadow-sm md:border md:border-gray-100 overflow-hidden">
-                    <div className="bg-[#A80000] text-white px-4 py-2 text-sm font-extrabold uppercase tracking-wider font-sans flex items-center rounded-lg md:rounded-none md:rounded-t-lg mx-2 md:mx-0">
-                      <span className="mr-2 opacity-80 text-lg leading-none mt-[-2px]">•</span>
-                      {group.categoryName}
+                  <div key={catIdx} className="mb-4 md:mb-6">
+                    {/* Sticky Category Pill Banner Header */}
+                    <div className={`sticky z-30 transition-all duration-300 py-1 bg-white ${
+                      isNavbarHidden
+                        ? 'top-[118px] sm:top-[122px] md:top-[52px]'
+                        : 'top-[184px] sm:top-[198px] md:top-[160px]'
+                    }`}>
+                      <div className="bg-[#A80000] text-white px-3.5 py-2 md:px-5 md:py-3 text-xs md:text-sm font-black uppercase tracking-wider font-sans flex items-center rounded-xl md:rounded-2xl shadow-md mx-1 md:mx-0 border border-[#8a0000]">
+                        <span className="mr-2 opacity-90 text-lg leading-none mt-[-2px]">•</span>
+                        {group.categoryName}
+                      </div>
                     </div>
 
                     <div className="flex flex-col bg-white font-sans">
@@ -232,69 +245,75 @@ const QuickEnquiry = () => {
                         const displayImg = isOutOfStock ? '/saiyogi-logo-1.png' : (item.image || '/saiyogi-logo-1.png');
 
                         const mobileView = (
-                          <div className={`md:hidden p-4 flex gap-3 ${bgColor} border-b border-amber-100/80 last:border-0 mx-2 md:mx-0 rounded-lg md:rounded-none mb-2 md:mb-0 shadow-2xs font-sans`}>
-                            <div className="w-[72px] shrink-0 flex flex-col items-center gap-2">
-                              <div className="w-[72px] h-[72px] bg-[#FDFBF7] border border-amber-200/60 rounded-xl overflow-hidden flex items-center justify-center cursor-pointer relative" onClick={() => setActiveProduct(item)}>
+                          <div className="md:hidden py-1.5 px-2 flex items-center justify-between gap-1.5 bg-white border-b border-gray-100 font-sans">
+                            {/* 1. Thumbnail Image */}
+                            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gray-50 border border-gray-200/80 rounded-lg overflow-hidden flex items-center justify-center shrink-0 cursor-pointer relative" onClick={() => setActiveProduct(item)}>
+                              <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain p-0.5 mix-blend-multiply" />
+                            </div>
+
+                            {/* 2. Middle Info: Title + (Code & Content Pill) */}
+                            <div className="flex-1 min-w-0 flex flex-col justify-center pl-0.5">
+                              <h3 className="font-black text-black text-[10px] sm:text-[11px] leading-tight uppercase truncate" title={item.name}>{item.name}</h3>
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <span className="text-gray-400 text-[8px] font-bold font-mono tracking-tight shrink-0">
+                                  {item.code ? (item.code.startsWith('#') ? item.code : `#${item.code}`) : (item.sku ? (item.sku.startsWith('#') ? item.sku : `#${item.sku}`) : (pId ? `#${pId.substring(0, 8).toUpperCase()}` : '#N/A'))}
+                                </span>
+                                <span className="bg-red-50 text-[#A80000] border border-red-200/60 text-[8px] font-black px-1.5 py-0.2 rounded-md whitespace-nowrap leading-none shrink-0">
+                                  {item.quantity || "1 Item"}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* 3. Price Column: Discount & Strikethrough */}
+                            <div className="flex items-center gap-1 shrink-0 px-0.5">
+                              <span className="font-black text-[#D35400] text-[10px] sm:text-xs">₹{dp.toLocaleString('en-IN')}</span>
+                              {(item.hasDiscount || settings.discountPercent > 0) && item.price > dp && (
+                                <span className="text-[8px] text-gray-400 line-through font-semibold">₹{item.price.toLocaleString('en-IN')}</span>
+                              )}
+                            </div>
+
+                            {/* 4. Stepper Control */}
+                            <div className="shrink-0">
+                              {isOutOfStock && qty === 0 ? (
+                                <span className="text-[8px] font-black text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded shadow-2xs">
+                                  Sold Out
+                                </span>
+                              ) : (
+                                <div className="flex items-center bg-white border border-gray-300 rounded shadow-2xs h-6.5 w-16 overflow-hidden">
+                                  <button
+                                    onClick={() => handleQtyChange(item, -1)}
+                                    disabled={qty <= 0}
+                                    className="w-5 h-full flex items-center justify-center text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors rounded-l font-bold text-xs leading-none pb-0.5 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#A80000]"
+                                  >
+                                    -
+                                  </button>
+                                  <div className="flex-1 text-center font-extrabold text-[10px] text-gray-800 border-x border-gray-100 flex items-center justify-center h-full font-sans">{qty}</div>
+                                  <button
+                                    onClick={() => handleQtyChange(item, 1)}
+                                    disabled={isOutOfStock || qty >= stockVal}
+                                    className="w-5 h-full flex items-center justify-center text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors rounded-r font-bold text-xs leading-none pb-0.5 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#A80000]"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* 5. Line Total */}
+                            <div className="w-9 text-right shrink-0 font-black text-[#A80000] text-[10px]">
+                              ₹{lineTotal.toLocaleString('en-IN')}
+                            </div>
+                          </div>
+                        );
+
+                        const desktopView = (
+                          <div className={`hidden md:grid md:grid-cols-12 gap-4 ${bgColor} border-b border-amber-100/80 last:border-0 p-4 items-center hover:bg-[#F7F5F0] transition-colors`}>
+                            <div className="col-span-4 flex items-center gap-4">
+                              <div className="w-12 h-12 bg-[#FDFBF7] border border-amber-200/60 rounded-lg overflow-hidden flex items-center justify-center shrink-0 cursor-pointer relative" onClick={() => setActiveProduct(item)}>
                                 <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain p-1 mix-blend-multiply" />
                               </div>
-                              <div className="bg-[#fef2f2] text-[#A80000] text-[8px] font-extrabold text-center px-1 py-0.5 rounded-md w-full whitespace-nowrap font-sans leading-none">
-                                {item.quantity || "1 Item"}
-                              </div>
+                              <h3 className="font-black text-black text-base uppercase leading-tight">{item.name}</h3>
                             </div>
-                        <div className="flex-1 flex items-center justify-between gap-1 overflow-hidden">
-                          {/* Middle: Title, SKU, Total Price */}
-                          <div className="flex flex-col flex-1 min-w-0 py-0.5 justify-center">
-                            <h3 className="font-black text-black text-[10px] sm:text-[11px] leading-tight uppercase truncate" title={item.name}>{item.name}</h3>
-                            <p className="text-gray-400 text-[8px] font-bold truncate">{item.sku || item.code || (pId ? `#${pId.substring(0, 8).toUpperCase()}` : 'N/A')}</p>
-                            <div className="font-extrabold text-[#A80000] text-[10px] mt-0.5">
-                              {lineTotal > 0 ? `Total: ₹${lineTotal.toLocaleString('en-IN')}` : ''}
-                            </div>
-                          </div>
-
-                          {/* Right: Price and Quantity */}
-                          <div className="flex flex-col items-end shrink-0 gap-1">
-                            <div className="flex items-center gap-1">
-                               {(item.hasDiscount || settings.discountPercent > 0) && item.price > dp && (
-                                 <span className="text-[8px] text-gray-400 line-through font-bold">₹{item.price.toLocaleString('en-IN')}</span>
-                               )}
-                               <span className="font-black text-[#D35400] text-[11px]">₹{dp.toLocaleString('en-IN')}</span>
-                            </div>
-
-                            {isOutOfStock && qty === 0 ? (
-                              <span className="text-[9px] font-black text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded shadow-2xs">
-                                Sold Out
-                              </span>
-                            ) : (
-                              <div className="flex items-center bg-white border border-gray-300 rounded shadow-2xs h-6 font-sans">
-                                <button 
-                                  onClick={() => handleQtyChange(item, -1)} 
-                                  disabled={qty <= 0}
-                                  className="w-6 h-full flex items-center justify-center text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors rounded-l font-bold text-sm leading-none pb-0.5 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#A80000]"
-                                >
-                                  -
-                                </button>
-                                <div className="w-6 text-center font-extrabold text-[11px] text-gray-800 border-x border-gray-100 flex items-center justify-center h-full font-sans">{qty}</div>
-                                <button 
-                                  onClick={() => handleQtyChange(item, 1)} 
-                                  disabled={isOutOfStock || qty >= stockVal}
-                                  className="w-6 h-full flex items-center justify-center text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors rounded-r font-bold text-sm leading-none pb-0.5 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#A80000]"
-                                >
-                                  +
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>    </div>
-                          );
-
-                    const desktopView = (
-                      <div className={`hidden md:grid md:grid-cols-12 gap-4 ${bgColor} border-b border-amber-100/80 last:border-0 p-4 items-center hover:bg-[#F7F5F0] transition-colors`}>
-                        <div className="col-span-4 flex items-center gap-4">
-                           <div className="w-12 h-12 bg-[#FDFBF7] border border-amber-200/60 rounded-lg overflow-hidden flex items-center justify-center shrink-0 cursor-pointer relative" onClick={() => setActiveProduct(item)}>
-                             <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain p-1 mix-blend-multiply" />
-                           </div>
-                           <h3 className="font-black text-black text-base uppercase leading-tight">{item.name}</h3>
-                        </div>
 
                             <div className="col-span-2 text-center text-xs font-bold text-gray-600 font-sans tracking-wider">
                               {item.sku || item.code || (pId ? `#${pId.substring(0, 8).toUpperCase()}` : 'N/A')}
@@ -320,16 +339,16 @@ const QuickEnquiry = () => {
                                 </span>
                               ) : (
                                 <div className="flex items-center bg-white border border-gray-300 rounded-lg shadow-2xs h-8 w-24">
-                                  <button 
-                                    onClick={() => handleQtyChange(item, -1)} 
+                                  <button
+                                    onClick={() => handleQtyChange(item, -1)}
                                     disabled={qty <= 0}
                                     className="flex-1 h-full flex items-center justify-center text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors rounded-l-lg font-bold text-base leading-none pb-0.5 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#A80000]"
                                   >
                                     -
                                   </button>
                                   <div className="flex-1 text-center font-extrabold text-sm text-gray-800 border-x border-gray-100 flex items-center justify-center h-full font-sans">{qty}</div>
-                                  <button 
-                                    onClick={() => handleQtyChange(item, 1)} 
+                                  <button
+                                    onClick={() => handleQtyChange(item, 1)}
                                     disabled={isOutOfStock || qty >= stockVal}
                                     className="flex-1 h-full flex items-center justify-center text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors rounded-r-lg font-bold text-base leading-none pb-0.5 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#A80000]"
                                   >
