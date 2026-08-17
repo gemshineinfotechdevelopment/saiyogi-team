@@ -27,6 +27,7 @@ const AdminProducts = () => {
   const [form, setForm] = useState({ name: "", sku: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", rating: "5", hasDiscount: false, displayNetRate: false, isSaiYogiVerified: true, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1", crackerType: "Day Crackers" });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const getCategoryName = (category: string | any) => {
     if (!category) return 'N/A';
@@ -166,6 +167,8 @@ const AdminProducts = () => {
     }
     if (!confirm('Are you sure you want to delete this product?')) return;
 
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const headers: Record<string, string> = {};
       if (token) {
@@ -190,6 +193,8 @@ const AdminProducts = () => {
       console.error('Delete error:', err);
       const msg = err instanceof Error ? err.message : "Failed to delete product";
       toast.error(msg);
+    } finally {
+      setIsSubmitting(false);
     }
   };
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
@@ -459,12 +464,14 @@ const AdminProducts = () => {
                         placeholder="Product description..." 
                       />
                     </div>
-                    <Button className="w-full" onClick={async () => {
+                    <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold" disabled={isSubmitting} onClick={async () => {
+                      if (isSubmitting) return;
                       // basic client-side validation
                       if (!form.name.trim()) return toast.error('Name required');
                       const maxSize = 1 * 1024 * 1024; // 1MB
                       if (imageFile && imageFile.size > maxSize) return toast.error('Image must be less than 1MB');
 
+                      setIsSubmitting(true);
                       const fd = new FormData();
                       fd.append('name', form.name);
                       if (form.sku) {
@@ -532,9 +539,13 @@ const AdminProducts = () => {
                         const errorMsg = err instanceof Error ? err.message : 'Failed to save product';
                         console.error('Product save error:', err);
                         toast.error(errorMsg);
+                      } finally {
+                        setIsSubmitting(false);
                       }
-                    }}>{editing ? 'Update Product' : 'Save Product'}</Button>
-                    <Button variant="outline" className="w-full mt-2" onClick={() => setDialogOpen(false)}>Close</Button>
+                    }}>
+                      {isSubmitting ? (editing ? 'Updating Product...' : 'Saving Product...') : (editing ? 'Update Product' : 'Save Product')}
+                    </Button>
+                    <Button variant="outline" className="w-full mt-2" disabled={isSubmitting} onClick={() => setDialogOpen(false)}>Close</Button>
                   </div>
                 </DialogContent>
               </Dialog>

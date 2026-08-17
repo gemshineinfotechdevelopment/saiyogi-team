@@ -183,15 +183,18 @@ const AdminBrands = () => {
 
   const handleDelete = async (brand: Brand) => {
     const id = brand._id || brand.id || "";
-    if (!id) return;
+    if (!id || submitting) return;
     
     if (confirm(`Are you sure you want to delete brand "${brand.name}" (${brand.brandId})?`)) {
+      setSubmitting(true);
       try {
         await deleteBrand(id);
         toast.success("Brand deleted successfully");
         loadBrandsAndProducts();
       } catch (error: any) {
         toast.error(error.message || "Failed to delete brand");
+      } finally {
+        setSubmitting(false);
       }
     }
   };

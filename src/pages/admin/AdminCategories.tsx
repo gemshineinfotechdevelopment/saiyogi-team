@@ -27,6 +27,7 @@ const AdminCategories = () => {
 
   const [form, setForm] = useState({ name: "", image: "", categoryCode: "100" });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const openCreate = () => {
     setEditing(null);
@@ -109,11 +110,13 @@ const AdminCategories = () => {
   };
 
   const handleSave = async () => {
+    if (isSubmitting) return;
     if (!form.name.trim()) {
       toast.error('Category name is required');
       return;
     }
 
+    setIsSubmitting(true);
     const fd = new FormData();
     fd.append('name', form.name);
     if (form.categoryCode) {
@@ -123,6 +126,7 @@ const AdminCategories = () => {
       const maxSize = 1 * 1024 * 1024; // 1MB
       if (imageFile.size > maxSize) {
         toast.error('Image must be less than 1MB');
+        setIsSubmitting(false);
         return;
       }
       fd.append('image', imageFile);
@@ -200,12 +204,15 @@ const AdminCategories = () => {
       console.error('Save error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Save failed';
       toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!deleting) return;
+    if (!deleting || isSubmitting) return;
 
+    setIsSubmitting(true);
     try {
       const headers: Record<string, string> = {};
       if (token) {
@@ -222,6 +229,7 @@ const AdminCategories = () => {
       if (!res.ok) {
         const data = await res.json();
         const errorMsg = data.error?.message || data.error || 'Delete failed';
+        console.error('Delete failed:', res.status, errorMsg);
         if (res.status === 400 && errorMsg.includes('products')) {
           throw new Error('Cannot delete: This category contains products. Please delete or move them first.');
         }
@@ -229,13 +237,15 @@ const AdminCategories = () => {
       }
 
       setCats((prev) => prev.filter((c) => c.id !== deleting.id));
-      toast.success(`"${deleting.name}" deleted successfully`);
+      toast.success('Category deleted');
     } catch (err) {
       console.error('Delete error:', err);
-      toast.error(err instanceof Error ? err.message : 'Failed to delete category');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete category';
+      toast.error(errorMessage);
     } finally {
       setDeleteOpen(false);
       setDeleting(null);
+      setIsSubmitting(false);
     }
   };
 
@@ -399,8 +409,10 @@ const AdminCategories = () => {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-                <Button onClick={handleSave} disabled={!form.name.trim()} className="bg-red-600 hover:bg-red-700 text-white font-bold">{editing ? "Save Changes" : "Create"}</Button>
+                <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={isSubmitting}>Cancel</Button>
+                <Button onClick={handleSave} disabled={!form.name.trim() || isSubmitting} className="bg-red-600 hover:bg-red-700 text-white font-bold">
+                  {isSubmitting ? (editing ? "Saving..." : "Creating...") : (editing ? "Save Changes" : "Create")}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -513,8 +525,10 @@ const AdminCategories = () => {
                 <DialogDescription>Are you sure you want to delete "{deleting?.name}"? This action cannot be undone.</DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
-                <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+                <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={isSubmitting}>Cancel</Button>
+                <Button variant="destructive" onClick={handleDelete} disabled={isSubmitting}>
+                  {isSubmitting ? "Deleting..." : "Delete"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

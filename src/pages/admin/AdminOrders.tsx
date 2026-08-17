@@ -67,9 +67,12 @@ const AdminOrders = () => {
   type StatusFilter = 'all' | 'approved' | 'packing';
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [isUpdatingPacking, setIsUpdatingPacking] = useState(false);
+  const [isDeletingOrder, setIsDeletingOrder] = useState(false);
 
   const handleDeleteOrder = async (orderId: string) => {
+    if (isDeletingOrder) return;
     if (!window.confirm("Are you sure you want to delete this order? This action cannot be undone.")) return;
+    setIsDeletingOrder(true);
     try {
       await deleteOrder(orderId);
       setOrderList((prev) => prev.filter((o) => o._id !== orderId));
@@ -80,6 +83,8 @@ const AdminOrders = () => {
     } catch (error) {
       console.error("Error deleting order:", error);
       toast.error(error instanceof Error ? error.message : "Failed to delete order");
+    } finally {
+      setIsDeletingOrder(false);
     }
   };
 
@@ -422,10 +427,11 @@ const AdminOrders = () => {
                     <Button
                       variant="destructive"
                       onClick={() => handleDeleteOrder(selectedOrder._id)}
+                      disabled={isDeletingOrder || isApproving || isUpdatingPacking}
                       className="flex-1 bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-1"
                     >
                       <Trash2 className="h-4 w-4" />
-                      <span>Delete</span>
+                      <span>{isDeletingOrder ? "Deleting..." : "Delete"}</span>
                     </Button>
                   </div>
                 </div>
