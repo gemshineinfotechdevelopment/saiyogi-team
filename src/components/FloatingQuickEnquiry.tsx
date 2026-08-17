@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import quickEnquiryImg from "@/assets/quick-enquiry.png";
 
 export const FloatingQuickEnquiry: React.FC = () => {
   const { isCartOpen } = useCart();
@@ -33,14 +34,14 @@ export const FloatingQuickEnquiry: React.FC = () => {
   return (
     <Link
       to="/quick-enquiry"
-      className="fixed bottom-20 right-2 sm:bottom-24 sm:right-6 z-40 group cursor-pointer select-none outline-none focus:outline-none focus:ring-0 border-0 bg-transparent shadow-none"
+      className="fixed bottom-16 right-2 sm:bottom-24 sm:right-6 z-40 group cursor-pointer select-none outline-none focus:outline-none focus:ring-0 border-0 bg-transparent shadow-none"
       title="Quick Enquiry"
     >
-      <div className="relative flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 outline-none border-0 bg-transparent shadow-none drop-shadow-lg group-hover:drop-shadow-2xl">
+      <div className="relative flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 outline-none border-0 bg-transparent drop-shadow-md group-hover:drop-shadow-xl">
         <img
-          src="/quick-enquiry-btn.png"
+          src={quickEnquiryImg}
           alt="Quick Enquiry"
-          className="w-32 xs:w-36 sm:w-44 md:w-48 max-w-[65vw] h-auto transition-all duration-300 filter group-hover:brightness-105 outline-none border-0 ring-0 shadow-none bg-transparent object-contain"
+          className="w-28 xs:w-34 sm:w-44 md:w-52 max-w-[50vw] sm:max-w-[35vw] h-auto transition-all duration-300 filter group-hover:brightness-105 object-contain outline-none border-0 ring-0 bg-transparent"
         />
       </div>
     </Link>

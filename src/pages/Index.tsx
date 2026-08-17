@@ -131,9 +131,32 @@ const Index = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [selectedCrackerType, setSelectedCrackerType] = useState<'Day Crackers' | 'Night Crackers'>('Day Crackers');
+  const [crackerTypeSlideKey, setCrackerTypeSlideKey] = useState(0);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [videoIndex, setVideoIndex] = useState(0);
   const videoScrollRef = useRef<HTMLDivElement>(null);
+  const crackerScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollCrackers = (direction: 'left' | 'right') => {
+    if (crackerScrollRef.current) {
+      const scrollAmount = direction === 'left' ? -380 : 380;
+      crackerScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
+  // Auto-slide between Day & Night Crackers
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSelectedCrackerType((prev) => (prev === 'Day Crackers' ? 'Night Crackers' : 'Day Crackers'));
+      setCrackerTypeSlideKey((k) => k + 1);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleCrackerTypeToggle = (type: 'Day Crackers' | 'Night Crackers') => {
+    setSelectedCrackerType(type);
+    setCrackerTypeSlideKey((k) => k + 1);
+  };
 
   const scrollVideos = (direction: 'left' | 'right') => {
     if (videoScrollRef.current) {
@@ -409,62 +432,96 @@ const Index = () => {
                 : 'Dazzling lights, rockets & aerial fireworks for night sky'}
             </p>
 
-            {/* Type Selector Tabs */}
-            <div className="inline-flex p-1.5 bg-gray-100/90 rounded-2xl border border-gray-200/80 shadow-inner gap-2">
+            {/* Type Selector Tabs & Scroll Buttons */}
+            <div className="flex items-center justify-center gap-3">
               <button
-                onClick={() => setSelectedCrackerType('Day Crackers')}
-                className={`px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer ${
-                  selectedCrackerType === 'Day Crackers'
-                    ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30 scale-105'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
-                }`}
+                onClick={() => scrollCrackers('left')}
+                className="w-10 h-10 rounded-full bg-gray-100 hover:bg-[#A80000] hover:text-white text-gray-700 flex items-center justify-center transition-all duration-300 shadow-sm cursor-pointer"
+                title="Scroll Left"
               >
-                <span>☀️</span> Day Crackers
+                <ChevronLeft className="w-5 h-5" />
               </button>
+
+              <div className="inline-flex p-1.5 bg-gray-100/90 rounded-2xl border border-gray-200/80 shadow-inner gap-2">
+                <button
+                  onClick={() => handleCrackerTypeToggle('Day Crackers')}
+                  className={`px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer ${
+                    selectedCrackerType === 'Day Crackers'
+                      ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30 scale-105'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
+                  }`}
+                >
+                  <span>☀️</span> Day Crackers
+                </button>
+                <button
+                  onClick={() => handleCrackerTypeToggle('Night Crackers')}
+                  className={`px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer ${
+                    selectedCrackerType === 'Night Crackers'
+                      ? 'bg-purple-700 text-white shadow-lg shadow-purple-700/30 scale-105'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
+                  }`}
+                >
+                  <span>🌙</span> Night Crackers
+                </button>
+              </div>
+
               <button
-                onClick={() => setSelectedCrackerType('Night Crackers')}
-                className={`px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer ${
-                  selectedCrackerType === 'Night Crackers'
-                    ? 'bg-purple-700 text-white shadow-lg shadow-purple-700/30 scale-105'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
-                }`}
+                onClick={() => scrollCrackers('right')}
+                className="w-10 h-10 rounded-full bg-gray-100 hover:bg-[#A80000] hover:text-white text-gray-700 flex items-center justify-center transition-all duration-300 shadow-sm cursor-pointer"
+                title="Scroll Right"
               >
-                <span>🌙</span> Night Crackers
+                <ChevronRight className="w-5 h-5" />
               </button>
             </div>
           </div>
 
-          <div key={selectedCrackerType} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 animate-slide-left transition-all duration-500">
-            {(() => {
-              const filteredList = products.filter(p => p.crackerType === selectedCrackerType);
-              const displayList = filteredList.length > 0
-                ? filteredList.slice(0, 6)
-                : (selectedCrackerType === 'Day Crackers'
-                    ? (products.length > 0 ? products.filter(p => !p.crackerType || p.crackerType === 'Day Crackers').slice(0, 6) : staticDayCrackers)
-                    : staticNightCrackers);
+          {/* Continuous Right-to-Left Infinite Scroller Container */}
+          <div
+            ref={crackerScrollRef}
+            className="w-full overflow-x-auto no-scrollbar scroll-smooth py-4 px-2 select-none"
+          >
+            <div
+              key={`cracker-slide-${selectedCrackerType}-${crackerTypeSlideKey}`}
+              className="flex flex-nowrap gap-4 sm:gap-6 w-max animate-continuous-rtl hover:[animation-play-state:paused] transition-all duration-500"
+            >
+              {(() => {
+                const filteredList = products.filter(p => p.crackerType === selectedCrackerType);
+                const displayList = filteredList.length > 0
+                  ? filteredList
+                  : (selectedCrackerType === 'Day Crackers'
+                      ? (products.length > 0 ? products.filter(p => !p.crackerType || p.crackerType === 'Day Crackers') : staticDayCrackers)
+                      : staticNightCrackers);
+                
+                const targetTotal = 16;
+                const repeatTimes = Math.max(2, Math.ceil(targetTotal / (displayList.length || 1)));
+                let repeatedList: Product[] = [];
+                for (let i = 0; i < repeatTimes; i++) {
+                  repeatedList = repeatedList.concat(displayList);
+                }
 
-              return displayList.map((item) => {
-                const prodId = item._id || item.id;
-                return (
-                  <div key={`cracker-type-${prodId}`} className="w-full relative group/card">
-                    <div className="absolute -top-2.5 right-2 z-20 pointer-events-none">
-                      <span className={`text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md uppercase tracking-wider flex items-center gap-0.5 border ${
-                        selectedCrackerType === 'Night Crackers'
-                          ? 'bg-gradient-to-r from-purple-600 to-indigo-600 border-purple-300'
-                          : 'bg-gradient-to-r from-amber-500 to-orange-600 border-amber-300'
-                      }`}>
-                        {selectedCrackerType === 'Night Crackers' ? '🌙 NIGHT' : '☀️ DAY'}
-                      </span>
+                return repeatedList.map((item, idx) => {
+                  const prodId = item._id || item.id;
+                  return (
+                    <div key={`cracker-type-${prodId}-${idx}`} className="w-[140px] sm:w-[160px] shrink-0 relative group/card">
+                      <div className="absolute -top-2.5 right-2 z-20 pointer-events-none">
+                        <span className={`text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md uppercase tracking-wider flex items-center gap-0.5 border ${
+                          selectedCrackerType === 'Night Crackers'
+                            ? 'bg-gradient-to-r from-purple-600 to-indigo-600 border-purple-300'
+                            : 'bg-gradient-to-r from-amber-500 to-orange-600 border-amber-300'
+                        }`}>
+                          {selectedCrackerType === 'Night Crackers' ? '🌙 NIGHT' : '☀️ DAY'}
+                        </span>
+                      </div>
+                      <ProductCard
+                        product={item as Product}
+                        onCardClick={() => prodId && navigate(`/product/${prodId}`)}
+                        className="bg-[#FDFBF7] border-amber-200/90 hover:border-[#A80000]/70 hover:shadow-xl hover:shadow-amber-900/10 transition-all duration-300"
+                      />
                     </div>
-                    <ProductCard
-                      product={item as Product}
-                      onCardClick={() => prodId && navigate(`/product/${prodId}`)}
-                      className="bg-[#FDFBF7] border-amber-200/90 hover:border-[#A80000]/70 hover:shadow-xl hover:shadow-amber-900/10 transition-all duration-300"
-                    />
-                  </div>
-                );
-              });
-            })()}
+                  );
+                });
+              })()}
+            </div>
           </div>
         </div>
       </section>

@@ -360,8 +360,161 @@ const Cart: React.FC = () => {
           /* FULL PAGE CHECKOUT LAYOUT */
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            {/* LEFT COLUMN (7 Cols): FULL PAGE LOGIN & ADDRESS DETAILS FORM */}
-            <div className="lg:col-span-7 space-y-6">
+            {/* COLUMN 1 (7 Cols / FIRST ON MOBILE): CART PRODUCTS & ORDER SUMMARY */}
+            <div className="lg:col-span-7 bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5 sm:p-6 space-y-5">
+              
+              {/* Cart Header */}
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3.5">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-red-50 rounded-lg text-[#900000]">
+                    <ShoppingBag className="w-5 h-5" />
+                  </div>
+                  <h2 className="font-black text-gray-900 text-base uppercase tracking-wide">
+                    CART ITEMS ({totalItems})
+                  </h2>
+                </div>
+
+                <button
+                  onClick={clearCart}
+                  className="text-xs font-bold text-red-600 hover:text-red-800 hover:underline transition-colors flex items-center gap-1"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Clear</span>
+                </button>
+              </div>
+
+              {/* Scrollable Items List */}
+              <div className="divide-y divide-gray-100 max-h-[420px] overflow-y-auto pr-1">
+                {items.map(({ product, quantity }) => {
+                  const productId = String(product._id || product.id);
+                  const dp = getDiscountPrice(
+                    product.price, 
+                    product.hasDiscount, 
+                    settings.discountPercent, 
+                    product.netRate, 
+                    product.displayNetRate
+                  );
+                  const stockVal = product.storeStockPieces !== undefined 
+                    ? Number(product.storeStockPieces) 
+                    : (product.stock !== undefined ? Number(product.stock) : 999);
+
+                  return (
+                    <div 
+                      key={productId}
+                      className="py-3 flex items-center justify-between gap-3"
+                    >
+                      {/* Product Thumbnail & Details */}
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div 
+                          onClick={() => setSelectedProduct(product)}
+                          className="w-14 h-14 rounded-xl bg-white border border-gray-200 p-1 flex items-center justify-center shrink-0 shadow-2xs cursor-pointer hover:border-[#900000]/50 transition-all"
+                        >
+                          <img 
+                            src={stockVal <= 0 ? '/saiyogi-logo-1.png' : product.image} 
+                            alt={product.name} 
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <h3 
+                            onClick={() => setSelectedProduct(product)}
+                            className="font-extrabold text-gray-900 text-xs truncate hover:text-[#900000] cursor-pointer"
+                          >
+                            {product.name}
+                          </h3>
+                          <div className="text-xs font-bold text-[#900000] mt-0.5">
+                            ₹{dp.toLocaleString('en-IN')}.00
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Stepper & Price */}
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="flex items-center border border-gray-300 rounded-md overflow-hidden bg-white">
+                          <button
+                            onClick={() => updateQuantity(productId, quantity - 1)}
+                            className="px-1.5 py-1 hover:bg-gray-100 disabled:opacity-30 text-gray-700"
+                            disabled={quantity <= 1}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </button>
+                          <span className="px-2 text-xs font-black text-gray-900">
+                            {quantity}
+                          </span>
+                          <button
+                            onClick={() => updateQuantity(productId, Math.min(stockVal, quantity + 1))}
+                            className="px-1.5 py-1 hover:bg-gray-100 disabled:opacity-30 text-gray-700"
+                            disabled={quantity >= stockVal}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </button>
+                        </div>
+
+                        <span className="font-black text-gray-900 text-xs min-w-[60px] text-right">
+                          ₹{(dp * quantity).toLocaleString('en-IN')}
+                        </span>
+
+                        <button
+                          onClick={() => removeFromCart(productId)}
+                          className="text-gray-400 hover:text-red-600 transition-colors p-1"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Price Breakdown */}
+              <div className="space-y-2.5 border-t border-gray-100 pt-3 text-xs">
+                <div className="flex justify-between items-center font-semibold text-gray-700">
+                  <span>Subtotal ({totalItems} Items)</span>
+                  <span className="font-extrabold text-gray-900">
+                    ₹{totalPrice.toLocaleString('en-IN')}.00
+                  </span>
+                </div>
+
+                {packingCharge > 0 && (
+                  <div className="flex justify-between items-center font-semibold text-gray-700">
+                    <span>Packing Charge</span>
+                    <span className="font-extrabold text-gray-900">
+                      ₹{packingCharge.toLocaleString('en-IN')}.00
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center pt-2 border-t border-gray-100 font-black text-gray-900">
+                  <span className="uppercase text-gray-900">ESTIMATED TOTAL</span>
+                  <span className="text-[#900000] text-lg font-black">
+                    ₹{Math.round(estimatedTotal).toLocaleString('en-IN')}.00
+                  </span>
+                </div>
+              </div>
+
+              {/* Minimum Purchase Requirement Banner */}
+              <div className="bg-red-50/90 border border-red-200/90 rounded-xl p-3 text-xs space-y-1">
+                <div className="flex items-center gap-1.5 font-black uppercase text-[#900000] text-[10px] tracking-wider">
+                  <AlertTriangle className="w-3.5 h-3.5 text-[#900000] shrink-0" />
+                  <span>MINIMUM SUBTOTAL REQUIREMENT</span>
+                </div>
+                <div className="flex justify-between items-center text-gray-700 font-semibold pt-0.5 text-[11px]">
+                  <span>Tamil Nadu: <strong className="text-gray-900 font-black">₹{tnMinPurchase.toLocaleString('en-IN')}</strong></span>
+                  <span className="text-red-300">|</span>
+                  <span>Other States: <strong className="text-gray-900 font-black">₹{otherMinPurchase.toLocaleString('en-IN')}</strong></span>
+                </div>
+              </div>
+
+              {!canPlaceOrder && formData.state && (
+                <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 text-xs text-orange-950">
+                  <p className="font-bold">⚠️ Minimum purchase required for {formData.state}</p>
+                  <p className="mt-0.5">Required subtotal: <strong>₹{dialogMinPurchase}</strong>. Please add ₹{dialogMinPurchase - totalPrice} more to proceed.</p>
+                </div>
+              )}
+            </div>
+
+            {/* COLUMN 2 (5 Cols / BELOW PRODUCTS ON MOBILE): CUSTOMER DETAILS & ADDRESS FORM */}
+            <div className="lg:col-span-5 space-y-6">
               
               {/* SECTION 1: LOGIN & CUSTOMER DETAILS */}
               <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5 sm:p-6 space-y-5">
@@ -371,7 +524,7 @@ const Cart: React.FC = () => {
                   </div>
                   <div>
                     <h2 className="font-black text-gray-900 text-base sm:text-lg uppercase tracking-wide">
-                      1. Customer Details &amp; Verification
+                      Customer Details &amp; Verification
                     </h2>
                     <p className="text-xs text-gray-500 font-medium">
                       Enter your name, email and mobile number for enquiry tracking.
@@ -579,7 +732,7 @@ const Cart: React.FC = () => {
                   </div>
                   <div>
                     <h2 className="font-black text-gray-900 text-base sm:text-lg uppercase tracking-wide">
-                      2. Delivery Address Details
+                      Delivery Address Details
                     </h2>
                     <p className="text-xs text-gray-500 font-medium">
                       Provide full address details for Sivakasi transport estimation.
@@ -664,177 +817,55 @@ const Cart: React.FC = () => {
                       />
                     </div>
                   </div>
-                </div>
-              </div>
 
-            </div>
-
-            {/* RIGHT COLUMN (5 Cols): CART DETAILS & SUMMARY */}
-            <div className="lg:col-span-5 bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5 sm:p-6 space-y-5 sticky top-28">
-              
-              {/* Cart Header */}
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3.5">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-red-50 rounded-lg text-[#900000]">
-                    <ShoppingBag className="w-5 h-5" />
-                  </div>
-                  <h2 className="font-black text-gray-900 text-base uppercase tracking-wide">
-                    CART ITEMS ({totalItems})
-                  </h2>
-                </div>
-
-                <button
-                  onClick={clearCart}
-                  className="text-xs font-bold text-red-600 hover:text-red-800 hover:underline transition-colors flex items-center gap-1"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Clear</span>
-                </button>
-              </div>
-
-              {/* Scrollable Items List */}
-              <div className="divide-y divide-gray-100 max-h-[320px] overflow-y-auto pr-1">
-                {items.map(({ product, quantity }) => {
-                  const productId = String(product._id || product.id);
-                  const dp = getDiscountPrice(
-                    product.price, 
-                    product.hasDiscount, 
-                    settings.discountPercent, 
-                    product.netRate, 
-                    product.displayNetRate
-                  );
-                  const stockVal = product.storeStockPieces !== undefined 
-                    ? Number(product.storeStockPieces) 
-                    : (product.stock !== undefined ? Number(product.stock) : 999);
-
-                  return (
-                    <div 
-                      key={productId}
-                      className="py-3 flex items-center justify-between gap-3"
-                    >
-                      {/* Product Thumbnail & Details */}
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div 
-                          onClick={() => setSelectedProduct(product)}
-                          className="w-14 h-14 rounded-xl bg-white border border-gray-200 p-1 flex items-center justify-center shrink-0 shadow-2xs cursor-pointer hover:border-[#900000]/50 transition-all"
-                        >
-                          <img 
-                            src={stockVal <= 0 ? '/saiyogi-logo-1.png' : product.image} 
-                            alt={product.name} 
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <h3 
-                            onClick={() => setSelectedProduct(product)}
-                            className="font-extrabold text-gray-900 text-xs truncate hover:text-[#900000] cursor-pointer"
-                          >
-                            {product.name}
-                          </h3>
-                          <div className="text-xs font-bold text-[#900000] mt-0.5">
-                            ₹{dp.toLocaleString('en-IN')}.00
-                          </div>
-                        </div>
+                  {/* Place Order Button or Minimum Purchase Warning Banner */}
+                  {!canPlaceOrder ? (
+                    <div className="bg-gradient-to-br from-red-50 via-orange-50 to-amber-50 border-2 border-red-200/90 rounded-2xl p-4 sm:p-5 space-y-3 mt-3 text-center shadow-xs">
+                      <div className="flex items-center justify-center gap-2 text-[#900000] font-black text-xs sm:text-sm uppercase tracking-wide">
+                        <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
+                        <span>Minimum Purchase Limit Required</span>
                       </div>
 
-                      {/* Stepper & Price */}
-                      <div className="flex items-center gap-3 shrink-0">
-                        <div className="flex items-center border border-gray-300 rounded-md overflow-hidden bg-white">
-                          <button
-                            onClick={() => updateQuantity(productId, quantity - 1)}
-                            className="px-1.5 py-1 hover:bg-gray-100 disabled:opacity-30 text-gray-700"
-                            disabled={quantity <= 1}
-                          >
-                            <Minus className="h-3 w-3" />
-                          </button>
-                          <span className="px-2 text-xs font-black text-gray-900">
-                            {quantity}
-                          </span>
-                          <button
-                            onClick={() => updateQuantity(productId, Math.min(stockVal, quantity + 1))}
-                            className="px-1.5 py-1 hover:bg-gray-100 disabled:opacity-30 text-gray-700"
-                            disabled={quantity >= stockVal}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </button>
-                        </div>
+                      <p className="text-xs text-gray-700 font-semibold leading-relaxed max-w-md mx-auto">
+                        For delivery to <strong className="text-gray-900 font-black">{formData.state || "out of state"}</strong>, the minimum order subtotal requirement is <strong className="text-[#900000] font-black">₹{dialogMinPurchase.toLocaleString('en-IN')}</strong>.
+                      </p>
 
-                        <span className="font-black text-gray-900 text-xs min-w-[60px] text-right">
-                          ₹{(dp * quantity).toLocaleString('en-IN')}
-                        </span>
-
-                        <button
-                          onClick={() => removeFromCart(productId)}
-                          className="text-gray-400 hover:text-red-600 transition-colors p-1"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
+                      <div className="bg-white/90 border border-red-200/80 rounded-xl p-2.5 max-w-xs mx-auto shadow-2xs text-xs font-bold text-gray-800 flex justify-between items-center px-4">
+                        <span>Current: <b className="text-gray-900">₹{totalPrice.toLocaleString('en-IN')}</b></span>
+                        <span className="text-red-300">|</span>
+                        <span>Shortfall: <b className="text-red-700 text-sm">₹{(dialogMinPurchase - totalPrice).toLocaleString('en-IN')}</b></span>
                       </div>
+
+                      <p className="text-xs font-extrabold text-[#900000] uppercase tracking-wide">
+                        Please add ₹{(dialogMinPurchase - totalPrice).toLocaleString('en-IN')} more worth of products to proceed!
+                      </p>
+
+                      <Button
+                        onClick={() => navigate("/catalog")}
+                        className="w-full bg-[#900000] hover:bg-[#700000] text-white font-extrabold py-5 rounded-xl uppercase text-xs tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer mt-1"
+                      >
+                        <ShoppingCart className="w-4 h-4" />
+                        <span>Add More Products to Cart</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Button>
                     </div>
-                  );
-                })}
-              </div>
+                  ) : (
+                    <Button
+                      onClick={handlePlaceOrder}
+                      disabled={isPlacingOrder}
+                      className="w-full bg-[#900000] hover:bg-[#700000] text-white font-extrabold py-6 rounded-xl uppercase text-xs tracking-wider shadow-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                    >
+                      {isPlacingOrder ? "PLACING ENQUIRY..." : "PLACE ENQUIRY ORDER"}
+                    </Button>
+                  )}
 
-              {/* Price Breakdown */}
-              <div className="space-y-2.5 border-t border-gray-100 pt-3 text-xs">
-                <div className="flex justify-between items-center font-semibold text-gray-700">
-                  <span>Subtotal ({totalItems} Items)</span>
-                  <span className="font-extrabold text-gray-900">
-                    ₹{totalPrice.toLocaleString('en-IN')}.00
-                  </span>
-                </div>
-
-                {packingCharge > 0 && (
-                  <div className="flex justify-between items-center font-semibold text-gray-700">
-                    <span>Packing Charge</span>
-                    <span className="font-extrabold text-gray-900">
-                      ₹{packingCharge.toLocaleString('en-IN')}.00
-                    </span>
-                  </div>
-                )}
-
-                <div className="flex justify-between items-center pt-2 border-t border-gray-100 font-black text-gray-900">
-                  <span className="uppercase text-gray-900">ESTIMATED TOTAL</span>
-                  <span className="text-[#900000] text-lg font-black">
-                    ₹{Math.round(estimatedTotal).toLocaleString('en-IN')}.00
-                  </span>
+                  <p className="text-center text-[11px] text-gray-500 font-normal mt-2">
+                    * Prices are estimates for wholesale fireworks enquiry.
+                  </p>
                 </div>
               </div>
 
-              {/* Minimum Purchase Requirement Banner */}
-              <div className="bg-red-50/90 border border-red-200/90 rounded-xl p-3 text-xs space-y-1">
-                <div className="flex items-center gap-1.5 font-black uppercase text-[#900000] text-[10px] tracking-wider">
-                  <AlertTriangle className="w-3.5 h-3.5 text-[#900000] shrink-0" />
-                  <span>MINIMUM SUBTOTAL REQUIREMENT</span>
-                </div>
-                <div className="flex justify-between items-center text-gray-700 font-semibold pt-0.5 text-[11px]">
-                  <span>Tamil Nadu: <strong className="text-gray-900 font-black">₹{tnMinPurchase.toLocaleString('en-IN')}</strong></span>
-                  <span className="text-red-300">|</span>
-                  <span>Other States: <strong className="text-gray-900 font-black">₹{otherMinPurchase.toLocaleString('en-IN')}</strong></span>
-                </div>
-              </div>
-
-              {!canPlaceOrder && formData.state && (
-                <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 text-xs text-orange-950">
-                  <p className="font-bold">⚠️ Minimum purchase required for {formData.state}</p>
-                  <p className="mt-0.5">Required subtotal: <strong>₹{dialogMinPurchase}</strong>. Please add ₹{dialogMinPurchase - totalPrice} more to proceed.</p>
-                </div>
-              )}
-
-              {/* Place Order Button */}
-              <Button
-                onClick={handlePlaceOrder}
-                disabled={isPlacingOrder || !canPlaceOrder}
-                className="w-full bg-[#900000] hover:bg-[#700000] text-white font-extrabold py-6 rounded-xl uppercase text-xs tracking-wider shadow-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isPlacingOrder ? "PLACING ENQUIRY..." : "PLACE ENQUIRY ORDER"}
-              </Button>
-
-              <p className="text-center text-[11px] text-gray-500 font-normal">
-                * Prices are estimates for wholesale fireworks enquiry.
-              </p>
             </div>
-
           </div>
         )}
       </main>

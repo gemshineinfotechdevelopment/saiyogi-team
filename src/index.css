@@ -650,3 +650,40 @@ select.bg-secondary option {
   animation: topMarqueeScroll 15s linear infinite;
   width: max-content;
 }
+
+/* Right-to-Left Slide Animation */
+@keyframes slideLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(80px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-left {
+  animation: slideLeft 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Continuous Right-to-Left Infinite Scroller (Slower, elegant floating speed) */
+@keyframes continuousScrollRTL {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-continuous-rtl {
+  display: flex;
+  gap: 1.25rem;
+  animation: continuousScrollRTL 50s linear infinite;
+  width: max-content;
+}
+
+.animate-continuous-rtl:hover {
+  animation-play-state: paused;
+}

@@ -323,8 +323,11 @@ const CartDrawer = () => {
 
   const packingCharge = settings.enablePackingCharge !== false ? (totalPrice <= 3999 ? 120 : Math.round(totalPrice * 0.03)) : 0;
   const estimatedTotal = totalPrice + packingCharge;
-  const dialogMinPurchase = formData.state === "Tamil Nadu" ? settings.minimumPurchaseAmount : settings.minPurchaseOutsideTN;
-  const canPlaceOrder = !formData.state || totalPrice >= dialogMinPurchase;
+  const tnMinPurchase = settings.minimumPurchaseAmount || 3000;
+  const otherMinPurchase = settings.minPurchaseOutsideTN || 5000;
+  const activeMinPurchase = formData.state === "Tamil Nadu" ? tnMinPurchase : (formData.state ? otherMinPurchase : tnMinPurchase);
+  const dialogMinPurchase = formData.state === "Tamil Nadu" ? tnMinPurchase : otherMinPurchase;
+  const canPlaceOrder = totalPrice >= activeMinPurchase;
 
   return (
     <Sheet open={isCartOpen} onOpenChange={(open) => {
@@ -476,9 +479,9 @@ const CartDrawer = () => {
                     <ShieldCheck className="w-3.5 h-3.5" /> Minimum Subtotal Limit
                   </span>
                   <div className="glamics-cart-warning-text text-[11px] flex justify-between items-center mt-1">
-                    <span>TN: <b className="text-gray-900 font-bold">₹3,000</b></span>
+                    <span>TN: <b className="text-gray-900 font-bold">₹{tnMinPurchase.toLocaleString('en-IN')}</b></span>
                     <span className="text-[#f43f5e]/40">|</span>
-                    <span>Other States: <b className="text-gray-900 font-bold">₹5,000</b></span>
+                    <span>Other States: <b className="text-gray-900 font-bold">₹{otherMinPurchase.toLocaleString('en-IN')}</b></span>
                   </div>
                 </div>
 
@@ -495,12 +498,18 @@ const CartDrawer = () => {
                     VIEW CART
                   </Button>
 
-                  <Button 
-                    onClick={handleStartEnquiry}
-                    className="w-full bg-[#900000] hover:bg-[#700000] text-white font-extrabold tracking-wider py-5 rounded-md uppercase text-xs sm:text-sm shadow-sm transition-all cursor-pointer"
-                  >
-                    PROCEED TO CHECKOUT
-                  </Button>
+                  {canPlaceOrder ? (
+                    <Button 
+                      onClick={handleStartEnquiry}
+                      className="w-full bg-[#900000] hover:bg-[#700000] text-white font-extrabold tracking-wider py-5 rounded-md uppercase text-xs sm:text-sm shadow-sm transition-all cursor-pointer"
+                    >
+                      PROCEED TO CHECKOUT
+                    </Button>
+                  ) : (
+                    <div className="text-center py-2 px-3 bg-red-50 text-[#900000] border border-red-200/80 rounded-md text-xs font-black tracking-wide">
+                      Add ₹{(activeMinPurchase - totalPrice).toLocaleString('en-IN')} more to unlock Checkout
+                    </div>
+                  )}
                 </div>
                 
                 <p className="text-center text-[11px] text-gray-500 mt-2 font-normal">
@@ -761,9 +770,16 @@ const CartDrawer = () => {
               </div>
 
               {!canPlaceOrder && formData.state && (
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-2.5 text-xs text-orange-900 animate-pulse">
-                  <p className="font-bold">⚠️ Minimum purchase required for {formData.state}</p>
-                  <p className="mt-0.5">Minimum: <strong>₹{dialogMinPurchase}</strong>. Please add ₹{dialogMinPurchase - totalPrice} more.</p>
+                <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-xs text-red-950 space-y-1">
+                  <p className="font-extrabold text-[#900000] flex items-center gap-1.5 uppercase text-[11px]">
+                    ⚠️ Minimum Purchase Limit Required ({formData.state})
+                  </p>
+                  <p className="text-gray-700">
+                    Minimum required: <strong className="text-gray-900 font-bold">₹{dialogMinPurchase.toLocaleString('en-IN')}</strong>. Current: <strong className="text-gray-900 font-bold">₹{totalPrice.toLocaleString('en-IN')}</strong>.
+                  </p>
+                  <p className="font-extrabold text-red-700 text-[11px]">
+                    Please add ₹{(dialogMinPurchase - totalPrice).toLocaleString('en-IN')} more to place order.
+                  </p>
                 </div>
               )}
 
@@ -775,13 +791,25 @@ const CartDrawer = () => {
                 >
                   Back to Cart
                 </Button>
-                <Button 
-                  onClick={handlePlaceOrder} 
-                  disabled={isPlacingOrder || !canPlaceOrder} 
-                  className="flex-1 bg-[#900000] hover:bg-[#700000] text-white font-bold tracking-wider py-5 rounded-md uppercase text-xs shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isPlacingOrder ? "Placing Order..." : "Place Order"}
-                </Button>
+                {canPlaceOrder ? (
+                  <Button 
+                    onClick={handlePlaceOrder} 
+                    disabled={isPlacingOrder} 
+                    className="flex-1 bg-[#900000] hover:bg-[#700000] text-white font-bold tracking-wider py-5 rounded-md uppercase text-xs shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isPlacingOrder ? "Placing Order..." : "Place Order"}
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={() => {
+                      setIsCartOpen(false);
+                      navigate("/catalog");
+                    }} 
+                    className="flex-1 bg-[#900000] hover:bg-[#700000] text-white font-bold tracking-wider py-5 rounded-md uppercase text-[11px] sm:text-xs shadow-sm flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span>Add ₹{(dialogMinPurchase - totalPrice).toLocaleString('en-IN')} More</span>
+                  </Button>
+                )}
               </div>
             </div>
           </div>
