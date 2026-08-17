@@ -212,6 +212,18 @@ const QuickEnquiry = () => {
         <div className="w-full bg-white border-b border-gray-100 rounded-none mb-8 mt-0">
           <div className="flex-1 container mx-auto px-0 md:px-4 py-0 md:py-3">
 
+            {/* Sticky Table Header Bar for Desktop View */}
+            {!loading && groupedProducts.length > 0 && (
+              <div className="hidden md:grid md:grid-cols-12 gap-4 bg-slate-100/90 text-slate-700 px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider mb-4 border border-slate-200/80 shadow-2xs">
+                <div className="col-span-4 flex items-center">PRODUCT NAME</div>
+                <div className="col-span-2 text-center">ITEM CODE</div>
+                <div className="col-span-2 text-center">CONTENT</div>
+                <div className="col-span-1 text-center">UNIT PRICE</div>
+                <div className="col-span-2 text-center">QUANTITY</div>
+                <div className="col-span-1 text-right pr-2">TOTAL</div>
+              </div>
+            )}
+
             <div className="space-y-6 md:space-y-4">
               {loading ? (
                 <div className="text-center py-10 text-gray-400 font-medium">Loading products...</div>
@@ -226,7 +238,7 @@ const QuickEnquiry = () => {
                         ? 'top-[118px] sm:top-[122px] md:top-[52px]'
                         : 'top-[184px] sm:top-[198px] md:top-[160px]'
                     }`}>
-                      <div className="bg-[#A80000] text-white px-3.5 py-2 md:px-5 md:py-3 text-xs md:text-sm font-black uppercase tracking-wider font-sans flex items-center rounded-xl md:rounded-2xl shadow-md mx-1 md:mx-0 border border-[#8a0000]">
+                      <div className="bg-[#A80000] text-white px-3.5 py-2 md:px-5 md:py-2.5 text-xs md:text-sm font-black uppercase tracking-wider font-sans flex items-center rounded-xl md:rounded-2xl shadow-md mx-1 md:mx-0 border border-[#8a0000]">
                         <span className="mr-2 opacity-90 text-lg leading-none mt-[-2px]">•</span>
                         {group.categoryName}
                       </div>
@@ -254,11 +266,11 @@ const QuickEnquiry = () => {
                             {/* 2. Middle Info: Title + (Code & Content Pill) */}
                             <div className="flex-1 min-w-0 flex flex-col justify-center pl-0.5">
                               <h3 className="font-black text-black text-[10px] sm:text-[11px] leading-tight uppercase truncate" title={item.name}>{item.name}</h3>
-                              <div className="flex items-center gap-1 mt-0.5">
-                                <span className="text-gray-400 text-[8px] font-bold font-mono tracking-tight shrink-0">
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-gray-500 text-[9px] font-bold font-mono tracking-tight shrink-0">
                                   {item.code ? (item.code.startsWith('#') ? item.code : `#${item.code}`) : (item.sku ? (item.sku.startsWith('#') ? item.sku : `#${item.sku}`) : (pId ? `#${pId.substring(0, 8).toUpperCase()}` : '#N/A'))}
                                 </span>
-                                <span className="bg-red-50 text-[#A80000] border border-red-200/60 text-[8px] font-black px-1.5 py-0.2 rounded-md whitespace-nowrap leading-none shrink-0">
+                                <span className="bg-red-50 text-[#A80000] border border-red-200/80 text-[9px] font-black px-2 py-0.5 rounded-md whitespace-nowrap leading-none shrink-0 shadow-2xs">
                                   {item.quantity || "1 Item"}
                                 </span>
                               </div>
@@ -320,7 +332,7 @@ const QuickEnquiry = () => {
                             </div>
 
                             <div className="col-span-2 flex justify-center">
-                              <span className="bg-[#fef2f2] text-[#A80000] text-[11px] font-extrabold px-3 py-1 rounded-md whitespace-nowrap font-sans">
+                              <span className="bg-red-50 text-[#A80000] border border-red-200/80 text-xs font-black px-3.5 py-1 rounded-lg whitespace-nowrap font-sans shadow-2xs">
                                 {item.quantity || "1 Item"}
                               </span>
                             </div>

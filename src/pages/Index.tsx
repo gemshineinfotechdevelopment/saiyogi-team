@@ -514,7 +514,7 @@ const Index = () => {
                       </div>
                       <ProductCard
                         product={item as Product}
-                        onCardClick={() => prodId && navigate(`/product/${prodId}`)}
+                        onCardClick={() => navigate(`/catalog?category=${encodeURIComponent(selectedCrackerType)}`)}
                         className="bg-[#FDFBF7] border-amber-200/90 hover:border-[#A80000]/70 hover:shadow-xl hover:shadow-amber-900/10 transition-all duration-300"
                       />
                     </div>
@@ -714,12 +714,14 @@ const Index = () => {
         {/* Infinite scrolling categories marquee */}
         <div className="relative w-full overflow-hidden py-4 mb-8">
           <div className="flex flex-nowrap gap-3 sm:gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
-            {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i: number) => (
-              <div
-                key={`${cat.id || cat._id || 'cat'}-${i}`}
-                onClick={() => window.location.href = `/catalog?category=${cat.id || cat._id}`}
-                className="bg-white border border-gray-200 p-2.5 sm:p-4 flex flex-col items-center text-center shadow-md rounded-xl sm:rounded-2xl w-[135px] sm:w-[170px] md:w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
-              >
+            {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i: number) => {
+              const categoryParam = cat.name || cat.id || cat._id || cat.categoryId || '';
+              return (
+                <div
+                  key={`${cat.id || cat._id || cat.name || 'cat'}-${i}`}
+                  onClick={() => navigate(`/catalog?category=${encodeURIComponent(categoryParam)}`)}
+                  className="bg-white border border-gray-200 p-2.5 sm:p-4 flex flex-col items-center text-center shadow-md rounded-xl sm:rounded-2xl w-[135px] sm:w-[170px] md:w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
+                >
                 <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-1.5 sm:p-2 mb-2 sm:mb-3 rounded-lg sm:rounded-xl overflow-hidden relative border border-gray-100/50">
                   <img
                     src={cat.image || "/sky_rocket_box.png"}
@@ -738,7 +740,8 @@ const Index = () => {
                   </button>
                 </div>
               </div>
-            ))}
+            );
+          })}
           </div>
         </div>
       </section>
@@ -763,7 +766,7 @@ const Index = () => {
               return (
                 <div
                   key={`${brandId}-${i}`}
-                  onClick={() => window.location.href = `/catalog?search=${encodeURIComponent(brand.name)}`}
+                  onClick={() => navigate(`/catalog?search=${encodeURIComponent(brand.name)}`)}
                   className="bg-white border border-gray-200 hover:border-[#7A1416] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[130px] sm:w-[160px] md:w-[180px] shrink-0"
                 >
                   <span className="text-[7px] sm:text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-1 sm:px-2 py-0.5 rounded-full mb-1 sm:mb-2 font-mono">

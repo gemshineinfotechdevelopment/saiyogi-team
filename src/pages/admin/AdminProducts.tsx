@@ -281,8 +281,8 @@ const AdminProducts = () => {
                       </div>
                     </div>
                     <div>
-                      <Label className="text-xs font-bold uppercase text-gray-700">Pack / Set Quantity Info (e.g. 50pcs/Set)</Label>
-                      <Input value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} type="text" placeholder="e.g. 50pcs/Set" className="mt-1" />
+                      <Label className="text-xs font-bold uppercase text-gray-700">Content / Items Count (e.g. 10Pcs, 36 Items)</Label>
+                      <Input value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} type="text" placeholder="e.g. 10Pcs or 36 Items" className="mt-1" />
                     </div>
                     <div className="grid grid-cols-2 gap-4 items-start">
                       <div>
@@ -480,9 +480,9 @@ const AdminProducts = () => {
                       fd.append('rating', form.rating || "5");
                       fd.append('wholesalePrice', form.wholesalePrice || "");
                       fd.append('netRate', form.netRate || "");
-                      fd.append('hasDiscount', form.hasDiscount.toString());
-                      fd.append('displayNetRate', form.displayNetRate.toString());
-                      fd.append('isSaiYogiVerified', form.isSaiYogiVerified.toString());
+                      fd.append('hasDiscount', String(form.hasDiscount));
+                      fd.append('displayNetRate', String(form.displayNetRate));
+                      fd.append('isSaiYogiVerified', String(form.isSaiYogiVerified));
                       fd.append('storeStockPieces', form.storeStockPieces);
                       fd.append('godownStockCases', form.godownStockCases);
                       fd.append('piecesPerCase', form.piecesPerCase);
@@ -589,9 +589,16 @@ const AdminProducts = () => {
                             <img src={p.image || '/placeholder.svg'} alt={p.name || 'Product'} className="w-12 h-12 rounded-lg object-cover border border-gray-200 shrink-0 shadow-sm" />
                             <div>
                               <p className="font-bold text-gray-900 text-base tracking-tight">{p.name}</p>
-                              <p className="text-xs font-medium text-gray-500 mt-0.5">
-                                {typeof p.brand === 'object' && p.brand !== null ? (p.brand as any).name : (p.brand || 'N/A')}
-                              </p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <p className="text-xs font-medium text-gray-500">
+                                  {typeof p.brand === 'object' && p.brand !== null ? (p.brand as any).name : (p.brand || 'N/A')}
+                                </p>
+                                {p.quantity && (
+                                  <span className="bg-red-50 text-[#A80000] border border-red-200/80 text-[10px] font-black px-2 py-0.5 rounded-md">
+                                    {p.quantity}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </td>

@@ -166,10 +166,15 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
               </div>
 
               {/* Title with flexible min-height so 1-line and 2-line titles align cleanly */}
-              <div className="min-h-[44px] flex items-center justify-center my-1">
+              <div className="min-h-[44px] flex flex-col items-center justify-center my-1 gap-1">
                 <h3 className="product-title-font font-black text-base sm:text-lg text-black leading-tight tracking-tight line-clamp-2 text-center">
                   {product.name}
                 </h3>
+                {product.quantity && (
+                  <span className="bg-red-50 text-[#A80000] border border-red-200/80 text-[10px] sm:text-xs font-black px-2.5 py-0.5 rounded-md shadow-2xs">
+                    {product.quantity}
+                  </span>
+                )}
               </div>
 
               {/* Sai Yogi Verified Ribbon Badge & Dynamic Star Rating */}
@@ -277,7 +282,14 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
                 )}
               </div>
 
-              <h2 className="product-title-font text-2xl md:text-3xl font-black text-red-950 mb-2 leading-tight">{product.name}</h2>
+              <h2 className="product-title-font text-2xl md:text-3xl font-black text-red-950 mb-1 leading-tight">{product.name}</h2>
+              {product.quantity && (
+                <div className="mb-3">
+                  <span className="inline-block bg-red-50 text-[#A80000] border border-red-200/80 text-xs font-black px-2.5 py-0.5 rounded-md shadow-2xs">
+                    {product.quantity}
+                  </span>
+                </div>
+              )}
 
               {/* Gold Star Rating in Modal */}
               <div className="flex items-center gap-3 mb-4 flex-wrap">
