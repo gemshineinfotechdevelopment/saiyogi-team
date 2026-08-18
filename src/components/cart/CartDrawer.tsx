@@ -108,7 +108,7 @@ const CartDrawer = () => {
     }
 
     setIsCartOpen(false);
-    navigate("/cart");
+    navigate("/cart?step=checkout");
   };
 
   const handleSendWhatsAppCode = () => {
@@ -491,7 +491,7 @@ const CartDrawer = () => {
                     variant="outline"
                     onClick={() => {
                       setIsCartOpen(false);
-                      navigate("/cart");
+                      navigate("/cart?step=cart");
                     }}
                     className="w-full border-2 border-[#900000] text-[#900000] hover:bg-[#900000] hover:text-white font-extrabold tracking-wider py-5 rounded-md uppercase text-xs sm:text-sm shadow-xs transition-all cursor-pointer"
                   >
