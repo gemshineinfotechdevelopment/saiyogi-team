@@ -261,81 +261,63 @@ const QuickEnquiry = () => {
                         const displayImg = isOutOfStock ? '/saiyogi-logo-1.png' : (item.image || '/saiyogi-logo-1.png');
 
                         const mobileView = (
-                          <div className="md:hidden py-3 px-3 flex flex-col gap-2.5 bg-white border-b border-amber-100/80 font-sans">
-                            {/* Top Row: Thumbnail + Product Name/SKU/Pill */}
-                            <div className="flex items-center gap-3 w-full">
-                              {/* 1. Thumbnail Image */}
-                              <div className="w-12 h-12 bg-gray-50 border border-gray-200/80 rounded-xl overflow-hidden flex items-center justify-center shrink-0 cursor-pointer relative shadow-2xs" onClick={() => setActiveProduct(item)}>
-                                <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain p-1 mix-blend-multiply" />
-                              </div>
+                          <div className="md:hidden py-2 px-2 flex items-center justify-between gap-1.5 sm:gap-2 bg-white border-b border-gray-100 font-sans">
+                            {/* 1. Thumbnail Image */}
+                            <div className="w-10 h-10 sm:w-11 sm:h-11 bg-gray-50 border border-gray-200/80 rounded-lg overflow-hidden flex items-center justify-center shrink-0 cursor-pointer relative" onClick={() => setActiveProduct(item)}>
+                              <img src={displayImg} alt={item.name} className="max-w-full max-h-full object-contain p-0.5 mix-blend-multiply" />
+                            </div>
 
-                              {/* 2. Title + Code & Content Pill */}
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-black text-gray-900 text-sm sm:text-base leading-tight uppercase" title={item.name}>
-                                  {item.name}
-                                </h3>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <span className="text-gray-500 text-xs font-bold font-mono tracking-tight shrink-0">
-                                    {item.code ? (item.code.startsWith('#') ? item.code : `#${item.code}`) : (item.sku ? (item.sku.startsWith('#') ? item.sku : `#${item.sku}`) : (pId ? `#${pId.substring(0, 8).toUpperCase()}` : '#N/A'))}
-                                  </span>
-                                  <span className="bg-red-50 text-[#A80000] border border-red-200/80 text-xs font-black px-2 py-0.5 rounded-md whitespace-nowrap leading-none shrink-0">
-                                    {item.quantity || "1 Item"}
-                                  </span>
-                                </div>
+                            {/* 2. Middle Info: Title + (Code & Content Pill) */}
+                            <div className="flex-1 min-w-0 flex flex-col justify-center pl-0.5">
+                              <h3 className="font-black text-black text-xs sm:text-sm leading-tight uppercase truncate" title={item.name}>{item.name}</h3>
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <span className="text-gray-500 text-[10px] font-bold font-mono tracking-tight shrink-0">
+                                  {item.code ? (item.code.startsWith('#') ? item.code : `#${item.code}`) : (item.sku ? (item.sku.startsWith('#') ? item.sku : `#${item.sku}`) : (pId ? `#${pId.substring(0, 8).toUpperCase()}` : '#N/A'))}
+                                </span>
+                                <span className="bg-red-50 text-[#A80000] border border-red-200/80 text-[10px] font-black px-1.5 py-0.5 rounded-md whitespace-nowrap leading-none shrink-0 shadow-2xs">
+                                  {item.quantity || "1 Item"}
+                                </span>
                               </div>
                             </div>
 
-                            {/* Bottom Row: Price | Stepper (- Qty +) | Line Total */}
-                            <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100">
-                              {/* Unit Price */}
-                              <div className="flex flex-col justify-center">
-                                <span className="text-[9px] text-gray-400 font-extrabold uppercase tracking-widest leading-none">Price</span>
-                                <div className="flex items-baseline gap-1.5 mt-0.5">
-                                  <span className="font-black text-[#D35400] text-base sm:text-lg">₹{dp.toLocaleString('en-IN')}</span>
-                                  {(item.hasDiscount || settings.discountPercent > 0) && item.price > dp && (
-                                    <span className="text-xs text-gray-400 line-through font-bold">₹{item.price.toLocaleString('en-IN')}</span>
-                                  )}
-                                </div>
-                              </div>
+                            {/* 3. Price Column: Discount & Strikethrough */}
+                            <div className="flex flex-col items-end shrink-0 px-0.5">
+                              <span className="font-black text-[#D35400] text-xs sm:text-sm">₹{dp.toLocaleString('en-IN')}</span>
+                              {(item.hasDiscount || settings.discountPercent > 0) && item.price > dp && (
+                                <span className="text-[9px] text-gray-400 line-through font-semibold">₹{item.price.toLocaleString('en-IN')}</span>
+                              )}
+                            </div>
 
-                              {/* Stepper Control (- Qty +) */}
-                              <div className="shrink-0">
-                                {isOutOfStock && qty === 0 ? (
-                                  <span className="text-xs font-black text-red-600 bg-red-50 border border-red-200 px-3 py-1 rounded-lg shadow-2xs">
-                                    Sold Out
-                                  </span>
-                                ) : (
-                                  <div className="flex items-center bg-gray-100/80 border border-gray-300/90 rounded-xl shadow-2xs h-9 w-24 overflow-hidden">
-                                    <button
-                                      type="button"
-                                      onClick={() => handleQtyChange(item, -1)}
-                                      disabled={qty <= 0}
-                                      className="w-8 h-full flex items-center justify-center text-[#A80000] bg-white hover:bg-[#A80000] hover:text-white transition-colors rounded-l-lg font-black disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-[#A80000] active:scale-90 cursor-pointer"
-                                      aria-label="Decrease quantity"
-                                    >
-                                      <Minus className="w-4 h-4 stroke-[3]" />
-                                    </button>
-                                    <div className="flex-1 text-center font-black text-sm text-gray-900 flex items-center justify-center h-full font-sans">{qty}</div>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleQtyChange(item, 1)}
-                                      disabled={isOutOfStock || qty >= stockVal}
-                                      className="w-8 h-full flex items-center justify-center text-[#A80000] bg-white hover:bg-[#A80000] hover:text-white transition-colors rounded-r-lg font-black disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-[#A80000] active:scale-90 cursor-pointer"
-                                      aria-label="Increase quantity"
-                                    >
-                                      <Plus className="w-4 h-4 stroke-[3]" />
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Total / Subtotal */}
-                              <div className="flex flex-col items-end justify-center min-w-[55px]">
-                                <span className="text-[9px] text-gray-400 font-extrabold uppercase tracking-widest leading-none">Total</span>
-                                <span className="font-black text-[#A80000] text-base sm:text-lg mt-0.5">
-                                  ₹{lineTotal.toLocaleString('en-IN')}
+                            {/* 4. Stepper Control */}
+                            <div className="shrink-0">
+                              {isOutOfStock && qty === 0 ? (
+                                <span className="text-[9px] font-black text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded shadow-2xs">
+                                  Sold Out
                                 </span>
-                              </div>
+                              ) : (
+                                <div className="flex items-center bg-white border border-gray-300 rounded-lg shadow-2xs h-7.5 w-18 overflow-hidden">
+                                  <button
+                                    onClick={() => handleQtyChange(item, -1)}
+                                    disabled={qty <= 0}
+                                    className="w-6 h-full flex items-center justify-center text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors rounded-l-md font-black text-sm leading-none disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#A80000] active:scale-90 cursor-pointer"
+                                  >
+                                    -
+                                  </button>
+                                  <div className="flex-1 text-center font-black text-xs text-gray-900 border-x border-gray-100 flex items-center justify-center h-full font-sans">{qty}</div>
+                                  <button
+                                    onClick={() => handleQtyChange(item, 1)}
+                                    disabled={isOutOfStock || qty >= stockVal}
+                                    className="w-6 h-full flex items-center justify-center text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors rounded-r-md font-black text-sm leading-none disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#A80000] active:scale-90 cursor-pointer"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* 5. Line Total */}
+                            <div className="w-11 sm:w-14 text-right shrink-0 font-black text-[#A80000] text-xs sm:text-sm">
+                              ₹{lineTotal.toLocaleString('en-IN')}
                             </div>
                           </div>
                         );
