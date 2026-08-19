@@ -8,7 +8,9 @@ const Contact = () => {
   const { settings } = useSiteSettings();
 
   const phoneNum = settings.contact?.phone || "+91 94880 73004";
+  const phoneNum2 = settings.contact?.phone2 || "";
   const cleanPhone = phoneNum.replace(/[^0-9]/g, "");
+  const cleanPhone2 = phoneNum2 ? phoneNum2.replace(/[^0-9]/g, "") : "";
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FFF6E5] font-sans text-gray-900 antialiased">
@@ -113,22 +115,43 @@ const Contact = () => {
               </div>
 
               {/* Call Support Card */}
-              <a
-                href={`tel:${cleanPhone}`}
-                className="flex items-center gap-4 bg-white border border-red-200 rounded-2xl px-5 py-4 hover:bg-red-50/60 hover:border-red-300 transition-all shadow-md group cursor-pointer"
-              >
-                <div className="w-11 h-11 bg-[#A80000] rounded-xl flex items-center justify-center shrink-0 shadow-md">
-                  <Phone className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-xs font-black text-[#A80000] uppercase tracking-wider group-hover:text-red-900 transition-colors">
-                    Direct Phone Call
-                  </p>
-                  <p className="text-xs font-black text-gray-900 mt-0.5">
-                    {phoneNum}
-                  </p>
-                </div>
-              </a>
+              <div className="flex flex-col gap-3">
+                <a
+                  href={`tel:${cleanPhone}`}
+                  className="flex items-center gap-4 bg-white border border-red-200 rounded-2xl px-5 py-4 hover:bg-red-50/60 hover:border-red-300 transition-all shadow-md group cursor-pointer"
+                >
+                  <div className="w-11 h-11 bg-[#A80000] rounded-xl flex items-center justify-center shrink-0 shadow-md">
+                    <Phone className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-[#A80000] uppercase tracking-wider group-hover:text-red-900 transition-colors">
+                      {phoneNum2 ? "Phone Call (Primary)" : "Direct Phone Call"}
+                    </p>
+                    <p className="text-xs font-black text-gray-900 mt-0.5">
+                      {phoneNum}
+                    </p>
+                  </div>
+                </a>
+
+                {phoneNum2 && (
+                  <a
+                    href={`tel:${cleanPhone2}`}
+                    className="flex items-center gap-4 bg-white border border-red-200 rounded-2xl px-5 py-4 hover:bg-red-50/60 hover:border-red-300 transition-all shadow-md group cursor-pointer"
+                  >
+                    <div className="w-11 h-11 bg-[#A80000] rounded-xl flex items-center justify-center shrink-0 shadow-md">
+                      <Phone className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-[#A80000] uppercase tracking-wider group-hover:text-red-900 transition-colors">
+                        Phone Call (Alternate)
+                      </p>
+                      <p className="text-xs font-black text-gray-900 mt-0.5">
+                        {phoneNum2}
+                      </p>
+                    </div>
+                  </a>
+                )}
+              </div>
 
               {/* WhatsApp Support Box */}
               <a

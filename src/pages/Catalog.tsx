@@ -128,7 +128,7 @@ const Catalog = () => {
 
   const uniqueCategoryNames = useMemo(() => {
     const names = categories.map(c => c.name);
-    return ["All Categories", "Day Crackers", "Night Crackers", ...names];
+    return ["All Categories", "Day Crackers", "Night Crackers", "Kids Crackers", "Gift Box", ...names];
   }, [categories]);
 
   // Filtered and Sorted products
@@ -144,6 +144,10 @@ const Catalog = () => {
         result = result.filter(p => p.crackerType === "Day Crackers" || !p.crackerType);
       } else if (selectedCategory.toLowerCase() === "night crackers") {
         result = result.filter(p => p.crackerType === "Night Crackers");
+      } else if (selectedCategory.toLowerCase() === "kids crackers" || selectedCategory.toLowerCase() === "kids") {
+        result = result.filter(p => p.crackerType === "Kids Crackers" || p.name.toLowerCase().includes("kids"));
+      } else if (selectedCategory.toLowerCase() === "gift box" || selectedCategory.toLowerCase() === "giftbox" || selectedCategory.toLowerCase() === "gift box crackers") {
+        result = result.filter(p => p.crackerType === "Gift Box" || p.name.toLowerCase().includes("gift"));
       } else {
         result = result.filter((p) => {
           const cat = p.category as any;

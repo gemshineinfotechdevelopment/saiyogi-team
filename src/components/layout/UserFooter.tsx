@@ -130,6 +130,11 @@ const UserFooter = () => {
                     📞 {settings.contact.phone}
                   </a>
                 )}
+                {settings.contact?.phone2 && (
+                  <a href={`tel:${settings.contact.phone2.replace(/[^0-9+]/g, '')}`} className="flex items-center gap-2 border border-gray-300 bg-white px-3 py-1.5 rounded text-[#A80000] hover:bg-gray-50 transition-colors w-max">
+                    📞 {settings.contact.phone2}
+                  </a>
+                )}
                 {settings.contact?.email && (
                   <a href={`mailto:${settings.contact.email}`} className="hover:text-[#A80000] transition-colors mt-2">
                     ✉️ {settings.contact.email}

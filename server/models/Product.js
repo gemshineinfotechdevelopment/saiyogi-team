@@ -110,7 +110,7 @@ const productSchema = new mongoose.Schema(
     },
     crackerType: {
       type: String,
-      enum: ['Day Crackers', 'Night Crackers'],
+      enum: ['Day Crackers', 'Night Crackers', 'Kids Crackers', 'Gift Box'],
       default: 'Day Crackers'
     }
   },

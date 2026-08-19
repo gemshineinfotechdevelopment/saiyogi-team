@@ -396,6 +396,7 @@ export interface SiteSettings {
   contact: {
     email: string;
     phone: string;
+    phone2?: string;
     address: string;
   };
   socialLinks: {

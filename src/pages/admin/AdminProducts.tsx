@@ -20,6 +20,7 @@ const AdminProducts = () => {
   const { token } = useAuth();
   const [productList, setProductList] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
+  const [crackerTypeFilter, setCrackerTypeFilter] = useState("All");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -130,6 +131,12 @@ const AdminProducts = () => {
 
   const filtered = productList.filter((p) => {
     if (!p) return false;
+
+    if (crackerTypeFilter !== "All") {
+      const pType = p.crackerType || "Day Crackers";
+      if (pType !== crackerTypeFilter) return false;
+    }
+
     const q = search.trim().toLowerCase();
     if (!q) return true;
 
@@ -317,6 +324,8 @@ const AdminProducts = () => {
                         >
                           <option value="Day Crackers">☀️ Day Crackers</option>
                           <option value="Night Crackers">🌙 Night Crackers</option>
+                          <option value="Kids Crackers">🎈 Kids Crackers</option>
+                          <option value="Gift Box">🎁 Gift Box</option>
                         </select>
                       </div>
                     </div>
@@ -552,17 +561,32 @@ const AdminProducts = () => {
             </div>
           </div>
 
-          {/* Search Card */}
+          {/* Search & Filter Card */}
           <Card className="shadow-sm border-gray-200 mb-6">
             <CardContent className="p-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input 
-                  value={search} 
-                  onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} 
-                  placeholder="Search products..." 
-                  className="pl-9" 
-                />
+              <div className="flex flex-col sm:flex-row gap-3 items-center">
+                <div className="relative flex-1 w-full">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input 
+                    value={search} 
+                    onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} 
+                    placeholder="Search products by name, brand, SKU..." 
+                    className="pl-9" 
+                  />
+                </div>
+                <div className="w-full sm:w-56">
+                  <select
+                    value={crackerTypeFilter}
+                    onChange={(e) => { setCrackerTypeFilter(e.target.value); setCurrentPage(1); }}
+                    className="w-full rounded-md border border-gray-300 bg-white p-2.5 text-xs font-extrabold text-gray-800 focus:border-red-600 outline-none shadow-xs"
+                  >
+                    <option value="All">All Cracker Types</option>
+                    <option value="Day Crackers">☀️ Day Crackers</option>
+                    <option value="Night Crackers">🌙 Night Crackers</option>
+                    <option value="Kids Crackers">🎈 Kids Crackers</option>
+                    <option value="Gift Box">🎁 Gift Box</option>
+                  </select>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -618,9 +642,19 @@ const AdminProducts = () => {
                         <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full border inline-flex items-center gap-1 ${
                           p.crackerType === 'Night Crackers'
                             ? 'bg-purple-50 text-purple-700 border-purple-200'
+                            : p.crackerType === 'Kids Crackers'
+                            ? 'bg-blue-50 text-blue-700 border-blue-200'
+                            : p.crackerType === 'Gift Box'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                             : 'bg-amber-50 text-amber-700 border-amber-200'
                         }`}>
-                          {p.crackerType === 'Night Crackers' ? '🌙 Night' : '☀️ Day'}
+                          {p.crackerType === 'Night Crackers'
+                            ? '🌙 Night'
+                            : p.crackerType === 'Kids Crackers'
+                            ? '🎈 Kids'
+                            : p.crackerType === 'Gift Box'
+                            ? '🎁 Gift Box'
+                            : '☀️ Day'}
                         </span>
                       </td>
                       <td className="p-3 text-right">

@@ -184,12 +184,23 @@ const AdminContent = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Phone Number</Label>
+                <Label>Phone Number 1 (Primary)</Label>
                 <Input
                   value={form.contact?.phone || ""}
                   onChange={(e) => setForm({ ...form, contact: { ...form.contact!, phone: e.target.value } })}
                   disabled={!isEditing}
                   maxLength={20}
+                  className={`bg-white text-gray-900 border-gray-300 ${!isEditing ? "bg-gray-100 cursor-not-allowed opacity-90" : "focus:bg-white"}`}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Phone Number 2 (Secondary / Alternate)</Label>
+                <Input
+                  value={form.contact?.phone2 || ""}
+                  onChange={(e) => setForm({ ...form, contact: { ...form.contact!, phone2: e.target.value } })}
+                  disabled={!isEditing}
+                  maxLength={20}
+                  placeholder="e.g. +91 94880 73004"
                   className={`bg-white text-gray-900 border-gray-300 ${!isEditing ? "bg-gray-100 cursor-not-allowed opacity-90" : "focus:bg-white"}`}
                 />
               </div>

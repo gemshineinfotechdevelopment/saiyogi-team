@@ -71,7 +71,7 @@ const QuickEnquiry = () => {
 
   const uniqueCategoryNames = useMemo(() => {
     const names = new Set(categories.map(c => c.name).filter(Boolean));
-    return ["All Categories", "Day Crackers", "Night Crackers", ...Array.from(names)];
+    return ["All Categories", "Day Crackers", "Night Crackers", "Kids Crackers", "Gift Box", ...Array.from(names)];
   }, [categories]);
 
   // Group and filter products cleanly without duplicates
@@ -116,6 +116,10 @@ const QuickEnquiry = () => {
           if (p.crackerType && p.crackerType !== "Day Crackers") return;
         } else if (selectedCategory.toLowerCase() === "night crackers") {
           if (p.crackerType !== "Night Crackers") return;
+        } else if (selectedCategory.toLowerCase() === "kids crackers" || selectedCategory.toLowerCase() === "kids") {
+          if (p.crackerType !== "Kids Crackers") return;
+        } else if (selectedCategory.toLowerCase() === "gift box" || selectedCategory.toLowerCase() === "giftbox") {
+          if (p.crackerType !== "Gift Box") return;
         } else if (catName && catName.toLowerCase() !== selectedCategory.toLowerCase()) {
           return;
         }

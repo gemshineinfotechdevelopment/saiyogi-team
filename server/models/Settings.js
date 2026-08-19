@@ -49,6 +49,7 @@ const settingsSchema = new mongoose.Schema(
     contact: {
       email: String,
       phone: String,
+      phone2: String,
       address: String
     },
     socialLinks: {

@@ -14,6 +14,7 @@ export interface SiteSettings {
   contact: {
     email: string;
     phone: string;
+    phone2?: string;
     address: string;
   };
   socialLinks?: {
@@ -64,6 +65,7 @@ const defaultSettings: SiteSettings = {
   contact: {
     email: "contact@saiyogicrackers.com",
     phone: "+91 95859 75756",
+    phone2: "",
     address: "Sattur, Virudhunagar District, Tamil Nadu",
   },
   socialLinks: {

@@ -10,6 +10,10 @@ import heroBanner2 from "@/assets/hero_banner_2.jpg";
 import heroBanner3 from "@/assets/hero_banner_3.jpg";
 import heroBanner4 from "@/assets/hero_banner_4.jpg";
 import offerBanner from "@/assets/banner -1.jpeg";
+import dayCrackersImg from "@/assets/daycrackers.png";
+import giftBoxCrackersImg from "@/assets/giftboxcrackers.png";
+import kidsCrackersImg from "@/assets/kidscrackers.png";
+import nightCrackersImg from "@/assets/nightcrackers.png";
 import { useState, useEffect, useRef } from "react";
 import { getProducts, getCategories, getBrands, Brand } from "@/lib/api";
 import { Product, Category } from "@/data/products";
@@ -17,33 +21,14 @@ import ProductCard from "@/components/ProductCard";
 import { getUpcomingDiwaliInfo, calculateTimeLeft, UpcomingDiwaliInfo } from "@/lib/diwaliCountdown";
 import { Fireworks } from '@fireworks-js/react';
 
-// Static Data based on the design
-const staticDayCrackers: Product[] = [
-  { id: 1, name: "Whistling Birds", price: 240, image: "/sky_rocket_box.png", crackerType: "Day Crackers" },
-  { id: 2, name: "Flower Pots Big", price: 450, image: "/flower_pots.png", crackerType: "Day Crackers" },
-  { id: 3, name: "1000 Wala", price: 1200, image: "/sky_rocket_box.png", crackerType: "Day Crackers" },
-  { id: 4, name: "King Of Kings", price: 350, image: "/flower_pots.png", crackerType: "Day Crackers" },
-  { id: 5, name: "Twinkling Star", price: 150, image: "/sky_rocket_box.png", crackerType: "Day Crackers" },
-  { id: 6, name: "Chakkra Special", price: 280, image: "/flower_pots.png", crackerType: "Day Crackers" },
+// Our Products Section Data
+const ourProducts = [
+  { name: "Kids", image: kidsCrackersImg, link: "/catalog?category=Kids" },
+  { name: "Day Crackers", image: dayCrackersImg, link: "/catalog?category=Day%20Crackers" },
+  { name: "Night Crackers", image: nightCrackersImg, link: "/catalog?category=Night%20Crackers" },
+  { name: "Gift Box", image: giftBoxCrackersImg, link: "/catalog?category=Gift%20Box" },
 ];
 
-const staticNightCrackers: Product[] = [
-  { id: 13, name: "Aerial Sky Shots", price: 850, image: "/sky_rocket_box.png", crackerType: "Night Crackers" },
-  { id: 14, name: "Multi Color Fountain", price: 520, image: "/flower_pots.png", crackerType: "Night Crackers" },
-  { id: 15, name: "Golden Willow Rocket", price: 690, image: "/sky_rocket_box.png", crackerType: "Night Crackers" },
-  { id: 16, name: "Crackling Sparkler", price: 310, image: "/flower_pots.png", crackerType: "Night Crackers" },
-  { id: 17, name: "Night Queen Shells", price: 1450, image: "/sky_rocket_box.png", crackerType: "Night Crackers" },
-  { id: 18, name: "Dazzling Star Flowerpot", price: 480, image: "/flower_pots.png", crackerType: "Night Crackers" },
-];
-
-const staticFamilyPacks: Product[] = [
-  { id: 7, name: "Mega Family Pack", oldPrice: 4500, price: 3200, image: "/sky_rocket_box.png" },
-  { id: 8, name: "Grand Celebration Combo", oldPrice: 6000, price: 4500, image: "/flower_pots.png" },
-  { id: 9, name: "Sky Show Magic", oldPrice: 7500, price: 5500, image: "/sky_rocket_box.png" },
-  { id: 10, name: "Classic Family Pack", oldPrice: 3000, price: 2100, image: "/flower_pots.png" },
-  { id: 11, name: "Royal Festival Pack", oldPrice: 10000, price: 7200, image: "/sky_rocket_box.png" },
-  { id: 12, name: "Kids Joy Cracker", oldPrice: 2000, price: 1500, image: "/flower_pots.png" },
-];
 
 const premiumCategories = [
   { name: "Sparklers", image: "/flower_pots.png", categoryId: "cat-1" },
@@ -130,33 +115,10 @@ const Index = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [selectedCrackerType, setSelectedCrackerType] = useState<'Day Crackers' | 'Night Crackers'>('Day Crackers');
-  const [crackerTypeSlideKey, setCrackerTypeSlideKey] = useState(0);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [videoIndex, setVideoIndex] = useState(0);
   const videoScrollRef = useRef<HTMLDivElement>(null);
-  const crackerScrollRef = useRef<HTMLDivElement>(null);
 
-  const scrollCrackers = (direction: 'left' | 'right') => {
-    if (crackerScrollRef.current) {
-      const scrollAmount = direction === 'left' ? -380 : 380;
-      crackerScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-  };
-
-  // Auto-slide between Day & Night Crackers
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setSelectedCrackerType((prev) => (prev === 'Day Crackers' ? 'Night Crackers' : 'Day Crackers'));
-      setCrackerTypeSlideKey((k) => k + 1);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const handleCrackerTypeToggle = (type: 'Day Crackers' | 'Night Crackers') => {
-    setSelectedCrackerType(type);
-    setCrackerTypeSlideKey((k) => k + 1);
-  };
 
   const scrollVideos = (direction: 'left' | 'right') => {
     if (videoScrollRef.current) {
@@ -416,115 +378,38 @@ const Index = () => {
         }}
       />
 
-      {/* Day Crackers & Night Crackers Section */}
-      <section className="py-16 bg-white border-b border-gray-100">
+      {/* Our Products Section */}
+      <section className="py-6 sm:py-16 bg-white border-b border-gray-100 select-none">
         <div className="container mx-auto px-4 max-w-6xl">
-          <div className="text-center mb-8">
-            <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
-              ✨ EXPLORE BY TYPE ✨
-            </span>
-            <h2 className="font-black text-[#A80000] text-3xl md:text-4xl uppercase tracking-widest mb-3 font-display">
-              {selectedCrackerType === 'Day Crackers' ? '☀️ Day Crackers' : '🌙 Night Crackers'}
+          <div className="text-center mb-4 sm:mb-12">
+            <h2 className="font-extrabold text-[#1A1A1A] text-xl sm:text-4xl md:text-5xl tracking-tight font-display">
+              Our Products
             </h2>
-            <p className="text-gray-600 text-xs font-bold uppercase tracking-wider mb-6">
-              {selectedCrackerType === 'Day Crackers' 
-                ? 'Bright & vibrant fireworks for daytime celebrations' 
-                : 'Dazzling lights, rockets & aerial fireworks for night sky'}
-            </p>
-
-            {/* Type Selector Tabs & Scroll Buttons */}
-            <div className="flex items-center justify-center gap-3">
-              <button
-                onClick={() => scrollCrackers('left')}
-                className="w-10 h-10 rounded-full bg-gray-100 hover:bg-[#A80000] hover:text-white text-gray-700 flex items-center justify-center transition-all duration-300 shadow-sm cursor-pointer"
-                title="Scroll Left"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-
-              <div className="inline-flex p-1.5 bg-gray-100/90 rounded-2xl border border-gray-200/80 shadow-inner gap-2">
-                <button
-                  onClick={() => handleCrackerTypeToggle('Day Crackers')}
-                  className={`px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer ${
-                    selectedCrackerType === 'Day Crackers'
-                      ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30 scale-105'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
-                  }`}
-                >
-                  <span>☀️</span> Day Crackers
-                </button>
-                <button
-                  onClick={() => handleCrackerTypeToggle('Night Crackers')}
-                  className={`px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer ${
-                    selectedCrackerType === 'Night Crackers'
-                      ? 'bg-purple-700 text-white shadow-lg shadow-purple-700/30 scale-105'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
-                  }`}
-                >
-                  <span>🌙</span> Night Crackers
-                </button>
-              </div>
-
-              <button
-                onClick={() => scrollCrackers('right')}
-                className="w-10 h-10 rounded-full bg-gray-100 hover:bg-[#A80000] hover:text-white text-gray-700 flex items-center justify-center transition-all duration-300 shadow-sm cursor-pointer"
-                title="Scroll Right"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
           </div>
 
-          {/* Continuous Right-to-Left Infinite Scroller Container */}
-          <div
-            ref={crackerScrollRef}
-            className="w-full overflow-x-auto no-scrollbar scroll-smooth py-4 px-2 select-none"
-          >
-            <div
-              key={`cracker-slide-${selectedCrackerType}-${crackerTypeSlideKey}`}
-              className="flex flex-nowrap gap-4 sm:gap-6 w-max animate-continuous-rtl hover:[animation-play-state:paused] transition-all duration-500"
-            >
-              {(() => {
-                const filteredList = products.filter(p => p.crackerType === selectedCrackerType);
-                const displayList = filteredList.length > 0
-                  ? filteredList
-                  : (selectedCrackerType === 'Day Crackers'
-                      ? (products.length > 0 ? products.filter(p => !p.crackerType || p.crackerType === 'Day Crackers') : staticDayCrackers)
-                      : staticNightCrackers);
-                
-                const targetTotal = 16;
-                const repeatTimes = Math.max(2, Math.ceil(targetTotal / (displayList.length || 1)));
-                let repeatedList: Product[] = [];
-                for (let i = 0; i < repeatTimes; i++) {
-                  repeatedList = repeatedList.concat(displayList);
-                }
-
-                return repeatedList.map((item, idx) => {
-                  const prodId = item._id || item.id;
-                  return (
-                    <div key={`cracker-type-${prodId}-${idx}`} className="w-[140px] sm:w-[160px] shrink-0 relative group/card">
-                      <div className="absolute -top-2.5 right-2 z-20 pointer-events-none">
-                        <span className={`text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md uppercase tracking-wider flex items-center gap-0.5 border ${
-                          selectedCrackerType === 'Night Crackers'
-                            ? 'bg-gradient-to-r from-purple-600 to-indigo-600 border-purple-300'
-                            : 'bg-gradient-to-r from-amber-500 to-orange-600 border-amber-300'
-                        }`}>
-                          {selectedCrackerType === 'Night Crackers' ? '🌙 NIGHT' : '☀️ DAY'}
-                        </span>
-                      </div>
-                      <ProductCard
-                        product={item as Product}
-                        onCardClick={() => navigate(`/catalog?category=${encodeURIComponent(selectedCrackerType)}`)}
-                        className="bg-[#FDFBF7] border-amber-200/90 hover:border-[#A80000]/70 hover:shadow-xl hover:shadow-amber-900/10 transition-all duration-300"
-                      />
-                    </div>
-                  );
-                });
-              })()}
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-6 lg:gap-8">
+            {ourProducts.map((item, idx) => (
+              <div
+                key={`our-product-${idx}`}
+                onClick={() => navigate(item.link)}
+                className="group cursor-pointer flex flex-col items-center"
+              >
+                <div className="w-full aspect-square overflow-hidden rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 bg-gray-50 transition-all duration-300 group-hover:shadow-xl group-hover:border-[#A80000]/20 group-hover:-translate-y-1">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+                <h3 className="font-black text-xs sm:text-lg md:text-xl text-black text-center mt-2 sm:mt-4 tracking-tight transition-colors group-hover:text-[#A80000]">
+                  {item.name}
+                </h3>
+              </div>
+            ))}
           </div>
         </div>
       </section>
+
 
       {/* Videos Section */}
       <section className="py-16 bg-white border-b border-gray-100 relative overflow-hidden">
@@ -701,41 +586,41 @@ const Index = () => {
       </section>
 
       {/* Shop By Category */}
-      <section className="py-16 bg-white border-b border-gray-100">
-        <div className="text-center mb-10 container mx-auto px-4">
-          <h2 className="font-black text-[#A80000] text-3xl sm:text-4xl uppercase tracking-tight mb-2 font-display">
+      <section className="py-8 sm:py-16 bg-white border-b border-gray-100">
+        <div className="text-center mb-5 sm:mb-10 container mx-auto px-4">
+          <h2 className="font-black text-[#A80000] text-xl sm:text-3xl md:text-4xl uppercase tracking-tight mb-1 sm:mb-2 font-display">
             Shop By Category
           </h2>
-          <p className="text-gray-600 text-xs font-bold uppercase tracking-wider">
+          <p className="text-gray-600 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
             Explore our wide selection of premium fireworks crafted for spectacular celebrations
           </p>
         </div>
 
         {/* Infinite scrolling categories marquee */}
-        <div className="relative w-full overflow-hidden py-4 mb-8">
-          <div className="flex flex-nowrap gap-3 sm:gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+        <div className="relative w-full overflow-hidden py-2 sm:py-4 mb-4 sm:mb-8">
+          <div className="flex flex-nowrap gap-2 sm:gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
             {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i: number) => {
               const categoryParam = cat.name || cat.id || cat._id || cat.categoryId || '';
               return (
                 <div
                   key={`${cat.id || cat._id || cat.name || 'cat'}-${i}`}
                   onClick={() => navigate(`/catalog?category=${encodeURIComponent(categoryParam)}`)}
-                  className="bg-white border border-gray-200 p-2.5 sm:p-4 flex flex-col items-center text-center shadow-md rounded-xl sm:rounded-2xl w-[135px] sm:w-[170px] md:w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
+                  className="bg-white border border-gray-200 p-2 sm:p-4 flex flex-col items-center text-center shadow-md rounded-lg sm:rounded-2xl w-[105px] sm:w-[160px] md:w-[200px] shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-[#A80000]/20 group cursor-pointer"
                 >
-                <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-1.5 sm:p-2 mb-2 sm:mb-3 rounded-lg sm:rounded-xl overflow-hidden relative border border-gray-100/50">
+                <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-1 sm:p-2 mb-1.5 sm:mb-3 rounded-md sm:rounded-xl overflow-hidden relative border border-gray-100/50">
                   <img
                     src={cat.image || "/sky_rocket_box.png"}
                     alt={cat.name}
                     className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110"
                   />
-                  <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-[#A80000] text-[#F4C542] font-black text-[8px] sm:text-[9px] px-1.5 sm:px-2.5 py-0.5 rounded-full shadow uppercase">
+                  <span className="absolute top-1 left-1 sm:top-2 sm:left-2 bg-[#A80000] text-[#F4C542] font-black text-[7px] sm:text-[9px] px-1 sm:px-2.5 py-0.5 rounded-full shadow uppercase">
                     SHOP
                   </span>
                 </div>
-                <h3 className="font-bold text-[10px] sm:text-xs text-gray-800 uppercase text-center min-h-[26px] sm:min-h-[32px] line-clamp-2 transition-colors group-hover:text-[#A80000] mb-2 sm:mb-3">{cat.name}</h3>
+                <h3 className="font-bold text-[9px] sm:text-xs text-gray-800 uppercase text-center min-h-[22px] sm:min-h-[32px] line-clamp-2 transition-colors group-hover:text-[#A80000] mb-1.5 sm:mb-3">{cat.name}</h3>
 
                 <div className="w-full mt-auto">
-                  <button className="w-full bg-[#A80000] text-white py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[9px] sm:text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase">
+                  <button className="w-full bg-[#A80000] text-white py-0.5 sm:py-1.5 rounded-sm sm:rounded-lg text-[8px] sm:text-xs font-bold hover:bg-[#F4C542] hover:text-[#1A1A1A] transition-colors uppercase">
                     View Products
                   </button>
                 </div>
@@ -747,37 +632,37 @@ const Index = () => {
       </section>
 
       {/* Shop By Brand */}
-      <section className="py-16 bg-white border-b border-gray-100">
-        <div className="text-center mb-10 container mx-auto px-4">
-          <h2 className="font-black text-[#A80000] text-2xl uppercase tracking-widest mb-2 font-display">Trusted Manufacturers</h2>
-          <h2 className="font-black text-[#7A1416] text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight mb-2 drop-shadow-2xs font-display">
+      <section className="py-8 sm:py-16 bg-white border-b border-gray-100">
+        <div className="text-center mb-5 sm:mb-10 container mx-auto px-4">
+          <h2 className="font-black text-[#A80000] text-xs sm:text-2xl uppercase tracking-widest mb-1 sm:mb-2 font-display">Trusted Manufacturers</h2>
+          <h2 className="font-black text-[#7A1416] text-xl sm:text-3xl md:text-5xl uppercase tracking-tight mb-1 sm:mb-2 drop-shadow-2xs font-display">
             Shop By Brand
           </h2>
-          <p className="text-gray-600 text-xs font-bold uppercase tracking-wider max-w-xl mx-auto">
+          <p className="text-gray-600 text-[10px] sm:text-xs font-bold uppercase tracking-wider max-w-xl mx-auto">
             We supply 100% genuine and high quality fireworks directly from Sivakasi's top trusted manufacturers.
           </p>
         </div>
 
         {/* Infinite scrolling brands marquee from right to left */}
-        <div className="relative w-full overflow-hidden py-4">
-          <div className="flex flex-nowrap gap-3 sm:gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+        <div className="relative w-full overflow-hidden py-2 sm:py-4">
+          <div className="flex flex-nowrap gap-2 sm:gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
             {[...(brands.length > 0 ? brands : shopByBrands), ...(brands.length > 0 ? brands : shopByBrands), ...(brands.length > 0 ? brands : shopByBrands)].map((brand: any, i: number) => {
               const brandId = brand._id || brand.id || i;
               return (
                 <div
                   key={`${brandId}-${i}`}
                   onClick={() => navigate(`/catalog?search=${encodeURIComponent(brand.name)}`)}
-                  className="bg-white border border-gray-200 hover:border-[#7A1416] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[130px] sm:w-[160px] md:w-[180px] shrink-0"
+                  className="bg-white border border-gray-200 hover:border-[#7A1416] rounded-lg sm:rounded-2xl p-1.5 sm:p-4 flex flex-col items-center justify-between text-center shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 w-[100px] sm:w-[150px] md:w-[180px] shrink-0"
                 >
-                  <span className="text-[7px] sm:text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-1 sm:px-2 py-0.5 rounded-full mb-1 sm:mb-2 font-mono">
+                  <span className="text-[6px] sm:text-[9px] font-extrabold text-[#7A1416] bg-red-50 border border-red-100 px-1 sm:px-2 py-0.5 rounded-full mb-0.5 sm:mb-2 font-mono">
                     {brand.tag || "BRAND"}
                   </span>
                   <div className="w-full aspect-square flex items-center justify-center p-0.5 sm:p-2 mb-0.5 sm:mb-2 group-hover:scale-105 transition-transform duration-300">
                     <img src={brand.logo || brand.image || "/sky_rocket_box.png"} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
                   </div>
                   <div>
-                    <h3 className="font-black text-[10px] sm:text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors line-clamp-1">{brand.name}</h3>
-                    <p className="text-[8px] sm:text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-1">{brand.subtitle || brand.description || "Original Sivakasi"}</p>
+                    <h3 className="font-black text-[9px] sm:text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors line-clamp-1">{brand.name}</h3>
+                    <p className="text-[7px] sm:text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-1">{brand.subtitle || brand.description || "Original Sivakasi"}</p>
                   </div>
                 </div>
               );
@@ -795,37 +680,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Combo Packs */}
-      <section className="py-16 bg-white border-b border-gray-100">
-        <div className="text-center mb-10 container mx-auto px-4">
-          <span className="bg-[#A80000]/10 text-[#A80000] text-[10px] font-black px-3.5 py-1.5 uppercase tracking-widest mb-3 inline-block rounded-full">
-            🎁 GREAT VALUE COMBOS 🎁
-          </span>
-          <h2 className="font-black text-[#A80000] text-3xl md:text-4xl uppercase tracking-widest mb-2 font-display">Combo Packs</h2>
-          <p className="text-gray-700 text-xs font-bold uppercase">Our Special combo packages for you and your whole family</p>
-        </div>
-
-        {/* Infinite scrolling combo packs marquee from right to left */}
-        <div className="relative w-full overflow-hidden py-4">
-          <div className="flex flex-nowrap gap-4 sm:gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
-            {(() => {
-              const comboPacksList = products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack')).length > 0
-                ? products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack'))
-                : staticFamilyPacks;
-              const displayList = [...comboPacksList, ...comboPacksList, ...comboPacksList];
-
-              return displayList.map((item: Product, idx: number) => (
-                <div
-                  key={`combo-marquee-${item._id || item.id || idx}-${idx}`}
-                  className="w-[250px] sm:w-[280px] md:w-[320px] shrink-0"
-                >
-                  <ProductCard product={item} />
-                </div>
-              ));
-            })()}
-          </div>
-        </div>
-      </section>
 
       {/* Premium Quality Cards Section */}
       <section className="py-20 bg-white">

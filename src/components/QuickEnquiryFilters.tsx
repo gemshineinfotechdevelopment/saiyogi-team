@@ -48,7 +48,7 @@ export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
               <select
                 value={selectedBrand}
                 onChange={e => setSelectedBrand(e.target.value)}
-                className="flex-1 md:flex-none md:w-40 p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl border border-gray-200 text-xs sm:text-sm font-bold outline-none focus:border-[#A80000] text-gray-700 bg-white shadow-xs appearance-none cursor-pointer truncate pr-6 sm:pr-8"
+                className="flex-1 md:flex-none md:w-40 p-1 sm:p-2.5 rounded-lg sm:rounded-xl border border-gray-200 text-[11px] sm:text-sm font-bold outline-none focus:border-[#A80000] text-gray-700 bg-white shadow-xs appearance-none cursor-pointer truncate pr-5 sm:pr-8"
                 style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%238b2ce0\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.4rem center', backgroundSize: '0.75rem' }}
               >
                 {uniqueBrands.map(b => <option key={b} value={b}>{b}</option>)}
@@ -57,7 +57,7 @@ export const QuickEnquiryFilters: React.FC<QuickEnquiryFiltersProps> = ({
               <select
                 value={selectedCategory}
                 onChange={e => setSelectedCategory(e.target.value)}
-                className="flex-1 md:flex-none md:w-48 p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl border border-gray-200 text-xs sm:text-sm font-bold outline-none focus:border-[#A80000] text-gray-700 bg-white shadow-xs appearance-none cursor-pointer truncate pr-6 sm:pr-8"
+                className="flex-1 md:flex-none md:w-48 p-1 sm:p-2.5 rounded-lg sm:rounded-xl border border-gray-200 text-[11px] sm:text-sm font-bold outline-none focus:border-[#A80000] text-gray-700 bg-white shadow-xs appearance-none cursor-pointer truncate pr-5 sm:pr-8"
                 style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%238b2ce0\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.4rem center', backgroundSize: '0.75rem' }}
               >
                 {uniqueCategoryNames.map(c => <option key={c} value={c}>{c}</option>)}
