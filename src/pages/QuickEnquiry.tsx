@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Plus, Minus, ShoppingCart, Sparkles, ShoppingBag, Search, LogIn, CheckCircle2, Star, StarHalf } from "lucide-react";
 import QuickEnquiryFilters from "@/components/QuickEnquiryFilters";
 import ProductCard from "@/components/ProductCard";
+import ProductLoadingSkeleton from "@/components/ui/ProductLoadingSkeleton";
 
 const QuickEnquiry = () => {
   const navigate = useNavigate();
@@ -230,7 +231,7 @@ const QuickEnquiry = () => {
 
             <div className="space-y-6 md:space-y-4">
               {loading ? (
-                <div className="text-center py-10 text-gray-400 font-medium">Loading products...</div>
+                <ProductLoadingSkeleton mode="table" count={6} />
               ) : groupedProducts.length === 0 ? (
                 <div className="text-center py-10 text-gray-400 font-medium">No products found.</div>
               ) : (

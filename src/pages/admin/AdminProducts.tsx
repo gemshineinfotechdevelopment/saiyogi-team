@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Search, CheckCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, CheckCircle, FileArchive } from "lucide-react";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminNavbar from "@/components/layout/AdminNavbar";
 import { getProducts, getCategories, getBrands, API_BASE_URL, Brand } from "@/lib/api";
@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import BulkImportModal from "@/components/admin/BulkImportModal";
 
 const AdminProducts = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -22,6 +23,7 @@ const AdminProducts = () => {
   const [search, setSearch] = useState("");
   const [crackerTypeFilter, setCrackerTypeFilter] = useState("All");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
 
@@ -223,6 +225,15 @@ const AdminProducts = () => {
               <Link to="/" className="text-sm text-primary hover:underline lg:hidden mt-1">← Store</Link>
             </div>
             <div className="flex gap-2 w-full md:w-auto">
+              <Button
+                onClick={() => setIsBulkImportOpen(true)}
+                variant="outline"
+                className="w-full md:w-auto border-amber-400 bg-amber-50/50 hover:bg-amber-100/80 text-amber-900 font-bold gap-2 shadow-xs"
+              >
+                <FileArchive className="h-4 w-4 text-[#A80000]" />
+                Bulk Import
+              </Button>
+
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
                   <Button onClick={openCreate} className="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-bold gap-2"><Plus className="h-4 w-4" /> Add Product</Button>
@@ -774,6 +785,19 @@ const AdminProducts = () => {
             </div>
           )}
           </div>
+          <BulkImportModal
+            open={isBulkImportOpen}
+            onOpenChange={setIsBulkImportOpen}
+            onImportComplete={() => {
+              // Reload products on import complete
+              getProducts()
+                .then((data) => {
+                  const safeData = Array.isArray(data) ? data : [];
+                  setProductList(safeData.map((p: any) => ({ ...p, id: p._id || p.id })));
+                })
+                .catch(() => {});
+            }}
+          />
         </main>
       </div>
     </>

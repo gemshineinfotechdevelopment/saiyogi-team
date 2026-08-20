@@ -11,6 +11,7 @@ import QuickEnquiryFilters from "@/components/QuickEnquiryFilters";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Search, X, Filter } from "lucide-react";
+import ProductLoadingSkeleton from "@/components/ui/ProductLoadingSkeleton";
 
 const Catalog = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -28,6 +29,7 @@ const Catalog = () => {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isNavbarHidden, setIsNavbarHidden] = useState(false);
 
   useEffect(() => {
@@ -62,20 +64,16 @@ const Catalog = () => {
 
   useEffect(() => {
     const loadAll = () => {
-      getProducts()
-        .then((data) => {
-          setProducts(Array.isArray(data) ? data : []);
+      Promise.all([getProducts(), getCategories()])
+        .then(([prods, cats]) => {
+          setProducts(Array.isArray(prods) ? prods : []);
+          setCategories(Array.isArray(cats) ? cats : []);
         })
         .catch((err) => {
-          console.error('Failed to fetch products (Catalog):', err);
-        });
-
-      getCategories()
-        .then((data) => {
-          setCategories(Array.isArray(data) ? data : []);
+          console.error('Failed to fetch products/categories (Catalog):', err);
         })
-        .catch((err) => {
-          console.error('Failed to fetch categories (Catalog):', err);
+        .finally(() => {
+          setLoading(false);
         });
     };
 
@@ -318,7 +316,9 @@ const Catalog = () => {
           ? 'pt-[90px] md:pt-[50px]'
           : 'pt-[165px] md:pt-[160px]'
       }`}>
-        {filtered.length > 0 ? (
+        {loading ? (
+          <ProductLoadingSkeleton mode="grid" count={10} />
+        ) : filtered.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-3.5 md:gap-4 mt-0 animate-in fade-in duration-700">
             {filtered.map((p) => {
               const cat = p.category as any;

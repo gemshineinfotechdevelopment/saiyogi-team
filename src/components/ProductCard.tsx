@@ -9,7 +9,7 @@ import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { DiscountTag } from "@/components/ui/DiscountTag";
 
-const ProductCard = ({ product, categoryName, onCardClick, className, showDetailOnly, onDetailClose }: { product: Product; categoryName?: string; onCardClick?: () => void; className?: string; showDetailOnly?: boolean; onDetailClose?: () => void }) => {
+const ProductCard = ({ product, categoryName, onCardClick, className, showDetailOnly, onDetailClose, compact }: { product: Product; categoryName?: string; onCardClick?: () => void; className?: string; showDetailOnly?: boolean; onDetailClose?: () => void; compact?: boolean }) => {
   const [showDetails, setShowDetails] = useState(!!showDetailOnly);
 
   const handleCloseDetails = () => {
@@ -79,19 +79,28 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
       <button
         onClick={handleDecrement}
         disabled={quantity <= 0}
-        className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center rounded-xl bg-gradient-to-b from-white to-gray-100 border border-gray-300 border-b-4 border-b-gray-400 text-[#A80000] hover:bg-red-50 active:border-b-0 active:translate-y-0.5 transition-all font-black shadow-xs disabled:opacity-40 cursor-pointer"
+        className={cn(
+          "flex items-center justify-center rounded-xl bg-gradient-to-b from-white to-gray-100 border border-gray-300 border-b-4 border-b-gray-400 text-[#A80000] hover:bg-red-50 active:border-b-0 active:translate-y-0.5 transition-all font-black shadow-xs disabled:opacity-40 cursor-pointer",
+          compact ? "h-7 w-7 text-xs" : "h-8 w-8 sm:h-9 sm:w-9"
+        )}
       >
-        <Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4 stroke-[3]" />
+        <Minus className={cn("stroke-[3]", compact ? "h-3 w-3" : "h-3.5 w-3.5 sm:h-4 sm:w-4")} />
       </button>
-      <span className="flex-1 py-1 text-center font-black text-white bg-gradient-to-b from-[#C80000] via-[#A80000] to-[#880000] border-b-2 border-[#660000] rounded-xl text-xs sm:text-sm shadow-md">
+      <span className={cn(
+        "flex-1 py-1 text-center font-black text-white bg-gradient-to-b from-[#C80000] via-[#A80000] to-[#880000] border-b-2 border-[#660000] rounded-xl shadow-md",
+        compact ? "text-xs py-0.5" : "text-xs sm:text-sm"
+      )}>
         {quantity}
       </span>
       <button
         onClick={handleIncrement}
-        className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center rounded-xl bg-gradient-to-b from-white to-gray-100 border border-gray-300 border-b-4 border-b-gray-400 text-[#A80000] hover:bg-red-50 active:border-b-0 active:translate-y-0.5 transition-all font-black shadow-xs disabled:opacity-40 cursor-pointer"
+        className={cn(
+          "flex items-center justify-center rounded-xl bg-gradient-to-b from-white to-gray-100 border border-gray-300 border-b-4 border-b-gray-400 text-[#A80000] hover:bg-red-50 active:border-b-0 active:translate-y-0.5 transition-all font-black shadow-xs disabled:opacity-40 cursor-pointer",
+          compact ? "h-7 w-7 text-xs" : "h-8 w-8 sm:h-9 sm:w-9"
+        )}
         disabled={isOutOfStock || quantity >= stockVal}
       >
-        <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 stroke-[3]" />
+        <Plus className={cn("stroke-[3]", compact ? "h-3 w-3" : "h-3.5 w-3.5 sm:h-4 sm:w-4")} />
       </button>
     </div>
   );
@@ -115,12 +124,12 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
                 e.preventDefault();
                 toggleWishlist(product);
               }}
-              className="absolute top-2 right-2 z-20 w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full bg-white/90 backdrop-blur-xs border border-gray-200/80 shadow-md flex items-center justify-center hover:bg-white hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer"
+              className="absolute top-1.5 right-1.5 z-20 w-7 h-7 sm:w-8.5 sm:h-8.5 rounded-full bg-white/90 backdrop-blur-xs border border-gray-200/80 shadow-md flex items-center justify-center hover:bg-white hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer"
               title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
             >
               <Heart
                 className={cn(
-                  "w-4 h-4 transition-colors duration-200",
+                  "w-3.5 h-3.5 sm:w-4 sm:h-4 transition-colors duration-200",
                   isWishlisted
                     ? "fill-[#A80000] text-[#A80000]"
                     : "text-gray-400 stroke-[1.8] hover:text-[#A80000]"
@@ -130,15 +139,15 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
 
             {/* Selected Amount Badge if quantity > 0 */}
             {quantity > 0 && (
-              <div className="absolute top-2 right-12 z-20">
-                <span className="bg-[#A80000] text-white text-xs font-bold px-2 py-0.5 rounded-md shadow-md">
+              <div className="absolute top-1.5 right-10 z-20">
+                <span className="bg-[#A80000] text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-md shadow-md">
                   ₹ {selectedAmount}
                 </span>
               </div>
             )}
 
             {/* Image Area */}
-            <div className="relative w-full aspect-square overflow-hidden bg-[#FDFBF7] p-3 border-b border-amber-100/70">
+            <div className={cn("relative w-full overflow-hidden bg-[#FDFBF7] border-b border-amber-100/70", compact ? "h-24 p-1" : "aspect-square p-1.5 sm:p-3")}>
               <img
                 src={isOutOfStock ? '/saiyogi-logo-1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
                 alt={product.name}
@@ -179,21 +188,21 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
             </div>
 
             {/* Left Aligned Content Details Section */}
-            <div className="p-3 sm:p-3.5 flex-1 flex flex-col justify-between w-full text-left items-start">
+            <div className={cn("flex-1 flex flex-col justify-between w-full text-left items-start", compact ? "p-2" : "p-2 sm:p-3.5")}>
               <div className="w-full text-left">
                 {/* Brand + Verified Pill Row */}
-                <div className="flex items-center justify-between w-full mb-1 flex-wrap gap-1 text-left">
-                  <span className="text-[10px] sm:text-xs font-black text-slate-500 tracking-wider uppercase truncate max-w-[140px]" title={product.brand || "BLUE STAR FIREWORKS"}>
+                <div className={cn("flex items-center justify-between w-full flex-wrap gap-0.5 text-left", compact ? "mb-0.5" : "mb-1 gap-1")}>
+                  <span className={cn("font-black text-slate-500 tracking-wider uppercase truncate", compact ? "text-[9px] max-w-[80px]" : "text-[9px] sm:text-xs max-w-[100px] sm:max-w-[140px]")} title={product.brand || "BLUE STAR FIREWORKS"}>
                     {product.brand || "BLUE STAR FIREWORKS"}
                   </span>
-                  <span className="inline-flex items-center gap-0.5 bg-[#E8F8F0] text-[#00B050] border border-[#00B050]/20 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0">
-                    <CheckCircle2 className="w-3 h-3 text-[#00B050] fill-[#00B050]/10" />
+                  <span className={cn("inline-flex items-center gap-0.5 bg-[#E8F8F0] text-[#00B050] border border-[#00B050]/20 font-bold rounded-full shrink-0", compact ? "text-[9px] px-1.5" : "text-[9px] sm:text-[11px] px-1.5 sm:px-2 py-0.5")}>
+                    <CheckCircle2 className={cn("text-[#00B050] fill-[#00B050]/10", compact ? "w-2.5 h-2.5" : "w-2.5 h-2.5 sm:w-3 sm:h-3")} />
                     <span>Verified</span>
                   </span>
                 </div>
 
                 {/* Title */}
-                <h3 className="product-title-font font-black text-sm sm:text-base text-gray-900 leading-snug line-clamp-2 text-left mb-1">
+                <h3 className={cn("product-title-font font-black text-gray-900 leading-snug line-clamp-2 text-left mb-0.5", compact ? "text-xs" : "text-xs sm:text-base")}>
                   {product.name}
                   {product.quantity && (
                     <span className="ml-1 text-[10px] font-bold text-gray-500 font-sans">
@@ -202,58 +211,62 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
                   )}
                 </h3>
 
-                {/* Sai Yogi Verified Ribbon Pill (Matching Reference Image) */}
-                <div className="my-1.5 text-left">
+                {/* Sai Yogi Verified Ribbon Pill — hidden in compact/wishlist */}
+                {!compact && (
+                <div className="my-1 text-left">
                   {product.isSaiYogiVerified !== false ? (
                     <div className="inline-flex items-center select-none shrink-0 shadow-xs rounded-md overflow-hidden border border-red-500/20">
-                      <div className="bg-gradient-to-r from-amber-400 to-amber-500 text-white font-black text-[10px] sm:text-[11px] px-2 py-0.5 italic flex items-center justify-center leading-none">
+                      <div className={cn("bg-gradient-to-r from-amber-400 to-amber-500 text-white font-black italic flex items-center justify-center leading-none", compact ? "text-[9px] px-1.5 py-0.5" : "text-[9px] sm:text-[11px] px-1.5 sm:px-2 py-0.5")}>
                         SY
                       </div>
-                      <div className="bg-gradient-to-r from-red-600 via-red-700 to-red-600 text-white font-black text-[10px] sm:text-[11px] px-2.5 py-0.5 italic tracking-wide font-serif leading-none whitespace-nowrap flex items-center gap-1 justify-center">
+                      <div className={cn("bg-gradient-to-r from-red-600 via-red-700 to-red-600 text-white font-black italic tracking-wide font-serif leading-none whitespace-nowrap flex items-center gap-1 justify-center", compact ? "text-[9px] px-1.5 py-0.5" : "text-[9px] sm:text-[11px] px-1.5 sm:px-2.5 py-0.5")}>
                         <span>Sai Yogi Verified</span>
-                        <CheckCircle2 className="w-3 h-3 text-white fill-white/20" />
+                        <CheckCircle2 className={cn("text-white fill-white/20", compact ? "w-2.5 h-2.5" : "w-2.5 h-2.5 sm:w-3 sm:h-3")} />
                       </div>
                     </div>
                   ) : (
-                    <div className="h-[20px]" />
+                    <div className={compact ? "h-[16px]" : "h-[20px]"} />
                   )}
                 </div>
+                )}
 
-                {/* Rating Stars & Reviews Count */}
-                <div className="flex items-center text-left my-1 gap-1">
+                {/* Rating Stars & Reviews Count — hidden in compact/wishlist */}
+                {!compact && (
+                <div className="flex items-center text-left my-0.5 gap-1">
                   <div className="flex items-center gap-0.5 shrink-0">
                     {Array.from({ length: 5 }).map((_, i) => {
                       const isFilled = i < Math.floor(starRating);
                       const isHalf = i === Math.floor(starRating) && starRating % 1 >= 0.3;
                       if (isFilled) {
-                        return <Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400 text-amber-400 drop-shadow-2xs" />;
+                        return <Star key={i} className={cn("fill-amber-400 text-amber-400 drop-shadow-2xs", compact ? "w-3 h-3" : "w-3.5 h-3.5 sm:w-4 sm:h-4")} />;
                       }
                       if (isHalf) {
-                        return <StarHalf key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400 text-amber-400 drop-shadow-2xs" />;
+                        return <StarHalf key={i} className={cn("fill-amber-400 text-amber-400 drop-shadow-2xs", compact ? "w-3 h-3" : "w-3.5 h-3.5 sm:w-4 sm:h-4")} />;
                       }
-                      return <Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-gray-200 text-gray-200" />;
+                      return <Star key={i} className={cn("fill-gray-200 text-gray-200", compact ? "w-3 h-3" : "w-3.5 h-3.5 sm:w-4 sm:h-4")} />;
                     })}
                   </div>
                   {reviewCount !== undefined && reviewCount !== null && (
                     <span className="text-xs text-gray-400 font-bold ml-1">({reviewCount})</span>
                   )}
                 </div>
+                )}
 
                 {/* Price Display */}
-                <div className="flex items-baseline text-left gap-2 mt-1 mb-1 flex-wrap">
-                  <span className="font-display font-black text-[#A80000] text-xl sm:text-2xl leading-none">₹{discountPrice}</span>
+                <div className={cn("flex items-baseline text-left gap-1 flex-wrap", compact ? "mt-0.5 mb-0" : "mt-0.5 mb-0.5 gap-1.5")}>
+                  <span className={cn("font-display font-black text-[#A80000] leading-none", compact ? "text-base" : "text-lg sm:text-2xl")}>₹{discountPrice}</span>
                   {product.hasDiscount && !isNetRate && (
-                    <span className="text-xs sm:text-sm text-gray-400 line-through font-semibold">₹{product.price}</span>
+                    <span className={cn("text-gray-400 line-through font-semibold", compact ? "text-[10px]" : "text-[10px] sm:text-sm")}>₹{product.price}</span>
                   )}
                   {isNetRate && (
-                    <span className="text-[10px] text-indigo-500 font-bold uppercase tracking-tighter">Fixed Price</span>
+                    <span className="text-[9px] text-indigo-500 font-bold uppercase tracking-tighter">Fixed Price</span>
                   )}
                 </div>
 
-                {/* Discount Badge Pill (Matching Reference Image while maintaining current discount logic) */}
-                {discount > 0 && !isNetRate && (
-                  <div className="my-1.5 text-left">
-                    <span className="bg-[#E6F4EA] text-[#137333] font-black text-xs px-2.5 py-1 rounded-md inline-block">
+                {/* Discount Badge Pill — hidden in compact/wishlist */}
+                {discount > 0 && !isNetRate && !compact && (
+                  <div className="my-1 text-left">
+                    <span className={cn("bg-[#E6F4EA] text-[#137333] font-black rounded-md inline-block", compact ? "text-[10px] px-1.5 py-0.5" : "text-[10px] sm:text-xs px-1.5 sm:px-2.5 py-0.5 sm:py-1")}>
                       {discount}% OFF
                     </span>
                   </div>
@@ -261,7 +274,7 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
               </div>
 
               {/* Add to Cart Button Row */}
-              <div className="w-full pt-2 mt-auto" onClick={e => e.stopPropagation()}>
+              <div className="w-full pt-1 sm:pt-2 mt-auto" onClick={e => e.stopPropagation()}>
                 {quantity > 0 ? (
                   <QuantitySelector />
                 ) : (
@@ -269,13 +282,14 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
                     onClick={handleAddToCart}
                     disabled={isOutOfStock}
                     className={cn(
-                      "w-full h-10 sm:h-10.5 rounded-full flex items-center justify-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider transition-all duration-150 transform select-none",
+                      "w-full rounded-full flex items-center justify-center font-black uppercase tracking-wider transition-all duration-150 transform select-none",
+                      compact ? "h-8 text-[11px] gap-1.5" : "h-8 sm:h-10 text-[10px] sm:text-sm gap-1.5 sm:gap-2",
                       isOutOfStock
                         ? "bg-gray-200 text-gray-400 border-b-4 border-gray-300 cursor-not-allowed"
                         : "bg-gradient-to-b from-[#E60000] via-[#C80000] to-[#990000] text-white border-b-4 border-[#660000] hover:border-[#550000] shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_4px_10px_rgba(168,0,0,0.35)] hover:brightness-110 active:border-b-0 active:translate-y-1 active:shadow-inner cursor-pointer"
                     )}
                   >
-                    <ShoppingCart className="w-4 h-4 text-white drop-shadow-xs" />
+                    <ShoppingCart className={cn("text-white drop-shadow-xs", compact ? "w-3.5 h-3.5" : "w-3.5 h-3.5 sm:w-4 sm:h-4")} />
                     <span>{isOutOfStock ? "Sold Out" : "ADD TO CART"}</span>
                   </button>
                 )}

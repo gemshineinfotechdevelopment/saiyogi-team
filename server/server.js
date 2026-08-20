@@ -15,6 +15,7 @@ import brandsRouter from './routes/brands.js';
 import uploadRouter from './routes/upload.js';
 import chitSchemesRouter from './routes/chitSchemes.js';
 import chitSubscriptionsRouter from './routes/chitSubscriptions.js';
+import bulkImportRouter from './routes/bulkImport.js';
 
 import { errorHandler } from './middleware/errorHandler.js';
 import logger from './utils/logger.js';
@@ -135,6 +136,7 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRouter);
+app.use('/api/products/bulk-import', bulkImportRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/orders', ordersRouter);

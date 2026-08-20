@@ -1114,3 +1114,47 @@ export async function getCustomers(): Promise<CustomerItem[]> {
   return [];
 }
 
+export async function uploadBulkImportZip(file: File, token?: string): Promise<{ success: boolean; jobId: string; message: string }> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const adminToken = token || localStorage.getItem("admin_token") || "";
+  const headers: Record<string, string> = {};
+  if (adminToken) {
+    headers["Authorization"] = `Bearer ${adminToken}`;
+  }
+
+  const res = await fetch(`${API_BASE_URL}/api/products/bulk-import`, {
+    method: "POST",
+    headers,
+    body: formData
+  });
+
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => null);
+    throw new Error(errBody?.message || `Failed to start bulk import (${res.status})`);
+  }
+
+  return res.json();
+}
+
+export async function getBulkImportStatus(jobId: string, token?: string): Promise<{
+  success: boolean;
+  jobId: string;
+  status: "queued" | "processing" | "completed" | "failed";
+  totalCount: number;
+  processedCount: number;
+  successCount: number;
+  failedCount: number;
+  percentage: number;
+  errors: Array<{ row: number; productName: string; image: string; error: string }>;
+  summary: any;
+}> {
+  return fetchJSON(`/api/products/bulk-import/status/${jobId}`);
+}
+
+export function downloadBulkImportTemplate() {
+  window.open(`${API_BASE_URL}/api/products/bulk-import/template`, "_blank");
+}
+
+

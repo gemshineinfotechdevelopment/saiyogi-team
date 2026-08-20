@@ -7,16 +7,23 @@ import { getProducts } from "@/lib/api";
 import { Product } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import { useCart } from "@/context/CartContext";
+import ProductLoadingSkeleton from "@/components/ui/ProductLoadingSkeleton";
 
 const ComboPacks = () => {
   const [email, setEmail] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const { items, totalItems, totalPrice, setIsCartOpen } = useCart();
 
   useEffect(() => {
-    getProducts().then((prods) => {
-      setProducts(Array.isArray(prods) ? prods : []);
-    });
+    getProducts()
+      .then((prods) => {
+        setProducts(Array.isArray(prods) ? prods : []);
+      })
+      .catch((err) => {
+        console.error("Failed to load products in ComboPacks:", err);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const comboPacks = products.filter(p => p.name.toLowerCase().includes('combo') || p.name.toLowerCase().includes('pack'));
@@ -164,11 +171,19 @@ const ComboPacks = () => {
         </div>
 
         {/* Product Cards Grid (4 columns) */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-10">
-          {comboPacks.map((pack) => (
-            <ProductCard key={pack.id || pack._id} product={pack} />
-          ))}
-        </div>
+        {loading ? (
+          <ProductLoadingSkeleton mode="grid" count={4} />
+        ) : comboPacks.length === 0 ? (
+          <div className="text-center py-16 bg-gray-50 rounded-2xl border border-gray-200">
+            <p className="text-gray-500 font-bold">No combo packs found at the moment.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-10">
+            {comboPacks.map((pack) => (
+              <ProductCard key={pack.id || pack._id} product={pack} />
+            ))}
+          </div>
+        )}
 
         {/* Load More Combos Button */}
         <div className="flex justify-center mb-10">
