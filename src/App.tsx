@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CartProvider } from "@/context/CartContext";
+import { WishlistProvider } from "@/context/WishlistContext";
 import { SiteSettingsProvider } from "@/context/SiteSettingsContext";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -13,6 +14,7 @@ import Catalog from "./pages/Catalog";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import CartDrawer from "./components/cart/CartDrawer";
+import WishlistDrawer from "./components/wishlist/WishlistDrawer";
 import SafetyTips from "./pages/SafetyTips";
 import Contact from "./pages/Contact";
 import QuickEnquiry from "./pages/QuickEnquiry";
@@ -52,7 +54,8 @@ const App = () => (
         <SiteSettingsProvider>
           <AuthProvider>
             <CartProvider>
-              <SettingsProvider>
+              <WishlistProvider>
+                <SettingsProvider>
                 <Toaster />
                 <Sonner />
                 <ScrollToTop />
@@ -171,8 +174,10 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <CartDrawer />
+                <WishlistDrawer />
               </SettingsProvider>
-            </CartProvider>
+            </WishlistProvider>
+          </CartProvider>
           </AuthProvider>
         </SiteSettingsProvider>
       </BrowserRouter>

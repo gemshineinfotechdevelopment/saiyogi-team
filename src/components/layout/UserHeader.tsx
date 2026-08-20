@@ -1,7 +1,8 @@
 import companyLogo from "@/assets/saiyogi-logo-1.png";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { ShoppingCart, Menu, X, User } from "lucide-react";
+import { ShoppingCart, Menu, X, User, Heart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
@@ -12,6 +13,7 @@ interface UserHeaderProps {
 
 const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
   const { totalItems, setIsCartOpen } = useCart();
+  const { wishlistCount, setIsWishlistOpen } = useWishlist();
   const { settings } = useSiteSettings();
   const { isUserLoggedIn, userPhone, userName, openLoginModal, logoutUser } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -117,8 +119,8 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
             </Link>
           </nav>
 
-          {/* Right Corner Buttons: Login & Cart Logo Button */}
-          <div className="flex items-center gap-3 shrink-0">
+          {/* Right Corner Buttons: Login, Wishlist & Cart Logo Button */}
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
             {/* User Symbol Button / Phone Badge */}
             <button
               onClick={handleUserClick}
@@ -132,6 +134,20 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
               {isUserLoggedIn && (
                 <span className="hidden lg:inline text-xs font-black tracking-tight">
                   {userName && userName !== "Customer" ? userName : (userPhone ? `+91 ${userPhone}` : "Account")}
+                </span>
+              )}
+            </button>
+
+            {/* Wishlist Button */}
+            <button
+              onClick={() => setIsWishlistOpen(true)}
+              className="relative p-2.5 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-300 text-gray-700 hover:text-[#A80000] rounded-xl transition-all flex items-center justify-center shadow-md hover:scale-105 active:scale-95 cursor-pointer"
+              title="View Wishlist"
+            >
+              <Heart className={`h-5 w-5 ${wishlistCount > 0 ? "fill-[#A80000] text-[#A80000]" : ""}`} />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-[#A80000] text-white text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                  {wishlistCount}
                 </span>
               )}
             </button>
