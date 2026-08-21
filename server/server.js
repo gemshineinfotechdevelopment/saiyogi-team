@@ -148,7 +148,6 @@ app.use('/api/brands', brandsRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/chit-schemes', chitSchemesRouter);
 app.use('/api/chit-subscriptions', chitSubscriptionsRouter);
-app.use('/api/chit-applications', chitSubscriptionsRouter);
 
 // 404 Handler for API routes
 app.use('/api', (req, res) => {

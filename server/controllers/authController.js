@@ -210,3 +210,28 @@ export const customerPhoneLogin = async (req, res, next) => {
     next(error);
   }
 };
+
+export const verifyToken = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.userId).select('-password');
+    if (!user) {
+      return next(new AppError('User not found or session expired', 404));
+    }
+    const roleUpper = String(user.role || '').toUpperCase();
+    if (roleUpper !== 'SUPER ADMIN' && roleUpper !== 'ADMIN') {
+      return next(new AppError('Admin access required', 403));
+    }
+    res.json({
+      valid: true,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

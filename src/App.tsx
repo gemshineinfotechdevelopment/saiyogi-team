@@ -179,6 +179,9 @@ const App = () => (
                       </ProtectedRoute>
                     }
                   />
+                  {/* ── Catch-all: any invented /admin/* path not listed above → home ── */}
+                  <Route path="/admin/*" element={<Navigate to="/" replace />} />
+
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <CartDrawer />

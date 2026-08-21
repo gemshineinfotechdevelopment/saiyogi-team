@@ -138,20 +138,16 @@ orderSchema.index({ customerEmail: 1 });
 orderSchema.index({ status: 1 });
 orderSchema.index({ createdAt: -1 });
 
-// Generate order number before saving
+// Generate order number before saving if not already provided
 orderSchema.pre('save', async function() {
   if (!this.orderNumber) {
-    const recentOrders = await mongoose.model('Order').find().sort({ createdAt: -1 }).limit(50).exec();
-    let maxNum = 8898;
-    for (const o of recentOrders) {
-      if (o.orderNumber) {
-        const num = parseInt(o.orderNumber, 10);
-        if (!isNaN(num) && num > maxNum) {
-          maxNum = num;
-        }
-      }
-    }
-    this.orderNumber = (maxNum + 1).toString();
+    const Counter = mongoose.model('Counter');
+    const counter = await Counter.findByIdAndUpdate(
+      'orderNumber',
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+    this.orderNumber = counter.seq.toString();
   }
 });
 

@@ -24,12 +24,14 @@ const AdminReports = () => {
   }, []);
 
   const productStats = useMemo(() => {
-    // Build a sales map from orders (keyed by product name)
-    const salesMap: Record<string, { quantity: number; revenue: number }> = {};
+    // Build sales maps from orders (keyed by product ID and legacy product name)
+    const salesMapById: Record<string, { quantity: number; revenue: number }> = {};
+    const salesMapByName: Record<string, { quantity: number; revenue: number }> = {};
 
     orders.forEach((order) => {
       if (order.items && Array.isArray(order.items)) {
         order.items.forEach((item: any) => {
+          const prodId = item.product?._id || item.product?.id || (typeof item.product === 'string' ? item.product : null);
           const name = item.product?.name || item.productName || "Unknown Product";
           const quantity = item.quantity || 1;
 
@@ -42,21 +44,38 @@ const AdminReports = () => {
 
           const revenue = quantity * price;
 
-          if (!salesMap[name]) salesMap[name] = { quantity: 0, revenue: 0 };
-          salesMap[name].quantity += quantity;
-          salesMap[name].revenue += revenue;
+          if (prodId) {
+            const idStr = String(prodId);
+            if (!salesMapById[idStr]) salesMapById[idStr] = { quantity: 0, revenue: 0 };
+            salesMapById[idStr].quantity += quantity;
+            salesMapById[idStr].revenue += revenue;
+          } else {
+            const cleanName = String(name).trim().toLowerCase();
+            if (!salesMapByName[cleanName]) salesMapByName[cleanName] = { quantity: 0, revenue: 0 };
+            salesMapByName[cleanName].quantity += quantity;
+            salesMapByName[cleanName].revenue += revenue;
+          }
         });
       }
     });
 
     // Use the products page product list as the authoritative source
     const stats = products.map((p: any) => {
-      const name = p.name || "Unknown Product";
-      const sales = salesMap[name] || { quantity: 0, revenue: 0 };
+      const pId = String(p._id || p.id || "");
+      const pName = p.name || "Unknown Product";
+      const cleanName = pName.trim().toLowerCase();
+
+      const salesById = pId ? salesMapById[pId] : null;
+      const salesByName = salesMapByName[cleanName];
+
+      const quantity = (salesById?.quantity || 0) + (salesByName?.quantity || 0);
+      const revenue = (salesById?.revenue || 0) + (salesByName?.revenue || 0);
+
       return {
-        name,
-        quantity: sales.quantity,
-        revenue: sales.revenue,
+        id: pId,
+        name: pName,
+        quantity,
+        revenue,
       };
     });
 

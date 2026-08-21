@@ -1,11 +1,42 @@
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
+import Category from '../models/Category.js';
 import Customer from '../models/Customer.js';
 import Settings from '../models/Settings.js';
+import Counter from '../models/Counter.js';
 import inventoryService from '../services/inventoryService.js';
 import { AppError } from '../middleware/errorHandler.js';
 import mongoose from 'mongoose';
 import { INVENTORY_SOURCES } from '../constants/inventorySources.js';
+
+export const getNextOrderNumber = async (session = null) => {
+  const counter = await Counter.findById('orderNumber').session(session);
+  if (!counter) {
+    const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(50).session(session);
+    let maxNum = 8898;
+    for (const o of recentOrders) {
+      if (o.orderNumber) {
+        const num = parseInt(o.orderNumber, 10);
+        if (!isNaN(num) && num > maxNum) {
+          maxNum = num;
+        }
+      }
+    }
+    await Counter.findByIdAndUpdate(
+      'orderNumber',
+      { $setOnInsert: { seq: maxNum } },
+      { upsert: true, new: true, session }
+    );
+  }
+
+  const updatedCounter = await Counter.findByIdAndUpdate(
+    'orderNumber',
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true, session }
+  );
+
+  return updatedCounter.seq.toString();
+};
 
 export const getAllOrders = async (req, res, next) => {
   try {
@@ -120,18 +151,8 @@ export const createOrder = async (req, res, next) => {
     const total = Math.round(estimatedTotal);
     const roundOff = total - estimatedTotal;
 
-    // Generate sequential order number starting from 8899
-    const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(50).session(session);
-    let maxNum = 8898;
-    for (const o of recentOrders) {
-      if (o.orderNumber) {
-        const num = parseInt(o.orderNumber, 10);
-        if (!isNaN(num) && num > maxNum) {
-          maxNum = num;
-        }
-      }
-    }
-    const orderNumber = (maxNum + 1).toString();
+    // Generate atomic sequential order number
+    const orderNumber = await getNextOrderNumber(session);
 
     // Attempt to link to an existing customer
     const existingCustomer = await Customer.findOne({ email: customerEmail }).session(session);
@@ -403,10 +424,33 @@ export const updateHoldDays = async (req, res, next) => {
 export const deleteOrder = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const order = await Order.findByIdAndDelete(id);
+    const order = await Order.findById(id);
     if (!order) {
       return next(new AppError('Order not found', 404));
     }
+
+    // If order was not cancelled, restore inventory before deleting so stock is not permanently lost
+    const isCancelled = String(order.status || '').toLowerCase() === 'cancelled';
+    if (!isCancelled && order.items && order.items.length > 0) {
+      for (const item of order.items) {
+        if (item.product) {
+          try {
+            await inventoryService.increaseStock(
+              item.product,
+              item.quantity,
+              INVENTORY_SOURCES.RETURN,
+              order._id,
+              req.userId,
+              `Order deleted: ${order.orderNumber}`
+            );
+          } catch (invErr) {
+            console.error(`Failed to restore stock for product ${item.product} on order deletion:`, invErr);
+          }
+        }
+      }
+    }
+
+    await Order.findByIdAndDelete(id);
     res.json({ message: 'Order deleted successfully', id });
   } catch (error) {
     next(error);

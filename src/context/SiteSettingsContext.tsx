@@ -141,9 +141,25 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     fetchSettings();
 
-    // Poll for settings changes every 5 seconds
-    const pollInterval = setInterval(fetchSettings, 5000);
-    return () => clearInterval(pollInterval);
+    // Refresh settings when tab becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchSettings();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Poll for settings changes every 60 seconds when active
+    const pollInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchSettings();
+      }
+    }, 60000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(pollInterval);
+    };
   }, []);
 
   const updateSettings = async (newSettings: SiteSettings) => {

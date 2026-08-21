@@ -46,38 +46,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("admin_token");
-    const storedRole = localStorage.getItem("admin_role");
-    const storedPhone = getCookie("saiyogi_user_phone") || localStorage.getItem("user_phone");
-    const storedName = getCookie("saiyogi_user_name") || localStorage.getItem("user_name");
+    const initAuth = async () => {
+      const storedToken = localStorage.getItem("admin_token");
+      const storedRole = localStorage.getItem("admin_role");
+      const storedPhone = getCookie("saiyogi_user_phone") || localStorage.getItem("user_phone");
+      const storedName = getCookie("saiyogi_user_name") || localStorage.getItem("user_name");
 
-    if (storedPhone) {
-      setUserPhone(storedPhone);
-      setUserName(storedName || null);
-      setCookie("saiyogi_user_phone", storedPhone, 30);
-      localStorage.setItem("user_phone", storedPhone);
-      if (storedName) {
-        setCookie("saiyogi_user_name", storedName, 30);
-        localStorage.setItem("user_name", storedName);
+      if (storedPhone) {
+        setUserPhone(storedPhone);
+        setUserName(storedName || null);
+        setCookie("saiyogi_user_phone", storedPhone, 30);
+        localStorage.setItem("user_phone", storedPhone);
+        if (storedName) {
+          setCookie("saiyogi_user_name", storedName, 30);
+          localStorage.setItem("user_name", storedName);
+        }
       }
-    }
 
-    if (storedToken && ["admin", "SUPER ADMIN", "ADMIN"].includes(storedRole || "")) {
-      setToken(storedToken);
-      setIsAdmin(true);
-      setIsAuthenticated(true);
-    } else {
-      // Clean up stale admin_token if it belonged to a customer phone login
-      if (!["admin", "SUPER ADMIN", "ADMIN"].includes(storedRole || "")) {
+      if (storedToken) {
+        const rawBase = isLocalhost ? "" : ((import.meta.env.VITE_API_URL as string) || "http://localhost:5000");
+        const primaryBase = rawBase.trim().replace(/\/+$/, "");
+        const verifyUrl = `${primaryBase}/api/auth/verify`;
+
+        try {
+          const res = await fetch(verifyUrl, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${storedToken}`
+            }
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data.valid && data.user) {
+              setToken(storedToken);
+              setIsAdmin(true);
+              setIsAuthenticated(true);
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (err) {
+          console.warn("Failed to verify admin token with backend:", err);
+        }
+
+        // If verification failed or returned non-200, invalidate the admin session
         localStorage.removeItem("admin_token");
         localStorage.removeItem("admin_role");
+        setIsAdmin(false);
+        setToken(localStorage.getItem("customer_token") || null);
+        setIsAuthenticated(!!storedPhone);
+      } else {
+        setIsAdmin(false);
+        setToken(localStorage.getItem("customer_token") || null);
+        setIsAuthenticated(!!storedPhone);
       }
-      const custToken = localStorage.getItem("customer_token");
-      setToken(custToken);
-      setIsAdmin(false);
-      setIsAuthenticated(!!storedPhone);
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    initAuth();
   }, []);
 
   const loginWithPhone = async (phone: string, name?: string) => {
@@ -180,20 +208,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (!data) {
-      console.warn("Backend login failed or server offline, evaluating fallback admin login:", lastError);
-      
-      const cleanEmail = email.trim().toLowerCase();
-      if (
-        (cleanEmail === "admin@crackerhub.com" || cleanEmail === "admin@saiyogi.com" || cleanEmail === "admin@gmail.com" || cleanEmail.startsWith("admin")) &&
-        (password === "admin123" || password === "admin")
-      ) {
-        data = {
-          token: "mock_demo_admin_token_2026",
-          user: { role: "admin", email: cleanEmail }
-        };
-      } else {
-        throw lastError || new Error("Login failed");
-      }
+      throw lastError || new Error("Login failed. Unable to connect to server.");
     }
 
     // Allow SUPER ADMIN and ADMIN roles

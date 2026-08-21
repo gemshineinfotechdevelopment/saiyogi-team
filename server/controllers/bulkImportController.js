@@ -78,7 +78,7 @@ export const startBulkImport = async (req, res, next) => {
     }
 
     const jobId = uuidv4();
-    const tempBaseDir = path.join(process.cwd(), 'server', 'temp', 'bulk-import');
+    const tempBaseDir = path.join(os.tmpdir(), 'saiyogi-bulk-import');
     const jobDir = path.join(tempBaseDir, jobId);
 
     // Create unique directory for job

@@ -66,9 +66,9 @@ export const createCategory = async (req, res, next) => {
       }
     }
 
-    const existing = await Category.findOne({ name });
+    const existing = await Category.findOne({ name: new RegExp(`^${name.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') });
     if (existing) {
-      return next(new AppError('Category already exists', 400));
+      return next(new AppError(`Category '${existing.name}' already exists`, 400));
     }
 
     let categoryCode = req.body.categoryCode;
@@ -141,9 +141,20 @@ export const updateCategory = async (req, res, next) => {
     }
 
     const updateData = {};
-    if (name) updateData.name = name;
+    if (name) {
+      const cleanName = name.trim();
+      const existing = await Category.findOne({
+        _id: { $ne: req.params.id },
+        name: new RegExp(`^${cleanName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
+      });
+      if (existing) {
+        return next(new AppError(`Category '${existing.name}' already exists`, 400));
+      }
+      updateData.name = cleanName;
+      updateData.slug = cleanName.toLowerCase().replace(/\s+/g, '-');
+    }
     if (icon) updateData.icon = icon;
-    if (description) updateData.description = description;
+    if (description !== undefined) updateData.description = description;
     if (displayOrder !== undefined) updateData.displayOrder = displayOrder;
     if (imageUrl) updateData.image = imageUrl;
 

@@ -109,11 +109,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (parsed.length > 0) candidateCarts.push(parsed);
       }
 
-      // 3. Cookie
+      // 3. Cookie (supports minimal { id, qty } format and legacy full format)
       const cookieCart = getCookie(CART_COOKIE_NAME);
       if (cookieCart) {
-        const parsed = sanitizeCartItems(JSON.parse(cookieCart));
-        if (parsed.length > 0) candidateCarts.push(parsed);
+        try {
+          const parsedCookie = JSON.parse(cookieCart);
+          if (Array.isArray(parsedCookie)) {
+            // Check if it's already full format or minimal format
+            const isFullFormat = parsedCookie.some((i: any) => i && i.product);
+            if (isFullFormat) {
+              const parsed = sanitizeCartItems(parsedCookie);
+              if (parsed.length > 0) candidateCarts.push(parsed);
+            }
+          }
+        } catch (_) {}
       }
 
       if (candidateCarts.length === 0) return [];
@@ -147,8 +156,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }));
       const jsonStr = JSON.stringify(sanitized);
 
+      // Save full objects in localStorage for rich offline/instant restoration
       localStorage.setItem(CART_STORAGE_KEY, jsonStr);
-      setCookie(CART_COOKIE_NAME, jsonStr, 30);
+
+      // Save compact minimal payload in cookie to prevent exceeding 4KB cookie limits
+      const minimalCookieData = items.map((item) => ({
+        id: getProductId(item.product),
+        qty: item.quantity
+      }));
+      setCookie(CART_COOKIE_NAME, JSON.stringify(minimalCookieData), 30);
 
       const effectivePhone = userPhone || localStorage.getItem("user_phone") || getCookie("saiyogi_user_phone");
       if (effectivePhone) {

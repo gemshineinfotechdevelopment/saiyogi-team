@@ -53,4 +53,7 @@ categorySchema.pre('save', function(next) {
   if (typeof next === 'function') next();
 });
 
+// Case-insensitive unique index on name to prevent duplicates like 'Sparklers' vs 'sparklers'
+categorySchema.index({ name: 1 }, { unique: true, collation: { locale: 'en', strength: 2 } });
+
 export default mongoose.model('Category', categorySchema);

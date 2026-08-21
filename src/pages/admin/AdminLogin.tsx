@@ -81,21 +81,13 @@ const AdminLogin = () => {
 
             <Button 
               type="submit" 
-              className="w-full mt-6" 
+              className="w-full mt-6 bg-red-600 hover:bg-red-700 text-white font-bold" 
               disabled={loading}
               size="lg"
             >
               {loading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
-
-          <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-xs text-gray-600">
-              <span className="font-semibold">Demo Credentials:</span><br />
-              Email: cracker@saiyogi.com<br />
-              Password: admin123
-            </p>
-          </div>
         </div>
       </Card>
     </div>
