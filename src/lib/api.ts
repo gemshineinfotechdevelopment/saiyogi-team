@@ -524,7 +524,7 @@ export const apiRequest = async (path: string, options: any = {}) => {
   if (!response.ok) {
     if (response.status === 401) {
       localStorage.removeItem('admin_token');
-      window.location.href = '/admin-dashboard-panel';
+      window.location.href = '/';
     }
     let errorMessage = 'API Request failed';
     try {

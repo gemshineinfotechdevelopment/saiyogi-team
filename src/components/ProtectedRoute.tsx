@@ -20,7 +20,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   if (!isAuthenticated || !isAdmin) {
-    return <Navigate to="/admin-dashboard-panel" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <div className="admin-scope min-h-screen">{children}</div>;
