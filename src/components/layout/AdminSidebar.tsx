@@ -52,7 +52,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/admin/login");
+    navigate("/admin-dashboard-panel");
   };
 
   return (

@@ -29,7 +29,7 @@ const AdminNavbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/admin/login");
+    navigate("/admin-dashboard-panel");
   };
 
   return (

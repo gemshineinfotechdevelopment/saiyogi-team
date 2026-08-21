@@ -82,7 +82,15 @@ const App = () => (
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/terms-and-conditions" element={<Terms />} />
                   <Route path="/privacy-policy" element={<Terms defaultTab="privacy" />} />
-                  <Route path="/admin/login" element={<AdminLogin />} />
+                  {/* ── Admin login: only accessible via /admin-dashboard-panel ── */}
+                  <Route path="/admin-dashboard-panel" element={<AdminLogin />} />
+
+                  {/* ── Block all other guessable admin entry paths → redirect to home ── */}
+                  <Route path="/admin-login" element={<Navigate to="/" replace />} />
+                  <Route path="/admin-panel" element={<Navigate to="/" replace />} />
+                  <Route path="/admin/login" element={<Navigate to="/" replace />} />
+                  <Route path="/admin/dashboard" element={<Navigate to="/" replace />} />
+
                   <Route
                     path="/admin"
                     element={
