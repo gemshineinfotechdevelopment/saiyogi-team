@@ -43,4 +43,8 @@ const brandSchema = new mongoose.Schema(
   }
 );
 
+// Case-insensitive unique index on name to prevent duplicates like 'Coronation' vs 'coronation'
+brandSchema.index({ name: 1 }, { unique: true, collation: { locale: 'en', strength: 2 } });
+
+
 export default mongoose.model('Brand', brandSchema);

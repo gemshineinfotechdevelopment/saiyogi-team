@@ -5,6 +5,7 @@ import AdmZip from 'adm-zip';
 import XLSX from 'xlsx';
 import Product from '../models/Product.js';
 import Category from '../models/Category.js';
+import Brand from '../models/Brand.js';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -368,12 +369,21 @@ async function processBulkImportJob(jobId, zipPath, jobDir) {
 
     job.totalCount = rawRows.length;
 
-    // 4. Fetch all MongoDB categories for strict lookup (no auto-creation)
+    // 4a. Fetch all MongoDB categories for strict lookup (no auto-creation)
     const mongoCategories = await Category.find({});
     const categoryMap = new Map();
     mongoCategories.forEach(cat => {
       if (cat.name) {
         categoryMap.set(cat.name.trim().toLowerCase(), cat);
+      }
+    });
+
+    // 4b. Fetch all MongoDB brands for case-insensitive lookup (no auto-creation)
+    const mongoBrands = await Brand.find({});
+    const brandMap = new Map();
+    mongoBrands.forEach(b => {
+      if (b.name) {
+        brandMap.set(b.name.trim().toLowerCase(), b.name.trim());
       }
     });
 
@@ -446,9 +456,9 @@ async function processBulkImportJob(jobId, zipPath, jobDir) {
             if (!categoryName) {
               throw new Error('Category is required');
             }
-            const matchedCategory = categoryMap.get(categoryName.toLowerCase());
+            const matchedCategory = categoryMap.get(categoryName.trim().toLowerCase());
             if (!matchedCategory) {
-              throw new Error(`Category '${categoryName}' not found in MongoDB`);
+              throw new Error(`Category '${categoryName}' not found. Please create it in Admin → Categories before importing.`);
             }
 
             // --- Validation 3: Required Price ---
@@ -540,7 +550,8 @@ async function processBulkImportJob(jobId, zipPath, jobDir) {
               displayNetRate,
               wholesalePrice,
               netRate,
-              brand: brand || 'Sai Yogi Standard',
+              // Resolve brand name case-insensitively against existing brands
+              brand: (brand ? (brandMap.get(brand.trim().toLowerCase()) || brand.trim()) : 'Sai Yogi Standard'),
               stock,
               storeStockPieces,
               godownStockCases,

@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { getOrders } from "@/lib/api";
+import { getOrders, getProducts } from "@/lib/api";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminNavbar from "@/components/layout/AdminNavbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,60 +9,66 @@ import { Package, TrendingUp, IndianRupee } from "lucide-react";
 
 const AdminReports = () => {
   const [orders, setOrders] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchOrders();
-  }, []);
-
-  const fetchOrders = () => {
     setIsLoading(true);
-    getOrders()
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setOrders(data);
-        }
+    Promise.all([getOrders(), getProducts()])
+      .then(([ordersData, productsData]) => {
+        if (Array.isArray(ordersData)) setOrders(ordersData);
+        if (Array.isArray(productsData)) setProducts(productsData);
       })
       .catch(console.error)
       .finally(() => setIsLoading(false));
-  };
+  }, []);
 
   const productStats = useMemo(() => {
-    const stats: Record<string, { name: string; quantity: number; revenue: number }> = {};
+    // Build a sales map from orders (keyed by product name)
+    const salesMap: Record<string, { quantity: number; revenue: number }> = {};
 
     orders.forEach((order) => {
-      // Only count valid or completed orders if necessary, but we'll include all for now 
-      // since the prompt says "whole project ku sethu" (for the whole project)
       if (order.items && Array.isArray(order.items)) {
         order.items.forEach((item: any) => {
           const name = item.product?.name || item.productName || "Unknown Product";
           const quantity = item.quantity || 1;
-          
-          // Calculate price using netRate if available, fallback to price or originalPrice
-          const price = item.netRate !== undefined ? item.netRate : 
-                        (item.price !== undefined ? item.price : 
-                        (item.product?.netRate !== undefined ? item.product.netRate :
-                        (item.product?.price !== undefined ? item.product.price : 0)));
-          
+
+          // Calculate price using netRate if available, fallback to price
+          const price =
+            item.netRate !== undefined ? item.netRate :
+            item.price !== undefined ? item.price :
+            item.product?.netRate !== undefined ? item.product.netRate :
+            item.product?.price !== undefined ? item.product.price : 0;
+
           const revenue = quantity * price;
 
-          if (!stats[name]) {
-            stats[name] = { name, quantity: 0, revenue: 0 };
-          }
-          stats[name].quantity += quantity;
-          stats[name].revenue += revenue;
+          if (!salesMap[name]) salesMap[name] = { quantity: 0, revenue: 0 };
+          salesMap[name].quantity += quantity;
+          salesMap[name].revenue += revenue;
         });
       }
     });
 
-    return Object.values(stats).sort((a, b) => b.revenue - a.revenue);
-  }, [orders]);
+    // Use the products page product list as the authoritative source
+    const stats = products.map((p: any) => {
+      const name = p.name || "Unknown Product";
+      const sales = salesMap[name] || { quantity: 0, revenue: 0 };
+      return {
+        name,
+        quantity: sales.quantity,
+        revenue: sales.revenue,
+      };
+    });
+
+    // Sort by revenue descending (products with sales first)
+    return stats.sort((a, b) => b.revenue - a.revenue);
+  }, [orders, products]);
 
   const totalRevenue = productStats.reduce((sum, p) => sum + p.revenue, 0);
   const totalProductsSold = productStats.reduce((sum, p) => sum + p.quantity, 0);
 
-  // Top 5 products for chart
-  const chartData = productStats.slice(0, 5);
+  // Top 5 products (with sales) for chart
+  const chartData = productStats.filter((p) => p.revenue > 0).slice(0, 5);
 
   return (
     <div className="flex min-h-screen bg-gray-50/50">

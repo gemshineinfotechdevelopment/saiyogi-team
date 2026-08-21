@@ -75,6 +75,12 @@ export const createBrand = async (req, res, next) => {
       return next(new AppError('Brand name is required', 400));
     }
 
+    // Case-insensitive duplicate check: prevent "coronation" if "Coronation" already exists
+    const existing = await Brand.findOne({ name: new RegExp(`^${name.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') });
+    if (existing) {
+      return next(new AppError(`Brand '${existing.name}' already exists. Use the existing brand instead of creating a duplicate.`, 409));
+    }
+
     const logoUrl = await processLogoUpload(req, '/sky_rocket_box.png');
     const brandId = await generateBrandId();
 
@@ -95,6 +101,7 @@ export const createBrand = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // UPDATE brand
 export const updateBrand = async (req, res, next) => {
