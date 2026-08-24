@@ -174,8 +174,8 @@ export const UserLoginModal: React.FC<UserLoginModalProps> = ({ isOpen, onClose,
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent 
-        side="bottom" 
-        className="p-0 border-t-0 rounded-t-[28px] sm:rounded-t-[36px] bg-white max-w-xl sm:max-w-2xl mx-auto overflow-hidden shadow-2xl [&>button]:hidden flex flex-col max-h-[90vh]"
+        side="top" 
+        className="p-0 border-b-0 rounded-b-[28px] sm:rounded-b-[36px] bg-white max-w-xl sm:max-w-2xl mx-auto overflow-hidden shadow-2xl [&>button]:hidden flex flex-col max-h-[90vh]"
       >
         {/* Top Header Bar */}
         <div className="relative flex items-center justify-between px-6 pt-5 pb-3 border-b border-gray-100 shrink-0">
