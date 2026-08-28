@@ -125,8 +125,8 @@ const Catalog = () => {
   }, [products]);
 
   const uniqueCategoryNames = useMemo(() => {
-    const names = categories.map(c => c.name);
-    return ["All Categories", "Day Crackers", "Night Crackers", "Kids Crackers", "Gift Box", ...names];
+    const names = categories.map(c => c.name).filter(n => n.toLowerCase() !== "combo packs");
+    return ["All Categories", "Day Crackers", "Night Crackers", "Kids Crackers", "Gift Box", "Combo Packs", ...names];
   }, [categories]);
 
   // Filtered and Sorted products
@@ -146,6 +146,13 @@ const Catalog = () => {
         result = result.filter(p => p.crackerType === "Kids Crackers" || p.name.toLowerCase().includes("kids"));
       } else if (selectedCategory.toLowerCase() === "gift box" || selectedCategory.toLowerCase() === "giftbox" || selectedCategory.toLowerCase() === "gift box crackers") {
         result = result.filter(p => p.crackerType === "Gift Box" || p.name.toLowerCase().includes("gift"));
+      } else if (selectedCategory.toLowerCase() === "combo packs" || selectedCategory.toLowerCase() === "combo pack" || selectedCategory.toLowerCase() === "combos" || selectedCategory.toLowerCase() === "combo") {
+        result = result.filter(p => {
+          const cat = p.category as any;
+          const catName = typeof cat === 'object' && cat !== null ? (cat.name || '') : String(cat || '');
+          const catId = typeof cat === 'object' && cat !== null ? (cat._id || cat.id || '') : String(cat || '');
+          return catName.toLowerCase().includes("combo") || catId.toLowerCase().includes("combo") || p.name.toLowerCase().includes("combo") || p.name.toLowerCase().includes("pack");
+        });
       } else {
         result = result.filter((p) => {
           const cat = p.category as any;

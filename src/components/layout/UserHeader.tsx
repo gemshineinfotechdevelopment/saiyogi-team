@@ -74,7 +74,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ isHidden = false }) => {
         <div className="bg-[#A80000] text-[#FEF200] text-xs py-1.5 overflow-hidden relative z-50">
           <div className="flex items-center justify-between container mx-auto px-4">
             <div className="w-full overflow-hidden">
-              <div className="animate-marquee whitespace-nowrap flex items-center gap-4 text-[11px] sm:text-xs font-black tracking-wider text-[#FEF200]">
+              <div className="animate-top-announcement w-max whitespace-nowrap flex items-center gap-4 text-[11px] sm:text-xs font-black tracking-wider text-[#FEF200]">
                 <span>DIWALI 2026 BOOKING OPENS! | In compliance with the 2018 Supreme Court order, online sale of firecrackers is strictly prohibited. This site only provides price estimates for reference. </span>
                 <span className="text-white">✦</span>
                 <span>DIWALI 2026 BOOKING OPENS! | In compliance with the 2018 Supreme Court order, online sale of firecrackers is strictly prohibited. This site only provides price estimates for reference. </span>

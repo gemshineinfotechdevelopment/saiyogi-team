@@ -647,8 +647,21 @@ select.bg-secondary option {
 .animate-top-marquee {
   display: flex;
   gap: 4rem;
-  animation: topMarqueeScroll 15s linear infinite;
+  animation: topMarqueeScroll 13s linear infinite;
   width: max-content;
+}
+
+.animate-top-marquee:hover {
+  animation-play-state: paused;
+}
+
+.animate-top-announcement {
+  display: inline-flex;
+  animation: marquee 20s linear infinite;
+}
+
+.animate-top-announcement:hover {
+  animation-play-state: paused;
 }
 
 /* Right-to-Left Slide Animation */
@@ -657,6 +670,7 @@ select.bg-secondary option {
     opacity: 0;
     transform: translateX(80px);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0);
@@ -672,6 +686,7 @@ select.bg-secondary option {
   0% {
     transform: translateX(0);
   }
+
   100% {
     transform: translateX(-50%);
   }

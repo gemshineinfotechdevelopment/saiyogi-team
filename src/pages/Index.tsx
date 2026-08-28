@@ -14,6 +14,7 @@ import dayCrackersImg from "@/assets/daycrackers.png";
 import giftBoxCrackersImg from "@/assets/giftboxcrackers.png";
 import kidsCrackersImg from "@/assets/kidscrackers.png";
 import nightCrackersImg from "@/assets/nightcrackers.png";
+import comboPacksImg from "@/assets/combo-packs.png";
 import { useState, useEffect, useRef } from "react";
 import { getProducts, getCategories, getBrands, Brand } from "@/lib/api";
 import { Product, Category } from "@/data/products";
@@ -406,6 +407,26 @@ const Index = () => {
                 </h3>
               </div>
             ))}
+          </div>
+
+          {/* Festive Combo Packs Banner */}
+          <div className="mt-4 sm:mt-8 w-full">
+            <div
+              onClick={() => navigate("/catalog?category=Combo%20Packs")}
+              className="group cursor-pointer flex flex-col items-center"
+              title="View Combo Packs"
+            >
+              <div className="w-full h-36 xs:h-44 sm:h-56 md:h-64 overflow-hidden rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 bg-gray-50 transition-all duration-300 group-hover:shadow-xl group-hover:border-[#A80000]/20 group-hover:-translate-y-1">
+                <img
+                  src={comboPacksImg}
+                  alt="Combo Packs"
+                  className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
+              <h3 className="font-black text-xs sm:text-lg md:text-xl text-black text-center mt-2 sm:mt-4 tracking-tight transition-colors group-hover:text-[#A80000]">
+                Combo Packs
+              </h3>
+            </div>
           </div>
         </div>
       </section>
