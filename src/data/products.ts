@@ -33,6 +33,11 @@ export interface Category {
   id?: string;
   name: string;
   categoryCode?: string;
+  slug?: string;
+  icon?: string;
+  description?: string;
+  displayOrder?: number;
+  isActive?: boolean;
   productCount: number;
   image: string;
 }
