@@ -383,14 +383,59 @@ async function processBulkImportJob(jobId, uploadedFilePath, jobDir, isZip) {
 
     job.totalCount = rawRows.length;
 
-    // 4a. Fetch all MongoDB categories for strict lookup
+    // 4a. Fetch all MongoDB categories and track highest categoryCode
     const mongoCategories = await Category.find({});
     const categoryMap = new Map();
+    let maxCatNum = 90;
     mongoCategories.forEach(cat => {
       if (cat.name) {
         categoryMap.set(cat.name.trim().toLowerCase(), cat);
       }
+      if (cat.categoryCode) {
+        const num = parseInt(cat.categoryCode, 10);
+        if (!isNaN(num) && num > maxCatNum) {
+          maxCatNum = num;
+        }
+      }
     });
+
+    // Auto-create any missing categories from the Excel sheet
+    for (const r of rawRows) {
+      let rawCat = '';
+      for (const k of ['category', 'categoryName', 'category_name', 'Category']) {
+        for (const rowKey of Object.keys(r)) {
+          if (rowKey.trim().toLowerCase() === k.toLowerCase() && r[rowKey] !== undefined && r[rowKey] !== null) {
+            rawCat = String(r[rowKey]).trim();
+            break;
+          }
+        }
+        if (rawCat) break;
+      }
+
+      if (rawCat && !categoryMap.has(rawCat.toLowerCase())) {
+        maxCatNum += 10;
+        const autoCatCode = maxCatNum.toString();
+        const baseSlug = rawCat.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || `category-${autoCatCode}`;
+        
+        try {
+          const newCategoryDoc = await Category.create({
+            name: rawCat,
+            categoryCode: autoCatCode,
+            slug: baseSlug,
+            description: `${rawCat} fireworks category`,
+            displayOrder: Math.floor(maxCatNum / 10),
+            isActive: true
+          });
+          categoryMap.set(rawCat.toLowerCase(), newCategoryDoc);
+        } catch (catErr) {
+          // If category already exists or duplicate slug error, query again
+          const existingCat = await Category.findOne({ name: new RegExp(`^${escapeRegex(rawCat)}$`, 'i') });
+          if (existingCat) {
+            categoryMap.set(rawCat.toLowerCase(), existingCat);
+          }
+        }
+      }
+    }
 
     // 4b. Fetch all MongoDB brands for case-insensitive lookup
     const mongoBrands = await Brand.find({});
