@@ -24,7 +24,8 @@ const productSchema = new mongoose.Schema(
     },
     image: {
       type: String,
-      required: true
+      default: '/saiyogi-logo-1.png',
+      required: false
     },
     price: {
       type: Number,

@@ -30,7 +30,7 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
     summary: null as any
   });
 
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Reset modal state when closed
   useEffect(() => {
@@ -104,8 +104,9 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selected = e.target.files[0];
-      if (!selected.name.toLowerCase().endsWith(".zip")) {
-        toast.error("Please select a .zip archive file");
+      const lower = selected.name.toLowerCase();
+      if (!lower.endsWith(".zip") && !lower.endsWith(".xlsx") && !lower.endsWith(".xls")) {
+        toast.error("Please select an Excel (.xlsx, .xls) or .zip archive file");
         return;
       }
       setFile(selected);
@@ -114,14 +115,14 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
 
   const handleStartImport = async () => {
     if (!file) {
-      toast.error("Please choose a ZIP file to import");
+      toast.error("Please choose an Excel or ZIP file to import");
       return;
     }
 
     try {
       setIsUploading(true);
       setJobStatus("queued");
-      toast.info("Uploading ZIP file...");
+      toast.info("Uploading file for import...");
 
       const res = await uploadBulkImportZip(file);
       if (res.success && res.jobId) {
@@ -176,7 +177,7 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
               <span>Bulk Product Import</span>
             </DialogTitle>
             <DialogDescription className="text-xs sm:text-sm text-gray-500 mt-1">
-              Import 250+ products at once using a ZIP file containing Excel data and images.
+              Import products in bulk. You can upload an Excel spreadsheet directly without images, or a ZIP archive with images.
             </DialogDescription>
           </div>
         </DialogHeader>
@@ -188,7 +189,7 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
               <FileSpreadsheet className="w-8 h-8 text-amber-700 shrink-0" />
               <div>
                 <h4 className="text-sm font-bold text-amber-900">Need the Excel Template?</h4>
-                <p className="text-xs text-amber-700">Download sample Excel file formatted for product import.</p>
+                <p className="text-xs text-amber-700">Download sample Excel file. Image column is optional (defaults to Sai Yogi logo).</p>
               </div>
             </div>
             <Button
@@ -202,24 +203,39 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
             </Button>
           </div>
 
-          {/* Action 2: Expected ZIP Structure Guide */}
-          <div className="p-3.5 bg-gray-50 border border-gray-200/80 rounded-xl text-xs text-gray-600 font-mono">
-            <p className="font-sans font-bold text-gray-800 mb-1">Expected ZIP Structure:</p>
-            <p>products-import.zip</p>
-            <p className="pl-4">├── products.xlsx</p>
-            <p className="pl-4">└── images/</p>
-            <p className="pl-8">├── product001.jpg</p>
-            <p className="pl-8">└── product002.jpg</p>
+          {/* Action 2: Upload Options Guide */}
+          <div className="p-4 bg-gray-50 border border-gray-200/80 rounded-2xl text-xs space-y-2">
+            <p className="font-bold text-gray-900 text-sm">Two Ways to Upload:</p>
+            <div className="grid sm:grid-cols-2 gap-2 text-gray-600">
+              <div className="bg-white p-2.5 rounded-xl border border-gray-200">
+                <span className="font-bold text-emerald-700 flex items-center gap-1 mb-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> 1. Without Images (Excel Only)
+                </span>
+                <p className="text-[11px] leading-relaxed">
+                  Upload <code className="text-gray-800 font-semibold bg-gray-100 px-1 py-0.5 rounded">products.xlsx</code> directly. Company logo is automatically set, and you can add/edit images later.
+                </p>
+              </div>
+              <div className="bg-white p-2.5 rounded-xl border border-gray-200">
+                <span className="font-bold text-blue-700 flex items-center gap-1 mb-1">
+                  <FileArchive className="w-3.5 h-3.5" /> 2. With Images (ZIP)
+                </span>
+                <p className="text-[11px] leading-relaxed font-mono">
+                  products.zip<br />
+                  ├── products.xlsx<br />
+                  └── images/ (product001.jpg, ...)
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Action 3: File Input / Dropzone */}
           {jobStatus === "idle" && (
             <div className="space-y-4">
-              <label className="block text-sm font-bold text-gray-700">Select ZIP Archive File (.zip)</label>
+              <label className="block text-sm font-bold text-gray-700">Select File (.xlsx, .xls, or .zip)</label>
               <div className="relative border-2 border-dashed border-gray-300 hover:border-[#A80000] rounded-2xl p-6 text-center transition-colors bg-gray-50/50 cursor-pointer">
                 <input
                   type="file"
-                  accept=".zip"
+                  accept=".xlsx,.xls,.zip"
                   onChange={handleFileChange}
                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                 />
@@ -232,8 +248,8 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
                     </div>
                   ) : (
                     <div>
-                      <p className="text-sm font-bold text-gray-700">Click or drag `.zip` file here</p>
-                      <p className="text-xs text-gray-400">Supports up to 100MB ZIP archives</p>
+                      <p className="text-sm font-bold text-gray-700">Click or drag Excel (`.xlsx`) or ZIP (`.zip`) file here</p>
+                      <p className="text-xs text-gray-400">Excel files or ZIP packages up to 100MB supported</p>
                     </div>
                   )}
                 </div>
@@ -359,7 +375,7 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
                   variant="outline"
                   className="rounded-xl font-bold"
                 >
-                  Import Another ZIP
+                  Import Another File
                 </Button>
                 <Button
                   type="button"

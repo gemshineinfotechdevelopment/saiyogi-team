@@ -77,7 +77,7 @@ export const createProduct = async (req, res, next) => {
   try {
     const { name, code, sku, category, price, wholesalePrice, netRate, stock, minimumStock, description, brand, hasDiscount, displayNetRate, storeStockPieces, godownStockCases, piecesPerCase, isSaiYogiVerified, rating, crackerType } = req.body;
 
-    let imageUrl = req.body.image || '';
+    let imageUrl = req.body.image || '/saiyogi-logo-1.png';
     
     if (req.file) {
       try {

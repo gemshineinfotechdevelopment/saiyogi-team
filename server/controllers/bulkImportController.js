@@ -69,12 +69,16 @@ const escapeRegex = (str) => String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 export const startBulkImport = async (req, res, next) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ success: false, message: 'Please upload a valid ZIP file' });
+      return res.status(400).json({ success: false, message: 'Please upload a valid Excel (.xlsx, .xls) or ZIP file' });
     }
 
     const originalName = req.file.originalname || '';
-    if (!originalName.toLowerCase().endsWith('.zip')) {
-      return res.status(400).json({ success: false, message: 'Only .zip files are supported' });
+    const lowerName = originalName.toLowerCase();
+    const isZip = lowerName.endsWith('.zip');
+    const isExcel = lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls');
+
+    if (!isZip && !isExcel) {
+      return res.status(400).json({ success: false, message: 'Only .xlsx, .xls, and .zip files are supported' });
     }
 
     const jobId = uuidv4();
@@ -83,13 +87,14 @@ export const startBulkImport = async (req, res, next) => {
 
     // Create unique directory for job
     fs.mkdirSync(jobDir, { recursive: true });
-    const zipPath = path.join(jobDir, 'uploaded.zip');
+    const uploadedExt = isZip ? '.zip' : (lowerName.endsWith('.xls') ? '.xls' : '.xlsx');
+    const savedFilePath = path.join(jobDir, `uploaded${uploadedExt}`);
 
     // If file is buffer (memoryStorage) or disk file
     if (req.file.buffer) {
-      fs.writeFileSync(zipPath, req.file.buffer);
+      fs.writeFileSync(savedFilePath, req.file.buffer);
     } else if (req.file.path) {
-      fs.copyFileSync(req.file.path, zipPath);
+      fs.copyFileSync(req.file.path, savedFilePath);
       try { fs.unlinkSync(req.file.path); } catch (e) { }
     }
 
@@ -110,7 +115,7 @@ export const startBulkImport = async (req, res, next) => {
     bulkImportJobs.set(jobId, job);
 
     // Start background processing non-blockingly
-    processBulkImportJob(jobId, zipPath, jobDir).catch(err => {
+    processBulkImportJob(jobId, savedFilePath, jobDir, isZip).catch(err => {
       console.error(`Error processing bulk import job ${jobId}:`, err);
       const currentJob = bulkImportJobs.get(jobId);
       if (currentJob) {
@@ -167,7 +172,7 @@ export const downloadTemplate = async (req, res) => {
         productName: "10cm Electric Sparklers",  // REQUIRED — Product display name
         category: "Sparklers",                   // REQUIRED — Must match a category name in the system
         price: 50,                               // REQUIRED — Retail price (₹)
-        image: "product001.jpg",                 // REQUIRED — Filename inside images/ folder in the ZIP
+        image: "product001.jpg",                 // optional — Image filename inside images/ folder in ZIP (leave blank for default logo)
         stock: 500,                              // REQUIRED — Number of pieces in store stock
         netRate: 35,                             // optional — Net rate price (leave 0 if none)
         quantity: "1 Box (10 Pcs)",              // optional — Pack/unit label shown on site
@@ -238,7 +243,7 @@ export const downloadTemplate = async (req, res) => {
       { Field: "productName",   Required: "YES", Description: "Product display name shown on the site" },
       { Field: "category",      Required: "YES", Description: "Must exactly match a category name in the admin (e.g. Sparklers, Flower Pots, Combo Packs)" },
       { Field: "price",         Required: "YES", Description: "Retail / selling price in ₹ (numbers only)" },
-      { Field: "image",         Required: "YES", Description: "Image filename inside the images/ folder in your ZIP (e.g. product001.jpg)" },
+      { Field: "image",         Required: "no",  Description: "Optional. Image filename inside images/ folder in your ZIP (e.g. product001.jpg). If omitted or uploading Excel directly, defaults to Sai Yogi Logo." },
       { Field: "stock",         Required: "YES", Description: "Number of pieces available in store stock" },
       { Field: "netRate",       Required: "no",  Description: "Net rate price in ₹. Leave 0 or blank if not applicable" },
       { Field: "quantity",      Required: "no",  Description: "Pack/unit label shown on site (e.g. 1 Box (10 Pcs), 36 Items)" },
@@ -256,11 +261,12 @@ export const downloadTemplate = async (req, res) => {
       { Field: "Kids Crackers",  Required: "", Description: "Safe crackers for children" },
       { Field: "Gift Box",       Required: "", Description: "Gift-box packaged products" },
       { Field: "",              Required: "",    Description: "" },
-      { Field: "── ZIP structure ──", Required: "", Description: "" },
-      { Field: "products-import.zip", Required: "", Description: "Root ZIP file to upload" },
-      { Field: "  products.xlsx",     Required: "", Description: "This Excel file (must be named products.xlsx)" },
-      { Field: "  images/",           Required: "", Description: "Folder containing all product images" },
-      { Field: "  images/product001.jpg", Required: "", Description: "Image files referenced in the image column" },
+      { Field: "── Upload formats ──", Required: "", Description: "" },
+      { Field: "Option 1: Direct Excel", Required: "", Description: "Upload products.xlsx directly without images. All products get the company logo by default." },
+      { Field: "Option 2: ZIP with images", Required: "", Description: "Upload a ZIP file containing products.xlsx and an images/ folder." },
+      { Field: "  products-import.zip", Required: "", Description: "Root ZIP file" },
+      { Field: "    products.xlsx",     Required: "", Description: "This Excel file" },
+      { Field: "    images/",           Required: "", Description: "Folder containing referenced product images" },
     ];
 
     const instructionsSheet = XLSX.utils.json_to_sheet(instructions);
@@ -288,7 +294,7 @@ export const downloadTemplate = async (req, res) => {
 /**
  * Async Worker Function for Job Processing
  */
-async function processBulkImportJob(jobId, zipPath, jobDir) {
+async function processBulkImportJob(jobId, uploadedFilePath, jobDir, isZip) {
   const job = bulkImportJobs.get(jobId);
   if (!job) return;
 
@@ -298,61 +304,69 @@ async function processBulkImportJob(jobId, zipPath, jobDir) {
   try {
     job.status = 'processing';
 
-    // 1. Extract ZIP with Zip Slip prevention
-    const zip = new AdmZip(zipPath);
-    const zipEntries = zip.getEntries();
-
-    for (const entry of zipEntries) {
-      if (entry.isDirectory) continue;
-      const entryPath = entry.entryName;
-      const targetPath = path.join(extractDir, entryPath);
-      const normalizedTarget = path.normalize(targetPath);
-
-      if (!normalizedTarget.startsWith(path.normalize(extractDir))) {
-        throw new Error(`Security violation: Invalid zip path detected (${entryPath})`);
-      }
-
-      const parentDir = path.dirname(normalizedTarget);
-      if (!fs.existsSync(parentDir)) {
-        fs.mkdirSync(parentDir, { recursive: true });
-      }
-
-      fs.writeFileSync(normalizedTarget, entry.getData());
-    }
-
-    // 2. Find products.xlsx & images folder
-    const foundFiles = getAllFiles(extractDir);
-
-    // Search for Excel file
-    const excelFile = foundFiles.find(f => {
-      const base = path.basename(f).toLowerCase();
-      return (base === 'products.xlsx' || base === 'products.xls' || base.endsWith('.xlsx') || base.endsWith('.xls')) && !base.startsWith('~$');
-    });
-
-    if (!excelFile) {
-      job.status = 'failed';
-      job.summary = { error: '❌ Invalid ZIP structure. products.xlsx is missing.' };
-      return;
-    }
-
-    // Search for images folder
+    let excelFile = null;
     let imagesDir = null;
-    const allDirs = getAllDirs(extractDir);
-    const matchedDir = allDirs.find(d => path.basename(d).toLowerCase() === 'images');
 
-    if (matchedDir) {
-      imagesDir = matchedDir;
-    } else {
-      // Check if extracted directory itself contains images directly
-      const hasImageFiles = foundFiles.some(f => /\.(jpg|jpeg|png|webp)$/i.test(f));
-      if (hasImageFiles) {
-        imagesDir = extractDir;
+    if (isZip) {
+      // 1. Extract ZIP with Zip Slip prevention
+      const zip = new AdmZip(uploadedFilePath);
+      const zipEntries = zip.getEntries();
+
+      for (const entry of zipEntries) {
+        if (entry.isDirectory) continue;
+        const entryPath = entry.entryName;
+        const targetPath = path.join(extractDir, entryPath);
+        const normalizedTarget = path.normalize(targetPath);
+
+        if (!normalizedTarget.startsWith(path.normalize(extractDir))) {
+          throw new Error(`Security violation: Invalid zip path detected (${entryPath})`);
+        }
+
+        const parentDir = path.dirname(normalizedTarget);
+        if (!fs.existsSync(parentDir)) {
+          fs.mkdirSync(parentDir, { recursive: true });
+        }
+
+        fs.writeFileSync(normalizedTarget, entry.getData());
       }
+
+      // 2. Find products.xlsx & optional images folder in extracted ZIP
+      const foundFiles = getAllFiles(extractDir);
+
+      // Search for Excel file
+      excelFile = foundFiles.find(f => {
+        const base = path.basename(f).toLowerCase();
+        return (base === 'products.xlsx' || base === 'products.xls' || base.endsWith('.xlsx') || base.endsWith('.xls')) && !base.startsWith('~$');
+      });
+
+      if (!excelFile) {
+        job.status = 'failed';
+        job.summary = { error: '❌ Invalid ZIP structure. products.xlsx is missing.' };
+        return;
+      }
+
+      // Search for images folder (optional)
+      const allDirs = getAllDirs(extractDir);
+      const matchedDir = allDirs.find(d => path.basename(d).toLowerCase() === 'images');
+
+      if (matchedDir) {
+        imagesDir = matchedDir;
+      } else {
+        // Check if extracted directory itself contains images directly
+        const hasImageFiles = foundFiles.some(f => /\.(jpg|jpeg|png|webp)$/i.test(f));
+        if (hasImageFiles) {
+          imagesDir = extractDir;
+        }
+      }
+    } else {
+      // Direct Excel file (.xlsx / .xls)
+      excelFile = uploadedFilePath;
+      imagesDir = null;
     }
 
-    if (!imagesDir) {
+    if (!excelFile || !fs.existsSync(excelFile)) {
       job.status = 'failed';
-      job.summary = { error: '❌ Invalid ZIP structure. images folder is missing.' };
+      job.summary = { error: 'Excel file not found or unreadable.' };
       return;
     }
 
@@ -369,7 +383,7 @@ async function processBulkImportJob(jobId, zipPath, jobDir) {
 
     job.totalCount = rawRows.length;
 
-    // 4a. Fetch all MongoDB categories for strict lookup (no auto-creation)
+    // 4a. Fetch all MongoDB categories for strict lookup
     const mongoCategories = await Category.find({});
     const categoryMap = new Map();
     mongoCategories.forEach(cat => {
@@ -378,7 +392,7 @@ async function processBulkImportJob(jobId, zipPath, jobDir) {
       }
     });
 
-    // 4b. Fetch all MongoDB brands for case-insensitive lookup (no auto-creation)
+    // 4b. Fetch all MongoDB brands for case-insensitive lookup
     const mongoBrands = await Brand.find({});
     const brandMap = new Map();
     mongoBrands.forEach(b => {
@@ -391,12 +405,14 @@ async function processBulkImportJob(jobId, zipPath, jobDir) {
     const allExistingProducts = await Product.find({}, 'sku').lean();
     const skuPool = new Set(allExistingProducts.map(p => p.sku).filter(Boolean));
 
-    // List images in imagesDir for case-insensitive lookup
-    const localImageFiles = getAllFiles(imagesDir);
+    // List images in imagesDir for case-insensitive lookup if imagesDir exists
     const imageMap = new Map();
-    localImageFiles.forEach(imgPath => {
-      imageMap.set(path.basename(imgPath).toLowerCase(), imgPath);
-    });
+    if (imagesDir && fs.existsSync(imagesDir)) {
+      const localImageFiles = getAllFiles(imagesDir);
+      localImageFiles.forEach(imgPath => {
+        imageMap.set(path.basename(imgPath).toLowerCase(), imgPath);
+      });
+    }
 
     // 5. Controlled Concurrency Processing (Batch size: 5)
     const CONCURRENCY = 5;
@@ -467,38 +483,44 @@ async function processBulkImportJob(jobId, zipPath, jobDir) {
               throw new Error(`Invalid price value: '${priceStr}'`);
             }
 
-            // --- Validation 4: Required Image Filename ---
-            if (!imageFilename) {
-              throw new Error('Image filename is required in Excel');
-            }
-
-            // --- Validation 5: Local Image Matching ---
-            const cleanImageName = path.basename(imageFilename).toLowerCase();
-            const localImgPath = imageMap.get(cleanImageName);
-
-            if (!localImgPath || !fs.existsSync(localImgPath)) {
-              throw new Error(`Image file '${imageFilename}' not found in images/ folder`);
-            }
-
-            // --- Validation 6: Duplicate Check (by name + category only, SKU is auto-generated) ---
+            // --- Check if product already exists (by name + category) for update mode ---
             const existingProduct = await Product.findOne({
               name: { $regex: new RegExp(`^${escapeRegex(name)}$`, 'i') },
               category: matchedCategory._id
             });
 
-            if (existingProduct) {
-              throw new Error(`Product '${name}' already exists in category '${matchedCategory.name}'`);
+            // --- Step 4: Handle Image (Optional) ---
+            let finalImageUrl = null;
+            if (imageFilename) {
+              if (imageFilename.startsWith('http://') || imageFilename.startsWith('https://') || imageFilename.startsWith('/')) {
+                finalImageUrl = imageFilename;
+              } else {
+                const cleanImageName = path.basename(imageFilename).toLowerCase();
+                const localImgPath = imageMap.get(cleanImageName);
+
+                if (localImgPath && fs.existsSync(localImgPath)) {
+                  const imageBuffer = await fs.promises.readFile(localImgPath);
+                  const uploadRes = await uploadToCloudinary(imageBuffer, cleanImageName, 'products');
+                  if (uploadRes && uploadRes.url) {
+                    finalImageUrl = uploadRes.url;
+                  }
+                }
+              }
             }
 
-            // --- Step 7: Cloudinary Upload ---
-            const imageBuffer = await fs.promises.readFile(localImgPath);
-            const uploadRes = await uploadToCloudinary(imageBuffer, cleanImageName, 'products');
-
-            if (!uploadRes || !uploadRes.url) {
-              throw new Error('Cloudinary upload failed to return a secure URL');
+            // Fallback image rule:
+            // 1. If we got a newly uploaded/specified image -> use it
+            // 2. Else if product already exists with an image -> keep existing image
+            // 3. Otherwise -> default to company logo '/saiyogi-logo-1.png'
+            if (!finalImageUrl) {
+              if (existingProduct && existingProduct.image) {
+                finalImageUrl = existingProduct.image;
+              } else {
+                finalImageUrl = '/saiyogi-logo-1.png';
+              }
             }
 
-            // --- Step 8: Parse optional fields ---
+            // --- Step 5: Parse optional fields ---
             const originalPrice = originalPriceStr ? Number(originalPriceStr) : 0;
             const discount = discountStr ? Number(discountStr) : 0;
             const stock = stockStr ? Number(stockStr) : 0;
@@ -529,45 +551,69 @@ async function processBulkImportJob(jobId, zipPath, jobDir) {
               : true;
 
             const isActive = statusRaw ? statusRaw.toLowerCase() !== 'inactive' && statusRaw.toLowerCase() !== 'false' : true;
+            const resolvedBrand = brand ? (brandMap.get(brand.trim().toLowerCase()) || brand.trim()) : 'Sai Yogi Standard';
 
-            // --- Step 9: Auto-generate SKU from category code (same logic as admin form) ---
-            const catCode = matchedCategory.categoryCode || matchedCategory.name.slice(0, 3).toUpperCase();
-            let autoSku;
-            // Use a lock-free approach: generate from skuPool (DB + already assigned in this batch)
-            autoSku = generateCategoryBasedSku(catCode, [...skuPool]);
-            skuPool.add(autoSku); // Reserve immediately so concurrent rows don't collide
+            if (existingProduct) {
+              // --- Update Existing Product (Allows adding images later or updating details) ---
+              existingProduct.price = price;
+              if (originalPrice > price) existingProduct.oldPrice = originalPrice;
+              existingProduct.hasDiscount = displayNetRate ? false : hasDiscount;
+              existingProduct.displayNetRate = displayNetRate;
+              existingProduct.wholesalePrice = wholesalePrice;
+              existingProduct.netRate = netRate;
+              existingProduct.brand = resolvedBrand;
+              existingProduct.stock = stock;
+              existingProduct.storeStockPieces = storeStockPieces;
+              existingProduct.godownStockCases = godownStockCases;
+              existingProduct.piecesPerCase = piecesPerCase;
+              existingProduct.godownStockPieces = godownStockPieces;
+              existingProduct.minimumStock = minimumStock;
+              if (description) existingProduct.description = description;
+              existingProduct.isActive = isActive;
+              existingProduct.isSaiYogiVerified = isSaiYogiVerified;
+              existingProduct.rating = rating;
+              if (quantity) existingProduct.quantity = quantity;
+              if (crackerType) existingProduct.crackerType = crackerType;
+              if (finalImageUrl) existingProduct.image = finalImageUrl;
 
-            // --- Step 10: Save Product to MongoDB ---
-            const newProd = new Product({
-              name,
-              code: autoSku,
-              sku: autoSku,
-              category: matchedCategory._id,
-              image: uploadRes.url,
-              price,
-              oldPrice: originalPrice > price ? originalPrice : undefined,
-              hasDiscount: displayNetRate ? false : hasDiscount,
-              displayNetRate,
-              wholesalePrice,
-              netRate,
-              // Resolve brand name case-insensitively against existing brands
-              brand: (brand ? (brandMap.get(brand.trim().toLowerCase()) || brand.trim()) : 'Sai Yogi Standard'),
-              stock,
-              storeStockPieces,
-              godownStockCases,
-              piecesPerCase,
-              godownStockPieces,
-              minimumStock,
-              description,
-              isActive,
-              isSaiYogiVerified,
-              rating,
-              quantity,
-              crackerType
-            });
+              await existingProduct.save();
+              job.successCount++;
+            } else {
+              // --- Create New Product ---
+              const catCode = matchedCategory.categoryCode || matchedCategory.name.slice(0, 3).toUpperCase();
+              const autoSku = generateCategoryBasedSku(catCode, [...skuPool]);
+              skuPool.add(autoSku);
 
-            await newProd.save();
-            job.successCount++;
+              const newProd = new Product({
+                name,
+                code: autoSku,
+                sku: autoSku,
+                category: matchedCategory._id,
+                image: finalImageUrl,
+                price,
+                oldPrice: originalPrice > price ? originalPrice : undefined,
+                hasDiscount: displayNetRate ? false : hasDiscount,
+                displayNetRate,
+                wholesalePrice,
+                netRate,
+                brand: resolvedBrand,
+                stock,
+                storeStockPieces,
+                godownStockCases,
+                piecesPerCase,
+                godownStockPieces,
+                minimumStock,
+                description,
+                isActive,
+                isSaiYogiVerified,
+                rating,
+                quantity,
+                crackerType
+              });
+
+              await newProd.save();
+              job.successCount++;
+            }
 
           } catch (err) {
             job.failedCount++;

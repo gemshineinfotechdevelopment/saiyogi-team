@@ -103,7 +103,14 @@ const ProductDetail = () => {
 
         <div className="grid md:grid-cols-2 gap-8 mb-16">
           <div className="rounded-2xl overflow-hidden bg-[#FDFBF7] border border-[#FED7AA] aspect-square cursor-pointer p-4 flex items-center justify-center" onClick={handleImageClick}>
-            <img src={isOutOfStock ? '/saiyogi-logo-1.png' : product.image} alt={product.name} className="w-full h-full object-contain hover:scale-105 transition-transform duration-300 mix-blend-multiply" />
+            <img
+              src={isOutOfStock ? '/saiyogi-logo-1.png' : (product.image || '/saiyogi-logo-1.png')}
+              alt={product.name}
+              className="w-full h-full object-contain hover:scale-105 transition-transform duration-300 mix-blend-multiply"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/saiyogi-logo-1.png';
+              }}
+            />
           </div>
 
           <div className="space-y-4">
@@ -162,9 +169,12 @@ const ProductDetail = () => {
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="relative max-w-4xl w-full">
             <img
-              src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : product.image}
+              src={(product.storeStockPieces || 0) <= 0 ? '/saiyogi-logo-1.png' : (product.image || '/saiyogi-logo-1.png')}
               alt={product.name}
               className="w-full h-auto rounded-lg"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/saiyogi-logo-1.png';
+              }}
             />
             <button
               onClick={() => setShowImageModal(false)}

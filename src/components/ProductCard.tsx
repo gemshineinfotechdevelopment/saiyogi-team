@@ -149,12 +149,12 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
             {/* Image Area */}
             <div className={cn("relative w-full overflow-hidden bg-[#FDFBF7] border-b border-amber-100/70", compact ? "h-24 p-1" : "aspect-square p-1.5 sm:p-3")}>
               <img
-                src={isOutOfStock ? '/saiyogi-logo-1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
+                src={isOutOfStock ? '/saiyogi-logo-1.png' : (product.image || '/saiyogi-logo-1.png')}
                 alt={product.name}
                 className="w-full h-full object-contain p-1 group-hover:scale-105 transition-transform duration-500 ease-out mix-blend-multiply"
                 loading="lazy"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300?text=No+Image';
+                  (e.target as HTMLImageElement).src = '/saiyogi-logo-1.png';
                 }}
               />
               <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -318,9 +318,12 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
 
             <div className="w-full md:w-1/2 aspect-square md:aspect-auto bg-[#FDFBF7] p-4 md:p-8 flex items-center justify-center relative">
               <img
-                src={isOutOfStock ? '/saiyogi-logo-1.png' : (product.image || 'https://via.placeholder.com/300?text=No+Image')}
+                src={isOutOfStock ? '/saiyogi-logo-1.png' : (product.image || '/saiyogi-logo-1.png')}
                 alt={product.name}
                 className="w-full h-full object-contain max-h-[350px] md:max-h-[400px] mix-blend-multiply"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/saiyogi-logo-1.png';
+                }}
               />
             </div>
 
