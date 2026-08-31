@@ -43,6 +43,8 @@ const allowedOrigins = [
   'http://localhost:5174',
   'http://localhost:3000',
   'http://localhost:5000',
+  'http://localhost:5005',
+  'http://127.0.0.1:5005',
   'http://localhost:8080',
   'http://localhost:8081',
 ];
@@ -170,7 +172,7 @@ app.use(errorHandler);
 import { exec } from 'child_process';
 import os from 'os';
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5005;
 
 const execCmd = (cmd) => new Promise((resolve, reject) => {
   exec(cmd, { windowsHide: true }, (err, stdout, stderr) => {

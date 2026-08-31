@@ -5,7 +5,7 @@ const isLocalhost = typeof window !== 'undefined' &&
 
 const rawEnvUrl = (import.meta.env.VITE_API_URL as string) || "";
 export const API_BASE_URL = isLocalhost
-  ? "http://localhost:5000" 
+  ? "http://localhost:5005" 
   : rawEnvUrl.trim().replace(/\/+$/, "");
 
 function resolveAuthToken(path: string): string | null {
@@ -52,8 +52,8 @@ async function fetchJSON<T>(path: string, method: string = 'GET', body?: any): P
     ? [path]
     : isLocalhost
       ? [
-          `http://127.0.0.1:5000${cleanPath}`,
-          `http://localhost:5000${cleanPath}`,
+          `http://127.0.0.1:5005${cleanPath}`,
+          `http://localhost:5005${cleanPath}`,
           `${API_BASE_URL}${cleanPath}`,
         ].filter((v, i, a) => a.indexOf(v) === i && !!v)
       : [`${API_BASE_URL}${cleanPath}`];
@@ -608,8 +608,8 @@ export async function uploadImageToCloudinary(fileOrBase64: File | string, folde
     ? [path]
     : isLocalhost
       ? [
-          `http://127.0.0.1:5000${path}`,
-          `http://localhost:5000${path}`,
+          `http://127.0.0.1:5005${path}`,
+          `http://localhost:5005${path}`,
           `${API_BASE_URL}${path}`,
         ].filter((v, i, a) => a.indexOf(v) === i && !!v)
       : [`${API_BASE_URL}${path}`];

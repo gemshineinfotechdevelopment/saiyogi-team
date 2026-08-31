@@ -2,7 +2,7 @@ import { uploadToCloudinary, deleteFromCloudinary } from './cloudinary.js';
 import fs from 'fs';
 import path from 'path';
 
-const SERVER_BASE = process.env.SERVER_URL || `http://localhost:${process.env.PORT || 5000}`;
+const SERVER_BASE = process.env.SERVER_URL || `http://localhost:${process.env.PORT || 5005}`;
 
 /**
  * Upload image to Cloudinary (with local fallback)
