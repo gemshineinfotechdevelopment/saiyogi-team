@@ -99,11 +99,11 @@ async function fetchJSON<T>(path: string, method: string = 'GET', body?: any): P
 }
 
 export const FALLBACK_CATEGORIES: Category[] = [
-  { id: "cat-1", _id: "cat-1", name: "Sparklers", productCount: 8, image: "/sky_rocket_box.png" },
-  { id: "cat-2", _id: "cat-2", name: "Flower Pots", productCount: 6, image: "/flower_pots.png" },
-  { id: "cat-3", _id: "cat-3", name: "Rockets & Sky Shots", productCount: 6, image: "/sky_rocket_box.png" },
-  { id: "cat-4", _id: "cat-4", name: "Ground Chakkars", productCount: 6, image: "/flower_pots.png" },
-  { id: "cat-5", _id: "cat-5", name: "Combo Packs", productCount: 4, image: "/family_star_kit.png" },
+  { id: "cat-1", _id: "cat-1", name: "Sparklers", productCount: 8, image: "/saiyogi-logo-1.png" },
+  { id: "cat-2", _id: "cat-2", name: "Flower Pots", productCount: 6, image: "/saiyogi-logo-1.png" },
+  { id: "cat-3", _id: "cat-3", name: "Rockets & Sky Shots", productCount: 6, image: "/saiyogi-logo-1.png" },
+  { id: "cat-4", _id: "cat-4", name: "Ground Chakkars", productCount: 6, image: "/saiyogi-logo-1.png" },
+  { id: "cat-5", _id: "cat-5", name: "Combo Packs", productCount: 4, image: "/saiyogi-logo-1.png" },
 ];
 
 export const FALLBACK_PRODUCTS: Product[] = [

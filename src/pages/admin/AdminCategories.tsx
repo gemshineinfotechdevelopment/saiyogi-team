@@ -484,7 +484,7 @@ const AdminCategories = () => {
                                 <TableCell className="py-2.5">
                                   <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded border p-1 bg-white flex items-center justify-center shrink-0">
-                                      <img src={p.image || "/sky_rocket_box.png"} alt={p.name} className="max-w-full max-h-full object-contain" />
+                                      <img src={p.image || "/saiyogi-logo-1.png"} alt={p.name} className="max-w-full max-h-full object-contain" />
                                     </div>
                                     <div>
                                       <p className="font-bold text-sm text-gray-900">{p.name}</p>

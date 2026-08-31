@@ -358,15 +358,30 @@
 }
 
 .animate-marquee {
-  animation: marquee 50s linear infinite;
+  animation: marquee 90s linear infinite;
 }
 
 .animate-marquee-slow {
-  animation: marquee 60s linear infinite;
+  animation: marquee 120s linear infinite;
+}
+
+.animate-marquee-videos {
+  animation: marquee 85s linear infinite;
+}
+
+.animate-marquee-categories {
+  animation: marquee 100s linear infinite;
+}
+
+.animate-marquee-brands {
+  animation: marquee 100s linear infinite;
 }
 
 .animate-marquee:hover,
 .animate-marquee-slow:hover,
+.animate-marquee-videos:hover,
+.animate-marquee-categories:hover,
+.animate-marquee-brands:hover,
 .animate-marquee.paused,
 .paused {
   animation-play-state: paused !important;

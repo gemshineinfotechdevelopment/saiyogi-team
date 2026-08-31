@@ -5,7 +5,7 @@ import { uploadToBoth } from '../utils/upload-manager.js';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
 
 // Helper to handle logo upload to Cloudinary (from req.file or base64 string)
-const processLogoUpload = async (req, fallbackLogo = '/sky_rocket_box.png') => {
+const processLogoUpload = async (req, fallbackLogo = '/saiyogi-logo-1.png') => {
   if (req.file) {
     const uploadResult = await uploadToBoth(req.file, 'brands');
     return uploadResult.url;
@@ -81,7 +81,7 @@ export const createBrand = async (req, res, next) => {
       return next(new AppError(`Brand '${existing.name}' already exists. Use the existing brand instead of creating a duplicate.`, 409));
     }
 
-    const logoUrl = await processLogoUpload(req, '/sky_rocket_box.png');
+    const logoUrl = await processLogoUpload(req, '/saiyogi-logo-1.png');
     const brandId = await generateBrandId();
 
     const brand = new Brand({

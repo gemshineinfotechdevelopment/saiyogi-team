@@ -22,7 +22,7 @@ const brandSchema = new mongoose.Schema(
     logo: {
       type: String,
       trim: true,
-      default: '/sky_rocket_box.png',
+      default: '/saiyogi-logo-1.png',
     },
     description: {
       type: String,

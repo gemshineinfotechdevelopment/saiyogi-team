@@ -32,72 +32,54 @@ const ourProducts = [
 
 
 const premiumCategories = [
-  { name: "Sparklers", image: "/flower_pots.png", categoryId: "cat-1" },
-  { name: "Flower Pots", image: "/sky_rocket_box.png", categoryId: "cat-2" },
-  { name: "Rockets & Sky Shots", image: "/sky_rocket_box.png", categoryId: "cat-3" },
-  { name: "Ground Chakkars", image: "/flower_pots.png", categoryId: "cat-4" },
-  { name: "Combo Packs", image: "/family_star_kit.png", categoryId: "cat-5" },
-  { name: "Gift Boxes", image: "/bestseller_pack.png", categoryId: "all" },
+  { name: "Sparklers", image: "/saiyogi-logo-1.png", categoryId: "cat-1" },
+  { name: "Flower Pots", image: "/saiyogi-logo-1.png", categoryId: "cat-2" },
+  { name: "Rockets & Sky Shots", image: "/saiyogi-logo-1.png", categoryId: "cat-3" },
+  { name: "Ground Chakkars", image: "/saiyogi-logo-1.png", categoryId: "cat-4" },
+  { name: "Combo Packs", image: "/saiyogi-logo-1.png", categoryId: "cat-5" },
+  { name: "Gift Boxes", image: "/saiyogi-logo-1.png", categoryId: "all" },
 ];
 
 const demoVideos = [
   {
     id: 1,
-    title: "Golden Fountain Flowerpot",
-    url: "https://assets.mixkit.co/videos/preview/mixkit-bright-fireworks-in-the-night-sky-40292-large.mp4",
+    title: "1000 Wala Sky Shots - Grand Night Celebration",
+    url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     thumbnail: "/fireworks_bg.png"
   },
   {
     id: 2,
-    title: "Sky Shot Aerial Display",
-    url: "https://assets.mixkit.co/videos/preview/mixkit-fireworks-illuminating-the-dark-sky-40291-large.mp4",
+    title: "Multi Color Fountain Flower Pots Magic",
+    url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     thumbnail: "/fireworks_bg.png"
   },
   {
     id: 3,
-    title: "Colorful Garland Celebration",
-    url: "https://assets.mixkit.co/videos/preview/mixkit-dramatic-fireworks-display-in-the-night-sky-40293-large.mp4",
+    title: "Royal Celebration 120 Shots Aerial Show",
+    url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     thumbnail: "/fireworks_bg.png"
   },
   {
     id: 4,
-    title: "Sparkling Stars Close Up",
-    url: "https://assets.mixkit.co/videos/preview/mixkit-sparks-from-a-sparkler-40295-large.mp4",
+    title: "Mega Sound Ground Chakkars & Electric Sparklers",
+    url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     thumbnail: "/fireworks_bg.png"
   },
   {
     id: 5,
-    title: "Ultimate Night Celebration",
-    url: "https://assets.mixkit.co/videos/preview/mixkit-bright-fireworks-in-the-night-sky-40292-large.mp4",
-    thumbnail: "/fireworks_bg.png"
-  },
-  {
-    id: 6,
-    title: "Vibrant Ring Aerial Shot",
-    url: "https://assets.mixkit.co/videos/preview/mixkit-fireworks-illuminating-the-dark-sky-40291-large.mp4",
-    thumbnail: "/fireworks_bg.png"
-  },
-  {
-    id: 7,
-    title: "Ground Crackling Sparklers",
-    url: "https://assets.mixkit.co/videos/preview/mixkit-sparks-from-a-sparkler-40295-large.mp4",
-    thumbnail: "/fireworks_bg.png"
-  },
-  {
-    id: 8,
-    title: "Dazzling Rainbow Fountain",
-    url: "https://assets.mixkit.co/videos/preview/mixkit-dramatic-fireworks-display-in-the-night-sky-40293-large.mp4",
+    title: "Diwali Special Aerial Repeating Shots",
+    url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     thumbnail: "/fireworks_bg.png"
   }
 ];
 
 const shopByBrands = [
-  { name: "Standard", subtitle: "Standard Fireworks", tag: "Most Popular", image: "/sky_rocket_box.png" },
-  { name: "Ajanta", subtitle: "Ajanta Pyrotechnics", tag: "Top Quality", image: "/flower_pots.png" },
-  { name: "Coronation", subtitle: "Coronation Sparklers", tag: "High Demand", image: "/bestseller_pack.png" },
-  { name: "Vadivel", subtitle: "Vadivel Fireworks", tag: "Sivakasi Original", image: "/grand_sky_delight.png" },
-  { name: "Sony", subtitle: "Sony Crackers", tag: "Festive Special", image: "/family_star_kit.png" },
-  { name: "Kaliswari", subtitle: "Sri Kaliswari Cock", tag: "Heritage Brand", image: "/royal_celebration.png" },
+  { name: "Standard", subtitle: "Standard Fireworks", tag: "Most Popular", image: "/saiyogi-logo-1.png" },
+  { name: "Ajanta", subtitle: "Ajanta Pyrotechnics", tag: "Top Quality", image: "/saiyogi-logo-1.png" },
+  { name: "Coronation", subtitle: "Coronation Sparklers", tag: "High Demand", image: "/saiyogi-logo-1.png" },
+  { name: "Vadivel", subtitle: "Vadivel Fireworks", tag: "Sivakasi Original", image: "/saiyogi-logo-1.png" },
+  { name: "Sony", subtitle: "Sony Crackers", tag: "Festive Special", image: "/saiyogi-logo-1.png" },
+  { name: "Kaliswari", subtitle: "Sri Kaliswari Cock", tag: "Heritage Brand", image: "/saiyogi-logo-1.png" },
 ];
 
 const manufacturers = [
@@ -504,7 +486,7 @@ const Index = () => {
               className="w-full overflow-x-auto no-scrollbar scroll-smooth py-4 px-2 select-none"
             >
               <div
-                className={`flex flex-nowrap gap-3 sm:gap-6 w-max animate-marquee ${playingVideo ? "paused" : "hover:[animation-play-state:paused]"
+                className={`flex flex-nowrap gap-3 sm:gap-6 w-max animate-marquee-videos ${playingVideo ? "paused" : "hover:[animation-play-state:paused]"
                   }`}
                 style={playingVideo ? { animationPlayState: 'paused' } : undefined}
               >
@@ -529,7 +511,7 @@ const Index = () => {
                     return (
                       <div
                         key={`showcase-video-${idx}`}
-                        className="relative rounded-xl sm:rounded-2xl overflow-hidden aspect-video bg-black group cursor-pointer shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl border border-white/40 min-w-[210px] sm:min-w-[280px] md:min-w-[360px] shrink-0"
+                        className="relative rounded-xl sm:rounded-2xl overflow-hidden aspect-video bg-black group cursor-pointer shadow-md transition-all duration-300 hover:scale-105 hover:shadow-xl border border-white/40 min-w-[150px] sm:min-w-[210px] md:min-w-[260px] max-w-[270px] shrink-0"
                         onClick={() => setPlayingVideo(isPlaying ? null : `${videoId}-${idx}`)}
                       >
                         {isPlaying ? (
@@ -576,13 +558,13 @@ const Index = () => {
 
                         {/* Button overlay */}
                         {!isPlaying && (
-                          <div className="absolute inset-0 flex flex-col justify-between p-2.5 sm:p-4 bg-gradient-to-t from-black/70 via-transparent to-black/30">
-                            <span className="text-white font-bold text-[10px] sm:text-xs bg-black/50 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full backdrop-blur-sm self-start truncate max-w-[85%]">
+                          <div className="absolute inset-0 flex flex-col justify-between p-2 sm:p-3 bg-gradient-to-t from-black/70 via-transparent to-black/30">
+                            <span className="text-white font-bold text-[9px] sm:text-[11px] bg-black/50 px-2 sm:px-2.5 py-0.5 rounded-full backdrop-blur-sm self-start truncate max-w-[85%]">
                               {video.title}
                             </span>
                             <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="w-9 h-9 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-[#A80000] group-hover:border-red-500">
-                                <Play className="text-white fill-white w-4 h-4 sm:w-5 sm:h-5 ml-0.5" />
+                              <div className="w-7 h-7 sm:w-10 sm:h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-[#A80000] group-hover:border-red-500">
+                                <Play className="text-white fill-white w-3.5 h-3.5 sm:w-4 sm:h-4 ml-0.5" />
                               </div>
                             </div>
                           </div>
@@ -619,7 +601,7 @@ const Index = () => {
 
         {/* Infinite scrolling categories marquee */}
         <div className="relative w-full overflow-hidden py-2 sm:py-4 mb-4 sm:mb-8">
-          <div className="flex flex-nowrap gap-2 sm:gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+          <div className="flex flex-nowrap gap-2 sm:gap-6 animate-marquee-categories hover:[animation-play-state:paused] w-max select-none">
             {[...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories), ...(categories.length > 0 ? categories : premiumCategories)].map((cat: any, i: number) => {
               const categoryParam = cat.name || cat.id || cat._id || cat.categoryId || '';
               return (
@@ -630,7 +612,7 @@ const Index = () => {
                 >
                 <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-1 sm:p-2 mb-1.5 sm:mb-3 rounded-md sm:rounded-xl overflow-hidden relative border border-gray-100/50">
                   <img
-                    src={cat.image || "/sky_rocket_box.png"}
+                    src={cat.image || "/saiyogi-logo-1.png"}
                     alt={cat.name}
                     className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110"
                   />
@@ -666,7 +648,7 @@ const Index = () => {
 
         {/* Infinite scrolling brands marquee from right to left */}
         <div className="relative w-full overflow-hidden py-2 sm:py-4">
-          <div className="flex flex-nowrap gap-2 sm:gap-6 animate-marquee hover:[animation-play-state:paused] w-max select-none">
+          <div className="flex flex-nowrap gap-2 sm:gap-6 animate-marquee-brands hover:[animation-play-state:paused] w-max select-none">
             {[...(brands.length > 0 ? brands : shopByBrands), ...(brands.length > 0 ? brands : shopByBrands), ...(brands.length > 0 ? brands : shopByBrands)].map((brand: any, i: number) => {
               const brandId = brand._id || brand.id || i;
               return (
@@ -679,7 +661,7 @@ const Index = () => {
                     {brand.tag || "BRAND"}
                   </span>
                   <div className="w-full aspect-square flex items-center justify-center p-0.5 sm:p-2 mb-0.5 sm:mb-2 group-hover:scale-105 transition-transform duration-300">
-                    <img src={brand.logo || brand.image || "/sky_rocket_box.png"} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
+                    <img src={brand.logo || brand.image || "/saiyogi-logo-1.png"} alt={brand.name} className="max-w-full max-h-full object-contain drop-shadow-md" />
                   </div>
                   <div>
                     <h3 className="font-black text-[9px] sm:text-sm text-gray-800 uppercase tracking-wide group-hover:text-[#7A1416] transition-colors line-clamp-1">{brand.name}</h3>

@@ -294,7 +294,7 @@ const AdminBrands = () => {
                             <TableCell className="py-2.5">
                               {/* Compact Logo Thumbnail for neat row height */}
                               <div className="w-12 h-12 rounded-lg bg-gray-50 border border-gray-200 p-1 flex items-center justify-center overflow-hidden shrink-0">
-                                <img src={brand.logo || "/sky_rocket_box.png"} alt={brand.name} className="max-w-full max-h-full object-contain" />
+                                <img src={brand.logo || "/saiyogi-logo-1.png"} alt={brand.name} className="max-w-full max-h-full object-contain" />
                               </div>
                             </TableCell>
                             <TableCell className="py-2.5 font-bold text-gray-900 text-sm">
@@ -466,7 +466,7 @@ const AdminBrands = () => {
           <DialogHeader className="border-b pb-4">
             <DialogTitle className="text-xl font-bold text-gray-900 flex items-center gap-3">
               <div className="w-12 h-12 rounded-lg bg-gray-50 border p-1 flex items-center justify-center shrink-0">
-                <img src={viewingBrand?.logo || "/sky_rocket_box.png"} alt={viewingBrand?.name} className="max-w-full max-h-full object-contain" />
+                <img src={viewingBrand?.logo || "/saiyogi-logo-1.png"} alt={viewingBrand?.name} className="max-w-full max-h-full object-contain" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
@@ -521,7 +521,7 @@ const AdminBrands = () => {
                             <TableCell className="py-2.5">
                               <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded border p-1 bg-white flex items-center justify-center shrink-0">
-                                  <img src={p.image || "/sky_rocket_box.png"} alt={p.name} className="max-w-full max-h-full object-contain" />
+                                  <img src={p.image || "/saiyogi-logo-1.png"} alt={p.name} className="max-w-full max-h-full object-contain" />
                                 </div>
                                 <div>
                                   <p className="font-bold text-sm text-gray-900">{p.name}</p>
