@@ -7,7 +7,21 @@ import { uploadToCloudinary } from '../utils/cloudinary.js';
 
 export const getAllCategories = async (req, res, next) => {
   try {
-    const categories = await Category.find({ isActive: true }).sort({ displayOrder: 1 });
+    const categories = await Category.find({ isActive: true });
+
+    // Sort ascending by numeric categoryCode, fallback to string numeric localeCompare, then displayOrder
+    categories.sort((a, b) => {
+      const codeA = parseInt(a.categoryCode, 10);
+      const codeB = parseInt(b.categoryCode, 10);
+      if (!isNaN(codeA) && !isNaN(codeB)) {
+        return codeA - codeB;
+      }
+      if (a.categoryCode && b.categoryCode) {
+        return String(a.categoryCode).localeCompare(String(b.categoryCode), undefined, { numeric: true });
+      }
+      return (a.displayOrder || 0) - (b.displayOrder || 0);
+    });
+
     const categoriesWithCount = await Promise.all(
       categories.map(async (cat) => {
         const count = await Product.countDocuments({ category: cat._id, isActive: true });

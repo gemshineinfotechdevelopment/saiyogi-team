@@ -92,20 +92,30 @@ const QuickEnquiry = () => {
     }
 
     // Map each category uniquely by category ID or normalized name
-    const catGroupMap = new Map<string, { categoryName: string; items: Product[] }>();
+    const sortedCategories = [...categories].sort((a, b) => {
+      const codeA = parseInt(a.categoryCode || '', 10);
+      const codeB = parseInt(b.categoryCode || '', 10);
+      if (!isNaN(codeA) && !isNaN(codeB)) {
+        return codeA - codeB;
+      }
+      return String(a.categoryCode || '').localeCompare(String(b.categoryCode || ''), undefined, { numeric: true });
+    });
 
-    categories.forEach((cat) => {
+    const catGroupMap = new Map<string, { categoryName: string; categoryCode: string; items: Product[] }>();
+
+    sortedCategories.forEach((cat) => {
       const key = String(cat._id || cat.id || cat.name).toLowerCase();
       if (!catGroupMap.has(key)) {
         catGroupMap.set(key, {
           categoryName: cat.name.toUpperCase(),
+          categoryCode: cat.categoryCode || '',
           items: [],
         });
       }
     });
 
     const fallbackKey = "uncategorized";
-    catGroupMap.set(fallbackKey, { categoryName: "OTHER PRODUCTS", items: [] });
+    catGroupMap.set(fallbackKey, { categoryName: "OTHER PRODUCTS", categoryCode: '9999', items: [] });
 
     filtered.forEach((p) => {
       const cat = p.category as any;
@@ -136,6 +146,20 @@ const QuickEnquiry = () => {
       if (!group.items.some(item => String(item._id || item.id) === pId)) {
         group.items.push(p);
       }
+    });
+
+    // Sort items inside each category group in ascending order by sku / code
+    catGroupMap.forEach((group) => {
+      group.items.sort((a, b) => {
+        const skuA = String(a.sku || a.code || '');
+        const skuB = String(b.sku || b.code || '');
+        const numA = parseInt(skuA, 10);
+        const numB = parseInt(skuB, 10);
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numA - numB;
+        }
+        return skuA.localeCompare(skuB, undefined, { numeric: true });
+      });
     });
 
     // Return unique category groups that contain items

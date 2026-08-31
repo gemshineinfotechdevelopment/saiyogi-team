@@ -90,6 +90,16 @@ const AdminProducts = () => {
             ...p,
             id: p._id || p.id,
           }));
+          mappedProducts.sort((a: any, b: any) => {
+            const skuA = String(a.sku || a.code || '');
+            const skuB = String(b.sku || b.code || '');
+            const numA = parseInt(skuA, 10);
+            const numB = parseInt(skuB, 10);
+            if (!isNaN(numA) && !isNaN(numB)) {
+              return numA - numB;
+            }
+            return skuA.localeCompare(skuB, undefined, { numeric: true });
+          });
           setProductList(mappedProducts);
         })
         .catch((err) => {
@@ -99,13 +109,22 @@ const AdminProducts = () => {
       getCategories()
         .then((arr) => {
           const safeArr = Array.isArray(arr) ? arr : [];
-          setCategories(safeArr.map((c: any) => ({
+          const mappedCats = safeArr.map((c: any) => ({
             id: c._id || c.id || c.slug,
             name: c.name,
             categoryCode: c.categoryCode || '',
             productCount: c.productCount || 0,
             image: c.image || ''
-          })));
+          }));
+          mappedCats.sort((a: any, b: any) => {
+            const codeA = parseInt(a.categoryCode || '', 10);
+            const codeB = parseInt(b.categoryCode || '', 10);
+            if (!isNaN(codeA) && !isNaN(codeB)) {
+              return codeA - codeB;
+            }
+            return String(a.categoryCode || '').localeCompare(String(b.categoryCode || ''), undefined, { numeric: true });
+          });
+          setCategories(mappedCats);
         })
         .catch((err) => {
           console.error('Failed to fetch categories (AdminProducts):', err);

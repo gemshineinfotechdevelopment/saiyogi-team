@@ -125,7 +125,15 @@ const Catalog = () => {
   }, [products]);
 
   const uniqueCategoryNames = useMemo(() => {
-    const names = categories.map(c => c.name).filter(n => n.toLowerCase() !== "combo packs");
+    const sortedCats = [...categories].sort((a, b) => {
+      const codeA = parseInt(a.categoryCode || '', 10);
+      const codeB = parseInt(b.categoryCode || '', 10);
+      if (!isNaN(codeA) && !isNaN(codeB)) {
+        return codeA - codeB;
+      }
+      return String(a.categoryCode || '').localeCompare(String(b.categoryCode || ''), undefined, { numeric: true });
+    });
+    const names = sortedCats.map(c => c.name).filter(n => n.toLowerCase() !== "combo packs");
     return ["All Categories", "Day Crackers", "Night Crackers", "Kids Crackers", "Gift Box", "Combo Packs", ...names];
   }, [categories]);
 
@@ -186,6 +194,35 @@ const Catalog = () => {
       result = [...result].sort((a, b) => getDiscountPrice(a.price, a.hasDiscount, settings.discountPercent, a.netRate, a.displayNetRate) - getDiscountPrice(b.price, b.hasDiscount, settings.discountPercent, b.netRate, b.displayNetRate));
     } else if (sortBy === "price-high") {
       result = [...result].sort((a, b) => getDiscountPrice(b.price, b.hasDiscount, settings.discountPercent, b.netRate, b.displayNetRate) - getDiscountPrice(a.price, a.hasDiscount, settings.discountPercent, a.netRate, a.displayNetRate));
+    } else if (!searchQuery.trim()) {
+      // Default: Sort ascending by categoryCode / order, then product sku/code
+      const getCategoryOrder = (p: Product) => {
+        const cat = p.category as any;
+        const catId = typeof cat === 'object' && cat !== null ? (cat._id || cat.id) : cat;
+        const catName = typeof cat === 'object' && cat !== null ? cat.name : '';
+        const found = categories.find(c => (c._id || c.id) === catId || (catName && c.name.toLowerCase() === catName.toLowerCase()));
+        if (found) {
+          const num = parseInt(found.categoryCode || '', 10);
+          return !isNaN(num) ? num : (found.displayOrder !== undefined ? found.displayOrder : 999);
+        }
+        return 9999;
+      };
+
+      result = [...result].sort((a, b) => {
+        const catOrderA = getCategoryOrder(a);
+        const catOrderB = getCategoryOrder(b);
+        if (catOrderA !== catOrderB) {
+          return catOrderA - catOrderB;
+        }
+        const skuA = String(a.sku || a.code || '');
+        const skuB = String(b.sku || b.code || '');
+        const numA = parseInt(skuA, 10);
+        const numB = parseInt(skuB, 10);
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numA - numB;
+        }
+        return skuA.localeCompare(skuB, undefined, { numeric: true });
+      });
     }
 
     return result;

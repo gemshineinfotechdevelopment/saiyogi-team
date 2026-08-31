@@ -68,7 +68,7 @@ const AdminCategories = () => {
         return acc;
       }, {});
 
-      // Map categories with calculated product counts
+      // Map categories with calculated product counts and sort ascending by categoryCode
       const categoriesWithCounts = safeCategories.map((c: any) => ({
         id: c._id || c.id || c.slug,
         name: c.name,
@@ -76,6 +76,15 @@ const AdminCategories = () => {
         productCount: productCountByCategory[c._id || c.id || c.slug] || 0,
         image: c.image || ''
       }));
+
+      categoriesWithCounts.sort((a: any, b: any) => {
+        const codeA = parseInt(a.categoryCode, 10);
+        const codeB = parseInt(b.categoryCode, 10);
+        if (!isNaN(codeA) && !isNaN(codeB)) {
+          return codeA - codeB;
+        }
+        return String(a.categoryCode || '').localeCompare(String(b.categoryCode || ''), undefined, { numeric: true });
+      });
 
       setCats(categoriesWithCounts);
     } catch (err) {

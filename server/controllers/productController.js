@@ -30,7 +30,8 @@ export const getAllProducts = async (req, res, next) => {
     } else if (sort === 'price-desc') {
       sortOptions.price = -1;
     } else {
-      sortOptions.createdAt = -1;
+      sortOptions.sku = 1;
+      sortOptions.code = 1;
     }
 
     const skip = (page - 1) * limit;
@@ -39,7 +40,7 @@ export const getAllProducts = async (req, res, next) => {
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit))
-      .populate('category', 'name slug');
+      .populate('category', 'name slug categoryCode displayOrder');
 
     const total = await Product.countDocuments(query);
 
