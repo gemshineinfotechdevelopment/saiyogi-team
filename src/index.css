@@ -358,10 +358,15 @@
 }
 
 .animate-marquee {
-  animation: marquee 20s linear infinite;
+  animation: marquee 50s linear infinite;
+}
+
+.animate-marquee-slow {
+  animation: marquee 60s linear infinite;
 }
 
 .animate-marquee:hover,
+.animate-marquee-slow:hover,
 .animate-marquee.paused,
 .paused {
   animation-play-state: paused !important;
@@ -381,7 +386,7 @@
   display: inline-flex;
   align-items: center;
   gap: 2rem;
-  animation: marquee 15s linear infinite;
+  animation: marquee 35s linear infinite;
 }
 
 .glamics-marquee-item {
@@ -647,7 +652,7 @@ select.bg-secondary option {
 .animate-top-marquee {
   display: flex;
   gap: 4rem;
-  animation: topMarqueeScroll 13s linear infinite;
+  animation: topMarqueeScroll 30s linear infinite;
   width: max-content;
 }
 
@@ -657,7 +662,7 @@ select.bg-secondary option {
 
 .animate-top-announcement {
   display: inline-flex;
-  animation: marquee 20s linear infinite;
+  animation: marquee 45s linear infinite;
 }
 
 .animate-top-announcement:hover {
