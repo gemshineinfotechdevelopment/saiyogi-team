@@ -39,6 +39,7 @@ app.use('/api', (req, res, next) => {
 const allowedOrigins = [
   'https://saiyogicrackers.com',
   'https://www.saiyogicrackers.com',
+  'https://saiyogi-crackers.gemshine.tech',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:3000',
