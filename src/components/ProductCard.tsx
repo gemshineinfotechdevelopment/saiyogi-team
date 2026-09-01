@@ -5,12 +5,18 @@ import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext
 import { useWishlist } from "@/context/WishlistContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { DiscountTag } from "@/components/ui/DiscountTag";
 
 const ProductCard = ({ product, categoryName, onCardClick, className, showDetailOnly, onDetailClose, compact }: { product: Product; categoryName?: string; onCardClick?: () => void; className?: string; showDetailOnly?: boolean; onDetailClose?: () => void; compact?: boolean }) => {
   const [showDetails, setShowDetails] = useState(!!showDetailOnly);
+
+  useEffect(() => {
+    if (showDetailOnly !== undefined) {
+      setShowDetails(!!showDetailOnly);
+    }
+  }, [showDetailOnly]);
 
   const handleCloseDetails = () => {
     setShowDetails(false);
@@ -29,7 +35,7 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
   const isNetRate = !!product.netRate && product.netRate > 0 && !!product.displayNetRate;
   const discount = (product.hasDiscount && !isNetRate) ? settings.discountPercent : 0;
 
-  const stockVal = product.storeStockPieces !== undefined ? Number(product.storeStockPieces) : (product.stock !== undefined ? Number(product.stock) : 0);
+  const stockVal = product.storeStockPieces !== undefined ? Number(product.storeStockPieces) : (product.stock !== undefined ? Number(product.stock) : 999);
   const isOutOfStock = stockVal <= 0;
 
   const selectedAmount = quantity * discountPrice;
@@ -41,7 +47,7 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
       toast.error(`${product.name} is out of stock`);
       return;
     }
-    addToCart(product);
+    addToCart(product, 1);
     toast.success(`${product.name} added to cart!`);
   };
 
@@ -77,6 +83,7 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
   const QuantitySelector = ({ className }: { className?: string }) => (
     <div className={cn("flex items-center justify-between gap-1.5 w-full", className)} onClick={e => e.stopPropagation()}>
       <button
+        type="button"
         onClick={handleDecrement}
         disabled={quantity <= 0}
         className={cn(
@@ -93,6 +100,7 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
         {quantity}
       </span>
       <button
+        type="button"
         onClick={handleIncrement}
         className={cn(
           "flex items-center justify-center rounded-xl bg-gradient-to-b from-white to-gray-100 border border-gray-300 border-b-4 border-b-gray-400 text-[#A80000] hover:bg-red-50 active:border-b-0 active:translate-y-0.5 transition-all font-black shadow-xs disabled:opacity-40 cursor-pointer",
@@ -279,6 +287,7 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
                   <QuantitySelector />
                 ) : (
                   <button
+                    type="button"
                     onClick={handleAddToCart}
                     disabled={isOutOfStock}
                     className={cn(

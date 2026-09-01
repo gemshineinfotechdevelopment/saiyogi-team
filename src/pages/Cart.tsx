@@ -207,7 +207,7 @@ const Cart: React.FC = () => {
 
       const fullDeliveryAddress = `${formData.deliveryAddress}, ${formData.district}, ${formData.state} - ${formData.pincode}`;
       const response = await createOrder({
-        customerEmail: formData.email,
+        customerEmail: formData.email?.trim() || `${formData.phoneNumber.replace(/\D/g, '') || 'customer'}@saiyogicrackers.com`,
         customerName: formData.name,
         customerPhone: formData.phoneNumber,
         preferredTransport: formData.preferredTransport,

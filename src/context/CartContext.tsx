@@ -233,7 +233,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const productId = getProductId(product);
     const stockAvailable = product.storeStockPieces !== undefined
       ? Number(product.storeStockPieces)
-      : (product.stock !== undefined ? Number(product.stock) : 0);
+      : (product.stock !== undefined ? Number(product.stock) : 999);
 
     if (stockAvailable <= 0) {
       toast.error(`${product.name || "Product"} is out of stock!`);
@@ -246,7 +246,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (existing) {
         const newQty = existing.quantity + quantity;
         if (newQty > stockAvailable) {
-          toast.error(`Only ${stockAvailable} items available in stock`);
           return prev.map((i) =>
             getProductId(i.product) === productId ? { ...i, quantity: stockAvailable } : i
           );
@@ -276,7 +275,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ? Number(i.product.storeStockPieces)
             : (i.product.stock !== undefined ? Number(i.product.stock) : 999);
           if (quantity > stockAvailable) {
-            toast.error(`Only ${stockAvailable} items available in stock`);
             return { ...i, quantity: stockAvailable };
           }
           return { ...i, quantity };

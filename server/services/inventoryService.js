@@ -9,11 +9,15 @@ class InventoryService {
   /**
    * Helper to ensure Inventory document exists for a product
    */
-  async _ensureInventory(productId, session) {
+  async _ensureInventory(productId, session = null) {
     if (!productId || !mongoose.Types.ObjectId.isValid(productId)) return null;
-    let inventory = await Inventory.findOne({ productId }).session(session);
+    const query = Inventory.findOne({ productId });
+    if (session) query.session(session);
+    let inventory = await query;
     if (!inventory) {
-      const product = await Product.findById(productId).session(session);
+      const pQuery = Product.findById(productId);
+      if (session) pQuery.session(session);
+      const product = await pQuery;
       if (!product) throw new Error('Product not found');
       
       // Initialize inventory using existing product stock mapped to shop
@@ -23,7 +27,7 @@ class InventoryService {
         shopStock: product.stock || 0,
         minimumStock: product.minimumStock || 0
       });
-      await inventory.save({ session });
+      await inventory.save(session ? { session } : undefined);
     }
     return inventory;
   }
@@ -31,9 +35,11 @@ class InventoryService {
   /**
    * Sync shopStock back to Product.stock for backwards compatibility
    */
-  async _syncProductStock(productId, shopStock, session) {
+  async _syncProductStock(productId, shopStock, session = null) {
     if (!productId || !mongoose.Types.ObjectId.isValid(productId)) return;
-    await Product.findByIdAndUpdate(productId, { stock: shopStock }, { session });
+    const update = Product.findByIdAndUpdate(productId, { stock: shopStock });
+    if (session) update.session(session);
+    await update;
   }
 
   /**
@@ -43,12 +49,10 @@ class InventoryService {
     if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
       return null;
     }
-    const session = externalSession || await Product.startSession();
-    if (!externalSession) session.startTransaction();
     
     try {
       // Ensure product storeStockPieces is synced and sufficient before atomic reduction
-      const currentProd = await Product.findById(productId).session(session);
+      const currentProd = await Product.findById(productId);
       if (currentProd) {
         const storeStock = currentProd.storeStockPieces || 0;
         const totalStock = currentProd.stock || 0;
@@ -57,10 +61,10 @@ class InventoryService {
         if (maxStock < quantity) {
           currentProd.storeStockPieces = Math.max(storeStock, quantity);
           currentProd.stock = Math.max(totalStock, quantity);
-          await currentProd.save({ session });
+          await currentProd.save();
         } else if (storeStock < quantity) {
           currentProd.storeStockPieces = maxStock;
-          await currentProd.save({ session });
+          await currentProd.save();
         }
       }
 
@@ -68,12 +72,12 @@ class InventoryService {
       const product = await Product.findOneAndUpdate(
         { _id: productId, storeStockPieces: { $gte: quantity } },
         { $inc: { storeStockPieces: -quantity, stock: -quantity } },
-        { session, new: false } // Returns the document BEFORE update
+        { new: false } // Returns the document BEFORE update
       );
 
       if (!product) {
         // Find product just to give a better error message (or check if it exists at all)
-        const checkProduct = await Product.findById(productId).session(session);
+        const checkProduct = await Product.findById(productId);
         if (!checkProduct) throw new Error('Product not found');
         throw new Error(`Insufficient Shop Stock for product ${checkProduct.name}. Available: ${checkProduct.storeStockPieces}, Requested: ${quantity}`);
       }
@@ -85,7 +89,7 @@ class InventoryService {
       await Inventory.findOneAndUpdate(
         { productId },
         { $set: { shopStock: currentStock } },
-        { session, upsert: true }
+        { upsert: true }
       );
 
       // Create transaction record
@@ -103,15 +107,10 @@ class InventoryService {
         notes
       });
 
-      await transaction.save({ session });
-
-      if (!externalSession) await session.commitTransaction();
+      await transaction.save();
       return transaction;
     } catch (error) {
-      if (!externalSession) await session.abortTransaction();
       throw error;
-    } finally {
-      if (!externalSession) session.endSession();
     }
   }
 
@@ -122,14 +121,12 @@ class InventoryService {
     if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
       return null;
     }
-    const session = externalSession || await Product.startSession();
-    if (!externalSession) session.startTransaction();
     
     try {
       const product = await Product.findOneAndUpdate(
         { _id: productId },
         { $inc: { storeStockPieces: quantity, stock: quantity } },
-        { session, new: false } // returns old doc
+        { new: false } // returns old doc
       );
 
       if (!product) throw new Error('Product not found');
@@ -141,7 +138,7 @@ class InventoryService {
       await Inventory.findOneAndUpdate(
         { productId },
         { $set: { shopStock: currentStock } },
-        { session, upsert: true }
+        { upsert: true }
       );
 
       // Create transaction record
@@ -159,15 +156,10 @@ class InventoryService {
         notes
       });
 
-      await transaction.save({ session });
-
-      if (!externalSession) await session.commitTransaction();
+      await transaction.save();
       return transaction;
     } catch (error) {
-      if (!externalSession) await session.abortTransaction();
       throw error;
-    } finally {
-      if (!externalSession) session.endSession();
     }
   }
 
@@ -175,11 +167,8 @@ class InventoryService {
    * Manually adjust stock (Adjusts Shop Stock)
    */
   async adjustStock(productId, newStockQuantity, userId, notes = 'Manual stock adjustment') {
-    const session = await Product.startSession();
-    session.startTransaction();
-    
     try {
-      const inventory = await this._ensureInventory(productId, session);
+      const inventory = await this._ensureInventory(productId);
 
       const previousStock = inventory.shopStock;
       if (previousStock === newStockQuantity) {
@@ -191,10 +180,10 @@ class InventoryService {
 
       // Update shop stock
       inventory.shopStock = newStockQuantity;
-      await inventory.save({ session });
+      await inventory.save();
 
       // Sync with Product
-      await this._syncProductStock(productId, newStockQuantity, session);
+      await this._syncProductStock(productId, newStockQuantity);
 
       // Create transaction record
       const transaction = new InventoryTransaction({
@@ -208,15 +197,10 @@ class InventoryService {
         notes
       });
 
-      await transaction.save({ session });
-
-      await session.commitTransaction();
+      await transaction.save();
       return transaction;
     } catch (error) {
-      await session.abortTransaction();
       throw error;
-    } finally {
-      session.endSession();
     }
   }
 
@@ -226,11 +210,8 @@ class InventoryService {
   async transferStock(productId, quantity, userId, remarks = '') {
     if (quantity <= 0) throw new Error('Transfer quantity must be greater than zero');
     
-    const session = await Product.startSession();
-    session.startTransaction();
-    
     try {
-      const inventory = await this._ensureInventory(productId, session);
+      const inventory = await this._ensureInventory(productId);
 
       if (inventory.godownStock < quantity) {
         throw new Error(`Insufficient Godown Stock. Available: ${inventory.godownStock}, Requested: ${quantity}`);
@@ -239,10 +220,10 @@ class InventoryService {
       inventory.godownStock -= quantity;
       inventory.shopStock += quantity;
       
-      await inventory.save({ session });
+      await inventory.save();
 
       // Sync shopStock to Product for backwards compatibility
-      await this._syncProductStock(productId, inventory.shopStock, session);
+      await this._syncProductStock(productId, inventory.shopStock);
 
       const transfer = new StockTransferHistory({
         productId,
@@ -253,15 +234,10 @@ class InventoryService {
         remarks
       });
 
-      await transfer.save({ session });
-
-      await session.commitTransaction();
+      await transfer.save();
       return transfer;
     } catch (error) {
-      await session.abortTransaction();
       throw error;
-    } finally {
-      session.endSession();
     }
   }
 

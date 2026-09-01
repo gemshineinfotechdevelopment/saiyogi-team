@@ -77,7 +77,7 @@ const ProductDetail = () => {
   const discountPrice = getDiscountPrice(product.price, product.hasDiscount, settings.discountPercent, product.netRate, product.displayNetRate);
   const discount = product.hasDiscount ? settings.discountPercent : 0;
 
-  const stockVal = product.storeStockPieces !== undefined ? Number(product.storeStockPieces) : (product.stock !== undefined ? Number(product.stock) : 0);
+  const stockVal = product.storeStockPieces !== undefined ? Number(product.storeStockPieces) : (product.stock !== undefined ? Number(product.stock) : 999);
   const isOutOfStock = stockVal <= 0;
 
   const handleAdd = () => {

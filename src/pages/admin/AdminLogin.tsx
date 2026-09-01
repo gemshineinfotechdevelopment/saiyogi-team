@@ -34,7 +34,7 @@ const AdminLogin = () => {
 
     setLoading(true);
     try {
-      await login(email, password);
+      await login(email.trim(), password.trim());
       toast.success("Admin login successful!");
       navigate("/admin");
     } catch (error: any) {

@@ -26,7 +26,7 @@ export const validateProduct = [
 // Order Validation
 export const validateOrder = [
   body('items').isArray({ min: 1 }).withMessage('Order must have at least one item'),
-  body('customerEmail').isEmail().withMessage('Invalid email address'),
+  body('customerEmail').optional({ checkFalsy: true }).isEmail().withMessage('Invalid email address'),
   body('customerName').notEmpty().withMessage('Customer name is required'),
 ];
 

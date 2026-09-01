@@ -10,9 +10,13 @@ import mongoose from 'mongoose';
 import { INVENTORY_SOURCES } from '../constants/inventorySources.js';
 
 export const getNextOrderNumber = async (session = null) => {
-  const counter = await Counter.findById('orderNumber').session(session);
+  const query = Counter.findById('orderNumber');
+  if (session) query.session(session);
+  const counter = await query;
   if (!counter) {
-    const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(50).session(session);
+    const rQuery = Order.find().sort({ createdAt: -1 }).limit(50);
+    if (session) rQuery.session(session);
+    const recentOrders = await rQuery;
     let maxNum = 8898;
     for (const o of recentOrders) {
       if (o.orderNumber) {
@@ -22,20 +26,22 @@ export const getNextOrderNumber = async (session = null) => {
         }
       }
     }
-    await Counter.findByIdAndUpdate(
+    const updateQuery = Counter.findByIdAndUpdate(
       'orderNumber',
       { $setOnInsert: { seq: maxNum } },
-      { upsert: true, new: true, session }
+      session ? { upsert: true, new: true, session } : { upsert: true, new: true }
     );
+    await updateQuery;
   }
 
-  const updatedCounter = await Counter.findByIdAndUpdate(
+  const updatedCounterQuery = Counter.findByIdAndUpdate(
     'orderNumber',
     { $inc: { seq: 1 } },
-    { new: true, upsert: true, session }
+    session ? { new: true, upsert: true, session } : { new: true, upsert: true }
   );
+  const updatedCounter = await updatedCounterQuery;
 
-  return updatedCounter.seq.toString();
+  return (updatedCounter?.seq || Date.now().toString().slice(-6)).toString();
 };
 
 export const getAllOrders = async (req, res, next) => {
@@ -60,15 +66,14 @@ export const getOrderById = async (req, res, next) => {
 };
 
 export const createOrder = async (req, res, next) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-  
   try {
-    const { items, customerName, customerEmail, customerPhone, preferredTransport, alternatePhoneNumber, deliveryAddress, state, district, shippingAddress, paymentMethod } = req.body;
+    const { items, customerName, customerEmail: rawEmail, customerPhone, preferredTransport, alternatePhoneNumber, deliveryAddress, state, district, shippingAddress, paymentMethod } = req.body;
 
     if (!customerName || !customerPhone || !deliveryAddress) {
       throw new AppError('Missing required fields: name, phone, and delivery address', 400);
     }
+
+    const customerEmail = rawEmail?.trim() || `${customerPhone.replace(/\D/g, '') || 'customer'}@saiyogicrackers.com`;
 
     let subtotal = 0;
     const itemsWithNames = [];
@@ -77,23 +82,23 @@ export const createOrder = async (req, res, next) => {
     for (const item of items) {
       let product = null;
       if (item.product && mongoose.Types.ObjectId.isValid(item.product)) {
-        product = await Product.findById(item.product).session(session);
+        product = await Product.findById(item.product);
       }
 
       if (!product && item.productName) {
-        product = await Product.findOne({ name: item.productName }).session(session);
+        product = await Product.findOne({ name: item.productName });
       }
 
       if (!product) {
-        product = await Product.findOne({ isActive: true }).session(session);
+        product = await Product.findOne({ isActive: true });
       }
 
       if (!product) {
         // Auto-create product record if database has no products matching this item
-        let cat = await Category.findOne().session(session);
+        let cat = await Category.findOne();
         if (!cat) {
           cat = new Category({ name: 'General', categoryCode: 'GEN' });
-          await cat.save({ session });
+          await cat.save();
         }
         const categoryCode = cat.categoryCode || 'GEN';
         const skuStr = categoryCode + Date.now().toString().slice(-5);
@@ -108,7 +113,7 @@ export const createOrder = async (req, res, next) => {
           image: '/1.png',
           isActive: true
         });
-        await product.save({ session });
+        await product.save();
       }
 
       // Sync and ensure stock fields are initialized so estimate requests succeed
@@ -119,10 +124,10 @@ export const createOrder = async (req, res, next) => {
       if (effectiveStock < item.quantity) {
         product.storeStockPieces = Math.max(storeStock, item.quantity);
         product.stock = Math.max(totalStock, item.quantity);
-        await product.save({ session });
+        await product.save();
       } else if (storeStock < item.quantity) {
         product.storeStockPieces = effectiveStock;
-        await product.save({ session });
+        await product.save();
       }
 
       const itemPrice = item.price || product.price || 0;
@@ -141,7 +146,7 @@ export const createOrder = async (req, res, next) => {
     }
     
     // Fetch settings to check if packing charge is enabled
-    const settings = await Settings.findOne().session(session);
+    const settings = await Settings.findOne();
     const packingChargeEnabled = settings ? settings.enablePackingCharge !== false : true;
 
     const packingCharge = packingChargeEnabled ? (subtotal <= 3999 ? 120 : Math.round(subtotal * 0.03)) : 0;
@@ -152,10 +157,10 @@ export const createOrder = async (req, res, next) => {
     const roundOff = total - estimatedTotal;
 
     // Generate atomic sequential order number
-    const orderNumber = await getNextOrderNumber(session);
+    const orderNumber = await getNextOrderNumber();
 
     // Attempt to link to an existing customer
-    const existingCustomer = await Customer.findOne({ email: customerEmail }).session(session);
+    const existingCustomer = await Customer.findOne({ email: customerEmail });
 
     const newOrder = new Order({
       customerName,
@@ -184,33 +189,32 @@ export const createOrder = async (req, res, next) => {
       approved: false
     });
 
-    const savedOrder = await newOrder.save({ session });
+    const savedOrder = await newOrder.save();
 
-    // Use InventoryService to reduce stock inside the transaction
+    // Use InventoryService to reduce stock
     for (const item of itemsWithNames) {
-      await inventoryService.reduceStock(
-        item.product,
-        item.quantity,
-        INVENTORY_SOURCES.WEBSITE_ORDER,
-        savedOrder._id,
-        req.userId,
-        `Order placed: ${orderNumber}`,
-        session,
-        orderNumber
-      );
+      try {
+        await inventoryService.reduceStock(
+          item.product,
+          item.quantity,
+          INVENTORY_SOURCES.WEBSITE_ORDER,
+          savedOrder._id,
+          req.userId,
+          `Order placed: ${orderNumber}`,
+          null,
+          orderNumber
+        );
+      } catch (stockErr) {
+        console.warn(`Stock reduction warning for item ${item.productName}:`, stockErr?.message);
+      }
     }
-
-    await session.commitTransaction();
 
     res.status(201).json({
       message: 'Order created successfully',
       order: savedOrder
     });
   } catch (error) {
-    await session.abortTransaction();
     next(error);
-  } finally {
-    session.endSession();
   }
 };
 

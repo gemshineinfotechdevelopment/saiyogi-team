@@ -167,7 +167,7 @@ const QuickEnquiry = () => {
   }, [products, categories, searchQuery, selectedBrand, selectedCategory]);
 
   const handleQtyChange = (product: Product, delta: number) => {
-    const stockVal = product.storeStockPieces !== undefined ? Number(product.storeStockPieces) : (product.stock !== undefined ? Number(product.stock) : 0);
+    const stockVal = product.storeStockPieces !== undefined ? Number(product.storeStockPieces) : (product.stock !== undefined ? Number(product.stock) : 999);
     if (stockVal <= 0 && delta > 0) {
       toast.error(`${product.name} is out of stock`);
       return;
@@ -281,7 +281,7 @@ const QuickEnquiry = () => {
                         const lineTotal = dp * qty;
                         const isEven = index % 2 === 0;
                         const bgColor = isEven ? 'bg-[#FDFBF7]' : 'bg-[#FEFCF9]';
-                        const stockVal = item.storeStockPieces !== undefined ? Number(item.storeStockPieces) : (item.stock !== undefined ? Number(item.stock) : 0);
+                        const stockVal = item.storeStockPieces !== undefined ? Number(item.storeStockPieces) : (item.stock !== undefined ? Number(item.stock) : 999);
                         const isOutOfStock = stockVal <= 0;
                         const displayImg = isOutOfStock ? '/saiyogi-logo-1.png' : (item.image || '/saiyogi-logo-1.png');
 
@@ -322,6 +322,7 @@ const QuickEnquiry = () => {
                               ) : (
                                 <div className="flex items-center bg-white border border-gray-300 rounded-lg shadow-2xs h-7.5 w-18 overflow-hidden">
                                   <button
+                                    type="button"
                                     onClick={() => handleQtyChange(item, -1)}
                                     disabled={qty <= 0}
                                     className="w-6 h-full flex items-center justify-center text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors rounded-l-md font-black text-sm leading-none disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#A80000] active:scale-90 cursor-pointer"
@@ -330,6 +331,7 @@ const QuickEnquiry = () => {
                                   </button>
                                   <div className="flex-1 text-center font-black text-xs text-gray-900 border-x border-gray-100 flex items-center justify-center h-full font-sans">{qty}</div>
                                   <button
+                                    type="button"
                                     onClick={() => handleQtyChange(item, 1)}
                                     disabled={isOutOfStock || qty >= stockVal}
                                     className="w-6 h-full flex items-center justify-center text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors rounded-r-md font-black text-sm leading-none disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#A80000] active:scale-90 cursor-pointer"
@@ -381,6 +383,7 @@ const QuickEnquiry = () => {
                               ) : (
                                 <div className="flex items-center bg-white border border-gray-300 rounded-lg shadow-2xs h-8 w-24">
                                   <button
+                                    type="button"
                                     onClick={() => handleQtyChange(item, -1)}
                                     disabled={qty <= 0}
                                     className="flex-1 h-full flex items-center justify-center text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors rounded-l-lg font-bold text-base leading-none pb-0.5 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#A80000]"
@@ -389,6 +392,7 @@ const QuickEnquiry = () => {
                                   </button>
                                   <div className="flex-1 text-center font-extrabold text-sm text-gray-800 border-x border-gray-100 flex items-center justify-center h-full font-sans">{qty}</div>
                                   <button
+                                    type="button"
                                     onClick={() => handleQtyChange(item, 1)}
                                     disabled={isOutOfStock || qty >= stockVal}
                                     className="flex-1 h-full flex items-center justify-center text-[#A80000] hover:bg-[#A80000] hover:text-white transition-colors rounded-r-lg font-bold text-base leading-none pb-0.5 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#A80000]"

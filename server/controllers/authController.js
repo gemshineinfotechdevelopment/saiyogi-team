@@ -54,15 +54,15 @@ export const signup = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const cleanEmail = (email || '').trim().toLowerCase();
 
     // Check Users (Staff/Admins) first
-    let account = await User.findOne({ email });
+    let account = await User.findOne({ email: cleanEmail });
     let isCustomer = false;
 
     if (!account) {
       // Check Customers
-      account = await Customer.findOne({ email });
+      account = await Customer.findOne({ email: cleanEmail });
       isCustomer = true;
     }
 
