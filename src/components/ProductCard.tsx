@@ -1,4 +1,4 @@
-import { ShoppingCart, X, Plus, Minus, CheckCircle2, Star, StarHalf, Heart } from "lucide-react";
+import { ShoppingCart, X, Plus, Minus, CheckCircle2, Star, StarHalf, Heart, PackageCheck, Sparkles } from "lucide-react";
 import { Product } from "@/data/products";
 import { useCart } from "@/context/CartContext";
 import { useSiteSettings, getDiscountPrice } from "@/context/SiteSettingsContext";
@@ -8,9 +8,11 @@ import { toast } from "sonner";
 import { useState, useMemo, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { DiscountTag } from "@/components/ui/DiscountTag";
+import ComboProductsModal from "@/components/ComboProductsModal";
 
 const ProductCard = ({ product, categoryName, onCardClick, className, showDetailOnly, onDetailClose, compact }: { product: Product; categoryName?: string; onCardClick?: () => void; className?: string; showDetailOnly?: boolean; onDetailClose?: () => void; compact?: boolean }) => {
   const [showDetails, setShowDetails] = useState(!!showDetailOnly);
+  const [showComboModal, setShowComboModal] = useState(false);
 
   useEffect(() => {
     if (showDetailOnly !== undefined) {
@@ -279,6 +281,24 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
                     </span>
                   </div>
                 )}
+
+                {/* Combo Products Included Button on Card */}
+                {product.comboProducts && product.comboProducts.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowComboModal(true);
+                    }}
+                    className={cn(
+                      "w-full my-1 py-1 px-2 bg-gradient-to-r from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100 text-[#8B0000] border border-amber-300/80 rounded-xl font-black flex items-center justify-center gap-1.5 shadow-2xs transition-all transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer",
+                      compact ? "text-[9px] py-0.5" : "text-[10px] sm:text-xs py-1"
+                    )}
+                  >
+                    <PackageCheck className={cn("text-amber-600 shrink-0", compact ? "w-3 h-3" : "w-3.5 h-3.5")} />
+                    <span className="truncate">View {product.comboProducts.length} Items List</span>
+                  </button>
+                )}
               </div>
 
               {/* Add to Cart Button Row */}
@@ -383,9 +403,26 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
               </div>
 
               {product.description && (
-                <p className="text-sm md:text-base text-gray-700 mb-6 leading-relaxed">
+                <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed">
                   {product.description}
                 </p>
+              )}
+
+              {/* View Included Combo Products Button in Quick View Modal */}
+              {((product.comboProducts && product.comboProducts.length > 0) || product.name.toLowerCase().includes('combo') || product.name.toLowerCase().includes('pack')) && (
+                <div className="mb-5">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowComboModal(true);
+                    }}
+                    className="w-full py-2.5 px-4 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-800 text-white font-black text-xs sm:text-sm rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all transform hover:scale-[1.01] active:scale-[0.99] cursor-pointer border border-amber-400/30"
+                  >
+                    <PackageCheck className="w-4 h-4 text-amber-100 shrink-0" />
+                    <span>🎁 View Included Combo Products {product.comboProducts?.length ? `(${product.comboProducts.length} Items)` : ''}</span>
+                  </button>
+                </div>
               )}
 
               <div className="space-y-4">
@@ -436,6 +473,13 @@ const ProductCard = ({ product, categoryName, onCardClick, className, showDetail
           </div>
         </div>
       )}
+
+      {/* Combo Products Included Modal */}
+      <ComboProductsModal
+        product={product}
+        isOpen={showComboModal}
+        onClose={() => setShowComboModal(false)}
+      />
     </>
   );
 };

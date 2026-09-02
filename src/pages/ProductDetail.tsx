@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { ShoppingCart, ArrowLeft, Minus, Plus, X } from "lucide-react";
+import { ShoppingCart, ArrowLeft, Minus, Plus, X, PackageCheck, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getProductById, getProducts } from "@/lib/api";
 import { Product } from "@/data/products";
@@ -10,6 +10,7 @@ import ProductCard from "@/components/ProductCard";
 import { DiscountTag } from "@/components/ui/DiscountTag";
 import UserHeader from "@/components/layout/UserHeader";
 import UserFooter from "@/components/layout/UserFooter";
+import ComboProductsModal from "@/components/ComboProductsModal";
 import { toast } from "sonner";
 
 const ProductDetail = () => {
@@ -21,6 +22,7 @@ const ProductDetail = () => {
   const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [showComboModal, setShowComboModal] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -137,6 +139,20 @@ const ProductDetail = () => {
               <p><span className="font-semibold">Availability:</span> {!isOutOfStock ? <span className="text-green-600 font-bold">In Stock ({stockVal} left)</span> : <span className="text-red-600 font-bold">Out of Stock</span>}</p>
             </div>
 
+            {/* View Included Combo Products Button */}
+            {((product.comboProducts && product.comboProducts.length > 0) || product.name.toLowerCase().includes('combo') || product.name.toLowerCase().includes('pack')) && (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowComboModal(true)}
+                  className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-800 text-white font-black text-sm rounded-xl shadow-md flex items-center justify-center gap-2 transition-all transform hover:scale-[1.01] active:scale-[0.99] cursor-pointer border border-amber-400/30"
+                >
+                  <PackageCheck className="w-4 h-4 text-amber-100" />
+                  <span>🎁 View Included Combo Products {product.comboProducts?.length ? `(${product.comboProducts.length} Items)` : ''}</span>
+                </button>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4">
               <div className="flex items-center border-2 border-red-300 rounded-lg">
                 <button onClick={() => setQty(Math.max(1, qty - 1))} className="p-2 hover:bg-red-100 transition-colors text-red-700" disabled={isOutOfStock}><Minus className="h-4 w-4" /></button>
@@ -153,6 +169,13 @@ const ProductDetail = () => {
             </div>
           </div>
         </div>
+
+        {/* Combo Products Modal */}
+        <ComboProductsModal
+          product={product}
+          isOpen={showComboModal}
+          onClose={() => setShowComboModal(false)}
+        />
 
         {related.length > 0 && (
           <section>

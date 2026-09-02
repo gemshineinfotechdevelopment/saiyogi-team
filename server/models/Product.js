@@ -113,7 +113,19 @@ const productSchema = new mongoose.Schema(
       type: String,
       enum: ['Day Crackers', 'Night Crackers', 'Kids Crackers', 'Gift Box'],
       default: 'Day Crackers'
-    }
+    },
+    comboProducts: [
+      {
+        name: {
+          type: String,
+          trim: true
+        },
+        quantity: {
+          type: String,
+          trim: true
+        }
+      }
+    ]
   },
   { timestamps: true }
 );

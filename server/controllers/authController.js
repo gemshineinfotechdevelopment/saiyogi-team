@@ -31,8 +31,8 @@ export const signup = async (req, res, next) => {
 
     const token = jwt.sign(
       { id: savedCustomer._id, role: 'CUSTOMER' },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRE }
+      process.env.JWT_SECRET || 'saiyogi_jwt_secret_key_2026',
+      { expiresIn: process.env.JWT_EXPIRE || '30d' }
     );
 
     logger.info(`User registered successfully (${email})`, { reqId: req.id, email, userId: savedCustomer._id, role: 'CUSTOMER' });
@@ -54,6 +54,7 @@ export const signup = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
+    const { email, password } = req.body;
     const cleanEmail = (email || '').trim().toLowerCase();
 
     // Check Users (Staff/Admins) first
@@ -61,8 +62,16 @@ export const login = async (req, res, next) => {
     let isCustomer = false;
 
     if (!account) {
+      // Check case-insensitive for User
+      account = await User.findOne({ email: { $regex: new RegExp(`^${cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } });
+    }
+
+    if (!account) {
       // Check Customers
       account = await Customer.findOne({ email: cleanEmail });
+      if (!account) {
+        account = await Customer.findOne({ email: { $regex: new RegExp(`^${cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } });
+      }
       isCustomer = true;
     }
 
@@ -81,11 +90,11 @@ export const login = async (req, res, next) => {
 
     const token = jwt.sign(
       { id: account._id, role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRE }
+      process.env.JWT_SECRET || 'saiyogi_jwt_secret_key_2026',
+      { expiresIn: process.env.JWT_EXPIRE || '30d' }
     );
 
-    logger.info(`Login successful (${email})`, { reqId: req.id, email, userId: account._id, role });
+    logger.info(`Login successful (${cleanEmail})`, { reqId: req.id, email: cleanEmail, userId: account._id, role });
 
     res.json({
       message: 'Login successful',

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Search, CheckCircle, FileArchive } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, CheckCircle, FileArchive, Package, PackagePlus, ListPlus, Sparkles, X, ChevronDown, ChevronUp } from "lucide-react";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminNavbar from "@/components/layout/AdminNavbar";
 import { getProducts, getCategories, getBrands, API_BASE_URL, Brand } from "@/lib/api";
@@ -28,6 +28,9 @@ const AdminProducts = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
 
   const [form, setForm] = useState({ name: "", sku: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", rating: "5", hasDiscount: false, displayNetRate: false, isSaiYogiVerified: true, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1", crackerType: "Day Crackers" });
+  const [comboProducts, setComboProducts] = useState<{ name: string; quantity: string }[]>([]);
+  const [bulkPasteText, setBulkPasteText] = useState("");
+  const [showBulkPaste, setShowBulkPaste] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,6 +42,85 @@ const AdminProducts = () => {
     }
     const cat = categories.find((c) => c.id === category || (c as any)._id === category);
     return cat?.name || String(category);
+  };
+
+  const selectedCatObj = categories.find(c => c.id === form.category || (c as any)._id === form.category);
+  const isComboCategory = (() => {
+    const catName = (selectedCatObj?.name || '').toLowerCase();
+    const catSlug = (selectedCatObj?.slug || '').toLowerCase();
+    const formName = (form.name || '').toLowerCase();
+    return catName.includes('combo') || catSlug.includes('combo') || formName.includes('combo') || formName.includes('pack');
+  })();
+
+  const handleAddComboRow = () => {
+    setComboProducts(prev => [...prev, { name: '', quantity: '1 Box' }]);
+  };
+
+  const handleRemoveComboRow = (index: number) => {
+    setComboProducts(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleComboChange = (index: number, field: 'name' | 'quantity', value: string) => {
+    setComboProducts(prev => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
+  };
+
+  const handleParseBulkText = () => {
+    if (!bulkPasteText.trim()) {
+      toast.error("Please enter or paste items text");
+      return;
+    }
+    const lines = bulkPasteText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const newItems: { name: string; quantity: string }[] = [];
+
+    for (const line of lines) {
+      // Clean leading numbers e.g. "1.", "1)", "1 -", "#1"
+      let cleaned = line.replace(/^\s*(\d+[\.\)\-:]|\#\d+[\.\)\-:]|\*|\-|\•)\s*/, '').trim();
+      if (!cleaned) continue;
+
+      let itemName = cleaned;
+      let itemQty = '1 Box';
+
+      if (cleaned.includes(' - ')) {
+        const parts = cleaned.split(' - ');
+        itemName = parts[0].trim();
+        itemQty = parts.slice(1).join(' - ').trim();
+      } else if (cleaned.includes(' : ')) {
+        const parts = cleaned.split(' : ');
+        itemName = parts[0].trim();
+        itemQty = parts.slice(1).join(' : ').trim();
+      } else if (cleaned.includes('\t')) {
+        const parts = cleaned.split('\t');
+        itemName = parts[0].trim();
+        itemQty = parts.slice(1).join(' ').trim();
+      } else if (/\((.*?)\)$/.test(cleaned)) {
+        const match = cleaned.match(/^(.*?)\s*\((.*?)\)$/);
+        if (match) {
+          itemName = match[1].trim();
+          itemQty = match[2].trim();
+        }
+      } else if (cleaned.includes(',')) {
+        const parts = cleaned.split(',');
+        itemName = parts[0].trim();
+        itemQty = parts.slice(1).join(',').trim();
+      }
+
+      if (itemName) {
+        newItems.push({ name: itemName, quantity: itemQty });
+      }
+    }
+
+    if (newItems.length > 0) {
+      setComboProducts(prev => [...prev, ...newItems]);
+      setBulkPasteText("");
+      setShowBulkPaste(false);
+      toast.success(`Successfully added ${newItems.length} items to combo list!`);
+    } else {
+      toast.error("Could not parse items from text");
+    }
   };
 
   const openEdit = (product: Product) => {
@@ -70,6 +152,16 @@ const AdminProducts = () => {
       piecesPerCase: (product.piecesPerCase ?? 1).toString(),
       crackerType: product.crackerType || "Day Crackers"
     });
+    setComboProducts(
+      product.comboProducts && Array.isArray(product.comboProducts)
+        ? product.comboProducts.map(cp => ({
+            name: typeof cp === 'string' ? cp : (cp?.name || ''),
+            quantity: typeof cp === 'object' && cp !== null ? (cp?.quantity || '') : ''
+          }))
+        : []
+    );
+    setBulkPasteText("");
+    setShowBulkPaste(false);
     setImageFile(null);
     setDialogOpen(true);
   };
@@ -77,6 +169,9 @@ const AdminProducts = () => {
   const openCreate = () => {
     setEditing(null);
     setForm({ name: "", sku: "", price: "", wholesalePrice: "", netRate: "", stock: "", brand: "", category: "", description: "", quantity: "", rating: "5", hasDiscount: false, displayNetRate: false, isSaiYogiVerified: true, storeStockPieces: "0", godownStockCases: "0", piecesPerCase: "1", crackerType: "Day Crackers" });
+    setComboProducts([]);
+    setBulkPasteText("");
+    setShowBulkPaste(false);
     setImageFile(null);
     setDialogOpen(true);
   };
@@ -503,6 +598,166 @@ const AdminProducts = () => {
                         placeholder="Product description..." 
                       />
                     </div>
+                    {/* Dedicated Combo Products Management Section */}
+                    {isComboCategory && (
+                      <div className="p-4 bg-gradient-to-br from-amber-50/80 via-orange-50/50 to-amber-100/40 border-2 border-amber-300 rounded-2xl shadow-xs space-y-3">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-xs text-base">
+                              🎁
+                            </span>
+                            <div>
+                              <h4 className="text-sm font-black text-amber-950 uppercase tracking-wide flex items-center gap-2">
+                                <span>Combo Pack Products List</span>
+                                <span className="bg-amber-200 text-amber-900 text-xs px-2 py-0.5 rounded-full font-extrabold border border-amber-300">
+                                  {comboProducts.length} Items
+                                </span>
+                              </h4>
+                              <p className="text-[11px] text-amber-800 font-medium">
+                                List of 30-40 crackers/items included in this combo pack. Customers will see this list when clicking "View Combo Products".
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setShowBulkPaste(prev => !prev)}
+                              className="bg-white hover:bg-amber-100 border-amber-300 text-amber-900 font-bold text-xs h-8 gap-1.5 shadow-2xs"
+                            >
+                              <ListPlus className="w-3.5 h-3.5 text-amber-700" />
+                              <span>{showBulkPaste ? 'Hide Bulk Paste' : '⚡ Fast Bulk Paste'}</span>
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={handleAddComboRow}
+                              className="bg-amber-600 hover:bg-amber-700 text-white font-black text-xs h-8 gap-1 shadow-xs"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>Add Item</span>
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Bulk Paste Expander */}
+                        {showBulkPaste && (
+                          <div className="p-3 bg-white border border-amber-300 rounded-xl shadow-inner space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="flex items-center justify-between">
+                              <Label className="text-xs font-bold text-amber-900">
+                                Paste Items List (e.g. from WhatsApp, Excel, or Text):
+                              </Label>
+                              <span className="text-[10px] text-gray-500 italic">
+                                Format: 1. Item Name - Quantity (one per line)
+                              </span>
+                            </div>
+                            <textarea
+                              value={bulkPasteText}
+                              onChange={(e) => setBulkPasteText(e.target.value)}
+                              placeholder={`1. 10cm Electric Sparklers - 2 Boxes\n2. Flower Pots Special - 1 Box\n3. Ground Chakkar Deluxe - 1 Box\n4. 28 Giant Crackers - 2 Pkts\n5. 7 Shots Multi Colour (1 Box)`}
+                              className="w-full text-xs font-mono p-2.5 bg-amber-50/40 border border-amber-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-500 min-h-[100px]"
+                            />
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setBulkPasteText("");
+                                  setShowBulkPaste(false);
+                                }}
+                                className="text-xs h-7 text-gray-600"
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={handleParseBulkText}
+                                className="bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs h-7 gap-1"
+                              >
+                                <Sparkles className="w-3 h-3 text-amber-200" />
+                                <span>Parse & Add Items</span>
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Items List Rows */}
+                        {comboProducts.length === 0 ? (
+                          <div className="text-center py-6 bg-white/70 rounded-xl border border-dashed border-amber-300">
+                            <Package className="w-8 h-8 text-amber-400 mx-auto mb-1.5" />
+                            <p className="text-xs font-bold text-amber-900">No items added to this combo pack yet</p>
+                            <p className="text-[11px] text-amber-700 mt-0.5">Click "+ Add Item" or use "⚡ Fast Bulk Paste" to add 30-40 products at once</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                            <div className="grid grid-cols-12 gap-2 text-[11px] font-black uppercase text-amber-900 px-1">
+                              <div className="col-span-1 text-center">#</div>
+                              <div className="col-span-7">Product / Item Name</div>
+                              <div className="col-span-3">Quantity / Pack</div>
+                              <div className="col-span-1 text-center">Del</div>
+                            </div>
+
+                            {comboProducts.map((item, idx) => (
+                              <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-white p-1.5 rounded-lg border border-amber-200 shadow-2xs">
+                                <div className="col-span-1 text-center text-xs font-black text-amber-800">
+                                  {idx + 1}
+                                </div>
+                                <div className="col-span-7">
+                                  <Input
+                                    value={item.name}
+                                    onChange={(e) => handleComboChange(idx, 'name', e.target.value)}
+                                    placeholder="e.g. 10cm Electric Sparklers"
+                                    list="catalog-products-list"
+                                    className="h-8 text-xs bg-gray-50 border-gray-200 focus:bg-white"
+                                  />
+                                </div>
+                                <div className="col-span-3">
+                                  <Input
+                                    value={item.quantity}
+                                    onChange={(e) => handleComboChange(idx, 'quantity', e.target.value)}
+                                    placeholder="e.g. 2 Boxes / 1 Pkt"
+                                    className="h-8 text-xs bg-gray-50 border-gray-200 focus:bg-white"
+                                  />
+                                </div>
+                                <div className="col-span-1 flex justify-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveComboRow(idx)}
+                                    className="p-1 text-gray-400 hover:text-red-600 rounded hover:bg-red-50 transition-colors cursor-pointer"
+                                    title="Remove item"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+
+                            <div className="flex items-center justify-between pt-1 text-[11px] text-amber-800 font-semibold px-1">
+                              <span>Total: <strong>{comboProducts.length}</strong> items in pack</span>
+                              <button
+                                type="button"
+                                onClick={() => setComboProducts([])}
+                                className="text-red-600 hover:underline cursor-pointer"
+                              >
+                                Clear all items
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Datalist for fast autocompleting item names from existing products */}
+                        <datalist id="catalog-products-list">
+                          {productList.map((p) => (
+                            <option key={p.id || p._id} value={p.name} />
+                          ))}
+                        </datalist>
+                      </div>
+                    )}
+
                     <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold" disabled={isSubmitting} onClick={async () => {
                       if (isSubmitting) return;
                       // basic client-side validation
@@ -533,6 +788,7 @@ const AdminProducts = () => {
                       fd.append('godownStockCases', form.godownStockCases);
                       fd.append('piecesPerCase', form.piecesPerCase);
                       fd.append('crackerType', form.crackerType || 'Day Crackers');
+                      fd.append('comboProducts', JSON.stringify(comboProducts.filter(item => item.name && item.name.trim() !== '')));
                       if (imageFile) {
                         fd.append('image', imageFile);
                       }

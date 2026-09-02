@@ -157,6 +157,23 @@ export const createProduct = async (req, res, next) => {
 
     const parsedRating = rating !== undefined ? Math.min(5, Math.max(0, parseFloat(rating))) : 5;
 
+    let parsedComboProducts = [];
+    if (req.body.comboProducts) {
+      try {
+        const temp = typeof req.body.comboProducts === 'string' ? JSON.parse(req.body.comboProducts) : req.body.comboProducts;
+        if (Array.isArray(temp)) {
+          parsedComboProducts = temp
+            .map(item => ({
+              name: typeof item === 'string' ? item.trim() : (item?.name || '').trim(),
+              quantity: typeof item === 'object' && item !== null ? (item?.quantity || '').trim() : ''
+            }))
+            .filter(item => item.name);
+        }
+      } catch (err) {
+        console.error('Error parsing comboProducts in createProduct:', err);
+      }
+    }
+
     const newProduct = new Product({
       name,
       code: newSkuStr,
@@ -179,7 +196,8 @@ export const createProduct = async (req, res, next) => {
       isActive: true,
       isSaiYogiVerified: isSaiYogiVerified === 'true' || isSaiYogiVerified === true,
       rating: isNaN(parsedRating) ? 5 : parsedRating,
-      crackerType: crackerType || 'Day Crackers'
+      crackerType: crackerType || 'Day Crackers',
+      comboProducts: parsedComboProducts
     });
 
     const savedProduct = await newProduct.save();
@@ -267,6 +285,24 @@ export const updateProduct = async (req, res, next) => {
     if (description !== undefined) updateData.description = description;
     if (isActive !== undefined) updateData.isActive = isActive === 'true' || isActive === true;
     if (imageUrl) updateData.image = imageUrl;
+
+    if (req.body.comboProducts !== undefined) {
+      try {
+        const temp = typeof req.body.comboProducts === 'string' ? JSON.parse(req.body.comboProducts) : req.body.comboProducts;
+        if (Array.isArray(temp)) {
+          updateData.comboProducts = temp
+            .map(item => ({
+              name: typeof item === 'string' ? item.trim() : (item?.name || '').trim(),
+              quantity: typeof item === 'object' && item !== null ? (item?.quantity || '').trim() : ''
+            }))
+            .filter(item => item.name);
+        } else {
+          updateData.comboProducts = [];
+        }
+      } catch (err) {
+        console.error('Error parsing comboProducts in updateProduct:', err);
+      }
+    }
 
     const updatedProduct = await Product.findByIdAndUpdate(id, updateData, { returnDocument: 'after' });
     
