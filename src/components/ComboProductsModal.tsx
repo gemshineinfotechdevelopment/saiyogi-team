@@ -22,24 +22,22 @@ export const ComboProductsModal: React.FC<ComboProductsModalProps> = ({
   const { addToCart, items, updateQuantity } = useCart();
   const { settings } = useSiteSettings();
 
-  if (!isOpen) return null;
-
-  const comboItems = product.comboProducts || [];
-  const productId = String(product._id || product.id || '');
+  const comboItems = product?.comboProducts || [];
+  const productId = String(product?._id || product?.id || '');
   const cartItem = items.find(i => i && i.product && String(i.product._id || i.product.id || '') === productId);
   const quantityInCart = cartItem?.quantity || 0;
 
-  const discountPrice = getDiscountPrice(
+  const discountPrice = product ? getDiscountPrice(
     product.price,
     product.hasDiscount,
     settings.discountPercent,
     product.netRate,
     product.displayNetRate
-  );
+  ) : 0;
 
-  const stockVal = product.storeStockPieces !== undefined
+  const stockVal = product?.storeStockPieces !== undefined
     ? Number(product.storeStockPieces)
-    : (product.stock !== undefined ? Number(product.stock) : 999);
+    : (product?.stock !== undefined ? Number(product.stock) : 999);
   const isOutOfStock = stockVal <= 0;
 
   const filteredItems = useMemo(() => {
@@ -50,6 +48,8 @@ export const ComboProductsModal: React.FC<ComboProductsModalProps> = ({
       (item.quantity && item.quantity.toLowerCase().includes(q))
     );
   }, [comboItems, search]);
+
+  if (!isOpen || !product) return null;
 
   const handleCopyList = () => {
     if (comboItems.length === 0) return;
