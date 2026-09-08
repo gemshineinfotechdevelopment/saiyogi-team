@@ -287,6 +287,7 @@ function generateReceiptHTML(order: OrderData, copies: number = 1): string {
   const CAP_FIRST_PAGE = 16;
   const CAP_MIDDLE_PAGE = 26;
   const CAP_LAST_PAGE = 22;
+  const MIN_LAST_PAGE = 4;
 
   const totalRowsCount = allRows.length;
   let pageRowCounts: number[] = [];
@@ -296,7 +297,7 @@ function generateReceiptHTML(order: OrderData, copies: number = 1): string {
   } else if (totalRowsCount <= CAP_SINGLE_PAGE) {
     pageRowCounts = [totalRowsCount];
   } else {
-    // Find minimum number of pages needed
+    // Determine minimum pages needed
     let P = 2;
     while (true) {
       const totalCap = P === 2
@@ -314,44 +315,47 @@ function generateReceiptHTML(order: OrderData, copies: number = 1): string {
     maxCaps.push(CAP_LAST_PAGE);
 
     const counts = new Array(P).fill(0);
-    let remaining = totalRowsCount;
-    const totalCap = maxCaps.reduce((a, b) => a + b, 0);
 
-    for (let i = 0; i < P; i++) {
-      counts[i] = Math.min(maxCaps[i], Math.floor((totalRowsCount * maxCaps[i]) / totalCap));
-      if (counts[i] < 1) counts[i] = 1;
-      remaining -= counts[i];
-    }
-
-    // Distribute remaining rows to pages with capacity available
-    while (remaining > 0) {
-      let bestPage = -1;
-      let maxSpace = -1;
-      for (let i = 0; i < P; i++) {
-        const space = maxCaps[i] - counts[i];
-        if (space > maxSpace) {
-          maxSpace = space;
-          bestPage = i;
-        }
+    if (P === 2) {
+      // 2 Pages: Fill Page 1 as much as possible up to 16, leaving at least MIN_LAST_PAGE for Page 2
+      let page1 = Math.min(CAP_FIRST_PAGE, totalRowsCount - Math.min(MIN_LAST_PAGE, Math.floor(totalRowsCount / 2)));
+      page1 = Math.max(page1, totalRowsCount - CAP_LAST_PAGE);
+      page1 = Math.min(page1, CAP_FIRST_PAGE);
+      
+      counts[0] = page1;
+      counts[1] = totalRowsCount - page1;
+    } else {
+      // P >= 3 Pages: Fill earlier pages up to capacity, balancing only the last 2 pages
+      let remaining = totalRowsCount;
+      
+      for (let i = 0; i < P - 2; i++) {
+        const cap = maxCaps[i];
+        const minNeededForRest = (P - 1 - i) * MIN_LAST_PAGE;
+        const maxCanTake = Math.min(cap, remaining - minNeededForRest);
+        const maxRestCanHold = (P - 2 - i) * CAP_MIDDLE_PAGE + CAP_LAST_PAGE;
+        const minMustTake = Math.max(1, remaining - maxRestCanHold);
+        
+        const take = Math.min(maxCanTake, Math.max(minMustTake, cap));
+        counts[i] = take;
+        remaining -= take;
       }
-      if (bestPage === -1 || maxSpace <= 0) break;
-      counts[bestPage]++;
-      remaining--;
-    }
 
-    // Handle any over-allocation safely
-    while (remaining < 0) {
-      let bestPage = -1;
-      let maxCount = 0;
-      for (let i = P - 1; i >= 0; i--) {
-        if (counts[i] > 1 && counts[i] > maxCount) {
-          maxCount = counts[i];
-          bestPage = i;
-        }
+      const capPenultimate = maxCaps[P - 2];
+      const capLast = maxCaps[P - 1];
+
+      let countPenultimate = Math.ceil(remaining / 2);
+      if (remaining - countPenultimate > capLast) {
+        countPenultimate = remaining - capLast;
       }
-      if (bestPage === -1) break;
-      counts[bestPage]--;
-      remaining++;
+      if (countPenultimate > capPenultimate) {
+        countPenultimate = capPenultimate;
+      }
+      if (remaining - countPenultimate < MIN_LAST_PAGE && countPenultimate > MIN_LAST_PAGE) {
+        countPenultimate = remaining - MIN_LAST_PAGE;
+      }
+
+      counts[P - 2] = countPenultimate;
+      counts[P - 1] = remaining - countPenultimate;
     }
 
     pageRowCounts = counts;
