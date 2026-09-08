@@ -315,49 +315,29 @@ function generateReceiptHTML(order: OrderData, copies: number = 1): string {
     maxCaps.push(CAP_LAST_PAGE);
 
     const counts = new Array(P).fill(0);
+    let remaining = totalRowsCount;
 
-    if (P === 2) {
-      // 2 Pages: Fill Page 1 as much as possible up to 16, leaving at least MIN_LAST_PAGE for Page 2
-      let page1 = Math.min(CAP_FIRST_PAGE, totalRowsCount - Math.min(MIN_LAST_PAGE, Math.floor(totalRowsCount / 2)));
-      page1 = Math.max(page1, totalRowsCount - CAP_LAST_PAGE);
-      page1 = Math.min(page1, CAP_FIRST_PAGE);
+    for (let i = 0; i < P - 1; i++) {
+      const cap = maxCaps[i];
+      const remainingPages = P - 1 - i;
       
-      counts[0] = page1;
-      counts[1] = totalRowsCount - page1;
-    } else {
-      // P >= 3 Pages: Fill earlier pages up to capacity, balancing only the last 2 pages
-      let remaining = totalRowsCount;
+      const minNeededForRest = remainingPages * MIN_LAST_PAGE;
+      const maxCanTake = Math.min(cap, remaining - minNeededForRest);
       
-      for (let i = 0; i < P - 2; i++) {
-        const cap = maxCaps[i];
-        const minNeededForRest = (P - 1 - i) * MIN_LAST_PAGE;
-        const maxCanTake = Math.min(cap, remaining - minNeededForRest);
-        const maxRestCanHold = (P - 2 - i) * CAP_MIDDLE_PAGE + CAP_LAST_PAGE;
-        const minMustTake = Math.max(1, remaining - maxRestCanHold);
-        
-        const take = Math.min(maxCanTake, Math.max(minMustTake, cap));
-        counts[i] = take;
-        remaining -= take;
+      let maxRestCanHold = 0;
+      for (let j = i + 1; j < P; j++) {
+        maxRestCanHold += maxCaps[j];
       }
+      const minMustTake = Math.max(1, remaining - maxRestCanHold);
 
-      const capPenultimate = maxCaps[P - 2];
-      const capLast = maxCaps[P - 1];
+      let take = Math.min(cap, maxCanTake);
+      take = Math.max(take, minMustTake);
 
-      let countPenultimate = Math.ceil(remaining / 2);
-      if (remaining - countPenultimate > capLast) {
-        countPenultimate = remaining - capLast;
-      }
-      if (countPenultimate > capPenultimate) {
-        countPenultimate = capPenultimate;
-      }
-      if (remaining - countPenultimate < MIN_LAST_PAGE && countPenultimate > MIN_LAST_PAGE) {
-        countPenultimate = remaining - MIN_LAST_PAGE;
-      }
-
-      counts[P - 2] = countPenultimate;
-      counts[P - 1] = remaining - countPenultimate;
+      counts[i] = take;
+      remaining -= take;
     }
 
+    counts[P - 1] = remaining;
     pageRowCounts = counts;
   }
 
