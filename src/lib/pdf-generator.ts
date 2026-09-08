@@ -283,10 +283,10 @@ function generateReceiptHTML(order: OrderData, copies: number = 1): string {
     });
   }
 
-  const CAP_SINGLE_PAGE = 11;
-  const CAP_FIRST_PAGE = 16;
-  const CAP_MIDDLE_PAGE = 26;
-  const CAP_LAST_PAGE = 22;
+  const CAP_SINGLE_PAGE = 12;
+  const CAP_FIRST_PAGE = 17;
+  const CAP_MIDDLE_PAGE = 31;
+  const CAP_LAST_PAGE = 24;
   const MIN_LAST_PAGE = 4;
 
   const totalRowsCount = allRows.length;
