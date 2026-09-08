@@ -283,60 +283,93 @@ function generateReceiptHTML(order: OrderData, copies: number = 1): string {
     });
   }
 
-  const MAX_ROWS_FIRST_AND_LAST = 14;  // Page 1 AND Last Page (Must be small to fit both header and footer)
-  const MAX_ROWS_FIRST_PAGE = 22;     // Page 1, NOT Last Page
-  const MAX_ROWS_OTHER_PAGE = 22;     // Middle pages (no header, no footer)
-  const MAX_ROWS_LAST_PAGE = 22;      // Last Page, NOT Page 1 (no header, yes footer)
+  const CAP_SINGLE_PAGE = 11;
+  const CAP_FIRST_PAGE = 16;
+  const CAP_MIDDLE_PAGE = 26;
+  const CAP_LAST_PAGE = 22;
+
+  const totalRowsCount = allRows.length;
+  let pageRowCounts: number[] = [];
+
+  if (totalRowsCount === 0) {
+    pageRowCounts = [0];
+  } else if (totalRowsCount <= CAP_SINGLE_PAGE) {
+    pageRowCounts = [totalRowsCount];
+  } else {
+    // Find minimum number of pages needed
+    let P = 2;
+    while (true) {
+      const totalCap = P === 2
+        ? (CAP_FIRST_PAGE + CAP_LAST_PAGE)
+        : (CAP_FIRST_PAGE + (P - 2) * CAP_MIDDLE_PAGE + CAP_LAST_PAGE);
+      if (totalRowsCount <= totalCap) break;
+      P++;
+    }
+
+    const maxCaps: number[] = [];
+    maxCaps.push(CAP_FIRST_PAGE);
+    for (let i = 1; i < P - 1; i++) {
+      maxCaps.push(CAP_MIDDLE_PAGE);
+    }
+    maxCaps.push(CAP_LAST_PAGE);
+
+    const counts = new Array(P).fill(0);
+    let remaining = totalRowsCount;
+    const totalCap = maxCaps.reduce((a, b) => a + b, 0);
+
+    for (let i = 0; i < P; i++) {
+      counts[i] = Math.min(maxCaps[i], Math.floor((totalRowsCount * maxCaps[i]) / totalCap));
+      if (counts[i] < 1) counts[i] = 1;
+      remaining -= counts[i];
+    }
+
+    // Distribute remaining rows to pages with capacity available
+    while (remaining > 0) {
+      let bestPage = -1;
+      let maxSpace = -1;
+      for (let i = 0; i < P; i++) {
+        const space = maxCaps[i] - counts[i];
+        if (space > maxSpace) {
+          maxSpace = space;
+          bestPage = i;
+        }
+      }
+      if (bestPage === -1 || maxSpace <= 0) break;
+      counts[bestPage]++;
+      remaining--;
+    }
+
+    // Handle any over-allocation safely
+    while (remaining < 0) {
+      let bestPage = -1;
+      let maxCount = 0;
+      for (let i = P - 1; i >= 0; i--) {
+        if (counts[i] > 1 && counts[i] > maxCount) {
+          maxCount = counts[i];
+          bestPage = i;
+        }
+      }
+      if (bestPage === -1) break;
+      counts[bestPage]--;
+      remaining++;
+    }
+
+    pageRowCounts = counts;
+  }
 
   const pages: { rows: any[], isLastPage: boolean, isFirstPage: boolean }[] = [];
   let currentRowIndex = 0;
-  let isFirstPage = true;
+  const numPages = pageRowCounts.length;
 
-  while (currentRowIndex < allRows.length) {
-    const rowsRemaining = allRows.length - currentRowIndex;
-    
-    if (isFirstPage) {
-      if (rowsRemaining <= MAX_ROWS_FIRST_AND_LAST) {
-        pages.push({
-          rows: allRows.slice(currentRowIndex),
-          isLastPage: true,
-          isFirstPage: true
-        });
-        break;
-      } else {
-        const rowsForThisPage = Math.min(rowsRemaining, MAX_ROWS_FIRST_PAGE);
-        pages.push({
-          rows: allRows.slice(currentRowIndex, currentRowIndex + rowsForThisPage),
-          isLastPage: false,
-          isFirstPage: true
-        });
-        currentRowIndex += rowsForThisPage;
-      }
-    } else {
-      if (rowsRemaining <= MAX_ROWS_LAST_PAGE) {
-        pages.push({
-          rows: allRows.slice(currentRowIndex),
-          isLastPage: true,
-          isFirstPage: false
-        });
-        break;
-      } else {
-        const rowsForThisPage = Math.min(rowsRemaining, MAX_ROWS_OTHER_PAGE);
-        pages.push({
-          rows: allRows.slice(currentRowIndex, currentRowIndex + rowsForThisPage),
-          isLastPage: false,
-          isFirstPage: false
-        });
-        currentRowIndex += rowsForThisPage;
-      }
-    }
-    isFirstPage = false;
-  }
-  
-  if (pages.length === 0) {
-    pages.push({ rows: [], isLastPage: true, isFirstPage: true });
-  } else if (!pages[pages.length - 1].isLastPage) {
-    pages.push({ rows: [], isLastPage: true, isFirstPage: false });
+  for (let i = 0; i < numPages; i++) {
+    const count = pageRowCounts[i];
+    const pageRows = allRows.slice(currentRowIndex, currentRowIndex + count);
+    pages.push({
+      rows: pageRows,
+      isFirstPage: i === 0,
+      isLastPage: i === numPages - 1
+    });
+    currentRowIndex += count;
   }
 
   let grossRetailValue = 0;
