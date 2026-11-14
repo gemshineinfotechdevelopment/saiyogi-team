@@ -5,11 +5,13 @@ import {
   Image as ImageIcon, Upload, Trash2, AlertCircle, Edit2, FileText, Loader2, X, Users,
   CheckCircle2, Clock, Search, Filter, Phone, MapPin, Mail, RefreshCw, Check, XCircle,
   Eye, CheckCheck, Calendar, Plus, ArrowLeft, User, DollarSign, Award, ChevronRight, AlertTriangle,
-  Share2, MessageCircle, Sparkles
+  Share2, MessageCircle, Sparkles, FileSpreadsheet, ArrowDownUp
 } from "lucide-react";
 import { calculatePaymentTimingStatus, getMonthTargetDate, getPaidHistoryList } from "@/lib/chitUtils";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { exportChitSubscriptionsToExcel } from "@/lib/excelExport";
+import { ExcelExportModal } from "@/components/admin/ExcelExportModal";
 import {
   uploadImageToCloudinary,
   getChitSchemes,
@@ -93,6 +95,8 @@ const AdminChitScheme: React.FC = () => {
   const [schemeFilter, setSchemeFilter] = useState("all");
   const [approvalFilter, setApprovalFilter] = useState<"all" | "Pending" | "Approved" | "Rejected">("all");
   const [paymentFilter, setPaymentFilter] = useState<"all" | "Paid" | "Pending">("all");
+  const [dateSortOrder, setDateSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Create Scheme Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -930,9 +934,19 @@ _Sai Yogi Crackers_`;
     }).sort((a, b) => {
       const timeA = new Date(a.updatedAt || a.createdAt || a.date || 0).getTime();
       const timeB = new Date(b.updatedAt || b.createdAt || b.date || 0).getTime();
-      return timeB - timeA;
+      return dateSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
     });
-  }, [subscriptions, searchQuery, schemeFilter, approvalFilter, paymentFilter]);
+  }, [subscriptions, searchQuery, schemeFilter, approvalFilter, paymentFilter, dateSortOrder]);
+
+  // Export Chit Scheme Applications to Excel
+  const handleExportChitScheme = (options: { dateSortOrder: 'desc' | 'asc'; startDate?: string; endDate?: string }) => {
+    return exportChitSubscriptionsToExcel(filteredSubscriptions, schemes, {
+      dateSortOrder: options.dateSortOrder,
+      startDate: options.startDate,
+      endDate: options.endDate,
+      filenamePrefix: `SaiYogi_Chit_Applications_${schemeFilter !== 'all' ? schemeFilter : 'All'}`
+    });
+  };
 
   // Calculate Summary Statistics
   const totalSchemesCount = schemes.length;
@@ -1060,8 +1074,19 @@ _Sai Yogi Crackers_`;
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-bold text-gray-600">Filters:</span>
+              <div className="flex flex-wrap items-center gap-2.5">
+                {/* Download Excel Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsExportModalOpen(true)}
+                  className="bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-extrabold text-xs px-3.5 py-2 rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                  title="Download Chit Scheme Applications to Excel with Date Sorting"
+                >
+                  <FileSpreadsheet className="w-4 h-4 stroke-[2.5]" />
+                  <span>Download Excel</span>
+                </button>
+
+                <span className="text-xs font-bold text-gray-600 ml-1">Filters:</span>
                 <span className="text-xs text-gray-400">|</span>
                 <span className="text-xs text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
                   {approvedCustomersCount} Approved
@@ -1073,7 +1098,7 @@ _Sai Yogi Crackers_`;
             </div>
 
             {/* Filter Controls Bar */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-gray-50/90 p-4 rounded-2xl border border-gray-200/80">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 bg-gray-50/90 p-4 rounded-2xl border border-gray-200/80">
               {/* Search Box */}
               <div className="relative col-span-1 sm:col-span-2 lg:col-span-1">
                 <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -1126,6 +1151,19 @@ _Sai Yogi Crackers_`;
                   <option value="all">Payment: All ▼</option>
                   <option value="Paid">Payments Started (&gt;0)</option>
                   <option value="Pending">No Payments (0)</option>
+                </select>
+              </div>
+
+              {/* Date Sorting Dropdown */}
+              <div>
+                <select
+                  value={dateSortOrder}
+                  onChange={(e) => setDateSortOrder(e.target.value as any)}
+                  className="w-full text-xs p-2.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none font-semibold text-gray-700 cursor-pointer"
+                  title="Date Sorting Option"
+                >
+                  <option value="desc">Date: Newest First ⬇️</option>
+                  <option value="asc">Date: Oldest First ⬆️</option>
                 </select>
               </div>
             </div>
@@ -2476,6 +2514,18 @@ _Sai Yogi Crackers_`;
           </DialogContent>
         </Dialog>
       )}
+
+      {/* MODAL 7: EXCEL EXPORT DIALOG WITH DATE SORTING */}
+      <ExcelExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        title="Export Chit Applications to Excel"
+        description="Download customer chit scheme applications in Microsoft Excel (.xlsx) format with customizable date sorting and date range filter."
+        totalCount={filteredSubscriptions.length}
+        items={filteredSubscriptions}
+        getDate={(s) => s.createdAt || s.date || s.updatedAt}
+        onExport={handleExportChitScheme}
+      />
     </div>
   );
 };

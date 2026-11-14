@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getOrders, approveOrder, updatePackingStatus, deleteOrder } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { Trash2, FileSpreadsheet, Download, ArrowDownUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Dialog,
@@ -16,6 +16,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { promptAndDownloadOrderReceiptPDF, promptAndPrintOrderReceipt } from "@/lib/pdf-generator";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
+import { exportOrdersToExcel } from "@/lib/excelExport";
+import { ExcelExportModal } from "@/components/admin/ExcelExportModal";
 
 const AdminOrders = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -68,6 +70,8 @@ const AdminOrders = () => {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [isUpdatingPacking, setIsUpdatingPacking] = useState(false);
   const [isDeletingOrder, setIsDeletingOrder] = useState(false);
+  const [dateSortOrder, setDateSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const handleDeleteOrder = async (orderId: string) => {
     if (isDeletingOrder) return;
@@ -176,8 +180,17 @@ const AdminOrders = () => {
     .sort((a, b) => {
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return dateB - dateA;
+      return dateSortOrder === 'asc' ? dateA - dateB : dateB - dateA;
     });
+
+  const handleExportOrders = (options: { dateSortOrder: 'desc' | 'asc'; startDate?: string; endDate?: string }) => {
+    return exportOrdersToExcel(filteredOrders, {
+      dateSortOrder: options.dateSortOrder,
+      startDate: options.startDate,
+      endDate: options.endDate,
+      filenamePrefix: `SaiYogi_Orders_${statusFilter !== 'all' ? statusFilter : 'All'}`
+    });
+  };
 
   const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
   const paginatedData = filteredOrders.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
@@ -188,9 +201,24 @@ const AdminOrders = () => {
       <div className="flex min-h-screen">
         <AdminSidebar />
         <main className="flex-1 p-6 lg:p-8 overflow-auto">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="font-display text-2xl font-bold">Orders</h1>
-            <Link to="/" className="text-sm text-primary hover:underline lg:hidden">← Store</Link>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h1 className="font-display text-2xl font-bold">Orders</h1>
+              <p className="text-xs text-muted-foreground mt-0.5 font-medium">
+                Manage all customer orders, track shipping status, and export Excel reports.
+              </p>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <Button
+                onClick={() => setIsExportModalOpen(true)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs px-3.5 py-2 h-9 rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer active:scale-[0.98]"
+                title="Download Orders in Excel format with Date Sorting"
+              >
+                <FileSpreadsheet className="w-4 h-4 stroke-[2.5]" />
+                <span>Download Excel</span>
+              </Button>
+              <Link to="/" className="text-sm text-primary hover:underline lg:hidden">← Store</Link>
+            </div>
           </div>
 
           {/* Filter tabs */}
@@ -220,24 +248,49 @@ const AdminOrders = () => {
             ))}
           </div>
 
-          {/* Search + count */}
-          <div className="mb-6 flex gap-3 flex-wrap items-center">
-            <input
-              type="text"
-              placeholder="Filter by phone number..."
-              value={phoneFilter}
-              onChange={(e) => { setPhoneFilter(e.target.value); setCurrentPage(1); }}
-              className="px-3 py-2 border border-border rounded-md bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary flex-1 max-w-xs"
-            />
-            {phoneFilter && (
-              <button
-                onClick={() => setPhoneFilter("")}
-                className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground"
-              >
-                Clear
-              </button>
-            )}
-            <span className="px-3 py-2 text-sm text-muted-foreground">Showing {filteredOrders.length} orders</span>
+          {/* Search + Date Sorting Bar + Count */}
+          <div className="mb-6 flex gap-3 flex-wrap items-center justify-between">
+            <div className="flex gap-2.5 flex-wrap items-center flex-1">
+              <input
+                type="text"
+                placeholder="Search name, phone, order ID..."
+                value={phoneFilter}
+                onChange={(e) => { setPhoneFilter(e.target.value); setCurrentPage(1); }}
+                className="px-3 py-2 border border-border rounded-xl bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary flex-1 max-w-xs"
+              />
+              {phoneFilter && (
+                <button
+                  onClick={() => setPhoneFilter("")}
+                  className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
+
+              {/* Date Sorting Dropdown */}
+              <div className="relative">
+                <select
+                  value={dateSortOrder}
+                  onChange={(e) => setDateSortOrder(e.target.value as any)}
+                  className="px-3 py-2 border border-border rounded-xl bg-card text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+                  title="Date Sorting Option"
+                >
+                  <option value="desc">Date: Newest First ⬇️</option>
+                  <option value="asc">Date: Oldest First ⬆️</option>
+                </select>
+              </div>
+
+              <span className="px-1 text-xs text-muted-foreground font-medium">Showing {filteredOrders.length} orders</span>
+            </div>
+
+            {/* Quick Export Button */}
+            <button
+              onClick={() => setIsExportModalOpen(true)}
+              className="text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-700 stroke-[2.5]" />
+              <span>Export {filteredOrders.length} to Excel</span>
+            </button>
           </div>
 
           <div className="bg-card border border-border rounded-lg overflow-hidden">
@@ -438,6 +491,18 @@ const AdminOrders = () => {
               )}
             </DialogContent>
           </Dialog>
+
+          {/* Excel Export Modal with Date Sorting Options */}
+          <ExcelExportModal
+            isOpen={isExportModalOpen}
+            onClose={() => setIsExportModalOpen(false)}
+            title="Export Orders to Excel"
+            description="Download orders in Microsoft Excel (.xlsx) format with customized date sorting and date range filter."
+            totalCount={filteredOrders.length}
+            items={filteredOrders}
+            getDate={(o) => o.createdAt || o.date}
+            onExport={handleExportOrders}
+          />
         </main>
       </div>
     </>
