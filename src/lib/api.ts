@@ -744,13 +744,18 @@ export async function submitChitSubscription(data: {
     approvalStatus: 'Pending',
     monthsPaid: 0,
     monthlyPayments: [],
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   };
 
-  // Local storage fallback
+  // Local storage fallback - update existing entry for this phone or prepend (1 subscription per customer)
   try {
     const existing = JSON.parse(localStorage.getItem('local_chit_subscriptions') || '[]');
-    localStorage.setItem('local_chit_subscriptions', JSON.stringify([newSub, ...existing]));
+    const filtered = (existing || []).filter((item: ChitSubscriptionItem) => {
+      const p = String(item.phone || '').replace(/\D/g, '').slice(-10);
+      return p !== cleanPhone;
+    });
+    localStorage.setItem('local_chit_subscriptions', JSON.stringify([newSub, ...filtered]));
   } catch (e) {
     console.warn("Could not save to local_chit_subscriptions:", e);
   }
@@ -772,7 +777,7 @@ export async function getChitSubscriptions(): Promise<ChitSubscriptionItem[]> {
     console.warn("Failed to fetch chit subscriptions from API, using fallback:", err);
   }
 
-  // Merge with local storage fallback and deduplicate by phone + schemeName
+  // Merge with local storage fallback and deduplicate by customer phone (1 per customer)
   try {
     const localData = JSON.parse(localStorage.getItem('local_chit_subscriptions') || '[]');
     const map = new Map<string, ChitSubscriptionItem>();
@@ -780,23 +785,35 @@ export async function getChitSubscriptions(): Promise<ChitSubscriptionItem[]> {
     // 1. Process API data first (highest priority)
     (apiData || []).forEach(item => {
       const cleanPhone = String(item.phone || "").replace(/\D/g, "").slice(-10);
-      const schemeKey = String(item.schemeName || "").trim().toLowerCase();
-      const uniqueKey = (cleanPhone && schemeKey) ? `${cleanPhone}_${schemeKey}` : (item._id || item.id || '');
+      const uniqueKey = cleanPhone || (item._id || item.id || '');
       
       const appStatus = item.approvalStatus || (item.status === 'Paid' || item.status === 'Approved' ? 'Approved' : (item.status === 'Rejected' ? 'Rejected' : 'Pending'));
-      map.set(uniqueKey, {
-        ...item,
-        approvalStatus: appStatus,
-        monthsPaid: item.monthsPaid !== undefined ? item.monthsPaid : (item.status === 'Paid' ? 1 : 0),
-        monthlyPayments: item.monthlyPayments || []
-      });
+      
+      if (!map.has(uniqueKey)) {
+        map.set(uniqueKey, {
+          ...item,
+          approvalStatus: appStatus,
+          monthsPaid: item.monthsPaid !== undefined ? item.monthsPaid : (item.status === 'Paid' ? 1 : 0),
+          monthlyPayments: item.monthlyPayments || []
+        });
+      } else {
+        const existing = map.get(uniqueKey)!;
+        // Prioritize Approved subscription over Pending
+        if (existing.approvalStatus !== 'Approved' && appStatus === 'Approved') {
+          map.set(uniqueKey, {
+            ...item,
+            approvalStatus: appStatus,
+            monthsPaid: item.monthsPaid !== undefined ? item.monthsPaid : (item.status === 'Paid' ? 1 : 0),
+            monthlyPayments: item.monthlyPayments || []
+          });
+        }
+      }
     });
 
     // 2. Process local storage fallback data (only add if not present in API data)
     (localData || []).forEach((item: ChitSubscriptionItem) => {
       const cleanPhone = String(item.phone || "").replace(/\D/g, "").slice(-10);
-      const schemeKey = String(item.schemeName || "").trim().toLowerCase();
-      const uniqueKey = (cleanPhone && schemeKey) ? `${cleanPhone}_${schemeKey}` : (item._id || item.id || '');
+      const uniqueKey = cleanPhone || (item._id || item.id || '');
 
       if (!map.has(uniqueKey)) {
         const appStatus = item.approvalStatus || (item.status === 'Paid' || item.status === 'Approved' ? 'Approved' : (item.status === 'Rejected' ? 'Rejected' : 'Pending'));
@@ -811,24 +828,18 @@ export async function getChitSubscriptions(): Promise<ChitSubscriptionItem[]> {
 
     // Clean up local storage items that are already synced with API
     if (apiData && apiData.length > 0) {
-      const apiKeys = new Set((apiData || []).map(item => {
-        const cleanPhone = String(item.phone || "").replace(/\D/g, "").slice(-10);
-        const schemeKey = String(item.schemeName || "").trim().toLowerCase();
-        return (cleanPhone && schemeKey) ? `${cleanPhone}_${schemeKey}` : (item._id || item.id || '');
-      }));
+      const apiPhones = new Set((apiData || []).map(item => String(item.phone || "").replace(/\D/g, "").slice(-10)));
 
       const remainingLocal = (localData || []).filter((item: ChitSubscriptionItem) => {
         const cleanPhone = String(item.phone || "").replace(/\D/g, "").slice(-10);
-        const schemeKey = String(item.schemeName || "").trim().toLowerCase();
-        const k = (cleanPhone && schemeKey) ? `${cleanPhone}_${schemeKey}` : (item._id || item.id || '');
-        return !apiKeys.has(k);
+        return !apiPhones.has(cleanPhone);
       });
       localStorage.setItem('local_chit_subscriptions', JSON.stringify(remainingLocal));
     }
 
     return Array.from(map.values()).sort((a, b) => {
-      const da = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const db = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      const da = a.updatedAt ? new Date(a.updatedAt).getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+      const db = b.updatedAt ? new Date(b.updatedAt).getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
       return db - da;
     });
   } catch (e) {

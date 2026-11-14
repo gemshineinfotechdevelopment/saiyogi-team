@@ -208,11 +208,27 @@ const AdminChitScheme: React.FC = () => {
     setLoadingSubscriptions(true);
     try {
       const data = await getChitSubscriptions();
-      setSubscriptions(data || []);
+      
+      // Deduplicate by 10-digit phone number so each customer only has 1 active entry
+      const map = new Map<string, ChitSubscriptionItem>();
+      (data || []).forEach(sub => {
+        const cleanPhone = String(sub.phone || sub.mobileNumber || "").replace(/\D/g, "").slice(-10);
+        const key = cleanPhone || (sub._id || sub.id || "");
+        if (!map.has(key)) {
+          map.set(key, sub);
+        } else {
+          const existing = map.get(key)!;
+          if (existing.approvalStatus !== 'Approved' && sub.approvalStatus === 'Approved') {
+            map.set(key, sub);
+          }
+        }
+      });
+      const uniqueList = Array.from(map.values());
+      setSubscriptions(uniqueList);
 
       // If customer modal is open, refresh selected subscription
       if (selectedSubscription) {
-        const found = (data || []).find(
+        const found = uniqueList.find(
           s => (s._id || s.id) === (selectedSubscription._id || selectedSubscription.id)
         );
         if (found) setSelectedSubscription(found);
@@ -875,30 +891,48 @@ _Sai Yogi Crackers_`;
     });
   };
 
-  // Filter Customer Applications
-  const filteredSubscriptions = subscriptions.filter(sub => {
-    const name = (sub.name || sub.customerName || "").toLowerCase();
-    const phone = (sub.phone || sub.mobileNumber || "").toLowerCase();
-    const sch = (sub.schemeName || "").toLowerCase();
-    const q = searchQuery.toLowerCase().trim();
+  // Filter Customer Applications (Deduplicated by 10-digit mobile number)
+  const filteredSubscriptions = React.useMemo(() => {
+    const map = new Map<string, ChitSubscriptionItem>();
+    
+    // Deduplicate by clean phone
+    subscriptions.forEach(sub => {
+      const cleanPhone = String(sub.phone || sub.mobileNumber || "").replace(/\D/g, "").slice(-10);
+      const key = cleanPhone || (sub._id || sub.id || "");
+      if (!map.has(key)) {
+        map.set(key, sub);
+      } else {
+        const existing = map.get(key)!;
+        if (existing.approvalStatus !== 'Approved' && sub.approvalStatus === 'Approved') {
+          map.set(key, sub);
+        }
+      }
+    });
 
-    const matchesSearch = !q || name.includes(q) || phone.includes(q) || sch.includes(q);
+    return Array.from(map.values()).filter(sub => {
+      const name = (sub.name || sub.customerName || "").toLowerCase();
+      const phone = (sub.phone || sub.mobileNumber || "").toLowerCase();
+      const sch = (sub.schemeName || "").toLowerCase();
+      const q = searchQuery.toLowerCase().trim();
 
-    const matchesScheme = schemeFilter === "all" || sub.schemeName === schemeFilter;
+      const matchesSearch = !q || name.includes(q) || phone.includes(q) || sch.includes(q);
 
-    const currentApproval = sub.approvalStatus || (sub.status === 'Paid' || sub.status === 'Approved' ? 'Approved' : (sub.status === 'Rejected' ? 'Rejected' : 'Pending'));
-    const matchesApproval = approvalFilter === "all" || currentApproval === approvalFilter;
+      const matchesScheme = schemeFilter === "all" || sub.schemeName === schemeFilter;
 
-    const matchesPayment = paymentFilter === "all" ||
-      (paymentFilter === "Paid" && (sub.monthsPaid || 0) > 0) ||
-      (paymentFilter === "Pending" && (sub.monthsPaid || 0) === 0);
+      const currentApproval = sub.approvalStatus || (sub.status === 'Paid' || sub.status === 'Approved' ? 'Approved' : (sub.status === 'Rejected' ? 'Rejected' : 'Pending'));
+      const matchesApproval = approvalFilter === "all" || currentApproval === approvalFilter;
 
-    return matchesSearch && matchesScheme && matchesApproval && matchesPayment;
-  }).sort((a, b) => {
-    const timeA = new Date(a.createdAt || a.date || a.updatedAt || 0).getTime();
-    const timeB = new Date(b.createdAt || b.date || b.updatedAt || 0).getTime();
-    return timeB - timeA;
-  });
+      const matchesPayment = paymentFilter === "all" ||
+        (paymentFilter === "Paid" && (sub.monthsPaid || 0) > 0) ||
+        (paymentFilter === "Pending" && (sub.monthsPaid || 0) === 0);
+
+      return matchesSearch && matchesScheme && matchesApproval && matchesPayment;
+    }).sort((a, b) => {
+      const timeA = new Date(a.updatedAt || a.createdAt || a.date || 0).getTime();
+      const timeB = new Date(b.updatedAt || b.createdAt || b.date || 0).getTime();
+      return timeB - timeA;
+    });
+  }, [subscriptions, searchQuery, schemeFilter, approvalFilter, paymentFilter]);
 
   // Calculate Summary Statistics
   const totalSchemesCount = schemes.length;

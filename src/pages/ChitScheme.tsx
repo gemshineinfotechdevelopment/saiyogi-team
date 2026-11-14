@@ -83,6 +83,8 @@ const ChitScheme: React.FC = () => {
   const [submittedData, setSubmittedData] = useState<any>(null);
 
   const formRef = useRef<HTMLDivElement>(null);
+  const selectedSchemeRef = useRef(selectedScheme);
+  selectedSchemeRef.current = selectedScheme;
 
   // Pre-fill form from logged in user profile or existing subscriptions
   useEffect(() => {
@@ -94,6 +96,9 @@ const ChitScheme: React.FC = () => {
         email: prev.email || latestSub.email || localStorage.getItem("user_email") || "",
         location: prev.location || latestSub.location || localStorage.getItem("user_location") || ""
       }));
+      if (latestSub.schemeName) {
+        setSelectedScheme(prev => prev || latestSub.schemeName);
+      }
     } else if (isUserLoggedIn) {
       setFormData(prev => ({
         name: prev.name || userName || "",
@@ -167,24 +172,24 @@ const ChitScheme: React.FC = () => {
             setSchemes(finalSchemes);
             setBannerImages(imageList);
 
-            if (finalSchemes.length > 0 && !selectedScheme) {
-              setSelectedScheme(finalSchemes[0].title);
-            }
+            setSelectedScheme(prev => {
+              if (prev && finalSchemes.some(s => s.title === prev)) return prev;
+              if (selectedSchemeRef.current && finalSchemes.some(s => s.title === selectedSchemeRef.current)) {
+                return selectedSchemeRef.current;
+              }
+              return prev || (finalSchemes.length > 0 ? finalSchemes[0].title : '');
+            });
           } else {
             setSchemes(DEFAULT_SCHEMES);
             setBannerImages([]);
-            if (!selectedScheme) {
-              setSelectedScheme(DEFAULT_SCHEMES[0].title);
-            }
+            setSelectedScheme(prev => prev || selectedSchemeRef.current || DEFAULT_SCHEMES[0].title);
           }
         })
         .catch((err) => {
           console.error("Failed to fetch chit schemes from API:", err);
           setSchemes(DEFAULT_SCHEMES);
           setBannerImages([]);
-          if (!selectedScheme) {
-            setSelectedScheme(DEFAULT_SCHEMES[0].title);
-          }
+          setSelectedScheme(prev => prev || selectedSchemeRef.current || DEFAULT_SCHEMES[0].title);
         });
     };
 
@@ -391,9 +396,10 @@ const ChitScheme: React.FC = () => {
                       className="w-full text-xs font-semibold p-3 pr-8 bg-gray-50 border border-gray-300 rounded-2xl appearance-none focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none transition-all"
                       required
                     >
+                      <option value="" disabled>-- Select Chit Scheme * --</option>
                       {schemes.map((sch) => (
                         <option key={sch.id} value={sch.title}>
-                          {sch.title}
+                          {sch.title} {sch.monthlyAmount ? `(₹${sch.monthlyAmount.toLocaleString()} / month - ${sch.totalMonths || 9}m)` : ''}
                         </option>
                       ))}
                       {schemes.length === 0 && (

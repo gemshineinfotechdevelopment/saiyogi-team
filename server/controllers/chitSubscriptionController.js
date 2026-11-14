@@ -25,17 +25,24 @@ export const submitChitSubscription = async (req, res, next) => {
       return next(new AppError('Valid 10-digit mobile number required', 400));
     }
 
-    // Check if subscription already exists for this phone & scheme
+    // Check if subscription already exists for this customer phone (one subscription per customer)
     let subscription = await ChitSubscription.findOne({
-      phone: cleanPhone,
-      schemeName: schemeName.trim()
-    });
+      phone: cleanPhone
+    }).sort({ updatedAt: -1, createdAt: -1 });
 
     if (subscription) {
-      // Update existing record rather than creating a duplicate
+      // Update existing record with the selected scheme rather than creating a duplicate
+      subscription.schemeId = schemeId || subscription.schemeId || null;
+      subscription.schemeName = schemeName.trim();
       subscription.name = name.trim();
       subscription.location = location.trim();
-      if (email) subscription.email = (email || '').trim().toLowerCase();
+      if (email !== undefined) subscription.email = (email || '').trim().toLowerCase();
+      // If previous status was Rejected, reset to Pending
+      if (subscription.approvalStatus === 'Rejected' || subscription.status === 'Rejected') {
+        subscription.approvalStatus = 'Pending';
+        subscription.status = 'Pending';
+        subscription.stage = 'Pending Approval';
+      }
     } else {
       subscription = new ChitSubscription({
         schemeId: schemeId || null,
@@ -46,12 +53,28 @@ export const submitChitSubscription = async (req, res, next) => {
         location: location.trim(),
         status: 'Pending',
         approvalStatus: 'Pending',
+        stage: 'Pending Approval',
         monthsPaid: 0,
         monthlyPayments: []
       });
     }
 
     const saved = await subscription.save();
+
+    // Clean up any remaining duplicate pending records for this phone in the DB
+    try {
+      await ChitSubscription.deleteMany({
+        phone: cleanPhone,
+        _id: { $ne: saved._id },
+        approvalStatus: 'Pending',
+        $or: [
+          { monthsPaid: { $exists: false } },
+          { monthsPaid: 0 }
+        ]
+      });
+    } catch (cleanupErr) {
+      console.warn('Failed to clean up duplicate pending subscriptions:', cleanupErr);
+    }
 
     // Also track/create customer record with source 'chit_scheme'
     try {
@@ -92,16 +115,38 @@ export const submitChitSubscription = async (req, res, next) => {
 // GET all Chit Subscriptions (for Admin)
 export const getChitSubscriptions = async (req, res, next) => {
   try {
-    const rawSubscriptions = await ChitSubscription.find().sort({ createdAt: -1 });
+    const rawSubscriptions = await ChitSubscription.find().sort({ updatedAt: -1, createdAt: -1 });
     
-    // Deduplicate any existing duplicates in DB by phone + schemeName
+    // Deduplicate any existing duplicates in DB by customer phone
     const map = new Map();
+    const staleDuplicateIds = [];
+
     rawSubscriptions.forEach(sub => {
-      const key = `${sub.phone}_${String(sub.schemeName || '').trim().toLowerCase()}`;
+      const cleanPhone = String(sub.phone || '').replace(/\D/g, '').slice(-10);
+      const key = cleanPhone || String(sub._id);
+      
       if (!map.has(key)) {
         map.set(key, sub);
+      } else {
+        const existing = map.get(key);
+        // Prioritize Approved subscription over Pending
+        if (existing.approvalStatus !== 'Approved' && sub.approvalStatus === 'Approved') {
+          if (existing.approvalStatus === 'Pending' && (!existing.monthsPaid || existing.monthsPaid === 0)) {
+            staleDuplicateIds.push(existing._id);
+          }
+          map.set(key, sub);
+        } else if (sub.approvalStatus === 'Pending' && (!sub.monthsPaid || sub.monthsPaid === 0)) {
+          staleDuplicateIds.push(sub._id);
+        }
       }
     });
+
+    // Asynchronously purge stale duplicate pending entries from DB
+    if (staleDuplicateIds.length > 0) {
+      ChitSubscription.deleteMany({ _id: { $in: staleDuplicateIds } }).catch(err => {
+        console.warn('Failed to delete stale duplicate subscriptions:', err);
+      });
+    }
 
     res.json(Array.from(map.values()));
   } catch (error) {
