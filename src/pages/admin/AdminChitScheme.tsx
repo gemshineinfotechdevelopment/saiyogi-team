@@ -2596,11 +2596,15 @@ _Sai Yogi Crackers_`;
                                           schemesBreakdown: enrolledSchemes.map(s => {
                                             const rate = s.monthlyAmountPerPerson || s.monthlyAmount || s.price || 0;
                                             const count = s.personCount || 1;
+                                            const subTotal = s.totalMonthlyAmount || (rate * count);
                                             return {
                                               schemeName: s.schemeName,
                                               rate,
                                               count,
-                                              subTotal: s.totalMonthlyAmount || (rate * count)
+                                              subTotal,
+                                              monthlyAmountPerPerson: rate,
+                                              personCount: count,
+                                              totalMonthlyAmount: subTotal
                                             };
                                           }),
                                           totalPersons: totalPersons,

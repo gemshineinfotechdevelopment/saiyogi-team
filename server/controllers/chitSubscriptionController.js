@@ -619,11 +619,15 @@ export const recordSchemePayment = async (req, res, next) => {
       schemesBreakdown: (normalized.schemes || []).map(s => {
         const rate = s.monthlyAmountPerPerson || s.monthlyAmount || 0;
         const count = s.personCount || 1;
+        const subTotal = s.totalMonthlyAmount || (rate * count);
         return {
           schemeName: s.schemeName,
           rate,
           count,
-          subTotal: s.totalMonthlyAmount || (rate * count)
+          subTotal,
+          monthlyAmountPerPerson: rate,
+          personCount: count,
+          totalMonthlyAmount: subTotal
         };
       }),
       totalPersons: (normalized.schemes || []).reduce((sum, s) => sum + (s.personCount || 1), 0),

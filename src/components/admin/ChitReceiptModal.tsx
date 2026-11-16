@@ -6,9 +6,12 @@ import { useSiteSettings } from "@/context/SiteSettingsContext";
 
 export interface ChitReceiptSchemeItem {
   schemeName: string;
-  monthlyAmountPerPerson: number;
-  personCount: number;
-  totalMonthlyAmount: number;
+  monthlyAmountPerPerson?: number;
+  rate?: number;
+  personCount?: number;
+  count?: number;
+  totalMonthlyAmount?: number;
+  subTotal?: number;
 }
 
 export interface ChitReceiptData {
@@ -70,17 +73,35 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
       })
     : new Date().toLocaleDateString("en-IN");
 
-  const breakdownItems = (receipt.schemesBreakdown && receipt.schemesBreakdown.length > 0)
+  const rawBreakdown = (receipt.schemesBreakdown && receipt.schemesBreakdown.length > 0)
     ? receipt.schemesBreakdown
     : [{
         schemeName: receipt.schemeName,
         monthlyAmountPerPerson: receipt.monthlyAmountPerPerson,
+        rate: receipt.monthlyAmountPerPerson,
         personCount: receipt.personCount || 1,
-        totalMonthlyAmount: receipt.expectedMonthlyAmount || ((receipt.monthlyAmountPerPerson || 0) * (receipt.personCount || 1))
+        count: receipt.personCount || 1,
+        totalMonthlyAmount: receipt.expectedMonthlyAmount || ((receipt.monthlyAmountPerPerson || 0) * (receipt.personCount || 1)),
+        subTotal: receipt.expectedMonthlyAmount || ((receipt.monthlyAmountPerPerson || 0) * (receipt.personCount || 1))
       }];
 
-  const totalPersonsCount = receipt.totalPersons || breakdownItems.reduce((sum, item) => sum + (item.personCount || 1), 0);
-  const totalMonthlyPayable = receipt.combinedMonthlyPayable || breakdownItems.reduce((sum, item) => sum + (item.totalMonthlyAmount || 0), 0);
+  const breakdownItems = rawBreakdown.map(item => {
+    const rate = Number(item.monthlyAmountPerPerson ?? item.rate ?? 0);
+    const count = Math.max(1, Number(item.personCount ?? item.count ?? 1));
+    const subTotal = Number(item.totalMonthlyAmount ?? item.subTotal ?? (rate * count));
+    return {
+      schemeName: item.schemeName || "Chit Scheme",
+      monthlyAmountPerPerson: rate,
+      rate,
+      personCount: count,
+      count,
+      totalMonthlyAmount: subTotal,
+      subTotal
+    };
+  });
+
+  const totalPersonsCount = Number(receipt.totalPersons ?? breakdownItems.reduce((sum, item) => sum + item.count, 0));
+  const totalMonthlyPayable = Number(receipt.combinedMonthlyPayable ?? breakdownItems.reduce((sum, item) => sum + item.subTotal, 0));
 
   const handlePrint = () => {
     if (!receiptRef.current) return;
@@ -306,11 +327,11 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500 font-medium">Monthly / Person:</span>
-                  <strong className="text-gray-900 font-semibold">₹{receipt.monthlyAmountPerPerson?.toLocaleString()}</strong>
+                  <strong className="text-gray-900 font-semibold">₹{(receipt.monthlyAmountPerPerson || 0).toLocaleString()}</strong>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500 font-medium">Expected Installment:</span>
-                  <strong className="text-emerald-700 font-extrabold">₹{receipt.expectedMonthlyAmount?.toLocaleString()}</strong>
+                  <strong className="text-emerald-700 font-extrabold">₹{(receipt.expectedMonthlyAmount || 0).toLocaleString()}</strong>
                 </div>
               </div>
             </div>
@@ -337,22 +358,27 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {breakdownItems.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50/60">
-                    <td className="p-2 border border-gray-200 font-bold text-gray-900">
-                      {item.schemeName}
-                    </td>
-                    <td className="p-2 border border-gray-200 text-center font-mono font-bold text-[#7A1416]">
-                      {item.monthlyAmountPerPerson} × {item.personCount} = ₹{item.totalMonthlyAmount.toLocaleString()}
-                    </td>
-                    <td className="p-2 border border-gray-200 text-center font-bold text-gray-800">
-                      {item.personCount}
-                    </td>
-                    <td className="p-2 border border-gray-200 text-right font-black text-emerald-700">
-                      ₹{item.totalMonthlyAmount.toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
+                {breakdownItems.map((item, idx) => {
+                  const rate = item.rate || item.monthlyAmountPerPerson || 0;
+                  const count = item.count || item.personCount || 1;
+                  const subTotal = item.subTotal || item.totalMonthlyAmount || (rate * count);
+                  return (
+                    <tr key={idx} className="hover:bg-gray-50/60">
+                      <td className="p-2 border border-gray-200 font-bold text-gray-900">
+                        {item.schemeName}
+                      </td>
+                      <td className="p-2 border border-gray-200 text-center font-mono font-bold text-[#7A1416]">
+                        {rate} × {count} = ₹{(subTotal || 0).toLocaleString()}
+                      </td>
+                      <td className="p-2 border border-gray-200 text-center font-bold text-gray-800">
+                        {count}
+                      </td>
+                      <td className="p-2 border border-gray-200 text-right font-black text-emerald-700">
+                        ₹{(subTotal || 0).toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
               <tfoot>
                 <tr className="bg-amber-100/70 font-black border-t-2 border-[#7A1416] text-xs">
@@ -360,13 +386,13 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
                     Total Summary
                   </td>
                   <td className="p-2 border border-gray-200 text-center font-mono font-black text-[#7A1416]">
-                    {breakdownItems.map(item => `${item.monthlyAmountPerPerson} × ${item.personCount} = ${item.totalMonthlyAmount}`).join(" + ")}
+                    {breakdownItems.map(item => `${item.rate || item.monthlyAmountPerPerson || 0} × ${item.count || item.personCount || 1} = ${item.subTotal || item.totalMonthlyAmount || 0}`).join(" + ")}
                   </td>
                   <td className="p-2 border border-gray-200 text-center font-black text-gray-900">
                     Total Persons = {totalPersonsCount}
                   </td>
                   <td className="p-2 border border-gray-200 text-right text-emerald-800 text-sm font-black">
-                    ₹{totalMonthlyPayable.toLocaleString()} / mo
+                    ₹{(totalMonthlyPayable || 0).toLocaleString()} / mo
                   </td>
                 </tr>
               </tfoot>
@@ -374,12 +400,12 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
 
             <div className="bg-amber-50/90 px-3 py-1.5 border-t border-amber-200 flex flex-wrap justify-between items-center text-[11px] font-bold text-gray-800 breakdown-summary">
               <span className="font-mono text-[#7A1416]">
-                Summary: {breakdownItems.map(item => `${item.monthlyAmountPerPerson} × ${item.personCount} = ${item.totalMonthlyAmount}`).join(", ")}
+                Summary: {breakdownItems.map(item => `${item.rate || item.monthlyAmountPerPerson || 0} × ${item.count || item.personCount || 1} = ${item.subTotal || item.totalMonthlyAmount || 0}`).join(", ")}
               </span>
               <span>
                 Total Persons: <strong className="text-amber-950 font-black">{totalPersonsCount}</strong>
                 <span className="mx-2 text-gray-400">•</span>
-                Monthly Payable Amount: <strong className="text-emerald-700 font-black">₹{totalMonthlyPayable.toLocaleString()}</strong>
+                Monthly Payable Amount: <strong className="text-emerald-700 font-black">₹{(totalMonthlyPayable || 0).toLocaleString()}</strong>
               </span>
             </div>
           </div>
@@ -406,7 +432,7 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
               <div>
                 <span className="text-gray-500 text-[11px] block">Amount Received</span>
                 <strong className="text-emerald-700 text-base font-black">
-                  ₹{receipt.amountReceived?.toLocaleString()}
+                  ₹{(receipt.amountReceived || 0).toLocaleString()}
                 </strong>
               </div>
               <div>
@@ -442,13 +468,13 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
               {receipt.totalPaidTillDate !== undefined && (
                 <div>
                   <span className="text-gray-500 text-[11px]">Total Paid Till Date: </span>
-                  <strong className="text-emerald-700 font-extrabold">₹{receipt.totalPaidTillDate?.toLocaleString()}</strong>
+                  <strong className="text-emerald-700 font-extrabold">₹{(receipt.totalPaidTillDate || 0).toLocaleString()}</strong>
                 </div>
               )}
               {receipt.remainingSchemeBalance !== undefined && (
                 <div>
                   <span className="text-gray-500 text-[11px]">Balance Remaining: </span>
-                  <strong className="text-rose-700 font-extrabold">₹{receipt.remainingSchemeBalance?.toLocaleString()}</strong>
+                  <strong className="text-rose-700 font-extrabold">₹{(receipt.remainingSchemeBalance || 0).toLocaleString()}</strong>
                 </div>
               )}
             </div>

@@ -207,10 +207,10 @@ export const downloadChitReceiptPDF = async (
     <tr>
       <td style="padding: 5px; border: 1px solid #cbd5e1; font-weight: bold; color: #0f172a;">${item.schemeName}</td>
       <td style="padding: 5px; border: 1px solid #cbd5e1; text-align: center; font-family: monospace; font-weight: bold; color: #7A1416;">
-        ${item.rate} × ${item.count} = ₹${item.subTotal.toLocaleString()}
+        ${item.rate} × ${item.count} = ₹${(item.subTotal || 0).toLocaleString()}
       </td>
       <td style="padding: 5px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold;">${item.count}</td>
-      <td style="padding: 5px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; color: #047857;">₹${item.subTotal.toLocaleString()}</td>
+      <td style="padding: 5px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; color: #047857;">₹${(item.subTotal || 0).toLocaleString()}</td>
     </tr>
   `).join('');
 
