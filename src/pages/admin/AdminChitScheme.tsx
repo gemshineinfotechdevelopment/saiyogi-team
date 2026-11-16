@@ -2088,22 +2088,56 @@ _Sai Yogi Crackers_`;
               const sub = selectedSubscription;
               const currentApproval = sub.approvalStatus || (sub.status === 'Paid' || sub.status === 'Approved' ? 'Approved' : (sub.status === 'Rejected' ? 'Rejected' : 'Pending'));
 
-              // Enrolled schemes inside this application
+              // Enrolled schemes inside this application with robust fallbacks
               const enrolledSchemes: ChitSubscribedSchemeItem[] = (Array.isArray(sub.schemes) && sub.schemes.length > 0)
-                ? sub.schemes
+                ? sub.schemes.map(sch => {
+                    const persons = Math.max(1, sch.personCount || 1);
+                    let monthly = sch.monthlyAmountPerPerson || sch.monthlyAmount || 0;
+                    if (monthly === 0 && sch.schemeName) {
+                      const match = sch.schemeName.match(/\d+/);
+                      if (match) monthly = parseInt(match[0], 10);
+                    }
+                    const duration = sch.durationMonths || sch.totalMonths || 10;
+                    const totalMonthly = sch.totalMonthlyAmount || (monthly * persons);
+                    const totalScheme = sch.totalSchemeAmount || (totalMonthly * duration);
+                    const validPaidStatuses = ['Paid', 'Late Pay', 'Advanced Payment', 'Advance Payment', 'On-time Payment', 'Delay Payment'];
+                    const paidLogs = (sch.monthlyPayments || []).filter(p => validPaidStatuses.includes(p.status));
+                    const paidAmount = sch.paidAmount !== undefined ? sch.paidAmount : paidLogs.reduce((sum, p) => sum + (p.amount || p.paidAmount || totalMonthly), 0);
+                    return {
+                      ...sch,
+                      personCount: persons,
+                      monthlyAmountPerPerson: monthly,
+                      totalMonthlyAmount: totalMonthly,
+                      durationMonths: duration,
+                      totalMonths: duration,
+                      totalSchemeAmount: totalScheme,
+                      paidAmount: paidAmount,
+                      remainingAmount: Math.max(0, totalScheme - paidAmount),
+                      monthsPaid: sch.monthsPaid || paidLogs.length,
+                      paidInstallments: sch.monthsPaid || paidLogs.length
+                    };
+                  })
                 : [{
                     _id: sub._id,
                     schemeId: sub.schemeId,
                     schemeName: sub.schemeName || "Chit Scheme",
-                    personCount: sub.personCount || 1,
-                    monthlyAmountPerPerson: sub.monthlyAmount || 0,
-                    totalMonthlyAmount: (sub.monthlyAmount || 0) * (sub.personCount || 1),
+                    personCount: Math.max(1, sub.personCount || 1),
+                    monthlyAmountPerPerson: (() => {
+                      let m = sub.monthlyAmount || 0;
+                      if (m === 0 && sub.schemeName) {
+                        const match = sub.schemeName.match(/\d+/);
+                        if (match) m = parseInt(match[0], 10);
+                      }
+                      return m;
+                    })(),
+                    monthlyAmount: sub.monthlyAmount || 0,
+                    totalMonthlyAmount: sub.combinedMonthlyAmount || sub.monthlyAmount || 0,
                     durationMonths: 10,
                     totalMonths: 10,
                     dueDateDay: 10,
-                    totalSchemeAmount: (sub.monthlyAmount || 0) * (sub.personCount || 1) * 10,
+                    totalSchemeAmount: sub.combinedGrandTotal || ((sub.monthlyAmount || 0) * 10),
                     paidAmount: (sub.monthlyPayments || []).filter(p => ['Paid', 'Late Pay', 'Advanced Payment', 'Advance Payment', 'On-time Payment', 'Delay Payment'].includes(p.status)).reduce((s, p) => s + (p.amount || 0), 0),
-                    remainingAmount: Math.max(0, ((sub.monthlyAmount || 0) * (sub.personCount || 1) * 10) - (sub.monthlyPayments || []).filter(p => ['Paid', 'Late Pay', 'Advanced Payment', 'Advance Payment', 'On-time Payment', 'Delay Payment'].includes(p.status)).reduce((s, p) => s + (p.amount || 0), 0)),
+                    remainingAmount: Math.max(0, (sub.combinedGrandTotal || ((sub.monthlyAmount || 0) * 10)) - (sub.monthlyPayments || []).filter(p => ['Paid', 'Late Pay', 'Advanced Payment', 'Advance Payment', 'On-time Payment', 'Delay Payment'].includes(p.status)).reduce((s, p) => s + (p.amount || 0), 0)),
                     monthsPaid: sub.monthsPaid || 0,
                     approvalStatus: currentApproval as any,
                     status: sub.status,
@@ -2112,10 +2146,10 @@ _Sai Yogi Crackers_`;
                   }];
 
               const activeScheme = viewingSchemePassbook || enrolledSchemes[0];
-              const totalPersons = sub.totalPersons || sub.personCount || enrolledSchemes.reduce((sum, s) => sum + s.personCount, 0);
-              const combinedMonthly = sub.combinedMonthlyAmount || enrolledSchemes.reduce((sum, s) => sum + s.totalMonthlyAmount, 0);
-              const combinedGrand = sub.combinedGrandTotal || enrolledSchemes.reduce((sum, s) => sum + s.totalSchemeAmount, 0);
-              const totalPaid = sub.totalPaidAmount || enrolledSchemes.reduce((sum, s) => sum + (s.paidAmount || 0), 0);
+              const totalPersons = enrolledSchemes.reduce((sum, s) => sum + (s.personCount || 1), 0);
+              const combinedMonthly = enrolledSchemes.reduce((sum, s) => sum + (s.totalMonthlyAmount || ((s.monthlyAmountPerPerson || 0) * (s.personCount || 1))), 0);
+              const combinedGrand = enrolledSchemes.reduce((sum, s) => sum + (s.totalSchemeAmount || ((s.totalMonthlyAmount || 0) * (s.durationMonths || 10))), 0);
+              const totalPaid = enrolledSchemes.reduce((sum, s) => sum + (s.paidAmount || 0), 0);
               const balanceRemaining = Math.max(0, combinedGrand - totalPaid);
 
               // Schedule generation for activeScheme
@@ -2247,6 +2281,7 @@ _Sai Yogi Crackers_`;
                             <th className="p-3 text-center">Persons</th>
                             <th className="p-3 text-right">Monthly Total</th>
                             <th className="p-3 text-center">Duration</th>
+                            <th className="p-3 text-right">Grand Total</th>
                             <th className="p-3 text-right">Paid Amount</th>
                             <th className="p-3 text-center">Status</th>
                             <th className="p-3 text-right">Actions</th>
@@ -2285,6 +2320,9 @@ _Sai Yogi Crackers_`;
                                 </td>
                                 <td className="p-3 text-center font-semibold text-gray-700">
                                   {schItem.durationMonths || 10}m
+                                </td>
+                                <td className="p-3 text-right font-bold text-[#2A1B54]">
+                                  ₹{schItem.totalSchemeAmount?.toLocaleString()}
                                 </td>
                                 <td className="p-3 text-right">
                                   <strong className="text-emerald-700">₹{schItem.paidAmount?.toLocaleString()}</strong>
@@ -2342,7 +2380,7 @@ _Sai Yogi Crackers_`;
                           <span>Monthwise Schedule: {activeScheme.schemeName}</span>
                         </div>
                         <span className="text-[11px] text-gray-600">
-                          {activeScheme.personCount} Person(s) • Expected Monthly: <strong className="text-emerald-700">₹{schemeMonthlyTotal.toLocaleString()}</strong> • Due: Before {schemeDueDateDay}th
+                          {activeScheme.personCount} Person(s) • Monthly/Person: <strong className="text-gray-900">₹{activeScheme.monthlyAmountPerPerson?.toLocaleString()}</strong> • Expected Monthly: <strong className="text-emerald-700">₹{schemeMonthlyTotal.toLocaleString()}</strong> • Scheme Total: <strong className="text-[#2A1B54]">₹{(activeScheme.totalSchemeAmount || (schemeMonthlyTotal * schemeDuration)).toLocaleString()}</strong>
                         </span>
                       </div>
 
@@ -2352,6 +2390,35 @@ _Sai Yogi Crackers_`;
                         </span>
                       </div>
                     </div>
+
+                    {/* Scheme Selector Tabs when multiple schemes are present */}
+                    {enrolledSchemes.length > 1 && (
+                      <div className="flex flex-wrap gap-2 items-center bg-gray-50 p-2.5 rounded-xl border border-gray-200">
+                        <span className="text-xs font-extrabold text-gray-600">Switch Scheme Schedule:</span>
+                        {enrolledSchemes.map((schTab, tIdx) => {
+                          const isTabActive = String(schTab._id || schTab.schemeId) === String(activeScheme._id || activeScheme.schemeId);
+                          return (
+                            <button
+                              key={tIdx}
+                              type="button"
+                              onClick={() => setViewingSchemePassbook(schTab)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                                isTabActive
+                                  ? "bg-[#7A1416] text-white shadow-2xs"
+                                  : "bg-white hover:bg-gray-100 text-gray-800 border border-gray-200"
+                              }`}
+                            >
+                              <span>{schTab.schemeName}</span>
+                              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                                isTabActive ? "bg-white/20 text-white" : "bg-amber-100 text-amber-900"
+                              }`}>
+                                {schTab.personCount}p
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
 
                     <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
                       <table className="w-full text-left border-collapse text-xs">

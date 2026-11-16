@@ -1053,29 +1053,70 @@ const ChitScheme: React.FC = () => {
                   </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {userSubscriptions.map((sub, sIdx) => {
+                    const currentApproval = sub.approvalStatus || (sub.status === 'Paid' || sub.status === 'Approved' ? 'Approved' : (sub.status === 'Rejected' ? 'Rejected' : 'Pending'));
                     const enrolledSchemes: ChitSubscribedSchemeItem[] = (sub.schemes && sub.schemes.length > 0)
-                      ? sub.schemes
+                      ? sub.schemes.map(sch => {
+                          const persons = Math.max(1, sch.personCount || 1);
+                          let monthly = sch.monthlyAmountPerPerson || sch.monthlyAmount || 0;
+                          if (monthly === 0 && sch.schemeName) {
+                            const match = sch.schemeName.match(/\d+/);
+                            if (match) monthly = parseInt(match[0], 10);
+                          }
+                          const duration = sch.durationMonths || sch.totalMonths || 10;
+                          const totalMonthly = sch.totalMonthlyAmount || (monthly * persons);
+                          const totalScheme = sch.totalSchemeAmount || (totalMonthly * duration);
+                          const validPaidStatuses = ['Paid', 'Late Pay', 'Advanced Payment', 'Advance Payment', 'On-time Payment', 'Delay Payment'];
+                          const paidLogs = (sch.monthlyPayments || []).filter(p => validPaidStatuses.includes(p.status));
+                          const paidAmount = sch.paidAmount !== undefined ? sch.paidAmount : paidLogs.reduce((sum, p) => sum + (p.amount || p.paidAmount || totalMonthly), 0);
+                          return {
+                            ...sch,
+                            personCount: persons,
+                            monthlyAmountPerPerson: monthly,
+                            totalMonthlyAmount: totalMonthly,
+                            durationMonths: duration,
+                            totalMonths: duration,
+                            totalSchemeAmount: totalScheme,
+                            paidAmount: paidAmount,
+                            remainingAmount: Math.max(0, totalScheme - paidAmount),
+                            monthsPaid: sch.monthsPaid || paidLogs.length,
+                            paidInstallments: sch.monthsPaid || paidLogs.length
+                          };
+                        })
                       : [{
                           _id: sub._id,
                           schemeId: sub.schemeId,
                           schemeName: sub.schemeName || "Chit Scheme",
-                          personCount: sub.personCount || 1,
-                          monthlyAmountPerPerson: sub.monthlyAmount || 0,
-                          totalMonthlyAmount: sub.monthlyAmount || 0,
+                          personCount: Math.max(1, sub.personCount || 1),
+                          monthlyAmountPerPerson: (() => {
+                            let m = sub.monthlyAmount || 0;
+                            if (m === 0 && sub.schemeName) {
+                              const match = sub.schemeName.match(/\d+/);
+                              if (match) m = parseInt(match[0], 10);
+                            }
+                            return m;
+                          })(),
+                          monthlyAmount: sub.monthlyAmount || 0,
+                          totalMonthlyAmount: sub.combinedMonthlyAmount || sub.monthlyAmount || 0,
                           durationMonths: 10,
                           totalMonths: 10,
                           dueDateDay: 10,
-                          totalSchemeAmount: (sub.monthlyAmount || 0) * 10,
+                          totalSchemeAmount: sub.combinedGrandTotal || ((sub.monthlyAmount || 0) * 10),
                           paidAmount: (sub.monthlyPayments || []).filter(p => ['Paid', 'Late Pay', 'Advanced Payment', 'Advance Payment', 'On-time Payment', 'Delay Payment'].includes(p.status)).reduce((s, p) => s + (p.amount || 0), 0),
-                          remainingAmount: Math.max(0, ((sub.monthlyAmount || 0) * 10) - (sub.monthlyPayments || []).filter(p => ['Paid', 'Late Pay', 'Advanced Payment', 'Advance Payment', 'On-time Payment', 'Delay Payment'].includes(p.status)).reduce((s, p) => s + (p.amount || 0), 0)),
+                          remainingAmount: Math.max(0, (sub.combinedGrandTotal || ((sub.monthlyAmount || 0) * 10)) - (sub.monthlyPayments || []).filter(p => ['Paid', 'Late Pay', 'Advanced Payment', 'Advance Payment', 'On-time Payment', 'Delay Payment'].includes(p.status)).reduce((s, p) => s + (p.amount || 0), 0)),
                           monthsPaid: sub.monthsPaid || 0,
-                          approvalStatus: sub.approvalStatus || (sub.status === 'Paid' || sub.status === 'Approved' ? 'Approved' : 'Pending'),
+                          approvalStatus: currentApproval as any,
                           status: sub.status || 'Pending',
                           stage: sub.stage || 'Pending Approval',
                           monthlyPayments: sub.monthlyPayments || []
                         }];
+
+                    const appTotalPersons = enrolledSchemes.reduce((sum, s) => sum + (s.personCount || 1), 0);
+                    const appCombinedMonthly = enrolledSchemes.reduce((sum, s) => sum + (s.totalMonthlyAmount || ((s.monthlyAmountPerPerson || 0) * (s.personCount || 1))), 0);
+                    const appCombinedGrand = enrolledSchemes.reduce((sum, s) => sum + (s.totalSchemeAmount || ((s.totalMonthlyAmount || 0) * (s.durationMonths || 10))), 0);
+                    const appTotalPaid = enrolledSchemes.reduce((sum, s) => sum + (s.paidAmount || 0), 0);
+                    const appRemainingBalance = Math.max(0, appCombinedGrand - appTotalPaid);
 
                     return (
                       <div key={sub._id || sub.id || sIdx} className="border-2 border-gray-200/90 rounded-3xl p-5 bg-white space-y-4 shadow-2xs">
@@ -1090,95 +1131,144 @@ const ChitScheme: React.FC = () => {
                             </span>
                           </div>
                           <span className={`px-2.5 py-0.5 rounded-full font-extrabold text-[11px] ${
-                            sub.approvalStatus === "Approved" || sub.status === "Approved" || sub.status === "Paid"
+                            currentApproval === "Approved"
                               ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                              : sub.approvalStatus === "Rejected" || sub.status === "Rejected"
+                              : currentApproval === "Rejected"
                               ? "bg-rose-100 text-rose-800 border border-rose-300"
                               : "bg-amber-100 text-amber-800 border border-amber-300"
                           }`}>
-                            {sub.approvalStatus === "Approved" || sub.status === "Approved" || sub.status === "Paid" ? "Approved" : sub.approvalStatus === "Rejected" ? "Rejected" : "Pending Approval"}
+                            {currentApproval === "Approved" ? "Approved" : currentApproval === "Rejected" ? "Rejected" : "Pending Approval"}
                           </span>
                         </div>
 
+                        {/* Combined Application Financial Summary Banner */}
+                        <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl p-3.5 space-y-2.5">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-1.5 text-xs font-black text-amber-950 uppercase tracking-wide">
+                              <Sparkles className="w-3.5 h-3.5 text-[#7A1416]" />
+                              <span>Combined Financial Summary</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="bg-amber-200 text-amber-900 font-extrabold text-[11px] px-2.5 py-0.5 rounded-full">
+                                {enrolledSchemes.length} Scheme{enrolledSchemes.length > 1 ? 's' : ''} Selected
+                              </span>
+                              <span className="bg-[#7A1416] text-white font-black text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                                <Users className="w-3 h-3" />
+                                <span>{appTotalPersons} Total Person(s)</span>
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs bg-white p-3 rounded-xl border border-amber-200/60 shadow-2xs">
+                            <div>
+                              <span className="text-gray-500 text-[10px] block font-medium">Combined Monthly</span>
+                              <strong className="text-emerald-700 text-xs sm:text-sm font-black">₹{appCombinedMonthly.toLocaleString()} / mo</strong>
+                            </div>
+                            <div>
+                              <span className="text-gray-500 text-[10px] block font-medium">Grand Scheme Total</span>
+                              <strong className="text-[#2A1B54] text-xs sm:text-sm font-black">₹{appCombinedGrand.toLocaleString()}</strong>
+                            </div>
+                            <div>
+                              <span className="text-gray-500 text-[10px] block font-medium">Total Paid Till Date</span>
+                              <strong className="text-emerald-700 text-xs sm:text-sm font-black">₹{appTotalPaid.toLocaleString()}</strong>
+                            </div>
+                            <div>
+                              <span className="text-gray-500 text-[10px] block font-medium">Remaining Balance</span>
+                              <strong className="text-rose-700 text-xs sm:text-sm font-black">₹{appRemainingBalance.toLocaleString()}</strong>
+                            </div>
+                          </div>
+                        </div>
+
                         {/* Enrolled Schemes under this Application */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {enrolledSchemes.map((schItem, schIdx) => {
-                            const isApproved = schItem.approvalStatus === "Approved" || schItem.status === "Approved" || schItem.status === "Paid" || sub.approvalStatus === "Approved";
-                            const duration = schItem.durationMonths || schItem.totalMonths || 10;
-                            const paidCount = schItem.monthsPaid || 0;
-                            const progressPercent = Math.min(100, Math.round((paidCount / duration) * 100));
+                        <div className="space-y-2">
+                          <h4 className="text-xs font-black text-[#2A1B54] uppercase tracking-wide flex items-center gap-1.5">
+                            <Gift className="w-3.5 h-3.5 text-[#7A1416]" />
+                            <span>Enrolled Scheme Details ({enrolledSchemes.length})</span>
+                          </h4>
 
-                            return (
-                              <div
-                                key={schItem._id || schIdx}
-                                className="bg-gray-50/90 border border-gray-200/90 rounded-2xl p-4 flex flex-col justify-between space-y-3"
-                              >
-                                <div className="space-y-2">
-                                  <div className="flex items-start justify-between gap-2">
-                                    <h4 className="font-extrabold text-[#2A1B54] text-sm">
-                                      {schItem.schemeName}
-                                    </h4>
-                                    <span className="bg-amber-100 text-amber-900 font-extrabold text-[11px] px-2 py-0.5 rounded">
-                                      {schItem.personCount} Person(s)
-                                    </span>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {enrolledSchemes.map((schItem, schIdx) => {
+                              const isApproved = schItem.approvalStatus === "Approved" || schItem.status === "Approved" || schItem.status === "Paid" || currentApproval === "Approved";
+                              const duration = schItem.durationMonths || schItem.totalMonths || 10;
+                              const paidCount = schItem.monthsPaid || 0;
+                              const progressPercent = Math.min(100, Math.round((paidCount / duration) * 100));
+
+                              return (
+                                <div
+                                  key={schItem._id || schIdx}
+                                  className="bg-gray-50/90 border border-gray-200/90 rounded-2xl p-4 flex flex-col justify-between space-y-3"
+                                >
+                                  <div className="space-y-2">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <h4 className="font-extrabold text-[#2A1B54] text-sm">
+                                        {schItem.schemeName}
+                                      </h4>
+                                      <span className="bg-amber-100 text-amber-900 font-extrabold text-[11px] px-2.5 py-0.5 rounded-full border border-amber-200">
+                                        {schItem.personCount} Person(s)
+                                      </span>
+                                    </div>
+
+                                    <div className="text-xs space-y-1.5 bg-white p-3 rounded-xl border border-gray-200">
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-500 font-medium">Monthly / Person:</span>
+                                        <strong className="text-gray-800 font-bold">₹{schItem.monthlyAmountPerPerson?.toLocaleString()}</strong>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-500 font-medium">Scheme Monthly Total:</span>
+                                        <strong className="text-emerald-700 font-extrabold">₹{schItem.totalMonthlyAmount?.toLocaleString()}</strong>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-500 font-medium">Duration:</span>
+                                        <span className="text-gray-800 font-semibold">{duration} Months</span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-500 font-medium">Scheme Grand Total:</span>
+                                        <strong className="text-[#2A1B54] font-extrabold">₹{schItem.totalSchemeAmount?.toLocaleString()}</strong>
+                                      </div>
+                                      <div className="flex justify-between border-t border-gray-100 pt-1">
+                                        <span className="text-gray-500 font-medium">Installment Progress:</span>
+                                        <strong className="text-gray-900 font-bold">{paidCount} / {duration} Months</strong>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-500 font-medium">Paid / Remaining:</span>
+                                        <span className="text-xs font-bold">
+                                          <span className="text-emerald-700">₹{schItem.paidAmount?.toLocaleString()}</span>
+                                          <span className="text-gray-400 mx-1">/</span>
+                                          <span className="text-rose-700">₹{schItem.remainingAmount?.toLocaleString()}</span>
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* Progress Bar */}
+                                    <div className="space-y-1">
+                                      <div className="flex justify-between text-[11px] font-bold text-gray-600">
+                                        <span>Progress</span>
+                                        <span>{progressPercent}%</span>
+                                      </div>
+                                      <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                                        <div
+                                          className="bg-[#7A1416] h-2 rounded-full transition-all duration-500"
+                                          style={{ width: `${progressPercent}%` }}
+                                        />
+                                      </div>
+                                    </div>
                                   </div>
 
-                                  <div className="text-xs space-y-1 bg-white p-2.5 rounded-xl border border-gray-200">
-                                    <div className="flex justify-between">
-                                      <span className="text-gray-500 font-medium">Monthly / Person:</span>
-                                      <strong className="text-gray-800 font-bold">₹{schItem.monthlyAmountPerPerson?.toLocaleString()}</strong>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-gray-500 font-medium">Monthly Total:</span>
-                                      <strong className="text-emerald-700 font-extrabold">₹{schItem.totalMonthlyAmount?.toLocaleString()}</strong>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-gray-500 font-medium">Installment Progress:</span>
-                                      <strong className="text-gray-900 font-bold">{paidCount} / {duration} Months</strong>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-gray-500 font-medium">Paid Amount:</span>
-                                      <strong className="text-emerald-700 font-bold">₹{schItem.paidAmount?.toLocaleString()}</strong>
-                                    </div>
-                                  </div>
-
-                                  {/* Progress Bar */}
-                                  <div className="space-y-1">
-                                    <div className="flex justify-between text-[11px] font-bold text-gray-600">
-                                      <span>Progress</span>
-                                      <span>{progressPercent}%</span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                                      <div
-                                        className="bg-[#7A1416] h-2 rounded-full transition-all duration-500"
-                                        style={{ width: `${progressPercent}%` }}
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (isApproved) {
+                                  <button
+                                    type="button"
+                                    onClick={() => {
                                       setSelectedPassbookSub(sub);
                                       setSelectedPassbookScheme(schItem);
-                                    } else {
-                                      toast.info("This scheme is pending Admin verification. Passbook schedule will open once approved.");
-                                    }
-                                  }}
-                                  className={`w-full py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs ${
-                                    isApproved
-                                      ? "bg-[#7A1416] hover:bg-[#900000] text-white"
-                                      : "bg-gray-200 text-gray-600 cursor-not-allowed"
-                                  }`}
-                                >
-                                  <span>{isApproved ? "View Scheme Passbook & Receipts" : "Pending Verification"}</span>
-                                  <ChevronRight className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            );
-                          })}
+                                    }}
+                                    className="w-full py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs bg-[#7A1416] hover:bg-[#900000] text-white"
+                                  >
+                                    <span>{isApproved ? "View Scheme Passbook & Receipts" : "View Scheme Schedule Preview"}</span>
+                                    <ChevronRight className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
                     );
@@ -1191,12 +1281,16 @@ const ChitScheme: React.FC = () => {
                 {(() => {
                   const sch = selectedPassbookScheme;
                   const sub = selectedPassbookSub || userSubscriptions[0];
+                  const subApproval = sub?.approvalStatus || (sub?.status === 'Paid' || sub?.status === 'Approved' ? 'Approved' : 'Pending');
+                  const isApproved = sch.approvalStatus === "Approved" || sch.status === "Approved" || sch.status === "Paid" || subApproval === "Approved";
                   const totalMonths = sch.durationMonths || sch.totalMonths || 10;
                   const dueDateDay = sch.dueDateDay || 10;
                   const monthlyPerPerson = sch.monthlyAmountPerPerson || sch.monthlyAmount || 0;
-                  const personCount = sch.personCount || 1;
+                  const personCount = Math.max(1, sch.personCount || 1);
                   const monthlyTotal = sch.totalMonthlyAmount || (monthlyPerPerson * personCount);
+                  const grandTotal = sch.totalSchemeAmount || (monthlyTotal * totalMonths);
                   const monthList = Array.from({ length: totalMonths }, (_, i) => i + 1);
+                  const allSiblingSchemes: ChitSubscribedSchemeItem[] = (sub?.schemes && sub.schemes.length > 0) ? sub.schemes : [sch];
 
                   return (
                     <>
@@ -1210,17 +1304,58 @@ const ChitScheme: React.FC = () => {
                             <ArrowLeft className="w-4 h-4" />
                             <span>Back to Enrolled Schemes</span>
                           </button>
-                          <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1 rounded-full font-extrabold text-xs">
-                            Active Scheme
+                          <span className={`px-3 py-1 rounded-full font-extrabold text-xs border ${
+                            isApproved ? "bg-emerald-100 text-emerald-800 border-emerald-300" : "bg-amber-100 text-amber-800 border-amber-300"
+                          }`}>
+                            {isApproved ? "Active Scheme" : "Pending Verification"}
                           </span>
                         </div>
                         <DialogTitle className="text-xl font-extrabold text-[#2A1B54] mt-2">
                           {sch.schemeName} — Passbook Schedule
                         </DialogTitle>
                         <DialogDescription className="text-xs text-gray-600 font-medium">
-                          Enrolled for <strong className="text-amber-900">{personCount} Person(s)</strong> • Expected Monthly: <strong className="text-emerald-700">₹{monthlyTotal.toLocaleString()}</strong> • Due Date: Before {dueDateDay}th of month
+                          Enrolled for <strong className="text-amber-900">{personCount} Person(s)</strong> • Amount / Person: <strong className="text-gray-900">₹{monthlyPerPerson.toLocaleString()}</strong> • Expected Monthly: <strong className="text-emerald-700">₹{monthlyTotal.toLocaleString()}</strong> • Scheme Total: <strong className="text-[#2A1B54]">₹{grandTotal.toLocaleString()}</strong> • Due: Before {dueDateDay}th
                         </DialogDescription>
+
+                        {/* Scheme Switcher Tabs when multiple schemes are present */}
+                        {allSiblingSchemes.length > 1 && (
+                          <div className="flex flex-wrap gap-2 items-center pt-2.5 border-t border-gray-100 mt-2">
+                            <span className="text-xs font-bold text-gray-500">Switch Scheme:</span>
+                            {allSiblingSchemes.map((sTab, tIdx) => {
+                              const isTabActive = String(sTab._id || sTab.schemeId) === String(sch._id || sch.schemeId);
+                              return (
+                                <button
+                                  key={tIdx}
+                                  type="button"
+                                  onClick={() => setSelectedPassbookScheme(sTab)}
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                                    isTabActive
+                                      ? "bg-[#7A1416] text-white shadow-2xs"
+                                      : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                                  }`}
+                                >
+                                  <span>{sTab.schemeName}</span>
+                                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                                    isTabActive ? "bg-white/20 text-white" : "bg-amber-100 text-amber-900"
+                                  }`}>
+                                    {sTab.personCount || 1}p
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
                       </DialogHeader>
+
+                      {!isApproved && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 text-xs text-amber-900 flex items-start gap-2.5">
+                          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                          <div>
+                            <strong className="block font-bold">Application Pending Admin Approval</strong>
+                            <span>Your chit scheme application is currently being verified by the store admin. Monthly payment tracking and official receipts will be activated upon approval. Below is your 10-month installment plan preview.</span>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Month-Wise Payment Tracking Table */}
                       <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-2xs">

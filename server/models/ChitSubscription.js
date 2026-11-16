@@ -228,8 +228,12 @@ chitSubscriptionSchema.pre('save', function (next) {
       const topRejected = this.approvalStatus === 'Rejected' || this.status === 'Rejected';
 
       this.schemes.forEach((sch) => {
-        const persons = sch.personCount || 1;
-        const monthly = sch.monthlyAmountPerPerson || sch.monthlyAmount || 0;
+        const persons = Math.max(1, sch.personCount || 1);
+        let monthly = sch.monthlyAmountPerPerson || sch.monthlyAmount || 0;
+        if (monthly === 0 && sch.schemeName) {
+          const match = sch.schemeName.match(/\d+/);
+          if (match) monthly = parseInt(match[0], 10);
+        }
         const duration = sch.durationMonths || sch.totalMonths || 10;
         const totalMonthly = monthly * persons;
         const totalScheme = totalMonthly * duration;
@@ -304,8 +308,12 @@ chitSubscriptionSchema.pre('save', function (next) {
       }
     } else if (this.schemeName) {
       // Legacy document without schemes array: populate default schemes array
-      const monthly = this.monthlyAmount || 0;
-      const persons = this.personCount || 1;
+      let monthly = this.monthlyAmount || 0;
+      if (monthly === 0 && this.schemeName) {
+        const match = this.schemeName.match(/\d+/);
+        if (match) monthly = parseInt(match[0], 10);
+      }
+      const persons = Math.max(1, this.personCount || 1);
       const totalMonthly = monthly * persons;
       const duration = 10;
       const totalScheme = totalMonthly * duration;

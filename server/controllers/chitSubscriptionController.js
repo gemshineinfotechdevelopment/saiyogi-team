@@ -59,7 +59,11 @@ export const normalizeSubscriptionDoc = (sub) => {
   const doc = sub.toObject ? sub.toObject() : { ...sub };
 
   if (!Array.isArray(doc.schemes) || doc.schemes.length === 0) {
-    const monthly = doc.monthlyAmount || 0;
+    let monthly = doc.monthlyAmount || 0;
+    if (monthly === 0 && doc.schemeName) {
+      const match = doc.schemeName.match(/\d+/);
+      if (match) monthly = parseInt(match[0], 10);
+    }
     const persons = doc.personCount || 1;
     const totalMonthly = monthly * persons;
     const duration = 10;
@@ -92,11 +96,11 @@ export const normalizeSubscriptionDoc = (sub) => {
       }
     ];
 
-    doc.totalPersons = doc.totalPersons || persons;
-    doc.combinedMonthlyAmount = doc.combinedMonthlyAmount || totalMonthly;
-    doc.combinedGrandTotal = doc.combinedGrandTotal || totalScheme;
-    doc.totalPaidAmount = doc.totalPaidAmount || paidAmount;
-    doc.remainingGrandTotal = doc.remainingGrandTotal || Math.max(0, totalScheme - paidAmount);
+    doc.totalPersons = persons;
+    doc.combinedMonthlyAmount = totalMonthly;
+    doc.combinedGrandTotal = totalScheme;
+    doc.totalPaidAmount = paidAmount;
+    doc.remainingGrandTotal = Math.max(0, totalScheme - paidAmount);
   } else {
     // Ensure all computed fields on schemes are present
     let sumPersons = 0;
@@ -105,8 +109,12 @@ export const normalizeSubscriptionDoc = (sub) => {
     let sumPaid = 0;
 
     doc.schemes = doc.schemes.map((sch) => {
-      const persons = sch.personCount || 1;
-      const monthly = sch.monthlyAmountPerPerson || sch.monthlyAmount || 0;
+      const persons = Math.max(1, sch.personCount || 1);
+      let monthly = sch.monthlyAmountPerPerson || sch.monthlyAmount || 0;
+      if (monthly === 0 && sch.schemeName) {
+        const match = sch.schemeName.match(/\d+/);
+        if (match) monthly = parseInt(match[0], 10);
+      }
       const duration = sch.durationMonths || sch.totalMonths || 10;
       const totalMonthly = monthly * persons;
       const totalScheme = totalMonthly * duration;
@@ -174,12 +182,17 @@ export const submitChitSubscription = async (req, res, next) => {
         const title = (sch.schemeName || sch.title || '').trim();
         if (!title) return;
         const count = Math.max(1, parseInt(sch.personCount, 10) || 1);
-        const monthly = parseFloat(sch.monthlyAmountPerPerson || sch.monthlyAmount) || 0;
+        let monthly = parseFloat(sch.monthlyAmountPerPerson || sch.monthlyAmount) || 0;
+        if (monthly === 0 && title) {
+          const match = title.match(/\d+/);
+          if (match) monthly = parseInt(match[0], 10);
+        }
         const duration = parseInt(sch.durationMonths || sch.totalMonths, 10) || 10;
         const dueDay = parseInt(sch.dueDateDay, 10) || 10;
+        const validSchemeId = (sch.schemeId && mongoose.Types.ObjectId.isValid(sch.schemeId)) ? sch.schemeId : null;
 
         normalizedSchemes.push({
-          schemeId: sch.schemeId || sch.id || null,
+          schemeId: validSchemeId,
           schemeName: title,
           monthlyAmountPerPerson: monthly,
           monthlyAmount: monthly,
@@ -203,11 +216,16 @@ export const submitChitSubscription = async (req, res, next) => {
       // Legacy single scheme payload fallback
       const title = schemeName.trim();
       const count = Math.max(1, parseInt(personCount, 10) || 1);
-      const monthly = parseFloat(monthlyAmount) || 0;
+      let monthly = parseFloat(monthlyAmount) || 0;
+      if (monthly === 0 && title) {
+        const match = title.match(/\d+/);
+        if (match) monthly = parseInt(match[0], 10);
+      }
       const duration = 10;
+      const validSchemeId = (schemeId && mongoose.Types.ObjectId.isValid(schemeId)) ? schemeId : null;
 
       normalizedSchemes.push({
-        schemeId: schemeId || null,
+        schemeId: validSchemeId,
         schemeName: title,
         monthlyAmountPerPerson: monthly,
         monthlyAmount: monthly,
