@@ -59,36 +59,92 @@ export const exportChitSubscriptionsToExcel = (
     return dateSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
   });
 
-  // Map to clean structured columns
-  const rows = filtered.map((sub, index) => {
-    const matchedScheme = schemes.find(
-      s => (s.title || s.schemeName) === sub.schemeName || (s.id || s._id) === sub.schemeId
-    );
-    const monthlyAmount = matchedScheme?.monthlyAmount || 0;
-    const totalMonths = matchedScheme?.totalMonths || matchedScheme?.numberOfMonths || 9;
-    const totalSchemeAmount = monthlyAmount * totalMonths;
-    const monthsPaid = sub.monthsPaid || 0;
-    const totalPaidAmount = monthlyAmount * monthsPaid;
-    const balanceDue = Math.max(0, totalSchemeAmount - totalPaidAmount);
-    const approvalStatus = sub.approvalStatus || (sub.status === 'Paid' || sub.status === 'Approved' ? 'Approved' : (sub.status === 'Rejected' ? 'Rejected' : 'Pending'));
+  // Map to clean structured columns (1 row per scheme for multi-scheme applications)
+  const rows: any[] = [];
+  let serialNumber = 1;
 
-    return {
-      'S.No': index + 1,
-      'Applied Date': formatExcelDate(sub.createdAt || sub.date || sub.updatedAt),
-      'Customer Name': sub.name || sub.customerName || 'Customer',
-      'Mobile Number': sub.phone || sub.mobileNumber || '',
-      'Email ID': sub.email || 'N/A',
-      'Location': sub.location || '',
-      'Selected Scheme': sub.schemeName || 'N/A',
-      'Monthly Installment (₹)': monthlyAmount,
-      'Total Duration (Months)': totalMonths,
-      'Total Scheme Amount (₹)': totalSchemeAmount,
-      'Months Paid': `${monthsPaid} / ${totalMonths}`,
-      'Total Paid Amount (₹)': totalPaidAmount,
-      'Balance Due (₹)': balanceDue,
-      'Approval Status': approvalStatus,
-      'Progress Stage': sub.stage || (approvalStatus === 'Approved' ? 'Approved' : 'Pending Approval')
-    };
+  filtered.forEach((sub) => {
+    const appNumber = sub.applicationNumber || `APP-${String(sub._id || sub.id || '').slice(-6)}`;
+    const appDate = formatExcelDate(sub.createdAt || sub.date || sub.updatedAt);
+    const appStatus = sub.approvalStatus || (sub.status === 'Paid' || sub.status === 'Approved' ? 'Approved' : (sub.status === 'Rejected' ? 'Rejected' : 'Pending'));
+
+    // Check if multi-scheme array exists
+    const enrolledSchemes = Array.isArray(sub.schemes) && sub.schemes.length > 0 ? sub.schemes : null;
+
+    if (enrolledSchemes) {
+      enrolledSchemes.forEach((sch) => {
+        const persons = sch.personCount || 1;
+        const monthlyPerPerson = sch.monthlyAmountPerPerson || sch.monthlyAmount || 0;
+        const monthlyTotal = sch.totalMonthlyAmount || (monthlyPerPerson * persons);
+        const duration = sch.durationMonths || sch.totalMonths || 10;
+        const totalScheme = sch.totalSchemeAmount || (monthlyTotal * duration);
+        const paidMonths = sch.monthsPaid || 0;
+        const pendingMonths = Math.max(0, duration - paidMonths);
+        const totalPaid = sch.paidAmount || (monthlyTotal * paidMonths);
+        const remaining = Math.max(0, totalScheme - totalPaid);
+        const schemeStatus = sch.approvalStatus || sch.status || appStatus;
+
+        rows.push({
+          'S.No': serialNumber++,
+          'Application ID': appNumber,
+          'Application Date': appDate,
+          'Customer Name': sub.name || sub.customerName || 'Customer',
+          'Mobile Number': sub.phone || sub.mobileNumber || '',
+          'Email ID': sub.email || 'N/A',
+          'Location': sub.location || '',
+          'Scheme Name': sch.schemeName || 'Chit Scheme',
+          'Monthly Amount Per Person (₹)': monthlyPerPerson,
+          'Person Count': persons,
+          'Monthly Installment Total (₹)': monthlyTotal,
+          'Total Duration (Months)': duration,
+          'Total Scheme Amount (₹)': totalScheme,
+          'Paid Months': paidMonths,
+          'Pending Months': pendingMonths,
+          'Total Paid Amount (₹)': totalPaid,
+          'Remaining Amount (₹)': remaining,
+          'Application Status': appStatus,
+          'Scheme Status': schemeStatus,
+          'Progress Stage': sch.stage || sub.stage || 'In Progress'
+        });
+      });
+    } else {
+      // Legacy single scheme fallback
+      const matchedScheme = schemes.find(
+        s => (s.title || s.schemeName) === sub.schemeName || (s.id || s._id) === sub.schemeId
+      );
+      const monthlyAmount = matchedScheme?.monthlyAmount || sub.monthlyAmount || 0;
+      const persons = sub.personCount || 1;
+      const totalMonths = matchedScheme?.totalMonths || matchedScheme?.numberOfMonths || 10;
+      const monthlyTotal = monthlyAmount * persons;
+      const totalSchemeAmount = monthlyTotal * totalMonths;
+      const monthsPaid = sub.monthsPaid || 0;
+      const pendingMonths = Math.max(0, totalMonths - monthsPaid);
+      const totalPaidAmount = monthlyTotal * monthsPaid;
+      const balanceDue = Math.max(0, totalSchemeAmount - totalPaidAmount);
+
+      rows.push({
+        'S.No': serialNumber++,
+        'Application ID': appNumber,
+        'Application Date': appDate,
+        'Customer Name': sub.name || sub.customerName || 'Customer',
+        'Mobile Number': sub.phone || sub.mobileNumber || '',
+        'Email ID': sub.email || 'N/A',
+        'Location': sub.location || '',
+        'Scheme Name': sub.schemeName || 'N/A',
+        'Monthly Amount Per Person (₹)': monthlyAmount,
+        'Person Count': persons,
+        'Monthly Installment Total (₹)': monthlyTotal,
+        'Total Duration (Months)': totalMonths,
+        'Total Scheme Amount (₹)': totalSchemeAmount,
+        'Paid Months': monthsPaid,
+        'Pending Months': pendingMonths,
+        'Total Paid Amount (₹)': totalPaidAmount,
+        'Remaining Amount (₹)': balanceDue,
+        'Application Status': appStatus,
+        'Scheme Status': appStatus,
+        'Progress Stage': sub.stage || (appStatus === 'Approved' ? 'Approved' : 'Pending Approval')
+      });
+    }
   });
 
   const worksheet = XLSX.utils.json_to_sheet(rows);
@@ -96,20 +152,25 @@ export const exportChitSubscriptionsToExcel = (
   // Column widths
   worksheet['!cols'] = [
     { wch: 6 },  // S.No
-    { wch: 22 }, // Applied Date
+    { wch: 18 }, // Application ID
+    { wch: 22 }, // Application Date
     { wch: 25 }, // Customer Name
     { wch: 15 }, // Mobile Number
-    { wch: 28 }, // Email ID
-    { wch: 25 }, // Location
-    { wch: 20 }, // Selected Scheme
-    { wch: 22 }, // Monthly Installment
-    { wch: 22 }, // Total Duration
-    { wch: 22 }, // Total Scheme Amount
-    { wch: 14 }, // Months Paid
-    { wch: 20 }, // Total Paid Amount
-    { wch: 18 }, // Balance Due
-    { wch: 16 }, // Approval Status
-    { wch: 20 }, // Progress Stage
+    { wch: 25 }, // Email ID
+    { wch: 22 }, // Location
+    { wch: 28 }, // Scheme Name
+    { wch: 26 }, // Monthly Amount Per Person (₹)
+    { wch: 14 }, // Person Count
+    { wch: 26 }, // Monthly Installment Total (₹)
+    { wch: 22 }, // Total Duration (Months)
+    { wch: 24 }, // Total Scheme Amount (₹)
+    { wch: 14 }, // Paid Months
+    { wch: 16 }, // Pending Months
+    { wch: 22 }, // Total Paid Amount (₹)
+    { wch: 22 }, // Remaining Amount (₹)
+    { wch: 18 }, // Application Status
+    { wch: 18 }, // Scheme Status
+    { wch: 20 }  // Progress Stage
   ];
 
   const workbook = XLSX.utils.book_new();

@@ -6,6 +6,7 @@ import {
   updateChitSubscriptionStatus,
   approveChitSubscription,
   rejectChitSubscription,
+  recordSchemePayment,
   markMonthlyPaymentRead,
   updateMonthPaymentStatus,
   deleteChitSubscription
@@ -17,6 +18,11 @@ const router = express.Router();
 router.post('/', submitChitSubscription);
 router.get('/', getChitSubscriptions);
 router.get('/:id', getChitSubscriptionById);
+
+// Payment Recording with Auto-generated Unique Receipt Number
+router.post('/:id/schemes/:schemeId/payment', auth, adminOnly, recordSchemePayment);
+router.post('/:id/payment', auth, adminOnly, recordSchemePayment);
+
 router.put('/:id/status', auth, adminOnly, updateChitSubscriptionStatus);
 router.patch('/:id/status', auth, adminOnly, updateChitSubscriptionStatus);
 router.put('/:id/approve', auth, adminOnly, approveChitSubscription);

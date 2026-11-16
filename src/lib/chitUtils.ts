@@ -147,17 +147,20 @@ export const downloadChitReceiptPDF = async (
   monthlyAmount: number = 0,
   dueDateDay: number = 10,
   startDateStr?: string,
-  totalMonths: number = 9
+  totalMonths: number = 10,
+  personCount: number = 1,
+  customReceiptNo?: string
 ) => {
   const customerName = sub.name || sub.customerName || 'Customer';
   const schemeName = sub.schemeName || 'Chit Scheme';
   const existingLog = (sub.monthlyPayments || []).find(p => p.monthNumber === monthNumber);
   const paidAt = existingLog?.paidAt || new Date().toISOString();
   const paymentMethod = existingLog?.paymentMethod || 'Cash / UPI';
-  const transactionNumber = existingLog?.transactionNumber || '';
-  const amount = existingLog?.amount || monthlyAmount;
+  const transactionNumber = existingLog?.transactionNumber || existingLog?.transactionId || '';
+  const expectedAmount = existingLog?.expectedAmount || (monthlyAmount * personCount);
+  const amount = existingLog?.amount || expectedAmount;
   const formattedDate = new Date(paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-  const totalSchemeAmount = monthlyAmount * totalMonths;
+  const totalSchemeAmount = expectedAmount * totalMonths;
 
   let timingStatus: "Advanced Payment" | "On-time Payment" | "Delay Payment" = "On-time Payment";
   const rawStatus = existingLog?.status;
@@ -171,8 +174,8 @@ export const downloadChitReceiptPDF = async (
     timingStatus = calculatePaymentTimingStatus(paidAt, monthNumber, dueDateDay, startDateStr);
   }
 
-  const receiptNo = `REC-M${monthNumber}-${Date.now().toString().slice(-6)}`;
-  const historyList = getPaidHistoryList(sub, monthNumber, monthlyAmount, dueDateDay, startDateStr);
+  const receiptNo = customReceiptNo || existingLog?.receiptNumber || `AB-CHIT-${String(monthNumber).padStart(2, '0')}${Date.now().toString().slice(-4)}`;
+  const historyList = getPaidHistoryList(sub, monthNumber, expectedAmount, dueDateDay, startDateStr);
   const paidItems = historyList.filter(item => item.isPaid);
   const totalPaidTillNow = paidItems.reduce((sum, item) => sum + item.amount, 0);
   const remainingBalance = Math.max(0, totalSchemeAmount - totalPaidTillNow);

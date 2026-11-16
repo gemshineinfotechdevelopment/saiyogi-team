@@ -5,13 +5,14 @@ import {
   Image as ImageIcon, Upload, Trash2, AlertCircle, Edit2, FileText, Loader2, X, Users,
   CheckCircle2, Clock, Search, Filter, Phone, MapPin, Mail, RefreshCw, Check, XCircle,
   Eye, CheckCheck, Calendar, Plus, ArrowLeft, User, DollarSign, Award, ChevronRight, AlertTriangle,
-  Share2, MessageCircle, Sparkles, FileSpreadsheet, ArrowDownUp
+  Share2, MessageCircle, Sparkles, FileSpreadsheet, ArrowDownUp, Gift
 } from "lucide-react";
 import { calculatePaymentTimingStatus, getMonthTargetDate, getPaidHistoryList } from "@/lib/chitUtils";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { exportChitSubscriptionsToExcel } from "@/lib/excelExport";
 import { ExcelExportModal } from "@/components/admin/ExcelExportModal";
+import { ChitReceiptModal, ChitReceiptData } from "@/components/admin/ChitReceiptModal";
 import {
   uploadImageToCloudinary,
   getChitSchemes,
@@ -25,8 +26,10 @@ import {
   rejectChitSubscriptionApi,
   markMonthlyPaymentReadApi,
   updateMonthPaymentStatusApi,
+  recordChitSchemePaymentApi,
   deleteChitSubscription,
   ChitSubscriptionItem,
+  ChitSubscribedSchemeItem,
   MonthlyPaymentLog
 } from "@/lib/api";
 
@@ -136,11 +139,17 @@ const AdminChitScheme: React.FC = () => {
 
   // Customer Chit Details Modal State (Clicked Customer Name)
   const [selectedSubscription, setSelectedSubscription] = useState<ChitSubscriptionItem | null>(null);
+  const [viewingSchemePassbook, setViewingSchemePassbook] = useState<ChitSubscribedSchemeItem | null>(null);
 
   // Admin Payment Entry Modal State
   const [paymentModalState, setPaymentModalState] = useState<{
     isOpen: boolean;
     subscription: ChitSubscriptionItem | null;
+    schemeId?: string;
+    schemeName: string;
+    personCount: number;
+    monthlyAmountPerPerson: number;
+    expectedMonthlyAmount: number;
     monthNumber: number;
     monthName: string;
     dueDate: string;
@@ -153,6 +162,11 @@ const AdminChitScheme: React.FC = () => {
   }>({
     isOpen: false,
     subscription: null,
+    schemeId: "",
+    schemeName: "",
+    personCount: 1,
+    monthlyAmountPerPerson: 0,
+    expectedMonthlyAmount: 0,
     monthNumber: 1,
     monthName: "",
     dueDate: "",
@@ -163,6 +177,9 @@ const AdminChitScheme: React.FC = () => {
     notes: "",
     isEdit: false
   });
+
+  // Official Receipt Modal State (View / Download PDF / Print)
+  const [activeReceipt, setActiveReceipt] = useState<ChitReceiptData | null>(null);
 
   // Action Confirmation Modal State
   const [confirmModal, setConfirmModal] = useState<{
@@ -212,27 +229,12 @@ const AdminChitScheme: React.FC = () => {
     setLoadingSubscriptions(true);
     try {
       const data = await getChitSubscriptions();
-      
-      // Deduplicate by 10-digit phone number so each customer only has 1 active entry
-      const map = new Map<string, ChitSubscriptionItem>();
-      (data || []).forEach(sub => {
-        const cleanPhone = String(sub.phone || sub.mobileNumber || "").replace(/\D/g, "").slice(-10);
-        const key = cleanPhone || (sub._id || sub.id || "");
-        if (!map.has(key)) {
-          map.set(key, sub);
-        } else {
-          const existing = map.get(key)!;
-          if (existing.approvalStatus !== 'Approved' && sub.approvalStatus === 'Approved') {
-            map.set(key, sub);
-          }
-        }
-      });
-      const uniqueList = Array.from(map.values());
-      setSubscriptions(uniqueList);
+      const allSubscriptions = data || [];
+      setSubscriptions(allSubscriptions);
 
       // If customer modal is open, refresh selected subscription
       if (selectedSubscription) {
-        const found = uniqueList.find(
+        const found = allSubscriptions.find(
           s => (s._id || s.id) === (selectedSubscription._id || selectedSubscription.id)
         );
         if (found) setSelectedSubscription(found);
@@ -528,61 +530,73 @@ const AdminChitScheme: React.FC = () => {
   // Open Payment Entry Modal (Mark as Paid or Edit Payment)
   const handleOpenPaymentModal = (
     sub: ChitSubscriptionItem,
+    sch: ChitSubscribedSchemeItem,
     monthNum: number,
-    monthName: string,
-    dueDate: string,
-    amount: number,
     existingLog?: MonthlyPaymentLog
   ) => {
+    const persons = sch.personCount || 1;
+    const monthlyPerPerson = sch.monthlyAmountPerPerson || sch.monthlyAmount || 0;
+    const expectedMonthly = sch.totalMonthlyAmount || (monthlyPerPerson * persons);
+    const mName = existingLog?.monthName || `Month ${monthNum}`;
+
     setPaymentModalState({
       isOpen: true,
       subscription: sub,
+      schemeId: sch.schemeId || sch._id,
+      schemeName: sch.schemeName,
+      personCount: persons,
+      monthlyAmountPerPerson: monthlyPerPerson,
+      expectedMonthlyAmount: expectedMonthly,
       monthNumber: monthNum,
-      monthName,
-      dueDate,
-      amount,
+      monthName: mName,
+      dueDate: existingLog?.dueDate || "",
+      amount: existingLog?.amount || expectedMonthly,
       paymentDate: existingLog?.paidAt ? new Date(existingLog.paidAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      paymentMethod: existingLog?.paymentMethod || 'UPI',
-      transactionNumber: existingLog?.transactionNumber || '',
+      paymentMethod: (existingLog?.paymentMethod as any) || 'UPI',
+      transactionNumber: existingLog?.transactionNumber || existingLog?.transactionId || '',
       notes: existingLog?.notes || '',
-      isEdit: !!existingLog && existingLog.status === 'Paid'
+      isEdit: !!existingLog && ['Paid', 'Late Pay', 'Advanced Payment', 'Advance Payment', 'On-time Payment', 'Delay Payment'].includes(existingLog.status || '')
     });
   };
 
   // Confirm Admin Payment Submission Handler
   const handleConfirmPaymentEntry = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { subscription, monthNumber, monthName, dueDate, amount, paymentDate, paymentMethod, transactionNumber, notes } = paymentModalState;
+    const { subscription, schemeId, schemeName, monthNumber, monthName, amount, paymentDate, paymentMethod, transactionNumber, notes } = paymentModalState;
     if (!subscription) return;
 
     try {
       toast.loading("Recording monthly payment...", { id: "pay-toast" });
       const id = subscription._id || subscription.id || "";
-      const matchedScheme = schemes.find(s => (s.title || s.schemeName) === subscription.schemeName);
-      const calculatedStatus = calculatePaymentTimingStatus(
-        paymentDate,
-        monthNumber,
-        matchedScheme?.dueDateDay || 10,
-        matchedScheme?.startDate
-      );
 
-      await updateMonthPaymentStatusApi(id, {
+      const res = await recordChitSchemePaymentApi(id, {
+        schemeId,
         monthNumber,
         monthName,
-        dueDate,
         amount,
-        status: calculatedStatus,
         paymentDate,
         paymentMethod,
         transactionNumber,
-        notes: notes || `Paid (${calculatedStatus}) via ${paymentMethod} on ${paymentDate}`
+        notes
       });
 
-      toast.success(`Payment for ${monthName} recorded as ${calculatedStatus}!`, { id: "pay-toast" });
+      toast.success(res.message || `Payment for ${monthName} recorded successfully!`, { id: "pay-toast" });
       setPaymentModalState(prev => ({ ...prev, isOpen: false }));
+
+      // Refresh currently selected customer subscription details
+      if (res.subscription) {
+        setSelectedSubscription(res.subscription);
+      }
+
+      // Reload subscriptions list
       loadSubscriptions();
+
+      // Automatically pop up official receipt modal with the new receipt
+      if (res.receipt) {
+        setActiveReceipt(res.receipt);
+      }
     } catch (err: any) {
-      toast.error("Failed to save payment: " + (err.message || err), { id: "pay-toast" });
+      toast.error(err.message || "Failed to save payment", { id: "pay-toast" });
     }
   };
 
@@ -895,45 +909,34 @@ _Sai Yogi Crackers_`;
     });
   };
 
-  // Filter Customer Applications (Deduplicated by 10-digit mobile number)
+  // Filter Customer Applications (Supports multiple applications per customer & multi-schemes)
   const filteredSubscriptions = React.useMemo(() => {
-    const map = new Map<string, ChitSubscriptionItem>();
-    
-    // Deduplicate by clean phone
-    subscriptions.forEach(sub => {
-      const cleanPhone = String(sub.phone || sub.mobileNumber || "").replace(/\D/g, "").slice(-10);
-      const key = cleanPhone || (sub._id || sub.id || "");
-      if (!map.has(key)) {
-        map.set(key, sub);
-      } else {
-        const existing = map.get(key)!;
-        if (existing.approvalStatus !== 'Approved' && sub.approvalStatus === 'Approved') {
-          map.set(key, sub);
-        }
-      }
-    });
-
-    return Array.from(map.values()).filter(sub => {
+    return subscriptions.filter(sub => {
       const name = (sub.name || sub.customerName || "").toLowerCase();
       const phone = (sub.phone || sub.mobileNumber || "").toLowerCase();
+      const appNo = (sub.applicationNumber || "").toLowerCase();
       const sch = (sub.schemeName || "").toLowerCase();
+      const allSchemeNames = (sub.schemes || []).map(s => s.schemeName.toLowerCase()).join(" ");
       const q = searchQuery.toLowerCase().trim();
 
-      const matchesSearch = !q || name.includes(q) || phone.includes(q) || sch.includes(q);
+      const matchesSearch = !q || name.includes(q) || phone.includes(q) || sch.includes(q) || allSchemeNames.includes(q) || appNo.includes(q);
 
-      const matchesScheme = schemeFilter === "all" || sub.schemeName === schemeFilter;
+      const matchesScheme = schemeFilter === "all" ||
+        sub.schemeName === schemeFilter ||
+        (sub.schemes || []).some(s => s.schemeName === schemeFilter);
 
       const currentApproval = sub.approvalStatus || (sub.status === 'Paid' || sub.status === 'Approved' ? 'Approved' : (sub.status === 'Rejected' ? 'Rejected' : 'Pending'));
       const matchesApproval = approvalFilter === "all" || currentApproval === approvalFilter;
 
+      const totalPaidMonths = sub.monthsPaid || (sub.schemes || []).reduce((sum, s) => sum + (s.monthsPaid || 0), 0);
       const matchesPayment = paymentFilter === "all" ||
-        (paymentFilter === "Paid" && (sub.monthsPaid || 0) > 0) ||
-        (paymentFilter === "Pending" && (sub.monthsPaid || 0) === 0);
+        (paymentFilter === "Paid" && totalPaidMonths > 0) ||
+        (paymentFilter === "Pending" && totalPaidMonths === 0);
 
       return matchesSearch && matchesScheme && matchesApproval && matchesPayment;
     }).sort((a, b) => {
-      const timeA = new Date(a.updatedAt || a.createdAt || a.date || 0).getTime();
-      const timeB = new Date(b.updatedAt || b.createdAt || b.date || 0).getTime();
+      const timeA = new Date(a.createdAt || a.updatedAt || a.date || 0).getTime();
+      const timeB = new Date(b.createdAt || b.updatedAt || b.date || 0).getTime();
       return dateSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
     });
   }, [subscriptions, searchQuery, schemeFilter, approvalFilter, paymentFilter, dateSortOrder]);
@@ -1183,25 +1186,30 @@ _Sai Yogi Crackers_`;
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-100/90 text-gray-700 text-xs uppercase font-extrabold tracking-wider border-b border-gray-200">
-                      <th className="p-4">Customer Name</th>
-                      <th className="p-4">Mobile &amp; Email</th>
-                      <th className="p-4">Location</th>
-                      <th className="p-4">Selected Scheme</th>
-                      <th className="p-4 text-center">Months Paid</th>
-                      <th className="p-4 text-[#7A1416] text-right">Approval</th>
+                      <th className="p-4">Customer &amp; App ID</th>
+                      <th className="p-4">Contact Info</th>
+                      <th className="p-4">Selected Schemes</th>
+                      <th className="p-4 text-center">Total Persons</th>
+                      <th className="p-4 text-right">Monthly Total</th>
+                      <th className="p-4 text-right">Grand Total</th>
+                      <th className="p-4 text-center">Status</th>
+                      <th className="p-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 text-xs">
                     {filteredSubscriptions.map((sub, idx) => {
                       const id = sub._id || sub.id || String(idx);
-                      const matchedSch = schemes.find(s => (s.title || s.schemeName) === sub.schemeName);
-                      const totalMonths = matchedSch?.totalMonths || matchedSch?.numberOfMonths || 9;
-                      const paidMonths = sub.monthsPaid || 0;
                       const currentApproval = sub.approvalStatus || (sub.status === 'Paid' || sub.status === 'Approved' ? 'Approved' : (sub.status === 'Rejected' ? 'Rejected' : 'Pending'));
+                      const enrolledSchemes = (sub.schemes && sub.schemes.length > 0) ? sub.schemes : null;
+                      const schemeCount = enrolledSchemes ? enrolledSchemes.length : 1;
+                      const personsCount = sub.totalPersons || sub.personCount || 1;
+                      const monthlyTotal = sub.combinedMonthlyAmount || sub.monthlyAmount || 0;
+                      const grandTotal = sub.combinedGrandTotal || (monthlyTotal * 10);
+                      const paidAmount = sub.totalPaidAmount || 0;
 
                       return (
                         <tr key={id} className="hover:bg-gray-50/90 transition-colors">
-                          {/* Column 1: Customer Name (Clickable) */}
+                          {/* Column 1: Customer Name & Application ID */}
                           <td className="p-4">
                             <button
                               type="button"
@@ -1210,102 +1218,115 @@ _Sai Yogi Crackers_`;
                             >
                               <span>{sub.name || sub.customerName || 'Customer'}</span>
                             </button>
-                            <div className="text-[11px] text-gray-400 font-medium mt-0.5">
-                              Applied: {sub.createdAt ? new Date(sub.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recent'}
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <span className="font-mono text-[10px] bg-purple-50 text-purple-900 border border-purple-200 px-2 py-0.5 rounded font-extrabold">
+                                {sub.applicationNumber || `APP-${String(id).slice(-5)}`}
+                              </span>
+                              <span className="text-[10px] text-gray-400 font-medium">
+                                {sub.createdAt ? new Date(sub.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : 'Recent'}
+                              </span>
                             </div>
                           </td>
 
-                          {/* Column 2: Mobile & Email (Stacked Neatly) */}
+                          {/* Column 2: Mobile & Location */}
                           <td className="p-4">
                             <div className="font-extrabold text-gray-900 font-mono text-xs flex items-center gap-1.5">
                               <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                               <span>{sub.phone || sub.mobileNumber}</span>
                             </div>
-                            {sub.email ? (
-                              <div className="text-[11px] text-gray-500 font-medium flex items-center gap-1.5 mt-1">
-                                <Mail className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                                <span className="truncate max-w-[180px]">{sub.email}</span>
-                              </div>
-                            ) : (
-                              <div className="text-[11px] text-gray-400 italic mt-0.5">No email</div>
-                            )}
-                          </td>
-
-                          {/* Column 3: Location */}
-                          <td className="p-4 text-gray-700 font-semibold">
-                            <div className="flex items-center gap-1.5">
+                            <div className="text-[11px] text-gray-500 font-medium flex items-center gap-1.5 mt-0.5">
                               <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                              <span>{sub.location}</span>
+                              <span className="truncate max-w-[140px]">{sub.location}</span>
                             </div>
                           </td>
 
-                          {/* Column 4: Selected Scheme */}
+                          {/* Column 3: Selected Schemes */}
                           <td className="p-4">
-                            <div className="font-extrabold text-[#2A1B54]">
-                              {sub.schemeName}
-                            </div>
-                            {matchedSch?.monthlyAmount ? (
-                              <div className="text-[11px] text-emerald-700 font-bold mt-0.5">
-                                ₹{matchedSch.monthlyAmount.toLocaleString()} / month ({totalMonths}m)
-                              </div>
-                            ) : null}
-                          </td>
-
-                          {/* Column 5: Months Paid */}
-                          <td className="p-4 text-center">
-                            <div className="inline-flex flex-col items-center gap-1">
-                              <span className="font-extrabold text-gray-900 bg-gray-100 border border-gray-200 px-3 py-1 rounded-full text-xs">
-                                {paidMonths} / {totalMonths}
-                              </span>
-                              <div className="w-20 bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                                <div
-                                  className="bg-[#7A1416] h-1.5 rounded-full transition-all duration-300"
-                                  style={{ width: `${Math.min(100, (paidMonths / totalMonths) * 100)}%` }}
-                                />
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* Column 6: Approval Actions / Status */}
-                          <td className="p-4 text-right">
-                            {currentApproval === 'Pending' ? (
-                              <div className="flex items-center justify-end gap-2">
-                                <span className="bg-amber-100 text-amber-800 font-extrabold text-[11px] px-2.5 py-1 rounded-full border border-amber-300">
-                                  Pending
+                            {enrolledSchemes ? (
+                              <div className="space-y-1">
+                                <span className="bg-amber-100 text-amber-900 font-black text-[10px] px-2 py-0.5 rounded inline-block">
+                                  {schemeCount} Scheme{schemeCount > 1 ? 's' : ''}
                                 </span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleApproveApplicationPrompt(sub)}
-                                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
-                                >
-                                  <Check className="w-3.5 h-3.5 stroke-[3]" /> Approve
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleRejectApplicationPrompt(sub)}
-                                  className="bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-xs px-2.5 py-1.5 rounded-xl transition-all border border-rose-300 flex items-center gap-1 cursor-pointer"
-                                >
-                                  <X className="w-3.5 h-3.5 stroke-[3]" /> Reject
-                                </button>
-                              </div>
-                            ) : currentApproval === 'Approved' ? (
-                              <div className="flex items-center justify-end gap-2">
-                                <span className="bg-emerald-100 text-emerald-800 font-extrabold text-xs px-3 py-1 rounded-full border border-emerald-300 flex items-center gap-1 inline-flex">
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" /> Approved
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedSubscription(sub)}
-                                  className="text-xs text-[#7A1416] hover:underline font-bold"
-                                >
-                                  Manage Payments →
-                                </button>
+                                <div className="text-[11px] font-bold text-[#2A1B54] line-clamp-2">
+                                  {enrolledSchemes.map(s => `${s.schemeName} (${s.personCount}p)`).join(", ")}
+                                </div>
                               </div>
                             ) : (
-                              <span className="bg-rose-100 text-rose-800 font-extrabold text-xs px-3 py-1 rounded-full border border-rose-300 inline-flex items-center gap-1">
-                                <XCircle className="w-3.5 h-3.5 text-rose-700" /> Rejected
-                              </span>
+                              <div className="font-extrabold text-[#2A1B54]">
+                                {sub.schemeName || 'Chit Scheme'}
+                              </div>
                             )}
+                          </td>
+
+                          {/* Column 4: Total Persons */}
+                          <td className="p-4 text-center">
+                            <span className="bg-amber-50 border border-amber-200 text-amber-950 font-black px-2.5 py-1 rounded-xl text-xs inline-flex items-center gap-1">
+                              <Users className="w-3.5 h-3.5 text-[#7A1416]" />
+                              <span>{personsCount}</span>
+                            </span>
+                          </td>
+
+                          {/* Column 5: Monthly Total */}
+                          <td className="p-4 text-right">
+                            <div className="font-black text-emerald-700 text-sm">
+                              ₹{monthlyTotal.toLocaleString()}
+                            </div>
+                            <span className="text-[10px] text-gray-400 font-medium">per month</span>
+                          </td>
+
+                          {/* Column 6: Grand Total & Paid */}
+                          <td className="p-4 text-right">
+                            <div className="font-extrabold text-[#2A1B54]">
+                              ₹{grandTotal.toLocaleString()}
+                            </div>
+                            <div className="text-[11px] text-emerald-600 font-bold">
+                              ₹{paidAmount.toLocaleString()} Paid
+                            </div>
+                          </td>
+
+                          {/* Column 7: Status */}
+                          <td className="p-4 text-center">
+                            <span className={`px-2.5 py-1 rounded-full font-extrabold text-[11px] ${
+                              currentApproval === 'Approved' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                              currentApproval === 'Rejected' ? 'bg-rose-100 text-rose-800 border border-rose-300' :
+                              'bg-amber-100 text-amber-800 border border-amber-300'
+                            }`}>
+                              {currentApproval}
+                            </span>
+                          </td>
+
+                          {/* Column 8: Actions */}
+                          <td className="p-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {currentApproval === 'Pending' && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleApproveApplicationPrompt(sub)}
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
+                                    title="Approve Application"
+                                  >
+                                    <Check className="w-3.5 h-3.5 stroke-[3]" /> Approve
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRejectApplicationPrompt(sub)}
+                                    className="bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-xs px-2 py-1.5 rounded-xl transition-all border border-rose-300 flex items-center gap-1 cursor-pointer"
+                                    title="Reject Application"
+                                  >
+                                    <X className="w-3.5 h-3.5 stroke-[3]" />
+                                  </button>
+                                </>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => setSelectedSubscription(sub)}
+                                className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-xs px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1"
+                              >
+                                <span>Details</span>
+                                <ChevronRight className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -2056,38 +2077,52 @@ _Sai Yogi Crackers_`;
         </Dialog>
       )}
 
-      {/* MODAL 4: CUSTOMER CHIT DETAILS & PAYMENT PROGRESS MODAL (Clicked Customer Name) */}
+      {/* MODAL 4: CUSTOMER CHIT DETAILS & SCHEME BREAKDOWN MODAL (Clicked Customer Name) */}
       {selectedSubscription && (
-        <Dialog open={!!selectedSubscription} onOpenChange={() => setSelectedSubscription(null)}>
-          <DialogContent className="max-w-4xl p-6 sm:p-8 bg-white rounded-3xl font-sans max-h-[90vh] overflow-y-auto space-y-6">
+        <Dialog open={!!selectedSubscription} onOpenChange={() => {
+          setSelectedSubscription(null);
+          setViewingSchemePassbook(null);
+        }}>
+          <DialogContent className="max-w-5xl p-6 sm:p-8 bg-white rounded-3xl font-sans max-h-[92vh] overflow-y-auto space-y-6">
             {(() => {
               const sub = selectedSubscription;
-              const matchedScheme = schemes.find(
-                s => (s.title || s.schemeName) === sub.schemeName
-              );
-              const totalMonths = matchedScheme?.totalMonths || matchedScheme?.numberOfMonths || 9;
-              const startDateStr = matchedScheme?.startDate;
-              const dueDateDay = matchedScheme?.dueDateDay || matchedScheme?.paymentDueDay || 10;
-              const monthlyAmount = matchedScheme?.monthlyAmount || 0;
-
-              const totalSchemeAmount = monthlyAmount * totalMonths;
-              const paidMonthsCount = sub.monthsPaid || 0;
-              const amountPaid = monthlyAmount * paidMonthsCount;
-              const remainingAmount = Math.max(0, totalSchemeAmount - amountPaid);
-
               const currentApproval = sub.approvalStatus || (sub.status === 'Paid' || sub.status === 'Approved' ? 'Approved' : (sub.status === 'Rejected' ? 'Rejected' : 'Pending'));
 
-              // Automatic month-wise schedule generated from startDate + duration
-              const monthSchedule = generateScheduleForScheme(startDateStr, totalMonths, dueDateDay, monthlyAmount);
+              // Enrolled schemes inside this application
+              const enrolledSchemes: ChitSubscribedSchemeItem[] = (Array.isArray(sub.schemes) && sub.schemes.length > 0)
+                ? sub.schemes
+                : [{
+                    _id: sub._id,
+                    schemeId: sub.schemeId,
+                    schemeName: sub.schemeName || "Chit Scheme",
+                    personCount: sub.personCount || 1,
+                    monthlyAmountPerPerson: sub.monthlyAmount || 0,
+                    totalMonthlyAmount: (sub.monthlyAmount || 0) * (sub.personCount || 1),
+                    durationMonths: 10,
+                    totalMonths: 10,
+                    dueDateDay: 10,
+                    totalSchemeAmount: (sub.monthlyAmount || 0) * (sub.personCount || 1) * 10,
+                    paidAmount: (sub.monthlyPayments || []).filter(p => ['Paid', 'Late Pay', 'Advanced Payment', 'Advance Payment', 'On-time Payment', 'Delay Payment'].includes(p.status)).reduce((s, p) => s + (p.amount || 0), 0),
+                    remainingAmount: Math.max(0, ((sub.monthlyAmount || 0) * (sub.personCount || 1) * 10) - (sub.monthlyPayments || []).filter(p => ['Paid', 'Late Pay', 'Advanced Payment', 'Advance Payment', 'On-time Payment', 'Delay Payment'].includes(p.status)).reduce((s, p) => s + (p.amount || 0), 0)),
+                    monthsPaid: sub.monthsPaid || 0,
+                    approvalStatus: currentApproval as any,
+                    status: sub.status,
+                    stage: sub.stage || 'Pending Approval',
+                    monthlyPayments: sub.monthlyPayments || []
+                  }];
 
-              // Calculated Stage
-              const autoStage = sub.stage || (
-                currentApproval === 'Pending' ? 'Pending Approval' :
-                currentApproval === 'Rejected' ? 'Rejected' :
-                paidMonthsCount === 0 ? 'Payment Started' :
-                paidMonthsCount >= totalMonths ? 'Completed' :
-                paidMonthsCount >= Math.ceil(totalMonths * 0.75) ? 'Almost Completed' : 'In Progress'
-              );
+              const activeScheme = viewingSchemePassbook || enrolledSchemes[0];
+              const totalPersons = sub.totalPersons || sub.personCount || enrolledSchemes.reduce((sum, s) => sum + s.personCount, 0);
+              const combinedMonthly = sub.combinedMonthlyAmount || enrolledSchemes.reduce((sum, s) => sum + s.totalMonthlyAmount, 0);
+              const combinedGrand = sub.combinedGrandTotal || enrolledSchemes.reduce((sum, s) => sum + s.totalSchemeAmount, 0);
+              const totalPaid = sub.totalPaidAmount || enrolledSchemes.reduce((sum, s) => sum + (s.paidAmount || 0), 0);
+              const balanceRemaining = Math.max(0, combinedGrand - totalPaid);
+
+              // Schedule generation for activeScheme
+              const schemeDuration = activeScheme.durationMonths || activeScheme.totalMonths || 10;
+              const schemeDueDateDay = activeScheme.dueDateDay || 10;
+              const schemeMonthlyTotal = activeScheme.totalMonthlyAmount || (activeScheme.monthlyAmountPerPerson * activeScheme.personCount);
+              const schemeMonthList = Array.from({ length: schemeDuration }, (_, i) => i + 1);
 
               return (
                 <>
@@ -2097,7 +2132,10 @@ _Sai Yogi Crackers_`;
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="bg-purple-100 text-[#7A1416] font-extrabold text-[10px] px-2.5 py-0.5 rounded-full uppercase">
-                            Customer Passbook
+                            Application Details
+                          </span>
+                          <span className="font-mono text-xs font-black text-[#7A1416] bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                            {sub.applicationNumber || `APP-${String(sub._id || sub.id).slice(-5)}`}
                           </span>
                           <span className={`px-2 py-0.5 rounded-full font-extrabold text-[11px] ${
                             currentApproval === 'Approved' ? 'bg-emerald-100 text-emerald-800' :
@@ -2111,15 +2149,32 @@ _Sai Yogi Crackers_`;
                         </DialogTitle>
                       </div>
 
-                      {/* Prominent Due Date Banner */}
-                      <div className="bg-amber-100/90 text-amber-950 border border-amber-300 font-extrabold text-xs px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs">
-                        <span>🔔 Monthly Due Date:</span>
-                        <strong className="text-[#7A1416]">Before {dueDateDay}th of every month</strong>
+                      <div className="flex items-center gap-2">
+                        {currentApproval === 'Pending' ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleApproveApplicationPrompt(sub)}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <Check className="w-4 h-4 stroke-[3]" />
+                              <span>Approve Application</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRejectApplicationPrompt(sub)}
+                              className="bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-xs px-3 py-2 rounded-xl transition-all border border-rose-300 flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <X className="w-4 h-4 stroke-[3]" />
+                              <span>Reject</span>
+                            </button>
+                          </>
+                        ) : null}
                       </div>
                     </div>
                   </DialogHeader>
 
-                  {/* Customer Info Card */}
+                  {/* Customer Information Grid */}
                   <div className="bg-gray-50 border border-gray-200/90 rounded-2xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                     <div>
                       <span className="text-gray-500 block text-[11px]">Mobile Number:</span>
@@ -2134,195 +2189,276 @@ _Sai Yogi Crackers_`;
                       <strong className="text-gray-900 font-semibold">{sub.location}</strong>
                     </div>
                     <div>
-                      <span className="text-gray-500 block text-[11px]">Selected Scheme:</span>
-                      <strong className="text-[#2A1B54] font-bold">{sub.schemeName}</strong>
+                      <span className="text-gray-500 block text-[11px]">Applied Date:</span>
+                      <strong className="text-gray-900 font-semibold">
+                        {sub.createdAt ? new Date(sub.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recent'}
+                      </strong>
                     </div>
                   </div>
 
-                  {/* Payment Progress Summary Banner */}
-                  <div className="bg-amber-50/70 border border-amber-200/90 rounded-2xl p-5 space-y-4">
+                  {/* Aggregated Application Summary Banner */}
+                  <div className="bg-amber-50/70 border border-amber-200/90 rounded-2xl p-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-extrabold text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
-                        <DollarSign className="w-4.5 h-4.5 text-[#7A1416]" />
-                        Payment Progress Summary
+                      <h3 className="text-xs font-black text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
+                        <DollarSign className="w-4 h-4 text-[#7A1416]" />
+                        <span>Combined Application Financial Summary</span>
                       </h3>
                       <span className="bg-[#7A1416] text-white font-extrabold text-xs px-3 py-1 rounded-full">
-                        {paidMonthsCount} / {totalMonths} Months Paid
+                        {totalPersons} Total Person(s) Enrolled
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs bg-white p-3.5 rounded-xl border border-amber-200/60 shadow-2xs">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-white p-3.5 rounded-xl border border-amber-200/60 shadow-2xs">
                       <div>
-                        <span className="text-gray-500 text-[11px] block">Monthly Amount</span>
-                        <strong className="text-gray-900 text-sm font-extrabold">₹{monthlyAmount.toLocaleString()}</strong>
-                      </div>
-                      <div>
-                        <span className="text-gray-500 text-[11px] block">Total Duration</span>
-                        <strong className="text-gray-900 text-sm font-extrabold">{totalMonths} Months</strong>
+                        <span className="text-gray-500 text-[11px] block">Combined Monthly</span>
+                        <strong className="text-emerald-700 text-sm font-black">₹{combinedMonthly.toLocaleString()} / mo</strong>
                       </div>
                       <div>
-                        <span className="text-gray-500 text-[11px] block">Total Scheme Amount</span>
-                        <strong className="text-[#2A1B54] text-sm font-extrabold">₹{totalSchemeAmount.toLocaleString()}</strong>
+                        <span className="text-gray-500 text-[11px] block">Combined Grand Total</span>
+                        <strong className="text-[#2A1B54] text-sm font-black">₹{combinedGrand.toLocaleString()}</strong>
                       </div>
                       <div>
-                        <span className="text-gray-500 text-[11px] block">Amount Paid</span>
-                        <strong className="text-emerald-700 text-sm font-extrabold">₹{amountPaid.toLocaleString()}</strong>
+                        <span className="text-gray-500 text-[11px] block">Total Paid Till Date</span>
+                        <strong className="text-emerald-700 text-sm font-black">₹{totalPaid.toLocaleString()}</strong>
                       </div>
-                      <div className="col-span-2 sm:col-span-1">
-                        <span className="text-gray-500 text-[11px] block">Remaining Amount</span>
-                        <strong className="text-rose-700 text-sm font-extrabold">₹{remainingAmount.toLocaleString()}</strong>
-                      </div>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs font-bold text-amber-950">
-                        <span>Overall Progress</span>
-                        <span>{Math.round((paidMonthsCount / totalMonths) * 100)}% Completed</span>
-                      </div>
-                      <div className="w-full bg-amber-200/70 h-3 rounded-full overflow-hidden">
-                        <div
-                          className="bg-[#7A1416] h-3 rounded-full transition-all duration-500"
-                          style={{ width: `${Math.min(100, (paidMonthsCount / totalMonths) * 100)}%` }}
-                        />
+                      <div>
+                        <span className="text-gray-500 text-[11px] block">Remaining Due</span>
+                        <strong className="text-rose-700 text-sm font-black">₹{balanceRemaining.toLocaleString()}</strong>
                       </div>
                     </div>
                   </div>
 
-                  {/* Month-Wise Payment Tracking Schedule */}
+                  {/* SCHEME-WISE BREAKDOWN TABLE (REQUIREMENT 4) */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-extrabold text-gray-900 text-xs uppercase tracking-wide flex items-center gap-1.5">
-                        <Calendar className="w-4 h-4 text-[#7A1416]" />
-                        Month-wise Payment Schedule ({totalMonths} Months)
+                      <h4 className="font-extrabold text-[#2A1B54] text-xs uppercase tracking-wide flex items-center gap-1.5">
+                        <Gift className="w-4 h-4 text-[#7A1416]" />
+                        <span>Scheme-Wise Enrollment Breakdown ({enrolledSchemes.length} Scheme{enrolledSchemes.length > 1 ? 's' : ''})</span>
                       </h4>
-                      {currentApproval !== 'Approved' && (
-                        <span className="text-xs text-rose-600 font-bold bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200">
-                          ⚠️ Approve application to enable payment entry
-                        </span>
-                      )}
+                      <span className="text-[11px] text-gray-500 font-medium">Click "View Schedule" to see month-wise passbook</span>
                     </div>
 
-                    <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
-                      <table className="w-full text-left border-collapse">
+                    <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-2xs">
+                      <table className="w-full text-left border-collapse text-xs">
                         <thead>
-                          <tr className="bg-gray-100 text-gray-700 text-xs uppercase font-extrabold tracking-wider border-b border-gray-200">
-                            <th className="p-3.5 w-14 text-center">#</th>
-                            <th className="p-3.5">Month</th>
-                            <th className="p-3.5">Amount</th>
-                            <th className="p-3.5">Payment Status &amp; Method</th>
-                            <th className="p-3.5 text-right">Action</th>
+                          <tr className="bg-gray-100 text-gray-700 uppercase font-extrabold tracking-wider border-b border-gray-200">
+                            <th className="p-3">Scheme Name</th>
+                            <th className="p-3 text-right">Amount / Person</th>
+                            <th className="p-3 text-center">Persons</th>
+                            <th className="p-3 text-right">Monthly Total</th>
+                            <th className="p-3 text-center">Duration</th>
+                            <th className="p-3 text-right">Paid Amount</th>
+                            <th className="p-3 text-center">Status</th>
+                            <th className="p-3 text-right">Actions</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 text-xs">
-                          {monthSchedule.map((m) => {
-                            const existingLog = (sub.monthlyPayments || []).find(p => p.monthNumber === m.monthNumber);
-                            const isPaid = existingLog && (existingLog.status === 'Paid' || existingLog.status === 'Late Pay' || existingLog.status === 'Advanced Payment' || existingLog.status === 'Advance Payment' || existingLog.status === 'On-time Payment' || existingLog.status === 'Delay Payment');
-                            const timingStatus = getPaymentTimingStatus(existingLog?.paidAt, m.monthNumber, dueDateDay, startDateStr);
+                        <tbody className="divide-y divide-gray-100">
+                          {enrolledSchemes.map((schItem, sIdx) => {
+                            const isCurrentSelected = String(schItem._id || schItem.schemeId) === String(activeScheme._id || activeScheme.schemeId);
+                            const schApproved = schItem.approvalStatus === 'Approved' || sub.approvalStatus === 'Approved';
 
                             return (
                               <tr
-                                key={m.monthNumber}
+                                key={sIdx}
                                 className={`hover:bg-gray-50 transition-colors ${
-                                  isPaid ? 'bg-emerald-50/40' : ''
+                                  isCurrentSelected ? 'bg-amber-50/40 ring-1 ring-[#7A1416]/20' : ''
+                                }`}
+                              >
+                                <td className="p-3">
+                                  <span className="font-extrabold text-[#2A1B54] text-xs block">
+                                    {schItem.schemeName}
+                                  </span>
+                                  <span className="text-[10px] text-gray-400">
+                                    Due: Before {schItem.dueDateDay || 10}th
+                                  </span>
+                                </td>
+                                <td className="p-3 text-right font-semibold text-gray-800">
+                                  ₹{schItem.monthlyAmountPerPerson?.toLocaleString()}
+                                </td>
+                                <td className="p-3 text-center">
+                                  <span className="bg-amber-100 text-amber-900 font-extrabold text-[11px] px-2 py-0.5 rounded">
+                                    {schItem.personCount} Person(s)
+                                  </span>
+                                </td>
+                                <td className="p-3 text-right font-black text-emerald-700">
+                                  ₹{schItem.totalMonthlyAmount?.toLocaleString()}
+                                </td>
+                                <td className="p-3 text-center font-semibold text-gray-700">
+                                  {schItem.durationMonths || 10}m
+                                </td>
+                                <td className="p-3 text-right">
+                                  <strong className="text-emerald-700">₹{schItem.paidAmount?.toLocaleString()}</strong>
+                                  <div className="text-[10px] text-gray-400">
+                                    {schItem.monthsPaid} / {schItem.durationMonths || 10} Paid
+                                  </div>
+                                </td>
+                                <td className="p-3 text-center">
+                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                    schApproved ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                                  }`}>
+                                    {schApproved ? 'Approved' : 'Pending'}
+                                  </span>
+                                </td>
+                                <td className="p-3 text-right">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    {schApproved && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleOpenPaymentModal(sub, schItem, (schItem.monthsPaid || 0) + 1)}
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] px-2.5 py-1 rounded-lg transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
+                                        title="Record Next Month Payment"
+                                      >
+                                        <Plus className="w-3 h-3 stroke-[3]" />
+                                        <span>Pay</span>
+                                      </button>
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => setViewingSchemePassbook(schItem)}
+                                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                                        isCurrentSelected
+                                          ? "bg-[#7A1416] text-white"
+                                          : "bg-gray-100 hover:bg-gray-200 text-gray-800"
+                                      }`}
+                                    >
+                                      <span>Schedule</span>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* ACTIVE SCHEME MONTHWISE SCHEDULE & PAYMENT LOGS */}
+                  <div className="space-y-3 pt-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 bg-amber-50 p-3.5 rounded-2xl border border-amber-200">
+                      <div>
+                        <div className="text-xs font-black text-amber-950 flex items-center gap-1.5 uppercase">
+                          <Calendar className="w-4 h-4 text-[#7A1416]" />
+                          <span>Monthwise Schedule: {activeScheme.schemeName}</span>
+                        </div>
+                        <span className="text-[11px] text-gray-600">
+                          {activeScheme.personCount} Person(s) • Expected Monthly: <strong className="text-emerald-700">₹{schemeMonthlyTotal.toLocaleString()}</strong> • Due: Before {schemeDueDateDay}th
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="bg-[#7A1416] text-white text-xs font-bold px-3 py-1 rounded-xl">
+                          {activeScheme.monthsPaid || 0} / {schemeDuration} Months Paid
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="bg-gray-100 text-gray-700 uppercase font-extrabold tracking-wider border-b border-gray-200">
+                            <th className="p-3.5 w-14 text-center">#</th>
+                            <th className="p-3.5">Installment</th>
+                            <th className="p-3.5">Expected Amount</th>
+                            <th className="p-3.5">Amount Paid</th>
+                            <th className="p-3.5">Status &amp; Method</th>
+                            <th className="p-3.5">Receipt No</th>
+                            <th className="p-3.5 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {schemeMonthList.map((mNum) => {
+                            const existingLog = (activeScheme.monthlyPayments || []).find(p => p.monthNumber === mNum);
+                            const isPaid = existingLog && ['Paid', 'Late Pay', 'Advanced Payment', 'Advance Payment', 'On-time Payment', 'Delay Payment'].includes(existingLog.status || '');
+                            const timingStatus = existingLog?.status || (isPaid ? 'Paid' : 'Pending');
+                            const receiptNumber = existingLog?.receiptNumber || (isPaid ? `AB-CHIT-000${mNum}` : '-');
+
+                            return (
+                              <tr
+                                key={mNum}
+                                className={`hover:bg-gray-50 transition-colors ${
+                                  isPaid ? 'bg-emerald-50/30' : ''
                                 }`}
                               >
                                 <td className="p-3.5 text-center font-bold text-gray-400">
-                                  {m.monthNumber}
+                                  {mNum}
                                 </td>
-
-                                <td className="p-3.5 font-extrabold text-gray-900 text-sm">
-                                  {m.monthName}
+                                <td className="p-3.5 font-extrabold text-gray-900">
+                                  Month {mNum}
                                 </td>
-
-                                <td className="p-3.5 font-bold text-emerald-800">
-                                  ₹{m.amount.toLocaleString()}
+                                <td className="p-3.5 font-semibold text-gray-700">
+                                  ₹{schemeMonthlyTotal.toLocaleString()}
                                 </td>
-
+                                <td className="p-3.5 font-black text-emerald-700">
+                                  {isPaid ? `₹${(existingLog?.amount || schemeMonthlyTotal).toLocaleString()}` : "₹0"}
+                                </td>
                                 <td className="p-3.5">
                                   {isPaid ? (
-                                    <div className="space-y-1">
-                                      {timingStatus === 'Advanced Payment' && (
-                                        <span className="bg-blue-100 text-blue-900 border border-blue-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
-                                          <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Advanced Payment
-                                        </span>
-                                      )}
-                                      {timingStatus === 'On-time Payment' && (
-                                        <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
-                                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> On-time Payment
-                                        </span>
-                                      )}
-                                      {timingStatus === 'Delay Payment' && (
-                                        <span className="bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
-                                          <Clock className="w-3.5 h-3.5 text-amber-700" /> Delay Payment
-                                        </span>
-                                      )}
+                                    <div className="space-y-0.5">
+                                      <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-[10px] px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                        {timingStatus}
+                                      </span>
                                       {existingLog?.paidAt && (
-                                        <div className="text-[11px] text-gray-600 font-medium">
-                                          Paid date: {new Date(existingLog.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                        </div>
-                                      )}
-                                      {existingLog?.paymentMethod && (
-                                        <div className="text-[11px] text-gray-500 font-mono">
-                                          Method: {existingLog.paymentMethod} {existingLog.transactionNumber ? `(#${existingLog.transactionNumber})` : ''}
+                                        <div className="text-[10px] text-gray-500">
+                                          {new Date(existingLog.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} • {existingLog.paymentMethod || 'Cash'}
                                         </div>
                                       )}
                                     </div>
                                   ) : (
-                                    <span className="bg-gray-100 text-gray-600 font-bold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                                      <Clock className="w-3.5 h-3.5 text-gray-400" /> Pending
+                                    <span className="bg-gray-100 text-gray-500 font-bold text-[10px] px-2 py-0.5 rounded-full">
+                                      Pending
                                     </span>
                                   )}
                                 </td>
-
+                                <td className="p-3.5 font-mono text-[11px] font-bold text-gray-700">
+                                  {receiptNumber}
+                                </td>
                                 <td className="p-3.5 text-right">
-                                  {currentApproval === 'Approved' ? (
-                                    isPaid ? (
-                                      <div className="flex items-center justify-end gap-1.5">
-                                        <button
-                                          type="button"
-                                          onClick={() => handleShareWhatsAppReceipt(
-                                            sub,
-                                            m.monthNumber,
-                                            m.monthName,
-                                            m.amount,
-                                            existingLog?.paidAt,
-                                            existingLog?.paymentMethod,
-                                            existingLog?.transactionNumber,
-                                            dueDateDay
-                                          )}
-                                          className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
-                                          title="Share Receipt via WhatsApp"
-                                        >
-                                          <Share2 className="w-3.5 h-3.5" />
-                                          <span>Share Receipt</span>
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={() => handleOpenPaymentModal(sub, m.monthNumber, m.monthName, m.dueDateStr, m.amount, existingLog)}
-                                          className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-lg text-xs font-bold cursor-pointer"
-                                        >
-                                          Edit
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={() => handleMarkPaymentPendingPrompt(sub, m.monthNumber, m.monthName)}
-                                          className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold cursor-pointer"
-                                        >
-                                          Reset Pending
-                                        </button>
-                                      </div>
-                                    ) : (
-                                      <button
-                                        type="button"
-                                        onClick={() => handleOpenPaymentModal(sub, m.monthNumber, m.monthName, m.dueDateStr, m.amount)}
-                                        className="bg-[#7A1416] hover:bg-[#900000] text-white font-bold text-xs px-3 py-1.5 rounded-xl transition-all shadow-2xs flex items-center gap-1 cursor-pointer ml-auto"
-                                      >
-                                        <Check className="w-3.5 h-3.5 stroke-[3]" /> Mark as Paid
-                                      </button>
-                                    )
+                                  {isPaid ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setActiveReceipt({
+                                          receiptNumber: existingLog?.receiptNumber || `AB-CHIT-000${mNum}`,
+                                          applicationNumber: sub.applicationNumber || `APP-${String(sub._id || sub.id).slice(-5)}`,
+                                          customerName: sub.name || "Customer",
+                                          phone: sub.phone || "",
+                                          email: sub.email,
+                                          location: sub.location,
+                                          schemeName: activeScheme.schemeName,
+                                          personCount: activeScheme.personCount,
+                                          monthlyAmountPerPerson: activeScheme.monthlyAmountPerPerson,
+                                          expectedMonthlyAmount: schemeMonthlyTotal,
+                                          amountReceived: existingLog?.amount || schemeMonthlyTotal,
+                                          paymentMethod: existingLog?.paymentMethod || "Cash",
+                                          transactionId: existingLog?.transactionNumber || existingLog?.transactionId || "",
+                                          paymentDate: existingLog?.paidAt || new Date(),
+                                          paymentStatus: "PAID",
+                                          installmentMonth: `Month ${mNum} / ${schemeDuration}`,
+                                          monthNumber: mNum,
+                                          totalPaidTillDate: activeScheme.paidAmount,
+                                          remainingSchemeBalance: activeScheme.remainingAmount,
+                                          totalMonths: schemeDuration,
+                                          paidMonths: activeScheme.monthsPaid,
+                                          notes: existingLog?.notes
+                                        });
+                                      }}
+                                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition-all shadow-2xs inline-flex items-center gap-1 cursor-pointer"
+                                      title="View / Download / Print Receipt"
+                                    >
+                                      <FileText className="w-3 h-3" />
+                                      <span>Receipt</span>
+                                    </button>
                                   ) : (
-                                    <span className="text-gray-400 text-[11px] italic">Approval needed</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenPaymentModal(sub, activeScheme, mNum)}
+                                      className="bg-[#7A1416] hover:bg-[#900000] text-white font-bold text-[11px] px-2.5 py-1 rounded-xl transition-all shadow-2xs inline-flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <Check className="w-3 h-3 stroke-[3]" />
+                                      <span>Record Pay</span>
+                                    </button>
                                   )}
                                 </td>
                               </tr>
@@ -2339,68 +2475,91 @@ _Sai Yogi Crackers_`;
             <DialogFooter>
               <button
                 type="button"
-                onClick={() => setSelectedSubscription(null)}
+                onClick={() => {
+                  setSelectedSubscription(null);
+                  setViewingSchemePassbook(null);
+                }}
                 className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold cursor-pointer"
               >
-                Close Passbook
+                Close Details
               </button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
 
-      {/* MODAL 5: ADMIN PAYMENT ENTRY MODAL */}
+      {/* MODAL 5: ADMIN PAYMENT ENTRY MODAL (WITH PERSON COUNT & AUTO RECEIPT) */}
       {paymentModalState.isOpen && (
         <Dialog open={paymentModalState.isOpen} onOpenChange={(open) => setPaymentModalState(prev => ({ ...prev, isOpen: open }))}>
-          <DialogContent className="sm:max-w-md p-6 bg-white rounded-3xl font-sans">
+          <DialogContent className="sm:max-w-md p-6 bg-white rounded-3xl font-sans space-y-4">
             <DialogHeader>
               <DialogTitle className="text-lg font-extrabold text-[#2A1B54] flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                {paymentModalState.isEdit ? 'Edit Payment Record' : 'Mark Monthly Payment as Paid'}
+                <span>Record Installment Payment</span>
               </DialogTitle>
               <DialogDescription className="text-xs text-gray-600">
-                Customer: <strong className="text-gray-900">{paymentModalState.subscription?.name || paymentModalState.subscription?.customerName}</strong>
+                Customer: <strong className="text-gray-900">{paymentModalState.subscription?.name}</strong> • Scheme: <strong className="text-[#7A1416]">{paymentModalState.schemeName}</strong>
               </DialogDescription>
             </DialogHeader>
 
-            <form onSubmit={handleConfirmPaymentEntry} className="space-y-4 py-2 text-xs">
-              {(() => {
-                const matchedScheme = schemes.find(s => (s.title || s.schemeName) === paymentModalState.subscription?.schemeName);
-                const previewStatus = calculatePaymentTimingStatus(
-                  paymentModalState.paymentDate,
-                  paymentModalState.monthNumber,
-                  matchedScheme?.dueDateDay || 10,
-                  matchedScheme?.startDate
-                );
+            <form onSubmit={handleConfirmPaymentEntry} className="space-y-3.5 text-xs">
+              {/* Scheme Summary Badge */}
+              <div className="bg-amber-50 p-3.5 rounded-2xl border border-amber-200/80 space-y-1.5">
+                <div className="flex justify-between items-center text-xs font-black text-amber-950">
+                  <span>{paymentModalState.monthName || `Month ${paymentModalState.monthNumber}`}</span>
+                  <span className="bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-black text-[10px]">
+                    {paymentModalState.personCount} Person(s)
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs border-t border-amber-200/60 pt-1">
+                  <span className="text-gray-600">Expected Installment:</span>
+                  <strong className="text-emerald-800 text-sm font-black">
+                    ₹{paymentModalState.expectedMonthlyAmount.toLocaleString()}
+                  </strong>
+                </div>
+              </div>
 
-                return (
-                  <div className="bg-amber-50 p-3.5 rounded-2xl border border-amber-200/80 space-y-1.5">
-                    <div className="text-xs font-extrabold text-[#7A1416] flex justify-between items-center">
-                      <span>{paymentModalState.monthName}</span>
-                      <span className="text-emerald-800 font-extrabold text-sm">₹{paymentModalState.amount.toLocaleString()}</span>
-                    </div>
-                    <div className="pt-1 flex items-center justify-between text-xs font-bold border-t border-amber-200/60 mt-1">
-                      <span className="text-gray-700">Auto Classification:</span>
-                      {previewStatus === 'Advanced Payment' && (
-                        <span className="bg-blue-100 text-blue-900 border border-blue-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                          <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Advanced Payment
-                        </span>
-                      )}
-                      {previewStatus === 'On-time Payment' && (
-                        <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> On-time Payment
-                        </span>
-                      )}
-                      {previewStatus === 'Delay Payment' && (
-                        <span className="bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5 text-amber-700" /> Delay Payment
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })()}
+              {/* Installment Month Selector */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  Installment Month *
+                </label>
+                <select
+                  value={paymentModalState.monthNumber}
+                  onChange={(e) => {
+                    const m = parseInt(e.target.value, 10);
+                    setPaymentModalState(prev => ({
+                      ...prev,
+                      monthNumber: m,
+                      monthName: `Month ${m}`
+                    }));
+                  }}
+                  className="w-full text-xs p-2.5 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none font-semibold text-gray-900"
+                  required
+                >
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                    <option key={m} value={m}>
+                      Month {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
+              {/* Amount Received */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  Amount Received (₹) *
+                </label>
+                <input
+                  type="number"
+                  value={paymentModalState.amount}
+                  onChange={(e) => setPaymentModalState(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
+                  className="w-full text-xs font-black p-2.5 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none text-emerald-800 text-sm"
+                  required
+                />
+              </div>
+
+              {/* Payment Date */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
                   Payment Date *
@@ -2414,6 +2573,7 @@ _Sai Yogi Crackers_`;
                 />
               </div>
 
+              {/* Payment Method */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
                   Payment Method *
@@ -2431,26 +2591,28 @@ _Sai Yogi Crackers_`;
                 </select>
               </div>
 
+              {/* Transaction ID */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Transaction / Receipt Number (Optional)
+                  Transaction ID / Reference (Optional)
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. UPI12345678 or Receipt #99"
+                  placeholder="e.g. TXN123456 or Receipt #99"
                   value={paymentModalState.transactionNumber}
                   onChange={(e) => setPaymentModalState(prev => ({ ...prev, transactionNumber: e.target.value }))}
                   className="w-full text-xs p-2.5 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none font-semibold"
                 />
               </div>
 
+              {/* Notes */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Notes / Remarks (Optional)
+                  Notes (Optional)
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Paid at Sivakasi store"
+                  placeholder="e.g. Received via store counter"
                   value={paymentModalState.notes}
                   onChange={(e) => setPaymentModalState(prev => ({ ...prev, notes: e.target.value }))}
                   className="w-full text-xs p-2.5 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none"
@@ -2470,7 +2632,7 @@ _Sai Yogi Crackers_`;
                   className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-1.5"
                 >
                   <Check className="w-4 h-4 stroke-[3]" />
-                  <span>Confirm Payment</span>
+                  <span>Save Payment &amp; Generate Receipt</span>
                 </button>
               </DialogFooter>
             </form>
@@ -2515,7 +2677,14 @@ _Sai Yogi Crackers_`;
         </Dialog>
       )}
 
-      {/* MODAL 7: EXCEL EXPORT DIALOG WITH DATE SORTING */}
+      {/* MODAL 7: OFFICIAL CHIT PAYMENT RECEIPT MODAL (VIEW / DOWNLOAD PDF / PRINT) */}
+      <ChitReceiptModal
+        isOpen={!!activeReceipt}
+        onClose={() => setActiveReceipt(null)}
+        receipt={activeReceipt}
+      />
+
+      {/* MODAL 8: EXCEL EXPORT DIALOG WITH DATE SORTING */}
       <ExcelExportModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}

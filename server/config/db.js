@@ -1,3 +1,4 @@
+import dns from 'dns';
 import mongoose from 'mongoose';
 import logger from '../utils/logger.js';
 import Category from '../models/Category.js';
@@ -77,8 +78,16 @@ const connectDB = async () => {
   const primaryUri = process.env.MONGODB_URI;
 
   if (primaryUri) {
+    if (primaryUri.startsWith('mongodb+srv://')) {
+      try {
+        dns.setServers(['8.8.8.8', '1.1.1.1']);
+      } catch (dnsErr) {
+        logger.warn('Failed to set public DNS servers:', dnsErr.message);
+      }
+    }
+
     try {
-      const conn = await mongoose.connect(primaryUri, { serverSelectionTimeoutMS: 5000 });
+      const conn = await mongoose.connect(primaryUri, { serverSelectionTimeoutMS: 8000 });
       logger.info(`MongoDB Connected: ${conn.connection.host} / Database: ${conn.connection.name}`);
       await autoSeedIfEmpty();
       return;

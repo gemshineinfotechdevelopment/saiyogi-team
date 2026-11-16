@@ -691,27 +691,72 @@ export interface MonthlyPaymentLog {
   monthNumber: number;
   monthName?: string;
   dueDate?: string;
+  expectedAmount?: number;
   amount?: number;
+  paidAmount?: number;
   status?: 'Pending' | 'Paid' | 'Late Pay' | 'Advanced Payment' | 'Advance Payment' | 'On-time Payment' | 'Delay Payment';
   paidAt?: string;
-  paymentMethod?: 'Cash' | 'UPI' | 'Bank Transfer' | 'Other' | '';
+  paymentMethod?: 'Cash' | 'UPI' | 'Bank Transfer' | 'Other' | string;
   transactionNumber?: string;
+  transactionId?: string;
+  receiptNumber?: string;
   updatedBy?: string;
   markedAsRead?: boolean;
   notes?: string;
 }
 
-export interface ChitSubscriptionItem {
+export interface ChitSubscribedSchemeItem {
   _id?: string;
   id?: string;
   schemeId?: string;
   schemeName: string;
+  monthlyAmountPerPerson?: number;
+  monthlyAmount?: number;
+  personCount: number;
+  totalMonthlyAmount: number;
+  durationMonths?: number;
+  totalMonths?: number;
+  dueDateDay?: number;
+  totalSchemeAmount: number;
+  paidAmount?: number;
+  remainingAmount?: number;
+  monthsPaid?: number;
+  paidInstallments?: number;
+  status?: 'Pending' | 'Approved' | 'Rejected' | 'Paid';
+  approvalStatus?: 'Pending' | 'Approved' | 'Rejected';
+  stage?: 'Pending Approval' | 'Approved' | 'Payment Started' | 'In Progress' | 'Almost Completed' | 'Completed' | 'Rejected';
+  monthlyPayments?: MonthlyPaymentLog[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ChitSubscriptionItem {
+  _id?: string;
+  id?: string;
+  applicationNumber?: string;
+  schemeId?: string;
+  schemeName: string;
+  chitSchemeId?: string;
+  chitSchemeName?: string;
   name: string;
   customerName?: string;
   phone: string;
   mobileNumber?: string;
   email?: string;
   location: string;
+  // Legacy single-scheme fields
+  monthlyAmount?: number;
+  totalMonths?: number;
+  totalAmount?: number;
+  // Multi-person / Multi-scheme arrays and aggregates
+  schemes?: ChitSubscribedSchemeItem[];
+  totalPersons?: number;
+  personCount?: number;
+  combinedMonthlyAmount?: number;
+  combinedGrandTotal?: number;
+  totalPaidAmount?: number;
+  remainingGrandTotal?: number;
+
   status: 'Pending' | 'Approved' | 'Rejected' | 'Paid';
   approvalStatus?: 'Pending' | 'Approved' | 'Rejected';
   stage?: 'Pending Approval' | 'Approved' | 'Payment Started' | 'In Progress' | 'Almost Completed' | 'Completed' | 'Rejected';
@@ -724,38 +769,117 @@ export interface ChitSubscriptionItem {
 }
 
 export async function submitChitSubscription(data: {
-  schemeId?: string;
-  schemeName: string;
   name: string;
   phone: string;
   email?: string;
   location: string;
+  schemes?: Array<{
+    schemeId?: string;
+    schemeName: string;
+    monthlyAmountPerPerson?: number;
+    monthlyAmount?: number;
+    personCount?: number;
+    durationMonths?: number;
+    totalMonths?: number;
+    dueDateDay?: number;
+  }>;
+  // Legacy single scheme support
+  schemeId?: string;
+  schemeName?: string;
+  monthlyAmount?: number;
+  personCount?: number;
 }): Promise<ChitSubscriptionItem> {
   const cleanPhone = String(data.phone || "").replace(/\D/g, "").slice(-10);
+  
+  // Format schemes for local fallback
+  let fallbackSchemes: ChitSubscribedSchemeItem[] = [];
+  if (Array.isArray(data.schemes) && data.schemes.length > 0) {
+    fallbackSchemes = data.schemes.map((s, idx) => {
+      const pCount = Math.max(1, s.personCount || 1);
+      const monthly = s.monthlyAmountPerPerson || s.monthlyAmount || 0;
+      const dur = s.durationMonths || s.totalMonths || 10;
+      return {
+        id: `sch_${idx}_${Date.now()}`,
+        schemeId: s.schemeId,
+        schemeName: s.schemeName,
+        personCount: pCount,
+        monthlyAmountPerPerson: monthly,
+        monthlyAmount: monthly,
+        totalMonthlyAmount: monthly * pCount,
+        durationMonths: dur,
+        totalMonths: dur,
+        dueDateDay: s.dueDateDay || 10,
+        totalSchemeAmount: monthly * pCount * dur,
+        paidAmount: 0,
+        remainingAmount: monthly * pCount * dur,
+        monthsPaid: 0,
+        paidInstallments: 0,
+        status: 'Pending',
+        approvalStatus: 'Pending',
+        stage: 'Pending Approval',
+        monthlyPayments: []
+      };
+    });
+  } else if (data.schemeName) {
+    const pCount = Math.max(1, data.personCount || 1);
+    const monthly = data.monthlyAmount || 0;
+    fallbackSchemes = [{
+      id: `sch_0_${Date.now()}`,
+      schemeId: data.schemeId,
+      schemeName: data.schemeName,
+      personCount: pCount,
+      monthlyAmountPerPerson: monthly,
+      monthlyAmount: monthly,
+      totalMonthlyAmount: monthly * pCount,
+      durationMonths: 10,
+      totalMonths: 10,
+      dueDateDay: 10,
+      totalSchemeAmount: monthly * pCount * 10,
+      paidAmount: 0,
+      remainingAmount: monthly * pCount * 10,
+      monthsPaid: 0,
+      paidInstallments: 0,
+      status: 'Pending',
+      approvalStatus: 'Pending',
+      stage: 'Pending Approval',
+      monthlyPayments: []
+    }];
+  }
+
+  const totalPersons = fallbackSchemes.reduce((sum, s) => sum + s.personCount, 0);
+  const combinedMonthly = fallbackSchemes.reduce((sum, s) => sum + s.totalMonthlyAmount, 0);
+  const combinedGrand = fallbackSchemes.reduce((sum, s) => sum + s.totalSchemeAmount, 0);
+
   const newSub: ChitSubscriptionItem = {
     id: String(Date.now()),
-    schemeId: data.schemeId,
-    schemeName: data.schemeName,
+    applicationNumber: `AB-APP-${Date.now().toString().slice(-5)}`,
     name: data.name,
     phone: cleanPhone,
     email: data.email || '',
     location: data.location,
+    schemes: fallbackSchemes,
+    totalPersons,
+    combinedMonthlyAmount: combinedMonthly,
+    combinedGrandTotal: combinedGrand,
+    totalPaidAmount: 0,
+    remainingGrandTotal: combinedGrand,
+    // Legacy single scheme mirror
+    schemeId: fallbackSchemes[0]?.schemeId,
+    schemeName: fallbackSchemes[0]?.schemeName || data.schemeName || '',
+    personCount: fallbackSchemes[0]?.personCount || 1,
     status: 'Pending',
     approvalStatus: 'Pending',
+    stage: 'Pending Approval',
     monthsPaid: 0,
     monthlyPayments: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
 
-  // Local storage fallback - update existing entry for this phone or prepend (1 subscription per customer)
+  // Local storage fallback (Prepend new application, preserving previous applications)
   try {
     const existing = JSON.parse(localStorage.getItem('local_chit_subscriptions') || '[]');
-    const filtered = (existing || []).filter((item: ChitSubscriptionItem) => {
-      const p = String(item.phone || '').replace(/\D/g, '').slice(-10);
-      return p !== cleanPhone;
-    });
-    localStorage.setItem('local_chit_subscriptions', JSON.stringify([newSub, ...filtered]));
+    localStorage.setItem('local_chit_subscriptions', JSON.stringify([newSub, ...existing]));
   } catch (e) {
     console.warn("Could not save to local_chit_subscriptions:", e);
   }
@@ -769,6 +893,26 @@ export async function submitChitSubscription(data: {
   }
 }
 
+export async function recordChitSchemePaymentApi(
+  applicationId: string,
+  data: {
+    schemeId?: string;
+    monthNumber: number;
+    monthName?: string;
+    amount?: number;
+    paymentMethod?: string;
+    transactionNumber?: string;
+    paymentDate?: string;
+    notes?: string;
+  }
+): Promise<{ message: string; subscription: ChitSubscriptionItem; receipt: any }> {
+  return fetchJSON<{ message: string; subscription: ChitSubscriptionItem; receipt: any }>(
+    `/api/chit-subscriptions/${applicationId}/payment`,
+    'POST',
+    data
+  );
+}
+
 export async function getChitSubscriptions(): Promise<ChitSubscriptionItem[]> {
   let apiData: ChitSubscriptionItem[] = [];
   try {
@@ -777,82 +921,34 @@ export async function getChitSubscriptions(): Promise<ChitSubscriptionItem[]> {
     console.warn("Failed to fetch chit subscriptions from API, using fallback:", err);
   }
 
-  // Merge with local storage fallback and deduplicate by customer phone (1 per customer)
+  // Use API data if available, or fall back to local storage
+  if (Array.isArray(apiData) && apiData.length > 0) {
+    return apiData;
+  }
+
   try {
     const localData = JSON.parse(localStorage.getItem('local_chit_subscriptions') || '[]');
-    const map = new Map<string, ChitSubscriptionItem>();
-
-    // 1. Process API data first (highest priority)
-    (apiData || []).forEach(item => {
-      const cleanPhone = String(item.phone || "").replace(/\D/g, "").slice(-10);
-      const uniqueKey = cleanPhone || (item._id || item.id || '');
-      
-      const appStatus = item.approvalStatus || (item.status === 'Paid' || item.status === 'Approved' ? 'Approved' : (item.status === 'Rejected' ? 'Rejected' : 'Pending'));
-      
-      if (!map.has(uniqueKey)) {
-        map.set(uniqueKey, {
-          ...item,
-          approvalStatus: appStatus,
-          monthsPaid: item.monthsPaid !== undefined ? item.monthsPaid : (item.status === 'Paid' ? 1 : 0),
-          monthlyPayments: item.monthlyPayments || []
-        });
-      } else {
-        const existing = map.get(uniqueKey)!;
-        // Prioritize Approved subscription over Pending
-        if (existing.approvalStatus !== 'Approved' && appStatus === 'Approved') {
-          map.set(uniqueKey, {
-            ...item,
-            approvalStatus: appStatus,
-            monthsPaid: item.monthsPaid !== undefined ? item.monthsPaid : (item.status === 'Paid' ? 1 : 0),
-            monthlyPayments: item.monthlyPayments || []
-          });
-        }
-      }
-    });
-
-    // 2. Process local storage fallback data (only add if not present in API data)
-    (localData || []).forEach((item: ChitSubscriptionItem) => {
-      const cleanPhone = String(item.phone || "").replace(/\D/g, "").slice(-10);
-      const uniqueKey = cleanPhone || (item._id || item.id || '');
-
-      if (!map.has(uniqueKey)) {
-        const appStatus = item.approvalStatus || (item.status === 'Paid' || item.status === 'Approved' ? 'Approved' : (item.status === 'Rejected' ? 'Rejected' : 'Pending'));
-        map.set(uniqueKey, {
-          ...item,
-          approvalStatus: appStatus,
-          monthsPaid: item.monthsPaid !== undefined ? item.monthsPaid : (item.status === 'Paid' ? 1 : 0),
-          monthlyPayments: item.monthlyPayments || []
-        });
-      }
-    });
-
-    // Clean up local storage items that are already synced with API
-    if (apiData && apiData.length > 0) {
-      const apiPhones = new Set((apiData || []).map(item => String(item.phone || "").replace(/\D/g, "").slice(-10)));
-
-      const remainingLocal = (localData || []).filter((item: ChitSubscriptionItem) => {
-        const cleanPhone = String(item.phone || "").replace(/\D/g, "").slice(-10);
-        return !apiPhones.has(cleanPhone);
-      });
-      localStorage.setItem('local_chit_subscriptions', JSON.stringify(remainingLocal));
-    }
-
-    return Array.from(map.values()).sort((a, b) => {
-      const da = a.updatedAt ? new Date(a.updatedAt).getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
-      const db = b.updatedAt ? new Date(b.updatedAt).getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
-      return db - da;
-    });
+    return Array.isArray(localData) ? localData : [];
   } catch (e) {
-    return apiData || [];
+    return [];
   }
 }
 
-export async function approveChitSubscriptionApi(id: string): Promise<ChitSubscriptionItem> {
+export async function approveChitSubscriptionApi(id: string, schemeId?: string): Promise<ChitSubscriptionItem> {
   // Update in local storage fallback
   try {
     const localData: ChitSubscriptionItem[] = JSON.parse(localStorage.getItem('local_chit_subscriptions') || '[]');
     const updatedLocal = localData.map(item => {
       if (item.id === id || item._id === id) {
+        if (schemeId && Array.isArray(item.schemes)) {
+          const updatedSchemes = item.schemes.map(s => {
+            if (s.id === schemeId || s._id === schemeId || s.schemeName === schemeId) {
+              return { ...s, approvalStatus: 'Approved' as const, status: 'Approved' as const };
+            }
+            return s;
+          });
+          return { ...item, schemes: updatedSchemes, approvalStatus: 'Approved' as const, status: 'Approved' as const };
+        }
         return { ...item, approvalStatus: 'Approved' as const, status: 'Approved' as const };
       }
       return item;
@@ -861,7 +957,7 @@ export async function approveChitSubscriptionApi(id: string): Promise<ChitSubscr
   } catch (e) {}
 
   try {
-    const res = await fetchJSON<any>(`/api/chit-subscriptions/${id}/approve`, 'PUT', {});
+    const res = await fetchJSON<any>(`/api/chit-subscriptions/${id}/approve`, 'PUT', { schemeId });
     return res.subscription || res;
   } catch (err) {
     console.warn("API approve chit subscription failed, updated locally:", err);
@@ -869,12 +965,21 @@ export async function approveChitSubscriptionApi(id: string): Promise<ChitSubscr
   }
 }
 
-export async function rejectChitSubscriptionApi(id: string): Promise<ChitSubscriptionItem> {
+export async function rejectChitSubscriptionApi(id: string, schemeId?: string): Promise<ChitSubscriptionItem> {
   // Update in local storage fallback
   try {
     const localData: ChitSubscriptionItem[] = JSON.parse(localStorage.getItem('local_chit_subscriptions') || '[]');
     const updatedLocal = localData.map(item => {
       if (item.id === id || item._id === id) {
+        if (schemeId && Array.isArray(item.schemes)) {
+          const updatedSchemes = item.schemes.map(s => {
+            if (s.id === schemeId || s._id === schemeId || s.schemeName === schemeId) {
+              return { ...s, approvalStatus: 'Rejected' as const, status: 'Rejected' as const };
+            }
+            return s;
+          });
+          return { ...item, schemes: updatedSchemes };
+        }
         return { ...item, approvalStatus: 'Rejected' as const, status: 'Rejected' as const };
       }
       return item;
@@ -883,7 +988,7 @@ export async function rejectChitSubscriptionApi(id: string): Promise<ChitSubscri
   } catch (e) {}
 
   try {
-    const res = await fetchJSON<any>(`/api/chit-subscriptions/${id}/reject`, 'PUT', {});
+    const res = await fetchJSON<any>(`/api/chit-subscriptions/${id}/reject`, 'PUT', { schemeId });
     return res.subscription || res;
   } catch (err) {
     console.warn("API reject chit subscription failed, updated locally:", err);
