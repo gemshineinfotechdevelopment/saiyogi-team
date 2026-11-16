@@ -266,10 +266,12 @@ const ChitScheme: React.FC = () => {
   };
 
   const handlePersonCountChange = (index: number, newCount: number) => {
-    const count = Math.max(1, newCount);
+    const count = Math.max(1, parseInt(String(newCount), 10) || 1);
     setSelectedSchemes(prev => {
       const updated = [...prev];
-      updated[index] = { ...updated[index], personCount: count };
+      if (updated[index]) {
+        updated[index] = { ...updated[index], personCount: count };
+      }
       return updated;
     });
   };
@@ -362,6 +364,7 @@ const ChitScheme: React.FC = () => {
 
       // Refresh subscriptions list
       loadUserSubscriptions();
+      setSelectedSchemes([]);
     } catch (err: any) {
       toast.error(err.message || "Failed to submit chit scheme application");
     } finally {

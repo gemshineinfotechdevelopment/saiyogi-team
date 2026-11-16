@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import ChitSubscription from '../models/ChitSubscription.js';
 import Customer from '../models/Customer.js';
 import Counter from '../models/Counter.js';

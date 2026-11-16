@@ -884,20 +884,21 @@ export async function submitChitSubscription(data: {
     updatedAt: new Date().toISOString()
   };
 
-  // Local storage fallback (Prepend new application, preserving previous applications)
-  try {
-    const existing = JSON.parse(localStorage.getItem('local_chit_subscriptions') || '[]');
-    localStorage.setItem('local_chit_subscriptions', JSON.stringify([newSub, ...existing]));
-  } catch (e) {
-    console.warn("Could not save to local_chit_subscriptions:", e);
-  }
-
   try {
     const res = await fetchJSON<any>('/api/chit-subscriptions', 'POST', data);
-    return res.subscription || res;
+    const savedSub: ChitSubscriptionItem = res.subscription || res;
+    // Cache to local storage
+    try {
+      const existing = JSON.parse(localStorage.getItem('local_chit_subscriptions') || '[]');
+      const filtered = Array.isArray(existing) ? existing.filter((e: any) => e.id !== savedSub.id && e._id !== savedSub._id) : [];
+      localStorage.setItem('local_chit_subscriptions', JSON.stringify([savedSub, ...filtered]));
+    } catch (e) {
+      console.warn("Could not save to local_chit_subscriptions:", e);
+    }
+    return savedSub;
   } catch (err) {
-    console.warn("API submit chit subscription failed, returning fallback:", err);
-    return newSub;
+    console.error("API submit chit subscription failed:", err);
+    throw err;
   }
 }
 
