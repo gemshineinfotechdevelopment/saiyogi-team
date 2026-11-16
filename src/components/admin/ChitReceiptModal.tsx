@@ -115,44 +115,91 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
       return;
     }
 
+    // Collect all stylesheets from main document for full Tailwind & component fidelity in print
+    const styles = Array.from(document.querySelectorAll("style, link[rel='stylesheet']"))
+      .map((el) => el.outerHTML)
+      .join("\n");
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <title>Chit Receipt - ${formattedReceiptNo}</title>
+          ${styles}
           <style>
-            @page { size: A4; margin: 12mm; }
-            body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1e293b; margin: 0; padding: 10px; }
-            * { box-sizing: border-box; }
-            .receipt-box { max-width: 680px; margin: 0 auto; border: 2px solid #7A1416; border-radius: 12px; padding: 24px; }
-            .header { text-align: center; border-bottom: 2px solid #7A1416; padding-bottom: 12px; margin-bottom: 14px; }
-            .title { color: #7A1416; font-size: 20px; font-weight: 900; text-transform: uppercase; margin: 0; }
-            .subtitle { font-size: 13px; font-weight: bold; color: #334155; margin: 3px 0 0 0; }
-            .contact { font-size: 11px; color: #64748b; margin: 3px 0 0 0; }
-            .top-bar { display: flex; justify-content: space-between; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 12px; margin-bottom: 14px; }
-            table { width: 100%; border-collapse: collapse; font-size: 11px; margin: 6px 0; }
-            th, td { border: 1px solid #cbd5e1; padding: 6px 8px; }
-            th { background-color: #f1f5f9; font-weight: bold; }
-            .section-title { font-weight: bold; color: #7A1416; font-size: 12px; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 6px; }
-            .breakdown-table { border: 2px solid #7A1416 !important; margin: 10px 0; }
-            .breakdown-summary { background: #fef3c7; border: 1px solid #fde68a; padding: 6px 10px; font-weight: bold; font-size: 11px; margin-top: 4px; }
-            .payment-card { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 10px 14px; font-size: 12px; margin: 14px 0; }
-            .footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 24px; font-size: 11px; color: #64748b; }
-            .badge-paid { background: #d1fae5; color: #065f46; font-weight: bold; padding: 3px 8px; border-radius: 6px; font-size: 11px; }
+            @page {
+              size: A4 portrait;
+              margin: 10mm;
+            }
+            * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              color-adjust: exact !important;
+              box-sizing: border-box !important;
+            }
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #ffffff !important;
+              color: #1e293b !important;
+              font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+            }
+            .print-receipt-container {
+              width: 100% !important;
+              max-width: 720px !important;
+              margin: 0 auto !important;
+              background: #ffffff !important;
+              padding: 2px !important;
+            }
+            /* Clean Multi-Page Flow: Never cut cards or table rows in half */
+            .print-avoid-break,
+            .subscriber-grid,
+            .breakdown-table,
+            .payment-card,
+            .summary-card,
+            .footer-section,
+            tr {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+            }
+            thead {
+              display: table-header-group !important;
+            }
+            tfoot {
+              display: table-footer-group !important;
+            }
             @media print {
-              body { padding: 0; }
-              .no-print { display: none; }
+              body {
+                padding: 0 !important;
+              }
+              .no-print {
+                display: none !important;
+              }
+              .print-grid-2 {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 12px !important;
+              }
+              .print-grid-4 {
+                display: grid !important;
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 10px !important;
+              }
             }
           </style>
         </head>
         <body>
-          <div class="receipt-box">
-            ${receiptRef.current.innerHTML}
+          <div class="print-receipt-container">
+            ${receiptRef.current.outerHTML}
           </div>
           <script>
             window.onload = function() {
-              window.print();
-              setTimeout(function() { window.close(); }, 500);
+              setTimeout(function() {
+                window.print();
+                setTimeout(function() { window.close(); }, 500);
+              }, 300);
             };
           </script>
         </body>
@@ -174,7 +221,8 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
         scale: 2.5,
         backgroundColor: "#ffffff",
         allowTaint: true,
-        useCORS: true
+        useCORS: true,
+        logging: false
       });
 
       const pdf = new jsPDFModule.jsPDF({
@@ -183,15 +231,60 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
         format: "a4"
       });
 
-      const imgData = canvas.toDataURL("image/jpeg", 0.95);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const margin = 12;
-      const imgWidth = pdfWidth - margin * 2;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const imgWidth = pageWidth - margin * 2;
+      const maxPageContentHeight = pageHeight - margin * 2;
+      const totalImgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, imgHeight);
+      if (totalImgHeight <= maxPageContentHeight) {
+        // Fits comfortably on 1 page
+        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, totalImgHeight);
+      } else {
+        // Multi-page slicing: Slice canvas cleanly by page height so no content is cut off
+        const pageCanvasHeight = (canvas.width * maxPageContentHeight) / imgWidth;
+        let renderedHeight = 0;
+        let pageIndex = 0;
+
+        while (renderedHeight < canvas.height) {
+          if (pageIndex > 0) {
+            pdf.addPage();
+          }
+
+          const sliceHeight = Math.min(pageCanvasHeight, canvas.height - renderedHeight);
+          const pageCanvas = document.createElement("canvas");
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = sliceHeight;
+
+          const pageCtx = pageCanvas.getContext("2d");
+          if (pageCtx) {
+            pageCtx.fillStyle = "#ffffff";
+            pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+            pageCtx.drawImage(
+              canvas,
+              0,
+              renderedHeight,
+              canvas.width,
+              sliceHeight,
+              0,
+              0,
+              pageCanvas.width,
+              sliceHeight
+            );
+
+            const sliceImgData = pageCanvas.toDataURL("image/jpeg", 0.95);
+            const sliceImgHeight = (sliceHeight * imgWidth) / canvas.width;
+            pdf.addImage(sliceImgData, "JPEG", margin, margin, imgWidth, sliceImgHeight);
+          }
+
+          renderedHeight += sliceHeight;
+          pageIndex++;
+        }
+      }
+
       pdf.save(`Receipt_${formattedReceiptNo}_${(receipt.customerName || "Customer").replace(/\s+/g, "_")}.pdf`);
-
       toast.success("Receipt PDF Downloaded!", { id: "pdf-chit-receipt" });
     } catch (err) {
       console.error("PDF generation failed:", err);
@@ -285,56 +378,58 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
           </div>
 
           {/* Subscriber & Scheme Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs print-grid-2 print-avoid-break subscriber-grid">
             {/* Subscriber Info */}
-            <div className="bg-gray-50/80 border border-gray-200/80 rounded-xl p-3.5 space-y-2">
+            <div className="bg-gray-50/80 border border-gray-200/80 rounded-xl p-3 space-y-1.5">
               <div className="font-extrabold text-[#7A1416] text-[11px] uppercase tracking-wider border-b border-gray-200 pb-1">
                 Subscriber Details
               </div>
               <div className="space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-gray-500 font-medium">Customer Name:</span>
-                  <strong className="text-gray-900 font-bold">{receipt.customerName}</strong>
+                <div className="flex justify-between items-start gap-2">
+                  <span className="text-gray-500 font-medium shrink-0">Customer Name:</span>
+                  <strong className="text-gray-900 font-bold text-right leading-normal">{receipt.customerName}</strong>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500 font-medium">Mobile Number:</span>
-                  <strong className="text-gray-900 font-mono font-bold">{receipt.phone}</strong>
+                <div className="flex justify-between items-center gap-2">
+                  <span className="text-gray-500 font-medium shrink-0">Mobile Number:</span>
+                  <strong className="text-gray-900 font-mono font-bold text-right leading-normal">{receipt.phone}</strong>
                 </div>
                 {receipt.email && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 font-medium">Email:</span>
-                    <strong className="text-gray-700 truncate max-w-[150px]">{receipt.email}</strong>
+                  <div className="flex justify-between items-start gap-2 pt-0.5">
+                    <span className="text-gray-500 font-medium shrink-0">Email:</span>
+                    <strong className="text-gray-800 font-semibold break-all text-right text-[11px] leading-relaxed">
+                      {receipt.email}
+                    </strong>
                   </div>
                 )}
-                <div className="flex justify-between">
-                  <span className="text-gray-500 font-medium">Location:</span>
-                  <strong className="text-gray-800 font-semibold">{receipt.location || "N/A"}</strong>
+                <div className="flex justify-between items-start gap-2">
+                  <span className="text-gray-500 font-medium shrink-0">Location:</span>
+                  <strong className="text-gray-800 font-semibold text-right leading-normal">{receipt.location || "N/A"}</strong>
                 </div>
               </div>
             </div>
 
             {/* Scheme & Person Details */}
-            <div className="bg-gray-50/80 border border-gray-200/80 rounded-xl p-3.5 space-y-2">
+            <div className="bg-gray-50/80 border border-gray-200/80 rounded-xl p-3 space-y-1.5">
               <div className="font-extrabold text-[#7A1416] text-[11px] uppercase tracking-wider border-b border-gray-200 pb-1">
                 Scheme Enrollment Details
               </div>
               <div className="space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-gray-500 font-medium">Scheme Name:</span>
-                  <strong className="text-[#2A1B54] font-extrabold">{receipt.schemeName}</strong>
+                <div className="flex justify-between items-start gap-2">
+                  <span className="text-gray-500 font-medium shrink-0">Scheme Name:</span>
+                  <strong className="text-[#2A1B54] font-extrabold text-right break-words leading-tight">{receipt.schemeName}</strong>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500 font-medium">Total Persons Enrolled:</span>
+                <div className="flex justify-between items-center gap-2">
+                  <span className="text-gray-500 font-medium shrink-0">Total Persons Enrolled:</span>
                   <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded font-extrabold text-[11px]">
                     {receipt.personCount} Person(s)
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500 font-medium">Monthly / Person:</span>
+                <div className="flex justify-between items-center gap-2">
+                  <span className="text-gray-500 font-medium shrink-0">Monthly / Person:</span>
                   <strong className="text-gray-900 font-semibold">₹{(receipt.monthlyAmountPerPerson || 0).toLocaleString()}</strong>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500 font-medium">Expected Installment:</span>
+                <div className="flex justify-between items-center gap-2">
+                  <span className="text-gray-500 font-medium shrink-0">Expected Installment:</span>
                   <strong className="text-emerald-700 font-extrabold">₹{(receipt.expectedMonthlyAmount || 0).toLocaleString()}</strong>
                 </div>
               </div>
@@ -342,7 +437,7 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
           </div>
 
           {/* CHIT SCHEMES & PERSONS BREAKDOWN TABLE (e.g. 300 x 5 = 1500, 500 x 3 = 1500, 700 x 1 = 700) */}
-          <div className="border-2 border-[#7A1416]/40 rounded-xl overflow-hidden text-xs bg-white breakdown-table">
+          <div className="border-2 border-[#7A1416]/40 rounded-xl overflow-hidden text-xs bg-white breakdown-table print-avoid-break">
             <div className="bg-amber-50 px-3.5 py-2 border-b border-[#7A1416]/30 flex flex-wrap justify-between items-center gap-1">
               <strong className="text-[#7A1416] text-[11px] uppercase tracking-wider">
                 Chit Schemes &amp; Persons Breakdown
@@ -415,7 +510,7 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
           </div>
 
           {/* Payment Received Highlight Card */}
-          <div className="bg-emerald-50/90 border-2 border-emerald-300 rounded-xl p-4 space-y-2 text-xs">
+          <div className="bg-emerald-50/90 border-2 border-emerald-300 rounded-xl p-3.5 space-y-2 text-xs payment-card print-avoid-break">
             <div className="flex items-center justify-between">
               <span className="text-emerald-900 font-black text-xs uppercase tracking-wide">
                 Amount Received &amp; Installment Details
@@ -426,7 +521,7 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 print-grid-4">
               <div>
                 <span className="text-gray-500 text-[11px] block">Installment</span>
                 <strong className="text-gray-900 text-xs font-extrabold">
@@ -462,7 +557,7 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
 
           {/* Cumulative Scheme Summary */}
           {(receipt.totalPaidTillDate !== undefined || receipt.remainingSchemeBalance !== undefined) && (
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs flex flex-wrap justify-between items-center gap-2">
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs flex flex-wrap justify-between items-center gap-2 summary-card print-avoid-break">
               {receipt.paidMonths !== undefined && receipt.totalMonths !== undefined && (
                 <div>
                   <span className="text-gray-500 text-[11px]">Installment Progress: </span>
@@ -485,7 +580,7 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
           )}
 
           {/* Footer & Authorized Signatory */}
-          <div className="flex items-end justify-between pt-4 border-t border-gray-200 text-[11px] text-gray-500">
+          <div className="flex items-end justify-between pt-3 border-t border-gray-200 text-[11px] text-gray-500 footer-section print-avoid-break">
             <div>
               <p className="font-semibold text-gray-700 m-0">Thank you for saving with Sai Yogi Crackers!</p>
               <p className="text-[10px] text-gray-400 m-0">This is an authentic computer generated chit payment receipt.</p>

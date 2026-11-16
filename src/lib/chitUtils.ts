@@ -281,6 +281,12 @@ export const downloadChitReceiptPDF = async (
             <td style="padding: 3px 0; color: #64748b;">Mobile Number:</td>
             <td style="padding: 3px 0; font-weight: bold; color: #0f172a;">${sub.phone || sub.mobileNumber}</td>
           </tr>
+          ${sub.email ? `
+          <tr>
+            <td style="padding: 3px 0; color: #64748b;">Email:</td>
+            <td style="padding: 3px 0; font-weight: bold; color: #0f172a; word-break: break-all;">${sub.email}</td>
+          </tr>
+          ` : ''}
           <tr>
             <td style="padding: 3px 0; color: #64748b;">Location:</td>
             <td style="padding: 3px 0; font-weight: bold; color: #0f172a;">${sub.location || 'N/A'}</td>
@@ -414,13 +420,57 @@ export const downloadChitReceiptPDF = async (
       }
     });
     const pdf = new jsPDFModule.jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-    const imgData = canvas.toDataURL("image/jpeg", 0.95);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
     const margin = 10;
-    const imgWidth = pdfWidth - (margin * 2);
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const imgWidth = pageWidth - (margin * 2);
+    const maxPageContentHeight = pageHeight - (margin * 2);
+    const totalImgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, imgHeight);
+    if (totalImgHeight <= maxPageContentHeight) {
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, totalImgHeight);
+    } else {
+      const pageCanvasHeight = (canvas.width * maxPageContentHeight) / imgWidth;
+      let renderedHeight = 0;
+      let pageIndex = 0;
+
+      while (renderedHeight < canvas.height) {
+        if (pageIndex > 0) {
+          pdf.addPage();
+        }
+
+        const sliceHeight = Math.min(pageCanvasHeight, canvas.height - renderedHeight);
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeight;
+
+        const pageCtx = pageCanvas.getContext("2d");
+        if (pageCtx) {
+          pageCtx.fillStyle = "#ffffff";
+          pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+          pageCtx.drawImage(
+            canvas,
+            0,
+            renderedHeight,
+            canvas.width,
+            sliceHeight,
+            0,
+            0,
+            pageCanvas.width,
+            sliceHeight
+          );
+
+          const sliceImgData = pageCanvas.toDataURL("image/jpeg", 0.95);
+          const sliceImgHeight = (sliceHeight * imgWidth) / canvas.width;
+          pdf.addImage(sliceImgData, "JPEG", margin, margin, imgWidth, sliceImgHeight);
+        }
+
+        renderedHeight += sliceHeight;
+        pageIndex++;
+      }
+    }
+
     pdf.save(`Receipt_Month${monthNumber}_${customerName.replace(/\s+/g, '_')}.pdf`);
     toast.success("PDF Receipt Downloaded!", { id: "pdf-toast" });
   } catch (err) {
