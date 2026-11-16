@@ -380,6 +380,7 @@ export const approveChitSubscription = async (req, res, next) => {
       subscription.status = 'Approved';
     }
 
+    subscription.markModified('schemes');
     const updated = await subscription.save();
 
     res.json({
@@ -424,6 +425,7 @@ export const rejectChitSubscription = async (req, res, next) => {
       }
     }
 
+    subscription.markModified('schemes');
     const updated = await subscription.save();
 
     res.json({
@@ -563,6 +565,7 @@ export const recordSchemePayment = async (req, res, next) => {
     targetScheme.stage = calculateStage(targetScheme, duration);
 
     // Save subscription (pre-save hook will update top-level aggregations)
+    subscription.markModified('schemes');
     const saved = await subscription.save();
     const normalized = normalizeSubscriptionDoc(saved);
     const updatedTargetScheme = normalized.schemes.find(s => String(s._id) === String(targetScheme._id)) || targetScheme;
@@ -665,6 +668,7 @@ export const updateMonthPaymentStatus = async (req, res, next) => {
       }
     }
 
+    subscription.markModified('schemes');
     const updated = await subscription.save();
     res.json({
       message: `Payment status updated`,
@@ -705,6 +709,7 @@ export const updateChitSubscriptionStatus = async (req, res, next) => {
       }
     }
 
+    subscription.markModified('schemes');
     const updated = await subscription.save();
     res.json({
       message: 'Subscription updated successfully',

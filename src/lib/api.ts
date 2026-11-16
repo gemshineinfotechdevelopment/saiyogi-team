@@ -14,7 +14,15 @@ function resolveAuthToken(path: string): string | null {
 
   const cleanPath = path.toLowerCase();
   const isCustomerRoute = cleanPath.includes('/my-enquiries') || cleanPath.includes('/my-orders') || cleanPath.includes('/customer');
-  const isAdminOnlyRoute = cleanPath === '/api/orders' || cleanPath.startsWith('/api/orders/') || cleanPath === '/orders' || cleanPath === '/api/settings' || cleanPath.startsWith('/api/settings/') || cleanPath === '/settings' || cleanPath.includes('/admin/');
+  const isChitAdminRoute = cleanPath.includes('/chit-subscriptions') && (
+    cleanPath.includes('/approve') ||
+    cleanPath.includes('/reject') ||
+    cleanPath.includes('/payment') ||
+    cleanPath.includes('/month-status') ||
+    cleanPath.includes('/mark-read') ||
+    cleanPath.includes('/status')
+  );
+  const isAdminOnlyRoute = cleanPath === '/api/orders' || cleanPath.startsWith('/api/orders/') || cleanPath === '/orders' || cleanPath === '/api/settings' || cleanPath.startsWith('/api/settings/') || cleanPath === '/settings' || cleanPath.includes('/admin/') || isChitAdminRoute;
 
   if (isCustomerRoute) {
     return customerToken || adminToken;
@@ -915,14 +923,16 @@ export async function recordChitSchemePaymentApi(
 
 export async function getChitSubscriptions(): Promise<ChitSubscriptionItem[]> {
   let apiData: ChitSubscriptionItem[] = [];
+  let apiSuccess = false;
   try {
     apiData = await fetchJSON<ChitSubscriptionItem[]>('/api/chit-subscriptions', 'GET');
+    apiSuccess = true;
   } catch (err) {
     console.warn("Failed to fetch chit subscriptions from API, using fallback:", err);
   }
 
-  // Use API data if available, or fall back to local storage
-  if (Array.isArray(apiData) && apiData.length > 0) {
+  // Use API data if available
+  if (apiSuccess && Array.isArray(apiData)) {
     return apiData;
   }
 
@@ -960,8 +970,8 @@ export async function approveChitSubscriptionApi(id: string, schemeId?: string):
     const res = await fetchJSON<any>(`/api/chit-subscriptions/${id}/approve`, 'PUT', { schemeId });
     return res.subscription || res;
   } catch (err) {
-    console.warn("API approve chit subscription failed, updated locally:", err);
-    return { id, schemeName: '', name: '', phone: '', location: '', status: 'Approved', approvalStatus: 'Approved' };
+    console.error("API approve chit subscription failed:", err);
+    throw err;
   }
 }
 
@@ -991,8 +1001,8 @@ export async function rejectChitSubscriptionApi(id: string, schemeId?: string): 
     const res = await fetchJSON<any>(`/api/chit-subscriptions/${id}/reject`, 'PUT', { schemeId });
     return res.subscription || res;
   } catch (err) {
-    console.warn("API reject chit subscription failed, updated locally:", err);
-    return { id, schemeName: '', name: '', phone: '', location: '', status: 'Rejected', approvalStatus: 'Rejected' };
+    console.error("API reject chit subscription failed:", err);
+    throw err;
   }
 }
 

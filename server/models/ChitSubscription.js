@@ -223,6 +223,10 @@ chitSubscriptionSchema.pre('save', function (next) {
       let calcCombinedGrand = 0;
       let calcTotalPaid = 0;
 
+      // Check if top-level approval is cascaded
+      const topApproved = this.approvalStatus === 'Approved' || this.status === 'Approved';
+      const topRejected = this.approvalStatus === 'Rejected' || this.status === 'Rejected';
+
       this.schemes.forEach((sch) => {
         const persons = sch.personCount || 1;
         const monthly = sch.monthlyAmountPerPerson || sch.monthlyAmount || 0;
@@ -237,6 +241,15 @@ chitSubscriptionSchema.pre('save', function (next) {
         sch.durationMonths = duration;
         sch.totalMonths = duration;
         sch.totalSchemeAmount = totalScheme;
+
+        if (topApproved && sch.approvalStatus !== 'Rejected') {
+          sch.approvalStatus = 'Approved';
+          sch.status = 'Approved';
+        } else if (topRejected) {
+          sch.approvalStatus = 'Rejected';
+          sch.status = 'Rejected';
+          sch.stage = 'Rejected';
+        }
 
         // Calculate paid amount from payments
         if (Array.isArray(sch.monthlyPayments)) {
@@ -268,6 +281,16 @@ chitSubscriptionSchema.pre('save', function (next) {
       this.combinedGrandTotal = calcCombinedGrand;
       this.totalPaidAmount = calcTotalPaid;
       this.remainingGrandTotal = Math.max(0, calcCombinedGrand - calcTotalPaid);
+
+      // Status synchronization
+      if (this.schemes.some(s => s.approvalStatus === 'Approved' || s.status === 'Approved')) {
+        this.approvalStatus = 'Approved';
+        this.status = 'Approved';
+      } else if (this.schemes.length > 0 && this.schemes.every(s => s.approvalStatus === 'Rejected' || s.status === 'Rejected')) {
+        this.approvalStatus = 'Rejected';
+        this.status = 'Rejected';
+        this.stage = 'Rejected';
+      }
 
       // Keep legacy top-level fields populated from first scheme
       const firstSch = this.schemes[0];
@@ -322,7 +345,9 @@ chitSubscriptionSchema.pre('save', function (next) {
   } catch (err) {
     console.error('Error in ChitSubscription pre-save hook:', err);
   }
-  next();
+  if (typeof next === 'function') {
+    next();
+  }
 });
 
 export default mongoose.models.ChitSubscription || mongoose.model('ChitSubscription', chitSubscriptionSchema);
