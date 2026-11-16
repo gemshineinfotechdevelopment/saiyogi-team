@@ -233,12 +233,13 @@ const AdminChitScheme: React.FC = () => {
       setSubscriptions(allSubscriptions);
 
       // If customer modal is open, refresh selected subscription
-      if (selectedSubscription) {
+      setSelectedSubscription(currentSelected => {
+        if (!currentSelected) return null;
         const found = allSubscriptions.find(
-          s => (s._id || s.id) === (selectedSubscription._id || selectedSubscription.id)
+          s => (s._id || s.id) === (currentSelected._id || currentSelected.id)
         );
-        if (found) setSelectedSubscription(found);
-      }
+        return found || currentSelected;
+      });
     } catch (err) {
       console.error("Failed to load chit subscriptions:", err);
       toast.error("Failed to load customer applications");
@@ -589,12 +590,24 @@ const AdminChitScheme: React.FC = () => {
       toast.success(res.message || `Payment for ${monthName} recorded successfully!`, { id: "pay-toast" });
       setPaymentModalState(prev => ({ ...prev, isOpen: false }));
 
-      // Refresh currently selected customer subscription details
+      // Refresh currently selected customer subscription details and update lists in state immediately
       if (res.subscription) {
         setSelectedSubscription(res.subscription);
+        setSubscriptions(prev => prev.map(s => ((s._id || s.id) === (res.subscription._id || res.subscription.id) ? res.subscription : s)));
+
+        // Update viewingSchemePassbook with the fresh scheme object so passbook view updates instantly
+        const targetSchemeId = schemeId || viewingSchemePassbook?._id || viewingSchemePassbook?.schemeId;
+        if (targetSchemeId) {
+          const freshScheme = (res.subscription.schemes || []).find(
+            (s: any) => String(s._id || s.schemeId) === String(targetSchemeId)
+          );
+          if (freshScheme) {
+            setViewingSchemePassbook(freshScheme);
+          }
+        }
       }
 
-      // Reload subscriptions list
+      // Reload subscriptions list in background
       loadSubscriptions();
 
       // Automatically pop up official receipt modal with the new receipt
@@ -2169,7 +2182,9 @@ _Sai Yogi Crackers_`;
                     monthlyPayments: sub.monthlyPayments || []
                   }];
 
-              const activeScheme = viewingSchemePassbook || enrolledSchemes[0];
+              const activeScheme = (viewingSchemePassbook
+                ? enrolledSchemes.find(s => String(s._id || s.schemeId) === String(viewingSchemePassbook._id || viewingSchemePassbook.schemeId))
+                : null) || enrolledSchemes[0];
               const totalPersons = enrolledSchemes.reduce((sum, s) => sum + (s.personCount || 1), 0);
               const combinedMonthly = enrolledSchemes.reduce((sum, s) => sum + (s.totalMonthlyAmount || ((s.monthlyAmountPerPerson || 0) * (s.personCount || 1))), 0);
               const combinedGrand = enrolledSchemes.reduce((sum, s) => sum + (s.totalSchemeAmount || ((s.totalMonthlyAmount || 0) * (s.durationMonths || 10))), 0);

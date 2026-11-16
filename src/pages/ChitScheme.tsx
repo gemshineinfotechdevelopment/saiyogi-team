@@ -1342,8 +1342,8 @@ const ChitScheme: React.FC = () => {
               /* VIEW 2: DETAILED MONTHWISE PASSBOOK & RECEIPTS FOR A SCHEME */
               <div className="space-y-6">
                 {(() => {
-                  const sch = selectedPassbookScheme;
-                  const sub = selectedPassbookSub || userSubscriptions[0];
+                  const sub = selectedPassbookSub ? (userSubscriptions.find(s => (s._id || s.id) === (selectedPassbookSub._id || selectedPassbookSub.id)) || selectedPassbookSub) : userSubscriptions[0];
+                  const sch = (sub?.schemes && selectedPassbookScheme ? sub.schemes.find(s => String(s._id || s.schemeId) === String(selectedPassbookScheme._id || selectedPassbookScheme.schemeId)) : null) || selectedPassbookScheme;
                   const subApproval = sub?.approvalStatus || (sub?.status === 'Paid' || sub?.status === 'Approved' ? 'Approved' : 'Pending');
                   const isApproved = sch.approvalStatus === "Approved" || sch.status === "Approved" || sch.status === "Paid" || subApproval === "Approved";
                   const totalMonths = sch.durationMonths || sch.totalMonths || 10;
