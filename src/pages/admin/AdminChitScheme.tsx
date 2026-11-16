@@ -1225,10 +1225,10 @@ _Sai Yogi Crackers_`;
                         ? enrolledSchemes.reduce((sum, s) => sum + (s.personCount || 1), 0)
                         : (sub.totalPersons || sub.personCount || 1);
                       const monthlyTotal = enrolledSchemes
-                        ? enrolledSchemes.reduce((sum, s) => sum + ((s.monthlyAmount || s.price || 0) * (s.personCount || 1)), 0)
+                        ? enrolledSchemes.reduce((sum, s) => sum + (s.totalMonthlyAmount || ((s.monthlyAmountPerPerson || s.monthlyAmount || s.price || 0) * (s.personCount || 1))), 0)
                         : (sub.combinedMonthlyAmount || sub.monthlyAmount || 0);
                       const grandTotal = enrolledSchemes
-                        ? enrolledSchemes.reduce((sum, s) => sum + ((s.totalSchemeAmount || ((s.monthlyAmount || s.price || 0) * 10)) * (s.personCount || 1)), 0)
+                        ? enrolledSchemes.reduce((sum, s) => sum + (s.totalSchemeAmount || ((s.totalMonthlyAmount || ((s.monthlyAmountPerPerson || s.monthlyAmount || s.price || 0) * (s.personCount || 1))) * (s.durationMonths || 10))), 0)
                         : (sub.combinedGrandTotal || (monthlyTotal * 10));
                       const paidAmount = sub.totalPaidAmount || 0;
 
@@ -1279,7 +1279,7 @@ _Sai Yogi Crackers_`;
                                 </div>
                                 <div className="text-[11px] font-bold text-[#7A1416] font-mono">
                                   {enrolledSchemes.map(s => {
-                                    const rate = s.monthlyAmount || s.price || 0;
+                                    const rate = s.monthlyAmountPerPerson || s.monthlyAmount || s.price || 0;
                                     const count = s.personCount || 1;
                                     return `${rate} × ${count} = ₹${(rate * count).toLocaleString()}`;
                                   }).join(" + ")}

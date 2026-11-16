@@ -720,6 +720,7 @@ export interface ChitSubscribedSchemeItem {
   schemeName: string;
   monthlyAmountPerPerson?: number;
   monthlyAmount?: number;
+  price?: number;
   personCount: number;
   totalMonthlyAmount: number;
   durationMonths?: number;
