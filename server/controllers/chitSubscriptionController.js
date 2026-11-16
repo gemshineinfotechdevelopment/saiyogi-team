@@ -520,10 +520,13 @@ export const recordSchemePayment = async (req, res, next) => {
       targetScheme = subscription.schemes[0];
     }
 
-    // Verify approval
+    // Verify approval - if scheme or application was Pending, admin recording payment automatically approves it
     const isApproved = targetScheme.approvalStatus === 'Approved' || targetScheme.status === 'Approved' || subscription.approvalStatus === 'Approved';
     if (!isApproved) {
-      return next(new AppError('Payment recording is only allowed for Approved schemes', 400));
+      targetScheme.approvalStatus = 'Approved';
+      targetScheme.status = 'Approved';
+      subscription.approvalStatus = 'Approved';
+      subscription.status = 'Approved';
     }
 
     // RULE: Prevent duplicate installment payments (Test Case 8)
@@ -587,7 +590,7 @@ export const recordSchemePayment = async (req, res, next) => {
     subscription.markModified('schemes');
     const saved = await subscription.save();
     const normalized = normalizeSubscriptionDoc(saved);
-    const updatedTargetScheme = normalized.schemes.find(s => String(s._id) === String(targetScheme._id)) || targetScheme;
+    const updatedTargetScheme = (normalized.schemes || []).find(s => String(s._id) === String(targetScheme._id)) || targetScheme;
 
     // Structured receipt payload returned to client
     const receiptData = {
@@ -609,10 +612,10 @@ export const recordSchemePayment = async (req, res, next) => {
       paymentStatus: 'PAID',
       installmentMonth: `Month ${mNum} / ${duration}`,
       monthNumber: mNum,
-      totalPaidTillDate: updatedTargetScheme.paidAmount,
-      remainingSchemeBalance: updatedTargetScheme.remainingAmount,
+      totalPaidTillDate: updatedTargetScheme?.paidAmount || 0,
+      remainingSchemeBalance: updatedTargetScheme?.remainingAmount || 0,
       totalMonths: duration,
-      paidMonths: updatedTargetScheme.monthsPaid,
+      paidMonths: updatedTargetScheme?.monthsPaid || 0,
       schemesBreakdown: (normalized.schemes || []).map(s => {
         const rate = s.monthlyAmountPerPerson || s.monthlyAmount || 0;
         const count = s.personCount || 1;

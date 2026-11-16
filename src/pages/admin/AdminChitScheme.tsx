@@ -491,8 +491,11 @@ const AdminChitScheme: React.FC = () => {
         try {
           toast.loading("Approving customer application...", { id: "app-toast" });
           const id = sub._id || sub.id || "";
-          await approveChitSubscriptionApi(id);
+          const updatedSub = await approveChitSubscriptionApi(id);
           toast.success("Application approved! Customer is now an active chit member.", { id: "app-toast" });
+          if (updatedSub) {
+            setSelectedSubscription(updatedSub);
+          }
           loadSubscriptions();
         } catch (err: any) {
           toast.error("Failed to approve: " + (err.message || err), { id: "app-toast" });
@@ -515,8 +518,11 @@ const AdminChitScheme: React.FC = () => {
         try {
           toast.loading("Rejecting application...", { id: "app-toast" });
           const id = sub._id || sub.id || "";
-          await rejectChitSubscriptionApi(id);
+          const updatedSub = await rejectChitSubscriptionApi(id);
           toast.success("Application rejected.", { id: "app-toast" });
+          if (updatedSub) {
+            setSelectedSubscription(updatedSub);
+          }
           loadSubscriptions();
         } catch (err: any) {
           toast.error("Failed to reject: " + (err.message || err), { id: "app-toast" });
