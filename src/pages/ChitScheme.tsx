@@ -294,6 +294,12 @@ const ChitScheme: React.FC = () => {
   const handleInitiateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!isUserLoggedIn) {
+      toast.error("Please log in with your mobile number to enroll in chit schemes.");
+      openLoginModal();
+      return;
+    }
+
     if (selectedSchemes.length === 0) {
       toast.error("Please select at least one chit scheme");
       return;
@@ -395,6 +401,12 @@ const ChitScheme: React.FC = () => {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            {isUserLoggedIn && (
+              <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-300 text-emerald-950 px-3.5 py-2 rounded-2xl text-xs font-bold shadow-2xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Logged in as: <strong className="text-emerald-900">{userName || 'Customer'}</strong> ({userPhone})</span>
+              </div>
+            )}
             {userSubscriptions.length > 0 && (
               <button
                 type="button"
@@ -418,97 +430,149 @@ const ChitScheme: React.FC = () => {
           </div>
         </div>
 
-        {/* If user has purchased/pending schemes: show quick passbook banner */}
-        {userSubscriptions.length > 0 && (
-          <div className="mb-8 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-100/70 border border-emerald-300 rounded-3xl p-5 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-sm shrink-0">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-sm font-extrabold text-emerald-950">
-                  You Have {userSubscriptions.length} Enrolled Chit Application{userSubscriptions.length > 1 ? "s" : ""}
-                </h3>
-                <p className="text-xs text-emerald-700 font-medium mt-0.5">
-                  View your digital passbook, payment schedule, installment progress, and download official receipts.
-                </p>
-              </div>
+        {!isUserLoggedIn ? (
+          <div className="bg-white border border-gray-200/90 rounded-3xl p-8 sm:p-12 shadow-sm text-center max-w-2xl mx-auto my-8 space-y-6">
+            <div className="w-16 h-16 rounded-3xl bg-amber-100 text-[#7A1416] flex items-center justify-center mx-auto border border-amber-200 shadow-2xs">
+              <Lock className="w-8 h-8" />
             </div>
-            <button
-              type="button"
-              onClick={() => setShowPurchasedModal(true)}
-              className="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs px-5 py-2.5 rounded-2xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer shrink-0 active:scale-95"
-            >
-              <span>Open Digital Passbook</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
-
-        {/* Main Content Layout: Multi-Scheme Registration Form (5 Cols) + Scheme Cards (7 Cols) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Enhanced Multi-Scheme Enrollment Form (5 Cols) */}
-          <div ref={formRef} className="lg:col-span-5 bg-white border border-gray-200 rounded-3xl p-6 sm:p-7 shadow-md space-y-6 lg:sticky lg:top-6">
-            <div className="border-b border-gray-100 pb-4">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider bg-amber-100 text-amber-900 px-3 py-1 rounded-full inline-block mb-2">
-                Multiple Persons / Bulk Enrollment
-              </span>
-              <h2 className="text-xl font-extrabold text-gray-900">
-                Enroll in Chit Scheme
+            <div className="space-y-2">
+              <h2 className="text-2xl font-extrabold text-[#2A1B54]">
+                Customer Login Required
               </h2>
-              <p className="text-xs text-gray-500 font-medium mt-1">
-                Select one or multiple schemes with custom person counts in a single application!
+              <p className="text-xs text-gray-600 leading-relaxed max-w-lg mx-auto font-medium">
+                Please log in with your WhatsApp mobile number to view our chit schemes, verify your identity, and submit your chit enrollment request. Only authenticated customers can submit applications and track their monthly passbook.
               </p>
             </div>
-
-            <form onSubmit={handleInitiateSubmit} className="space-y-5">
-              {/* STEP 1: CUSTOMER INFORMATION */}
-              <div className="space-y-3 bg-gray-50/70 p-4 rounded-2xl border border-gray-200/80">
-                <div className="font-extrabold text-[#7A1416] text-xs uppercase tracking-wider flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5" />
-                  <span>Step 1: Customer Information</span>
-                </div>
-
-                {/* Full Name */}
-                <div className="space-y-1">
-                  <label className="block text-[11px] font-bold text-gray-700 uppercase">
-                    Full Name *
-                  </label>
-                  <div className="relative">
-                    <User className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="text"
-                      name="name"
-                      placeholder="Enter your full name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className="w-full text-xs font-semibold p-2.5 pl-8 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none"
-                      required
-                    />
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={openLoginModal}
+                className="w-full sm:w-auto bg-[#7A1416] hover:bg-[#900000] text-white text-xs font-extrabold px-8 py-3.5 rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider active:scale-95"
+              >
+                <LogIn className="w-4 h-4 text-amber-300" />
+                <span>Login with Mobile Number</span>
+              </button>
+            </div>
+            <div className="pt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+              <div className="bg-amber-50/60 p-3.5 rounded-2xl border border-amber-200/60 space-y-1">
+                <span className="text-xs font-extrabold text-amber-950 block">🔒 Verified Account</span>
+                <span className="text-[11px] text-gray-500 font-medium">Applications are safely linked to your verified phone number.</span>
+              </div>
+              <div className="bg-amber-50/60 p-3.5 rounded-2xl border border-amber-200/60 space-y-1">
+                <span className="text-xs font-extrabold text-amber-950 block">📱 Digital Passbook</span>
+                <span className="text-[11px] text-gray-500 font-medium">Track approved schemes and monthly installment due dates.</span>
+              </div>
+              <div className="bg-amber-50/60 p-3.5 rounded-2xl border border-amber-200/60 space-y-1">
+                <span className="text-xs font-extrabold text-amber-950 block">📄 Official Receipts</span>
+                <span className="text-[11px] text-gray-500 font-medium">View and download authorized payment receipts instantly.</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* If user has purchased/pending schemes: show quick passbook banner */}
+            {userSubscriptions.length > 0 && (
+              <div className="mb-8 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-100/70 border border-emerald-300 rounded-3xl p-5 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-sm shrink-0">
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold text-emerald-950">
+                      You Have {userSubscriptions.length} Enrolled Chit Application{userSubscriptions.length > 1 ? "s" : ""}
+                    </h3>
+                    <p className="text-xs text-emerald-700 font-medium mt-0.5">
+                      View your digital passbook, payment schedule, installment progress, and download official receipts.
+                    </p>
                   </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPurchasedModal(true)}
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs px-5 py-2.5 rounded-2xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer shrink-0 active:scale-95"
+                >
+                  <span>Open Digital Passbook</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
 
-                {/* Mobile Number */}
-                <div className="space-y-1">
-                  <label className="block text-[11px] font-bold text-gray-700 uppercase">
-                    Mobile Number *
-                  </label>
-                  <div className="relative flex items-center">
-                    <div className="absolute left-3 font-bold text-xs text-gray-500">
-                      +91
+            {/* Main Content Layout: Multi-Scheme Registration Form (5 Cols) + Scheme Cards (7 Cols) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              {/* Left Column: Enhanced Multi-Scheme Enrollment Form (5 Cols) */}
+              <div ref={formRef} className="lg:col-span-5 bg-white border border-gray-200 rounded-3xl p-6 sm:p-7 shadow-md space-y-6 lg:sticky lg:top-6">
+                <div className="border-b border-gray-100 pb-4">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider bg-amber-100 text-amber-900 px-3 py-1 rounded-full inline-block mb-2">
+                    Multiple Persons / Bulk Enrollment
+                  </span>
+                  <h2 className="text-xl font-extrabold text-gray-900">
+                    Enroll in Chit Scheme
+                  </h2>
+                  <p className="text-xs text-gray-500 font-medium mt-1">
+                    Select one or multiple schemes with custom person counts in a single application!
+                  </p>
+                </div>
+
+                <form onSubmit={handleInitiateSubmit} className="space-y-5">
+                  {/* STEP 1: CUSTOMER INFORMATION */}
+                  <div className="space-y-3 bg-gray-50/70 p-4 rounded-2xl border border-gray-200/80">
+                    <div className="font-extrabold text-[#7A1416] text-xs uppercase tracking-wider flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5" />
+                      <span>Step 1: Customer Information</span>
                     </div>
-                    <input
-                      type="tel"
-                      name="phone"
-                      placeholder="10-digit mobile"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      maxLength={10}
-                      className="w-full text-xs font-bold p-2.5 pl-11 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none"
-                      required
-                    />
-                  </div>
-                </div>
+
+                    {/* Full Name */}
+                    <div className="space-y-1">
+                      <label className="block text-[11px] font-bold text-gray-700 uppercase">
+                        Full Name *
+                      </label>
+                      <div className="relative">
+                        <User className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                          type="text"
+                          name="name"
+                          placeholder="Enter your full name"
+                          value={formData.name}
+                          onChange={handleInputChange}
+                          className="w-full text-xs font-semibold p-2.5 pl-8 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Mobile Number */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <label className="block text-[11px] font-bold text-gray-700 uppercase">
+                          Mobile Number *
+                        </label>
+                        {userPhone && (
+                          <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                            ✓ Verified Account Phone
+                          </span>
+                        )}
+                      </div>
+                      <div className="relative flex items-center">
+                        <div className="absolute left-3 font-bold text-xs text-gray-500">
+                          +91
+                        </div>
+                        <input
+                          type="tel"
+                          name="phone"
+                          placeholder="10-digit mobile"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          maxLength={10}
+                          readOnly={Boolean(userPhone)}
+                          className={`w-full text-xs font-bold p-2.5 pl-11 rounded-xl outline-none border ${
+                            userPhone
+                              ? "bg-gray-100 text-gray-700 border-gray-300 cursor-not-allowed select-none"
+                              : "bg-white border-gray-300"
+                          }`}
+                          required
+                        />
+                      </div>
+                    </div>
 
                 {/* Email & Location Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -848,7 +912,9 @@ const ChitScheme: React.FC = () => {
               </div>
             </div>
           </div>
-      </main>
+        </>
+      )}
+    </main>
 
       {/* CONFIRMATION DIALOG BEFORE SUBMISSION */}
       {showConfirmModal && (
