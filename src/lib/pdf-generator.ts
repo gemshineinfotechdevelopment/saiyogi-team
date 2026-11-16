@@ -395,11 +395,12 @@ function generateReceiptHTML(order: OrderData, copies: number = 1): string {
     pages.push({ rows: [], isLastPage: true, isFirstPage: true });
   }
 
-  const shopName = (order.companyName?.trim() || order.siteName?.trim()) ? (order.companyName || order.siteName) : 'NARENDIRAA ENTERPRISES';
+  const rawShopName = (order.companyName?.trim() || order.siteName?.trim()) ? (order.companyName || order.siteName) : 'SAI YOGI CRACKERS';
+  const shopName = /avinaash|bala/i.test(rawShopName) ? 'SAI YOGI CRACKERS' : rawShopName;
   const shopPhone = (order.sitePhone && order.sitePhone.trim()) ? order.sitePhone : '+91 95859 75756';
   const shopAddress = (order.siteAddress && order.siteAddress.trim()) ? order.siteAddress : 'Sattur, Virudhunagar District, Tamil Nadu';
-  const shopEmail = (order.siteEmail && order.siteEmail.trim()) ? order.siteEmail : 'contact@narendiraa-enterprises.com';
-  const shopWebsite = (order.siteWebsite && order.siteWebsite.trim()) ? order.siteWebsite : 'www.narendiraa-enterprises.com';
+  const shopEmail = (order.siteEmail && order.siteEmail.trim()) ? order.siteEmail : 'contact@saiyogicrackers.com';
+  const shopWebsite = (order.siteWebsite && order.siteWebsite.trim()) ? order.siteWebsite : 'www.saiyogicrackers.com';
   const shopGst = order.gstNumber || '';
 
   const finalHTML = pages.map((page, index) => {

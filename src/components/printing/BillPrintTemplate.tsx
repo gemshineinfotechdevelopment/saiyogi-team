@@ -48,14 +48,17 @@ interface BillPrintTemplateProps {
 }
 
 export const BillPrintTemplate: React.FC<BillPrintTemplateProps> = ({ data, settings }) => {
+    const rawBillingName = settings?.billing?.companyName || settings?.shopName || "SAI YOGI CRACKERS";
+    const shopDisplayName = /avinaash|bala/i.test(rawBillingName) ? "SAI YOGI CRACKERS" : rawBillingName;
+
     useEffect(() => {
         if (data.customerName) {
             document.title = data.customerName;
         }
         return () => {
-            document.title = settings?.shopName || "SAI YOGI CRACKERS";
+            document.title = shopDisplayName;
         };
-    }, [data.customerName]);
+    }, [data.customerName, shopDisplayName]);
 
     const formatCurrency = (amount: number) => {
         return (amount || 0).toLocaleString('en-IN', {
@@ -199,7 +202,7 @@ export const BillPrintTemplate: React.FC<BillPrintTemplateProps> = ({ data, sett
                                 {/* Center Text */}
                                 <div className="flex-1 flex flex-col items-center justify-center text-center">
                                     <h1 className="text-[26px] font-bold tracking-tight uppercase" style={{ color: '#005b6e', fontFamily: 'Arial, sans-serif' }}>
-                                        {data.billType === "transport" && data.companyName ? data.companyName : (settings?.billing?.companyName || settings?.shopName || "SAI YOGI CRACKERS")}
+                                        {data.billType === "transport" && data.companyName ? data.companyName : shopDisplayName}
                                     </h1>
                                     <h2 className="text-gray-800 font-semibold text-sm mb-1 italic">
                                         {data.billType === "transport" && data.ownerName ? `Proprietor: ${data.ownerName}` : "(Wholesale & Retail Shop)"}
@@ -398,7 +401,7 @@ export const BillPrintTemplate: React.FC<BillPrintTemplateProps> = ({ data, sett
                                         <div className="flex-1 flex justify-between items-end px-3 pb-3 pt-8">
                                             <div className="text-[10px] text-gray-700">Entered by</div>
                                             <div className="flex flex-col items-center pr-10">
-                                                <span className="font-bold text-[11px] italic mb-6">For {data.billType === "transport" && data.companyName ? data.companyName : (settings?.shopName || "SAI YOGI CRACKERS")}</span>
+                                                <span className="font-bold text-[11px] italic mb-6">For {data.billType === "transport" && data.companyName ? data.companyName : shopDisplayName}</span>
                                                 <span className="text-[9px] text-gray-500">Authorized Signatory</span>
                                             </div>
                                         </div>

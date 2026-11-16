@@ -2522,7 +2522,7 @@ _Sai Yogi Crackers_`;
                             const existingLog = (activeScheme.monthlyPayments || []).find(p => p.monthNumber === mNum);
                             const isPaid = existingLog && ['Paid', 'Late Pay', 'Advanced Payment', 'Advance Payment', 'On-time Payment', 'Delay Payment'].includes(existingLog.status || '');
                             const timingStatus = existingLog?.status || (isPaid ? 'Paid' : 'Pending');
-                            const receiptNumber = existingLog?.receiptNumber || (isPaid ? `AB-CHIT-000${mNum}` : '-');
+                            const receiptNumber = existingLog?.receiptNumber ? existingLog.receiptNumber.replace(/^AB-CHIT-/i, "SY-CHIT-") : (isPaid ? `SY-CHIT-000${mNum}` : '-');
 
                             return (
                               <tr
@@ -2571,8 +2571,8 @@ _Sai Yogi Crackers_`;
                                       type="button"
                                       onClick={() => {
                                         setActiveReceipt({
-                                          receiptNumber: existingLog?.receiptNumber || `AB-CHIT-000${mNum}`,
-                                          applicationNumber: sub.applicationNumber || `APP-${String(sub._id || sub.id).slice(-5)}`,
+                                          receiptNumber: (existingLog?.receiptNumber ? existingLog.receiptNumber.replace(/^AB-CHIT-/i, "SY-CHIT-") : `SY-CHIT-000${mNum}`),
+                                          applicationNumber: (sub.applicationNumber ? sub.applicationNumber.replace(/^AB-APP-/i, "SY-APP-") : `SY-APP-${String(sub._id || sub.id).slice(-5)}`),
                                           customerName: sub.name || "Customer",
                                           phone: sub.phone || "",
                                           email: sub.email,

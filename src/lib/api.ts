@@ -860,7 +860,7 @@ export async function submitChitSubscription(data: {
 
   const newSub: ChitSubscriptionItem = {
     id: String(Date.now()),
-    applicationNumber: `AB-APP-${Date.now().toString().slice(-5)}`,
+    applicationNumber: `SY-APP-${Date.now().toString().slice(-5)}`,
     name: data.name,
     phone: cleanPhone,
     email: data.email || '',

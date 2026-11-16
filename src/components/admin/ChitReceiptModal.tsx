@@ -59,11 +59,15 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
 
   if (!receipt) return null;
 
-  const companyName = settings?.billing?.companyName || "AVINAASH BALA CRACKERS SHOP";
-  const subCompanyName = settings?.siteName || "SAI YOGI CRACKERS";
+  const rawCompanyName = settings?.billing?.companyName || settings?.siteName || "SAI YOGI CRACKERS";
+  const isAvinaash = /avinaash|bala/i.test(rawCompanyName);
+  const companyName = isAvinaash ? "SAI YOGI CRACKERS" : (rawCompanyName || "SAI YOGI CRACKERS");
   const companyPhone = settings?.contact?.phone || "+91 95859 75756";
   const companyAddress = settings?.contact?.address || "Sattur, Virudhunagar District, Tamil Nadu - 626203";
   const logoUrl = settings?.logo || "/saiyogi-logo-1.png";
+
+  const formattedReceiptNo = (receipt.receiptNumber || "").replace(/^AB-CHIT-/i, "SY-CHIT-");
+  const formattedAppNo = (receipt.applicationNumber || "").replace(/^AB-APP-/i, "SY-APP-");
 
   const formattedDate = receipt.paymentDate
     ? new Date(receipt.paymentDate).toLocaleDateString("en-IN", {
@@ -115,7 +119,7 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Chit Receipt - ${receipt.receiptNumber}</title>
+          <title>Chit Receipt - ${formattedReceiptNo}</title>
           <style>
             @page { size: A4; margin: 12mm; }
             body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1e293b; margin: 0; padding: 10px; }
@@ -186,7 +190,7 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
       pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, imgHeight);
-      pdf.save(`Receipt_${receipt.receiptNumber}_${receipt.customerName.replace(/\s+/g, "_")}.pdf`);
+      pdf.save(`Receipt_${formattedReceiptNo}_${(receipt.customerName || "Customer").replace(/\s+/g, "_")}.pdf`);
 
       toast.success("Receipt PDF Downloaded!", { id: "pdf-chit-receipt" });
     } catch (err) {
@@ -207,7 +211,7 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
               <span>Chit Scheme Official Payment Receipt</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-gray-500 font-medium">
-              Receipt No: <span className="font-mono font-bold text-gray-800">{receipt.receiptNumber}</span>
+              Receipt No: <span className="font-mono font-bold text-gray-800">{formattedReceiptNo}</span>
             </DialogDescription>
           </div>
 
@@ -251,11 +255,11 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
                 }}
               />
               <h1 className="text-xl sm:text-2xl font-black text-[#7A1416] uppercase tracking-wide">
-                {companyName}
+                SAI YOGI CRACKERS
               </h1>
             </div>
             <p className="text-xs font-bold text-gray-700 tracking-wider">
-              {subCompanyName} • CHIT SCHEME PAYMENT RECEIPT
+              MONTHLY CHIT SCHEME PAYMENT RECEIPT
             </p>
             <p className="text-[11px] text-gray-500 font-medium">
               {companyAddress} • Mobile: {companyPhone}
@@ -266,12 +270,12 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
           <div className="flex flex-wrap items-center justify-between gap-2 bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs">
             <div>
               <span className="text-gray-500 block text-[11px]">Receipt Number:</span>
-              <strong className="text-[#7A1416] font-mono text-sm font-extrabold">{receipt.receiptNumber}</strong>
+              <strong className="text-[#7A1416] font-mono text-sm font-extrabold">{formattedReceiptNo}</strong>
             </div>
-            {receipt.applicationNumber && (
+            {formattedAppNo && (
               <div>
                 <span className="text-gray-500 block text-[11px]">Application No:</span>
-                <strong className="text-gray-800 font-mono font-bold">{receipt.applicationNumber}</strong>
+                <strong className="text-gray-800 font-mono font-bold">{formattedAppNo}</strong>
               </div>
             )}
             <div className="text-right">
@@ -487,7 +491,7 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
               <p className="text-[10px] text-gray-400 m-0">This is an authentic computer generated chit payment receipt.</p>
             </div>
             <div className="text-center border-t border-dashed border-gray-400 pt-1 w-44">
-              <strong className="text-[#7A1416] text-xs block">{companyName}</strong>
+              <strong className="text-[#7A1416] text-xs block">SAI YOGI CRACKERS</strong>
               <span className="text-[10px] text-gray-500">Authorized Signatory</span>
             </div>
           </div>

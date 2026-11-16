@@ -4,7 +4,7 @@ import Customer from '../models/Customer.js';
 import Counter from '../models/Counter.js';
 import { AppError } from '../middleware/errorHandler.js';
 
-// Helper to generate unique sequential Application Number (e.g. AB-APP-00001)
+// Helper to generate unique sequential Application Number (e.g. SY-APP-00001)
 export const getNextApplicationNumber = async () => {
   try {
     const counter = await Counter.findByIdAndUpdate(
@@ -13,13 +13,13 @@ export const getNextApplicationNumber = async () => {
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     const seq = counter?.seq || Math.floor(1000 + Math.random() * 9000);
-    return `AB-APP-${String(seq).padStart(5, '0')}`;
+    return `SY-APP-${String(seq).padStart(5, '0')}`;
   } catch (err) {
-    return `AB-APP-${Date.now().toString().slice(-6)}`;
+    return `SY-APP-${Date.now().toString().slice(-6)}`;
   }
 };
 
-// Helper to generate unique sequential Receipt Number (e.g. AB-CHIT-00001)
+// Helper to generate unique sequential Receipt Number (e.g. SY-CHIT-00001)
 export const getNextReceiptNumber = async () => {
   try {
     const counter = await Counter.findByIdAndUpdate(
@@ -28,9 +28,9 @@ export const getNextReceiptNumber = async () => {
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     const seq = counter?.seq || Math.floor(1000 + Math.random() * 9000);
-    return `AB-CHIT-${String(seq).padStart(5, '0')}`;
+    return `SY-CHIT-${String(seq).padStart(5, '0')}`;
   } catch (err) {
-    return `AB-CHIT-${Date.now().toString().slice(-6)}`;
+    return `SY-CHIT-${Date.now().toString().slice(-6)}`;
   }
 };
 
@@ -594,8 +594,8 @@ export const recordSchemePayment = async (req, res, next) => {
 
     // Structured receipt payload returned to client
     const receiptData = {
-      receiptNumber,
-      applicationNumber: subscription.applicationNumber || `APP-${String(subscription._id).slice(-6)}`,
+      receiptNumber: (receiptNumber || '').replace(/^AB-CHIT-/i, 'SY-CHIT-'),
+      applicationNumber: (subscription.applicationNumber || `SY-APP-${String(subscription._id).slice(-6)}`).replace(/^AB-APP-/i, 'SY-APP-'),
       customerName: subscription.name,
       phone: subscription.phone,
       email: subscription.email,

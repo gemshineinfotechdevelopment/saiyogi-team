@@ -174,7 +174,8 @@ export const downloadChitReceiptPDF = async (
     timingStatus = calculatePaymentTimingStatus(paidAt, monthNumber, dueDateDay, startDateStr);
   }
 
-  const receiptNo = customReceiptNo || existingLog?.receiptNumber || `AB-CHIT-${String(monthNumber).padStart(2, '0')}${Date.now().toString().slice(-4)}`;
+  const rawReceiptNo = customReceiptNo || existingLog?.receiptNumber || `SY-CHIT-${String(monthNumber).padStart(2, '0')}${Date.now().toString().slice(-4)}`;
+  const receiptNo = rawReceiptNo.replace(/^AB-CHIT-/i, 'SY-CHIT-');
   const historyList = getPaidHistoryList(sub, monthNumber, expectedAmount, dueDateDay, startDateStr);
   const paidItems = historyList.filter(item => item.isPaid);
   const totalPaidTillNow = paidItems.reduce((sum, item) => sum + item.amount, 0);

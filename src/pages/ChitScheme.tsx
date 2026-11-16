@@ -1484,8 +1484,8 @@ const ChitScheme: React.FC = () => {
                                         type="button"
                                         onClick={() => {
                                           setActiveReceipt({
-                                            receiptNumber: existingLog?.receiptNumber || `AB-CHIT-000${mNum}`,
-                                            applicationNumber: sub?.applicationNumber || `APP-${String(sub?._id).slice(-6)}`,
+                                            receiptNumber: (existingLog?.receiptNumber ? existingLog.receiptNumber.replace(/^AB-CHIT-/i, "SY-CHIT-") : `SY-CHIT-000${mNum}`),
+                                            applicationNumber: (sub?.applicationNumber ? sub.applicationNumber.replace(/^AB-APP-/i, "SY-APP-") : `SY-APP-${String(sub?._id).slice(-6)}`),
                                             customerName: sub?.name || "Customer",
                                             phone: sub?.phone || "",
                                             email: sub?.email,

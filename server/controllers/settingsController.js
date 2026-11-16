@@ -9,6 +9,11 @@ export const getSettings = async (req, res, next) => {
       settings = await Settings.create({});
     }
 
+    if (settings.billing?.companyName && /avinaash|bala/i.test(settings.billing.companyName)) {
+      settings.billing.companyName = 'Sai Yogi Crackers';
+      await settings.save();
+    }
+
     res.json(settings);
   } catch (error) {
     next(error);
@@ -45,6 +50,11 @@ export const getSiteInfo = async (req, res, next) => {
       settings = new Settings();
     }
 
+    const billing = settings.billing ? (settings.billing.toObject ? settings.billing.toObject() : { ...settings.billing }) : {};
+    if (billing.companyName && /avinaash|bala/i.test(billing.companyName)) {
+      billing.companyName = 'Sai Yogi Crackers';
+    }
+
     const info = {
       siteName: settings.siteName,
       siteDescription: settings.siteDescription || '',
@@ -61,7 +71,7 @@ export const getSiteInfo = async (req, res, next) => {
       maintenanceMode: settings.maintenanceMode,
       maintenanceMessage: settings.maintenanceMessage || '',
       news: settings.news || '',
-      billing: settings.billing || {},
+      billing,
       enablePackingCharge: settings.enablePackingCharge !== undefined ? settings.enablePackingCharge : true,
       youtubeVideos: settings.youtubeVideos || [],
       priceListPdf: settings.priceListPdf || '',
