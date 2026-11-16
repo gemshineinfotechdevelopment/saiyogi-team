@@ -6,7 +6,7 @@ import {
   Gift, Users, ArrowRight, ShieldCheck, CheckCircle2, Clock,
   AlertCircle, ChevronRight, Phone, Mail, MapPin, User, LogIn, Lock,
   Plus, Minus, Trash2, Calendar, DollarSign, FileText, ArrowLeft,
-  Sparkles, Check, X, Printer, Download
+  Sparkles, Check, X, Printer, Download, Receipt
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useAuth } from "@/context/AuthContext";
@@ -1179,6 +1179,66 @@ const ChitScheme: React.FC = () => {
                           </div>
                         </div>
 
+                        {/* Item-wise Chit Calculation Formula Banner (User Request: 300 x 5 = 1500, 500 x 3 = 1500, etc.) */}
+                        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 rounded-2xl p-3.5 space-y-2.5 shadow-2xs">
+                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-2">
+                            <div className="flex items-center gap-1.5">
+                              <span className="bg-[#7A1416] text-white p-1 rounded-md">
+                                <Receipt className="w-3.5 h-3.5" />
+                              </span>
+                              <span className="text-xs font-black uppercase text-[#7A1416] tracking-wide">
+                                Chits Calculation Formula Breakdown
+                              </span>
+                            </div>
+                            <span className="text-[11px] font-bold text-gray-600">
+                              Formula: Rate × Persons = Monthly Amount
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                            {enrolledSchemes.map((schItem, idx) => {
+                              const rate = schItem.monthlyAmountPerPerson || schItem.monthlyAmount || 0;
+                              const count = schItem.personCount || 1;
+                              const subTot = schItem.totalMonthlyAmount || (rate * count);
+                              return (
+                                <div key={idx} className="bg-white border border-amber-200 rounded-xl p-2.5 flex items-center justify-between shadow-2xs">
+                                  <div>
+                                    <div className="text-xs font-black text-[#2A1B54] truncate max-w-[120px]">{schItem.schemeName}</div>
+                                    <div className="text-[10px] text-gray-500 font-medium">₹{rate} / person</div>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="font-mono text-xs font-black text-[#7A1416] bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                      {rate} × {count} = ₹{subTot.toLocaleString()}
+                                    </div>
+                                    <div className="text-[10px] text-gray-500 mt-0.5">{count} Person{count > 1 ? 's' : ''}</div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          <div className="bg-white/90 border border-amber-300 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+                            <div className="font-mono font-bold text-gray-800 text-[11px]">
+                              <span className="text-gray-500 font-sans">Summary Calculation: </span>
+                              <span className="text-[#7A1416] font-black">
+                                {enrolledSchemes.map(s => {
+                                  const rate = s.monthlyAmountPerPerson || s.monthlyAmount || 0;
+                                  const count = s.personCount || 1;
+                                  return `${rate} × ${count} = ${rate * count}`;
+                                }).join(" + ")}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <div className="font-bold text-gray-700">
+                                Total Persons: <span className="font-black text-[#7A1416] text-sm">{appTotalPersons}</span>
+                              </div>
+                              <div className="font-bold text-gray-700">
+                                Monthly Payable: <span className="font-black text-emerald-700 text-sm">₹{appCombinedMonthly.toLocaleString()}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
                         {/* Enrolled Schemes under this Application */}
                         <div className="space-y-2">
                           <h4 className="text-xs font-black text-[#2A1B54] uppercase tracking-wide flex items-center gap-1.5">
@@ -1347,6 +1407,19 @@ const ChitScheme: React.FC = () => {
                         )}
                       </DialogHeader>
 
+                      {/* Chit Scheme Rate & Calculation Box for this Scheme */}
+                      <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-[#7A1416] bg-white px-2 py-1 rounded border border-amber-200">
+                            {monthlyPerPerson} × {personCount} = ₹{monthlyTotal.toLocaleString()}
+                          </span>
+                          <span className="text-gray-600 font-medium">({personCount} Person{personCount > 1 ? 's' : ''} enrolled)</span>
+                        </div>
+                        <div className="text-gray-700 font-semibold">
+                          Monthly Installment: <strong className="text-emerald-700">₹{monthlyTotal.toLocaleString()}</strong>
+                        </div>
+                      </div>
+
                       {!isApproved && (
                         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 text-xs text-amber-900 flex items-start gap-2.5">
                           <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
@@ -1429,7 +1502,19 @@ const ChitScheme: React.FC = () => {
                                             remainingSchemeBalance: sch.remainingAmount,
                                             totalMonths,
                                             paidMonths: sch.monthsPaid,
-                                            notes: existingLog?.notes
+                                            notes: existingLog?.notes,
+                                            schemesBreakdown: allSiblingSchemes.map(s => {
+                                              const rate = s.monthlyAmountPerPerson || s.monthlyAmount || 0;
+                                              const count = s.personCount || 1;
+                                              return {
+                                                schemeName: s.schemeName,
+                                                rate,
+                                                count,
+                                                subTotal: s.totalMonthlyAmount || (rate * count)
+                                              };
+                                            }),
+                                            totalPersons: allSiblingSchemes.reduce((sum, s) => sum + (s.personCount || 1), 0),
+                                            combinedMonthlyPayable: allSiblingSchemes.reduce((sum, s) => sum + (s.totalMonthlyAmount || ((s.monthlyAmountPerPerson || 0) * (s.personCount || 1))), 0)
                                           });
                                         }}
                                         className="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer transition-all shadow-2xs"

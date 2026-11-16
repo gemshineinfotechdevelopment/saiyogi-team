@@ -611,7 +611,19 @@ export const recordSchemePayment = async (req, res, next) => {
       totalPaidTillDate: updatedTargetScheme.paidAmount,
       remainingSchemeBalance: updatedTargetScheme.remainingAmount,
       totalMonths: duration,
-      paidMonths: updatedTargetScheme.monthsPaid
+      paidMonths: updatedTargetScheme.monthsPaid,
+      schemesBreakdown: (normalized.schemes || []).map(s => {
+        const rate = s.monthlyAmountPerPerson || s.monthlyAmount || 0;
+        const count = s.personCount || 1;
+        return {
+          schemeName: s.schemeName,
+          rate,
+          count,
+          subTotal: s.totalMonthlyAmount || (rate * count)
+        };
+      }),
+      totalPersons: (normalized.schemes || []).reduce((sum, s) => sum + (s.personCount || 1), 0),
+      combinedMonthlyPayable: (normalized.schemes || []).reduce((sum, s) => sum + (s.totalMonthlyAmount || ((s.monthlyAmountPerPerson || 0) * (s.personCount || 1))), 0)
     };
 
     res.status(200).json({

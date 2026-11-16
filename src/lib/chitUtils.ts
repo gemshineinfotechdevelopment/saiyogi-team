@@ -180,6 +180,40 @@ export const downloadChitReceiptPDF = async (
   const totalPaidTillNow = paidItems.reduce((sum, item) => sum + item.amount, 0);
   const remainingBalance = Math.max(0, totalSchemeAmount - totalPaidTillNow);
 
+  // Multi-scheme breakdown list (e.g. 300 x 5 = 1500, 500 x 3 = 1500, 700 x 1 = 700)
+  const breakdownList = (Array.isArray(sub.schemes) && sub.schemes.length > 0)
+    ? sub.schemes.map(s => {
+        const rate = s.monthlyAmountPerPerson || s.monthlyAmount || 0;
+        const count = Math.max(1, s.personCount || 1);
+        const subTotal = s.totalMonthlyAmount || (rate * count);
+        return {
+          schemeName: s.schemeName,
+          rate,
+          count,
+          subTotal
+        };
+      })
+    : [{
+        schemeName: schemeName,
+        rate: monthlyAmount,
+        count: Math.max(1, personCount || 1),
+        subTotal: monthlyAmount * Math.max(1, personCount || 1)
+      }];
+
+  const totalPersonsSum = breakdownList.reduce((sum, item) => sum + item.count, 0);
+  const totalMonthlySum = breakdownList.reduce((sum, item) => sum + item.subTotal, 0);
+
+  const breakdownRowsHTML = breakdownList.map(item => `
+    <tr>
+      <td style="padding: 5px; border: 1px solid #cbd5e1; font-weight: bold; color: #0f172a;">${item.schemeName}</td>
+      <td style="padding: 5px; border: 1px solid #cbd5e1; text-align: center; font-family: monospace; font-weight: bold; color: #7A1416;">
+        ${item.rate} × ${item.count} = ₹${item.subTotal.toLocaleString()}
+      </td>
+      <td style="padding: 5px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold;">${item.count}</td>
+      <td style="padding: 5px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; color: #047857;">₹${item.subTotal.toLocaleString()}</td>
+    </tr>
+  `).join('');
+
   const paidHistoryRowsHTML = historyList.map(item => {
     const itemDate = item.paidAt ? new Date(item.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
     let statusColor = '#64748b';
@@ -252,6 +286,39 @@ export const downloadChitReceiptPDF = async (
           </tr>
         </table>
       </div>
+
+      <!-- CHIT SCHEMES & PERSONS BREAKDOWN -->
+      ${breakdownList.length > 0 ? `
+      <div style="margin-bottom: 16px;">
+        <div style="font-weight: bold; color: #7A1416; font-size: 13px; margin-bottom: 6px; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+          <span>CHIT SCHEMES & PERSONS BREAKDOWN</span>
+          <span style="font-size: 11px; color: #b91c1c; font-weight: bold;">Total Persons: ${totalPersonsSum}</span>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
+          <thead>
+            <tr style="background: #f1f5f9; color: #334155; font-size: 10px; text-transform: uppercase;">
+              <th style="padding: 6px; border: 1px solid #cbd5e1;">Scheme Name</th>
+              <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: center;">Chits Calculation</th>
+              <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: center;">Persons</th>
+              <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: right;">Monthly (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${breakdownRowsHTML}
+          </tbody>
+          <tfoot>
+            <tr style="background: #f8fafc; font-weight: bold;">
+              <td colspan="2" style="padding: 6px; border: 1px solid #cbd5e1; text-align: right;">Combined Monthly Total:</td>
+              <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: center; color: #b91c1c; font-size: 12px;">${totalPersonsSum}</td>
+              <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: right; color: #047857; font-size: 12px;">₹${totalMonthlySum.toLocaleString()}</td>
+            </tr>
+          </tfoot>
+        </table>
+        <div style="margin-top: 6px; padding: 6px 10px; background: #fffbeb; border: 1px dashed #f59e0b; border-radius: 6px; font-size: 11px; color: #92400e; font-weight: bold;">
+          Summary Calculation: ${breakdownList.map(b => `${b.rate} × ${b.count} = ${b.subTotal}`).join(' + ')} | Total Persons = ${totalPersonsSum} | Monthly Payable Amount = ₹${totalMonthlySum.toLocaleString()}
+        </div>
+      </div>
+      ` : ''}
 
       <div style="margin-bottom: 16px; background: #fef2f2; border: 1px solid #fca5a5; padding: 10px 14px; border-radius: 10px; font-size: 12px;">
         <div style="font-weight: bold; color: #7A1416; font-size: 13px; margin-bottom: 4px; text-transform: uppercase;">CURRENT PAYMENT RECEIVED</div>

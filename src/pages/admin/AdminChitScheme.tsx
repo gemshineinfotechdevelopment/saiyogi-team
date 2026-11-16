@@ -5,7 +5,7 @@ import {
   Image as ImageIcon, Upload, Trash2, AlertCircle, Edit2, FileText, Loader2, X, Users,
   CheckCircle2, Clock, Search, Filter, Phone, MapPin, Mail, RefreshCw, Check, XCircle,
   Eye, CheckCheck, Calendar, Plus, ArrowLeft, User, DollarSign, Award, ChevronRight, AlertTriangle,
-  Share2, MessageCircle, Sparkles, FileSpreadsheet, ArrowDownUp, Gift
+  Share2, MessageCircle, Sparkles, FileSpreadsheet, ArrowDownUp, Gift, Receipt
 } from "lucide-react";
 import { calculatePaymentTimingStatus, getMonthTargetDate, getPaidHistoryList } from "@/lib/chitUtils";
 import { toast } from "sonner";
@@ -1202,9 +1202,15 @@ _Sai Yogi Crackers_`;
                       const currentApproval = sub.approvalStatus || (sub.status === 'Paid' || sub.status === 'Approved' ? 'Approved' : (sub.status === 'Rejected' ? 'Rejected' : 'Pending'));
                       const enrolledSchemes = (sub.schemes && sub.schemes.length > 0) ? sub.schemes : null;
                       const schemeCount = enrolledSchemes ? enrolledSchemes.length : 1;
-                      const personsCount = sub.totalPersons || sub.personCount || 1;
-                      const monthlyTotal = sub.combinedMonthlyAmount || sub.monthlyAmount || 0;
-                      const grandTotal = sub.combinedGrandTotal || (monthlyTotal * 10);
+                      const personsCount = enrolledSchemes 
+                        ? enrolledSchemes.reduce((sum, s) => sum + (s.personCount || 1), 0)
+                        : (sub.totalPersons || sub.personCount || 1);
+                      const monthlyTotal = enrolledSchemes
+                        ? enrolledSchemes.reduce((sum, s) => sum + ((s.monthlyAmount || s.price || 0) * (s.personCount || 1)), 0)
+                        : (sub.combinedMonthlyAmount || sub.monthlyAmount || 0);
+                      const grandTotal = enrolledSchemes
+                        ? enrolledSchemes.reduce((sum, s) => sum + ((s.totalSchemeAmount || ((s.monthlyAmount || s.price || 0) * 10)) * (s.personCount || 1)), 0)
+                        : (sub.combinedGrandTotal || (monthlyTotal * 10));
                       const paidAmount = sub.totalPaidAmount || 0;
 
                       return (
@@ -1240,15 +1246,27 @@ _Sai Yogi Crackers_`;
                             </div>
                           </td>
 
-                          {/* Column 3: Selected Schemes */}
+                          {/* Column 3: Selected Schemes & Formula Calculation */}
                           <td className="p-4">
                             {enrolledSchemes ? (
                               <div className="space-y-1">
-                                <span className="bg-amber-100 text-amber-900 font-black text-[10px] px-2 py-0.5 rounded inline-block">
-                                  {schemeCount} Scheme{schemeCount > 1 ? 's' : ''}
-                                </span>
-                                <div className="text-[11px] font-bold text-[#2A1B54] line-clamp-2">
-                                  {enrolledSchemes.map(s => `${s.schemeName} (${s.personCount}p)`).join(", ")}
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="bg-amber-100 text-amber-900 font-black text-[10px] px-2 py-0.5 rounded inline-block">
+                                    {schemeCount} Scheme{schemeCount > 1 ? 's' : ''}
+                                  </span>
+                                  <span className="bg-rose-50 text-[#7A1416] border border-rose-200 font-extrabold text-[10px] px-2 py-0.5 rounded inline-block">
+                                    {personsCount} Persons
+                                  </span>
+                                </div>
+                                <div className="text-[11px] font-bold text-[#7A1416] font-mono">
+                                  {enrolledSchemes.map(s => {
+                                    const rate = s.monthlyAmount || s.price || 0;
+                                    const count = s.personCount || 1;
+                                    return `${rate} × ${count} = ₹${(rate * count).toLocaleString()}`;
+                                  }).join(" + ")}
+                                </div>
+                                <div className="text-[10px] text-gray-500 font-medium truncate max-w-[220px]">
+                                  {enrolledSchemes.map(s => `${s.schemeName} (${s.personCount || 1}p)`).join(", ")}
                                 </div>
                               </div>
                             ) : (
@@ -2262,6 +2280,66 @@ _Sai Yogi Crackers_`;
                     </div>
                   </div>
 
+                  {/* ITEM-WISE CALCULATION BREAKDOWN FORMULA BANNER (User Request: 300 x 5 = 1500, 500 x 3 = 1500, etc.) */}
+                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 rounded-2xl p-4 space-y-3 shadow-2xs">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="bg-[#7A1416] text-white p-1 rounded-md">
+                          <Receipt className="w-3.5 h-3.5" />
+                        </span>
+                        <span className="text-xs font-black uppercase text-[#7A1416] tracking-wide">
+                          Chits Calculation Formula Breakdown
+                        </span>
+                      </div>
+                      <span className="text-[11px] font-bold text-gray-600">
+                        Formula: Rate × Persons = Monthly Amount
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                      {enrolledSchemes.map((schItem, idx) => {
+                        const rate = schItem.monthlyAmountPerPerson || schItem.monthlyAmount || schItem.price || 0;
+                        const count = schItem.personCount || 1;
+                        const subTot = schItem.totalMonthlyAmount || (rate * count);
+                        return (
+                          <div key={idx} className="bg-white border border-amber-200 rounded-xl p-2.5 flex items-center justify-between shadow-2xs">
+                            <div>
+                              <div className="text-xs font-black text-[#2A1B54] truncate max-w-[130px]">{schItem.schemeName}</div>
+                              <div className="text-[10px] text-gray-500 font-medium">₹{rate} / person</div>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-mono text-xs font-black text-[#7A1416] bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                {rate} × {count} = ₹{subTot.toLocaleString()}
+                              </div>
+                              <div className="text-[10px] text-gray-500 mt-0.5">{count} Person{count > 1 ? 's' : ''}</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="bg-white/90 border border-amber-300 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+                      <div className="font-mono font-bold text-gray-800 text-[11px]">
+                        <span className="text-gray-500 font-sans">Calculation Summary: </span>
+                        <span className="text-[#7A1416] font-black">
+                          {enrolledSchemes.map(s => {
+                            const rate = s.monthlyAmountPerPerson || s.monthlyAmount || s.price || 0;
+                            const count = s.personCount || 1;
+                            return `${rate} × ${count} = ${rate * count}`;
+                          }).join(" + ")}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="font-bold text-gray-700">
+                          Total Persons: <span className="font-black text-[#7A1416] text-sm">{totalPersons}</span>
+                        </div>
+                        <div className="font-bold text-gray-700">
+                          Monthly Payable: <span className="font-black text-emerald-700 text-sm">₹{combinedMonthly.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* SCHEME-WISE BREAKDOWN TABLE (REQUIREMENT 4) */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -2508,7 +2586,19 @@ _Sai Yogi Crackers_`;
                                           remainingSchemeBalance: activeScheme.remainingAmount,
                                           totalMonths: schemeDuration,
                                           paidMonths: activeScheme.monthsPaid,
-                                          notes: existingLog?.notes
+                                          notes: existingLog?.notes,
+                                          schemesBreakdown: enrolledSchemes.map(s => {
+                                            const rate = s.monthlyAmountPerPerson || s.monthlyAmount || s.price || 0;
+                                            const count = s.personCount || 1;
+                                            return {
+                                              schemeName: s.schemeName,
+                                              rate,
+                                              count,
+                                              subTotal: s.totalMonthlyAmount || (rate * count)
+                                            };
+                                          }),
+                                          totalPersons: totalPersons,
+                                          combinedMonthlyPayable: combinedMonthly
                                         });
                                       }}
                                       className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition-all shadow-2xs inline-flex items-center gap-1 cursor-pointer"

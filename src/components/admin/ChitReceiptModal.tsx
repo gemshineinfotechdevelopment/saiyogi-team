@@ -4,6 +4,13 @@ import { Download, Printer, CheckCircle2, ShieldCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 
+export interface ChitReceiptSchemeItem {
+  schemeName: string;
+  monthlyAmountPerPerson: number;
+  personCount: number;
+  totalMonthlyAmount: number;
+}
+
 export interface ChitReceiptData {
   receiptNumber: string;
   applicationNumber?: string;
@@ -27,6 +34,9 @@ export interface ChitReceiptData {
   totalMonths?: number;
   paidMonths?: number;
   notes?: string;
+  schemesBreakdown?: ChitReceiptSchemeItem[];
+  totalPersons?: number;
+  combinedMonthlyPayable?: number;
 }
 
 interface ChitReceiptModalProps {
@@ -60,6 +70,18 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
       })
     : new Date().toLocaleDateString("en-IN");
 
+  const breakdownItems = (receipt.schemesBreakdown && receipt.schemesBreakdown.length > 0)
+    ? receipt.schemesBreakdown
+    : [{
+        schemeName: receipt.schemeName,
+        monthlyAmountPerPerson: receipt.monthlyAmountPerPerson,
+        personCount: receipt.personCount || 1,
+        totalMonthlyAmount: receipt.expectedMonthlyAmount || ((receipt.monthlyAmountPerPerson || 0) * (receipt.personCount || 1))
+      }];
+
+  const totalPersonsCount = receipt.totalPersons || breakdownItems.reduce((sum, item) => sum + (item.personCount || 1), 0);
+  const totalMonthlyPayable = receipt.combinedMonthlyPayable || breakdownItems.reduce((sum, item) => sum + (item.totalMonthlyAmount || 0), 0);
+
   const handlePrint = () => {
     if (!receiptRef.current) return;
     const printWindow = window.open("", "_blank");
@@ -83,8 +105,12 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
             .subtitle { font-size: 13px; font-weight: bold; color: #334155; margin: 3px 0 0 0; }
             .contact { font-size: 11px; color: #64748b; margin: 3px 0 0 0; }
             .top-bar { display: flex; justify-content: space-between; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 12px; margin-bottom: 14px; }
-            table { width: 100%; border-collapse: collapse; font-size: 12px; }
+            table { width: 100%; border-collapse: collapse; font-size: 11px; margin: 6px 0; }
+            th, td { border: 1px solid #cbd5e1; padding: 6px 8px; }
+            th { background-color: #f1f5f9; font-weight: bold; }
             .section-title { font-weight: bold; color: #7A1416; font-size: 12px; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 6px; }
+            .breakdown-table { border: 2px solid #7A1416 !important; margin: 10px 0; }
+            .breakdown-summary { background: #fef3c7; border: 1px solid #fde68a; padding: 6px 10px; font-weight: bold; font-size: 11px; margin-top: 4px; }
             .payment-card { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 10px 14px; font-size: 12px; margin: 14px 0; }
             .footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 24px; font-size: 11px; color: #64748b; }
             .badge-paid { background: #d1fae5; color: #065f46; font-weight: bold; padding: 3px 8px; border-radius: 6px; font-size: 11px; }
@@ -287,6 +313,74 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
                   <strong className="text-emerald-700 font-extrabold">₹{receipt.expectedMonthlyAmount?.toLocaleString()}</strong>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* CHIT SCHEMES & PERSONS BREAKDOWN TABLE (e.g. 300 x 5 = 1500, 500 x 3 = 1500, 700 x 1 = 700) */}
+          <div className="border-2 border-[#7A1416]/40 rounded-xl overflow-hidden text-xs bg-white breakdown-table">
+            <div className="bg-amber-50 px-3.5 py-2 border-b border-[#7A1416]/30 flex flex-wrap justify-between items-center gap-1">
+              <strong className="text-[#7A1416] text-[11px] uppercase tracking-wider">
+                Chit Schemes &amp; Persons Breakdown
+              </strong>
+              <span className="text-[11px] font-mono font-bold text-gray-600">
+                Rate × Persons = Monthly Amount
+              </span>
+            </div>
+
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-gray-100 text-gray-700 font-extrabold text-[11px] border-b border-gray-300">
+                  <th className="p-2 border border-gray-200">Scheme Name</th>
+                  <th className="p-2 border border-gray-200 text-center font-mono">Chit Calculation</th>
+                  <th className="p-2 border border-gray-200 text-center">Persons</th>
+                  <th className="p-2 border border-gray-200 text-right">Monthly Payable</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {breakdownItems.map((item, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50/60">
+                    <td className="p-2 border border-gray-200 font-bold text-gray-900">
+                      {item.schemeName}
+                    </td>
+                    <td className="p-2 border border-gray-200 text-center font-mono font-bold text-[#7A1416]">
+                      {item.monthlyAmountPerPerson} × {item.personCount} = ₹{item.totalMonthlyAmount.toLocaleString()}
+                    </td>
+                    <td className="p-2 border border-gray-200 text-center font-bold text-gray-800">
+                      {item.personCount}
+                    </td>
+                    <td className="p-2 border border-gray-200 text-right font-black text-emerald-700">
+                      ₹{item.totalMonthlyAmount.toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="bg-amber-100/70 font-black border-t-2 border-[#7A1416] text-xs">
+                  <td className="p-2 border border-gray-200 text-gray-900 uppercase">
+                    Total Summary
+                  </td>
+                  <td className="p-2 border border-gray-200 text-center font-mono font-black text-[#7A1416]">
+                    {breakdownItems.map(item => `${item.monthlyAmountPerPerson} × ${item.personCount} = ${item.totalMonthlyAmount}`).join(" + ")}
+                  </td>
+                  <td className="p-2 border border-gray-200 text-center font-black text-gray-900">
+                    Total Persons = {totalPersonsCount}
+                  </td>
+                  <td className="p-2 border border-gray-200 text-right text-emerald-800 text-sm font-black">
+                    ₹{totalMonthlyPayable.toLocaleString()} / mo
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+
+            <div className="bg-amber-50/90 px-3 py-1.5 border-t border-amber-200 flex flex-wrap justify-between items-center text-[11px] font-bold text-gray-800 breakdown-summary">
+              <span className="font-mono text-[#7A1416]">
+                Summary: {breakdownItems.map(item => `${item.monthlyAmountPerPerson} × ${item.personCount} = ${item.totalMonthlyAmount}`).join(", ")}
+              </span>
+              <span>
+                Total Persons: <strong className="text-amber-950 font-black">{totalPersonsCount}</strong>
+                <span className="mx-2 text-gray-400">•</span>
+                Monthly Payable Amount: <strong className="text-emerald-700 font-black">₹{totalMonthlyPayable.toLocaleString()}</strong>
+              </span>
             </div>
           </div>
 
