@@ -1418,10 +1418,33 @@ const ChitScheme: React.FC = () => {
                           </span>
                           <span className="text-gray-600 font-medium">({personCount} Person{personCount > 1 ? 's' : ''} enrolled)</span>
                         </div>
-                        <div className="text-gray-700 font-semibold">
-                          Monthly Installment: <strong className="text-emerald-700">₹{monthlyTotal.toLocaleString()}</strong>
+                        <div className="flex items-center gap-3 text-xs">
+                          <div className="text-gray-700 font-semibold">
+                            Monthly: <strong className="text-emerald-700">₹{monthlyTotal.toLocaleString()}</strong>
+                          </div>
+                          <div className="text-gray-700 font-semibold">
+                            Paid: <strong className="text-emerald-700">₹{(sch.paidAmount || 0).toLocaleString()}</strong>
+                          </div>
+                          <div className="text-gray-700 font-semibold">
+                            Remaining: <strong className="text-rose-700">₹{(sch.remainingAmount !== undefined ? sch.remainingAmount : Math.max(0, grandTotal - (sch.paidAmount || 0))).toLocaleString()}</strong>
+                          </div>
                         </div>
                       </div>
+
+                      {/* Overall Multi-Scheme Financial Summary Banner */}
+                      {allSiblingSchemes.length > 1 && (
+                        <div className="bg-amber-100/60 border border-amber-300 rounded-xl px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+                          <span className="font-black text-[#7A1416] text-[11px] uppercase">
+                            Combined Across All {allSiblingSchemes.length} Schemes:
+                          </span>
+                          <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold">
+                            <span>Persons: <strong className="text-amber-950">{allSiblingSchemes.reduce((sum, s) => sum + (s.personCount || 1), 0)}</strong></span>
+                            <span>Monthly: <strong className="text-emerald-700">₹{allSiblingSchemes.reduce((sum, s) => sum + (s.totalMonthlyAmount || ((s.monthlyAmountPerPerson || s.monthlyAmount || 0) * (s.personCount || 1))), 0).toLocaleString()} / mo</strong></span>
+                            <span>Total Paid: <strong className="text-emerald-700">₹{allSiblingSchemes.reduce((sum, s) => sum + (s.paidAmount || 0), 0).toLocaleString()}</strong></span>
+                            <span>Overall Due: <strong className="text-rose-700">₹{allSiblingSchemes.reduce((sum, s) => sum + (s.remainingAmount !== undefined ? s.remainingAmount : Math.max(0, (s.totalSchemeAmount || 0) - (s.paidAmount || 0))), 0).toLocaleString()}</strong></span>
+                          </div>
+                        </div>
+                      )}
 
                       {!isApproved && (
                         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 text-xs text-amber-900 flex items-start gap-2.5">

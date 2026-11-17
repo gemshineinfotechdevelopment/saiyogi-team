@@ -12,6 +12,11 @@ export interface ChitReceiptSchemeItem {
   count?: number;
   totalMonthlyAmount?: number;
   subTotal?: number;
+  durationMonths?: number;
+  totalSchemeAmount?: number;
+  paidAmount?: number;
+  remainingAmount?: number;
+  monthsPaid?: number;
 }
 
 export interface ChitReceiptData {
@@ -40,6 +45,9 @@ export interface ChitReceiptData {
   schemesBreakdown?: ChitReceiptSchemeItem[];
   totalPersons?: number;
   combinedMonthlyPayable?: number;
+  combinedGrandTotal?: number;
+  overallTotalPaid?: number;
+  overallRemainingDue?: number;
 }
 
 interface ChitReceiptModalProps {
@@ -93,6 +101,10 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
     const rate = Number(item.monthlyAmountPerPerson ?? item.rate ?? 0);
     const count = Math.max(1, Number(item.personCount ?? item.count ?? 1));
     const subTotal = Number(item.totalMonthlyAmount ?? item.subTotal ?? (rate * count));
+    const duration = Number(item.durationMonths ?? receipt.totalMonths ?? 10);
+    const totalScheme = Number(item.totalSchemeAmount ?? (subTotal * duration));
+    const paid = Number(item.paidAmount ?? 0);
+    const remaining = Number(item.remainingAmount ?? Math.max(0, totalScheme - paid));
     return {
       schemeName: item.schemeName || "Chit Scheme",
       monthlyAmountPerPerson: rate,
@@ -100,12 +112,20 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
       personCount: count,
       count,
       totalMonthlyAmount: subTotal,
-      subTotal
+      subTotal,
+      durationMonths: duration,
+      totalSchemeAmount: totalScheme,
+      paidAmount: paid,
+      remainingAmount: remaining,
+      monthsPaid: Number(item.monthsPaid ?? 0)
     };
   });
 
   const totalPersonsCount = Number(receipt.totalPersons ?? breakdownItems.reduce((sum, item) => sum + item.count, 0));
   const totalMonthlyPayable = Number(receipt.combinedMonthlyPayable ?? breakdownItems.reduce((sum, item) => sum + item.subTotal, 0));
+  const combinedGrandTotal = Number(receipt.combinedGrandTotal ?? breakdownItems.reduce((sum, item) => sum + item.totalSchemeAmount, 0));
+  const overallTotalPaid = Number(receipt.overallTotalPaid ?? (receipt.totalPaidTillDate || breakdownItems.reduce((sum, item) => sum + item.paidAmount, 0)));
+  const overallRemainingDue = Number(receipt.overallRemainingDue ?? Math.max(0, combinedGrandTotal - overallTotalPaid));
 
   const handlePrint = () => {
     if (!receiptRef.current) return;
@@ -394,11 +414,11 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
                   <strong className="text-gray-900 font-mono font-bold text-right leading-normal">{receipt.phone}</strong>
                 </div>
                 {receipt.email && (
-                  <div className="flex justify-between items-start gap-2 pt-0.5">
+                  <div className="flex justify-between items-start gap-2 py-0.5">
                     <span className="text-gray-500 font-medium shrink-0">Email:</span>
-                    <strong className="text-gray-800 font-semibold break-all text-right text-[11px] leading-relaxed">
+                    <span className="text-gray-800 font-semibold break-all text-right text-xs leading-normal select-all">
                       {receipt.email}
-                    </strong>
+                    </span>
                   </div>
                 )}
                 <div className="flex justify-between items-start gap-2">
@@ -436,14 +456,14 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
             </div>
           </div>
 
-          {/* CHIT SCHEMES & PERSONS BREAKDOWN TABLE (e.g. 300 x 5 = 1500, 500 x 3 = 1500, 700 x 1 = 700) */}
+          {/* CHIT SCHEMES & PERSONS BREAKDOWN TABLE (Every Chit Total & Overall Total) */}
           <div className="border-2 border-[#7A1416]/40 rounded-xl overflow-hidden text-xs bg-white breakdown-table print-avoid-break">
             <div className="bg-amber-50 px-3.5 py-2 border-b border-[#7A1416]/30 flex flex-wrap justify-between items-center gap-1">
               <strong className="text-[#7A1416] text-[11px] uppercase tracking-wider">
-                Chit Schemes &amp; Persons Breakdown
+                Chit Schemes &amp; Persons Breakdown ({breakdownItems.length} Schemes)
               </strong>
               <span className="text-[11px] font-mono font-bold text-gray-600">
-                Rate × Persons = Monthly Amount
+                Formula: Rate × Persons = Monthly Amount
               </span>
             </div>
 
@@ -453,59 +473,79 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
                   <th className="p-2 border border-gray-200">Scheme Name</th>
                   <th className="p-2 border border-gray-200 text-center font-mono">Chit Calculation</th>
                   <th className="p-2 border border-gray-200 text-center">Persons</th>
-                  <th className="p-2 border border-gray-200 text-right">Monthly Payable</th>
+                  <th className="p-2 border border-gray-200 text-right">Monthly (₹)</th>
+                  <th className="p-2 border border-gray-200 text-right">Total Scheme</th>
+                  <th className="p-2 border border-gray-200 text-right">Paid Amount</th>
+                  <th className="p-2 border border-gray-200 text-right">Remaining Due</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {breakdownItems.map((item, idx) => {
-                  const rate = item.rate || item.monthlyAmountPerPerson || 0;
-                  const count = item.count || item.personCount || 1;
-                  const subTotal = item.subTotal || item.totalMonthlyAmount || (rate * count);
                   return (
                     <tr key={idx} className="hover:bg-gray-50/60">
                       <td className="p-2 border border-gray-200 font-bold text-gray-900">
                         {item.schemeName}
                       </td>
                       <td className="p-2 border border-gray-200 text-center font-mono font-bold text-[#7A1416]">
-                        {rate} × {count} = ₹{(subTotal || 0).toLocaleString()}
+                        {item.rate} × {item.count} = ₹{(item.subTotal || 0).toLocaleString()}
                       </td>
                       <td className="p-2 border border-gray-200 text-center font-bold text-gray-800">
-                        {count}
+                        {item.count}
                       </td>
                       <td className="p-2 border border-gray-200 text-right font-black text-emerald-700">
-                        ₹{(subTotal || 0).toLocaleString()}
+                        ₹{(item.subTotal || 0).toLocaleString()}
+                      </td>
+                      <td className="p-2 border border-gray-200 text-right font-bold text-[#2A1B54]">
+                        ₹{(item.totalSchemeAmount || 0).toLocaleString()}
+                      </td>
+                      <td className="p-2 border border-gray-200 text-right font-bold text-emerald-700">
+                        ₹{(item.paidAmount || 0).toLocaleString()}
+                      </td>
+                      <td className="p-2 border border-gray-200 text-right font-black text-rose-700">
+                        ₹{(item.remainingAmount || 0).toLocaleString()}
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
               <tfoot>
-                <tr className="bg-amber-100/70 font-black border-t-2 border-[#7A1416] text-xs">
+                <tr className="bg-amber-100/80 font-black border-t-2 border-[#7A1416] text-xs">
                   <td className="p-2 border border-gray-200 text-gray-900 uppercase">
-                    Total Summary
+                    Overall Combined Total
                   </td>
-                  <td className="p-2 border border-gray-200 text-center font-mono font-black text-[#7A1416]">
-                    {breakdownItems.map(item => `${item.rate || item.monthlyAmountPerPerson || 0} × ${item.count || item.personCount || 1} = ${item.subTotal || item.totalMonthlyAmount || 0}`).join(" + ")}
+                  <td className="p-2 border border-gray-200 text-center font-mono font-black text-[#7A1416] text-[11px]">
+                    {breakdownItems.map(item => `${item.rate} × ${item.count} = ${item.subTotal}`).join(" + ")}
                   </td>
                   <td className="p-2 border border-gray-200 text-center font-black text-gray-900">
-                    Total Persons = {totalPersonsCount}
+                    {totalPersonsCount}
                   </td>
-                  <td className="p-2 border border-gray-200 text-right text-emerald-800 text-sm font-black">
+                  <td className="p-2 border border-gray-200 text-right text-emerald-800 text-xs font-black">
                     ₹{(totalMonthlyPayable || 0).toLocaleString()} / mo
+                  </td>
+                  <td className="p-2 border border-gray-200 text-right text-[#2A1B54] text-xs font-black">
+                    ₹{combinedGrandTotal.toLocaleString()}
+                  </td>
+                  <td className="p-2 border border-gray-200 text-right text-emerald-800 text-xs font-black">
+                    ₹{overallTotalPaid.toLocaleString()}
+                  </td>
+                  <td className="p-2 border border-gray-200 text-right text-rose-700 text-xs font-black">
+                    ₹{overallRemainingDue.toLocaleString()}
                   </td>
                 </tr>
               </tfoot>
             </table>
 
-            <div className="bg-amber-50/90 px-3 py-1.5 border-t border-amber-200 flex flex-wrap justify-between items-center text-[11px] font-bold text-gray-800 breakdown-summary">
-              <span className="font-mono text-[#7A1416]">
-                Summary: {breakdownItems.map(item => `${item.rate || item.monthlyAmountPerPerson || 0} × ${item.count || item.personCount || 1} = ${item.subTotal || item.totalMonthlyAmount || 0}`).join(", ")}
+            <div className="bg-amber-50/90 px-3.5 py-2 border-t border-amber-200 flex flex-wrap justify-between items-center text-xs font-bold text-gray-800 breakdown-summary gap-2">
+              <span className="font-mono text-[#7A1416] text-[11px]">
+                Summary: {breakdownItems.map(item => `${item.rate} × ${item.count} = ₹${item.subTotal.toLocaleString()}`).join(" + ")}
               </span>
-              <span>
-                Total Persons: <strong className="text-amber-950 font-black">{totalPersonsCount}</strong>
-                <span className="mx-2 text-gray-400">•</span>
-                Monthly Payable Amount: <strong className="text-emerald-700 font-black">₹{(totalMonthlyPayable || 0).toLocaleString()}</strong>
-              </span>
+              <div className="flex flex-wrap items-center gap-3 text-[11px]">
+                <span>Total Persons: <strong className="text-amber-950 font-black">{totalPersonsCount}</strong></span>
+                <span>Combined Monthly: <strong className="text-emerald-700 font-black">₹{totalMonthlyPayable.toLocaleString()} / mo</strong></span>
+                <span>Grand Total: <strong className="text-[#2A1B54] font-black">₹{combinedGrandTotal.toLocaleString()}</strong></span>
+                <span>Total Paid: <strong className="text-emerald-700 font-black">₹{overallTotalPaid.toLocaleString()}</strong></span>
+                <span>Remaining Due: <strong className="text-rose-700 font-black">₹{overallRemainingDue.toLocaleString()}</strong></span>
+              </div>
             </div>
           </div>
 
@@ -556,24 +596,30 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
           </div>
 
           {/* Cumulative Scheme Summary */}
-          {(receipt.totalPaidTillDate !== undefined || receipt.remainingSchemeBalance !== undefined) && (
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs flex flex-wrap justify-between items-center gap-2 summary-card print-avoid-break">
+          {(receipt.totalPaidTillDate !== undefined || receipt.remainingSchemeBalance !== undefined || overallRemainingDue !== undefined) && (
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs flex flex-wrap justify-between items-center gap-3 summary-card print-avoid-break">
               {receipt.paidMonths !== undefined && receipt.totalMonths !== undefined && (
                 <div>
-                  <span className="text-gray-500 text-[11px]">Installment Progress: </span>
+                  <span className="text-gray-500 text-[11px] block">Scheme Progress:</span>
                   <strong className="text-gray-800 font-bold">{receipt.paidMonths} / {receipt.totalMonths} Months</strong>
                 </div>
               )}
               {receipt.totalPaidTillDate !== undefined && (
                 <div>
-                  <span className="text-gray-500 text-[11px]">Total Paid Till Date: </span>
+                  <span className="text-gray-500 text-[11px] block">{breakdownItems.length > 1 ? "Scheme Paid Till Date:" : "Total Paid Till Date:"}</span>
                   <strong className="text-emerald-700 font-extrabold">₹{(receipt.totalPaidTillDate || 0).toLocaleString()}</strong>
                 </div>
               )}
               {receipt.remainingSchemeBalance !== undefined && (
                 <div>
-                  <span className="text-gray-500 text-[11px]">Balance Remaining: </span>
+                  <span className="text-gray-500 text-[11px] block">{breakdownItems.length > 1 ? "Scheme Balance Remaining:" : "Balance Remaining:"}</span>
                   <strong className="text-rose-700 font-extrabold">₹{(receipt.remainingSchemeBalance || 0).toLocaleString()}</strong>
+                </div>
+              )}
+              {breakdownItems.length > 1 && (
+                <div className="border-l border-gray-300 pl-3">
+                  <span className="text-gray-500 text-[11px] block">Overall Balance Due (All Schemes):</span>
+                  <strong className="text-rose-700 font-black text-sm">₹{overallRemainingDue.toLocaleString()}</strong>
                 </div>
               )}
             </div>

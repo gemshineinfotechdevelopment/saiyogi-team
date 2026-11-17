@@ -187,22 +187,37 @@ export const downloadChitReceiptPDF = async (
         const rate = s.monthlyAmountPerPerson || s.monthlyAmount || 0;
         const count = Math.max(1, s.personCount || 1);
         const subTotal = s.totalMonthlyAmount || (rate * count);
+        const dur = s.durationMonths || totalMonths || 10;
+        const sGrand = s.totalSchemeAmount || (subTotal * dur);
+        const sPaid = s.paidAmount || 0;
+        const sRemaining = s.remainingAmount !== undefined ? s.remainingAmount : Math.max(0, sGrand - sPaid);
         return {
           schemeName: s.schemeName,
           rate,
           count,
-          subTotal
+          subTotal,
+          duration: dur,
+          totalScheme: sGrand,
+          paidAmount: sPaid,
+          remainingAmount: sRemaining
         };
       })
     : [{
         schemeName: schemeName,
         rate: monthlyAmount,
         count: Math.max(1, personCount || 1),
-        subTotal: monthlyAmount * Math.max(1, personCount || 1)
+        subTotal: monthlyAmount * Math.max(1, personCount || 1),
+        duration: totalMonths,
+        totalScheme: totalSchemeAmount,
+        paidAmount: totalPaidTillNow,
+        remainingAmount: remainingBalance
       }];
 
   const totalPersonsSum = breakdownList.reduce((sum, item) => sum + item.count, 0);
   const totalMonthlySum = breakdownList.reduce((sum, item) => sum + item.subTotal, 0);
+  const combinedGrandSum = breakdownList.reduce((sum, item) => sum + item.totalScheme, 0);
+  const overallPaidSum = breakdownList.reduce((sum, item) => sum + item.paidAmount, 0);
+  const overallRemainingSum = Math.max(0, combinedGrandSum - overallPaidSum);
 
   const breakdownRowsHTML = breakdownList.map(item => `
     <tr>
@@ -212,6 +227,9 @@ export const downloadChitReceiptPDF = async (
       </td>
       <td style="padding: 5px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold;">${item.count}</td>
       <td style="padding: 5px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; color: #047857;">₹${(item.subTotal || 0).toLocaleString()}</td>
+      <td style="padding: 5px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; color: #1e1b4b;">₹${(item.totalScheme || 0).toLocaleString()}</td>
+      <td style="padding: 5px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; color: #047857;">₹${(item.paidAmount || 0).toLocaleString()}</td>
+      <td style="padding: 5px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; color: #b91c1c;">₹${(item.remainingAmount || 0).toLocaleString()}</td>
     </tr>
   `).join('');
 
@@ -283,8 +301,8 @@ export const downloadChitReceiptPDF = async (
           </tr>
           ${sub.email ? `
           <tr>
-            <td style="padding: 3px 0; color: #64748b;">Email:</td>
-            <td style="padding: 3px 0; font-weight: bold; color: #0f172a; word-break: break-all;">${sub.email}</td>
+            <td style="padding: 4px 0; color: #64748b; width: 130px; vertical-align: top;">Email:</td>
+            <td style="padding: 4px 0; font-weight: bold; color: #0f172a; word-break: break-all; line-height: 1.4; vertical-align: top;">${sub.email}</td>
           </tr>
           ` : ''}
           <tr>
@@ -298,7 +316,7 @@ export const downloadChitReceiptPDF = async (
       ${breakdownList.length > 0 ? `
       <div style="margin-bottom: 16px;">
         <div style="font-weight: bold; color: #7A1416; font-size: 13px; margin-bottom: 6px; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
-          <span>CHIT SCHEMES & PERSONS BREAKDOWN</span>
+          <span>CHIT SCHEMES & PERSONS BREAKDOWN (${breakdownList.length} SCHEMES)</span>
           <span style="font-size: 11px; color: #b91c1c; font-weight: bold;">Total Persons: ${totalPersonsSum}</span>
         </div>
         <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
@@ -308,6 +326,9 @@ export const downloadChitReceiptPDF = async (
               <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: center;">Chits Calculation</th>
               <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: center;">Persons</th>
               <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: right;">Monthly (₹)</th>
+              <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: right;">Total Scheme (₹)</th>
+              <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: right;">Paid (₹)</th>
+              <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: right;">Remaining Due (₹)</th>
             </tr>
           </thead>
           <tbody>
@@ -315,14 +336,20 @@ export const downloadChitReceiptPDF = async (
           </tbody>
           <tfoot>
             <tr style="background: #f8fafc; font-weight: bold;">
-              <td colspan="2" style="padding: 6px; border: 1px solid #cbd5e1; text-align: right;">Combined Monthly Total:</td>
+              <td style="padding: 6px; border: 1px solid #cbd5e1; text-transform: uppercase; color: #7A1416;">Overall Total:</td>
+              <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: center; font-family: monospace; color: #7A1416; font-size: 10px;">
+                ${breakdownList.map(b => `${b.rate} × ${b.count} = ${b.subTotal}`).join(' + ')}
+              </td>
               <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: center; color: #b91c1c; font-size: 12px;">${totalPersonsSum}</td>
               <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: right; color: #047857; font-size: 12px;">₹${totalMonthlySum.toLocaleString()}</td>
+              <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: right; color: #1e1b4b; font-size: 12px;">₹${combinedGrandSum.toLocaleString()}</td>
+              <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: right; color: #047857; font-size: 12px;">₹${overallPaidSum.toLocaleString()}</td>
+              <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: right; color: #b91c1c; font-size: 12px;">₹${overallRemainingSum.toLocaleString()}</td>
             </tr>
           </tfoot>
         </table>
         <div style="margin-top: 6px; padding: 6px 10px; background: #fffbeb; border: 1px dashed #f59e0b; border-radius: 6px; font-size: 11px; color: #92400e; font-weight: bold;">
-          Summary Calculation: ${breakdownList.map(b => `${b.rate} × ${b.count} = ${b.subTotal}`).join(' + ')} | Total Persons = ${totalPersonsSum} | Monthly Payable Amount = ₹${totalMonthlySum.toLocaleString()}
+          Summary Calculation: ${breakdownList.map(b => `${b.rate} × ${b.count} = ${b.subTotal}`).join(' + ')} | Total Persons = ${totalPersonsSum} | Monthly Payable = ₹${totalMonthlySum.toLocaleString()} | Overall Grand Total = ₹${combinedGrandSum.toLocaleString()} | Overall Paid = ₹${overallPaidSum.toLocaleString()} | Overall Due = ₹${overallRemainingSum.toLocaleString()}
         </div>
       </div>
       ` : ''}
@@ -369,11 +396,18 @@ export const downloadChitReceiptPDF = async (
       </div>
 
       <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px 14px; border-radius: 10px; font-size: 11px; margin-bottom: 16px;">
-        <div style="display: flex; justify-content: space-between; font-weight: bold;">
-          <span>Total Scheme: ₹${totalSchemeAmount.toLocaleString()} (${totalMonths} Months)</span>
-          <span>Progress: <span style="color: #047857;">₹${totalPaidTillNow.toLocaleString()} (${paidItems.length}/${totalMonths} Paid)</span></span>
-          <span>Balance Remaining: <span style="color: #b91c1c;">₹${remainingBalance.toLocaleString()}</span></span>
+        <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 4px;">
+          <span>Scheme: ${schemeName} (₹${totalSchemeAmount.toLocaleString()})</span>
+          <span>Scheme Paid: <span style="color: #047857;">₹${totalPaidTillNow.toLocaleString()} (${paidItems.length}/${totalMonths} Paid)</span></span>
+          <span>Scheme Balance: <span style="color: #b91c1c;">₹${remainingBalance.toLocaleString()}</span></span>
         </div>
+        ${breakdownList.length > 1 ? `
+        <div style="display: flex; justify-content: space-between; font-weight: bold; border-top: 1px dashed #cbd5e1; padding-top: 4px; color: #1e1b4b;">
+          <span>All Schemes Grand Total: ₹${combinedGrandSum.toLocaleString()} (${totalPersonsSum} Persons)</span>
+          <span>Overall Paid: <span style="color: #047857;">₹${overallPaidSum.toLocaleString()}</span></span>
+          <span>Overall Remaining Due: <span style="color: #b91c1c;">₹${overallRemainingSum.toLocaleString()}</span></span>
+        </div>
+        ` : ''}
       </div>
 
       <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px; font-size: 11px; color: #64748b;">

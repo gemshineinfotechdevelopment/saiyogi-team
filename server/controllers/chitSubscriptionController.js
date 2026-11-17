@@ -613,13 +613,20 @@ export const recordSchemePayment = async (req, res, next) => {
       installmentMonth: `Month ${mNum} / ${duration}`,
       monthNumber: mNum,
       totalPaidTillDate: updatedTargetScheme?.paidAmount || 0,
-      remainingSchemeBalance: updatedTargetScheme?.remainingAmount || 0,
+      remainingSchemeBalance: updatedTargetScheme?.remainingAmount !== undefined ? updatedTargetScheme.remainingAmount : Math.max(0, (targetScheme.totalMonthlyAmount * duration) - (updatedTargetScheme?.paidAmount || 0)),
       totalMonths: duration,
       paidMonths: updatedTargetScheme?.monthsPaid || 0,
+      combinedGrandTotal: normalized.combinedGrandTotal || 0,
+      overallTotalPaid: normalized.totalPaidAmount || 0,
+      overallRemainingDue: normalized.remainingGrandTotal !== undefined ? normalized.remainingGrandTotal : Math.max(0, (normalized.combinedGrandTotal || 0) - (normalized.totalPaidAmount || 0)),
       schemesBreakdown: (normalized.schemes || []).map(s => {
         const rate = s.monthlyAmountPerPerson || s.monthlyAmount || 0;
         const count = s.personCount || 1;
         const subTotal = s.totalMonthlyAmount || (rate * count);
+        const sDuration = s.durationMonths || s.totalMonths || duration || 10;
+        const sGrand = s.totalSchemeAmount || (subTotal * sDuration);
+        const sPaid = s.paidAmount || 0;
+        const sRemaining = s.remainingAmount !== undefined ? s.remainingAmount : Math.max(0, sGrand - sPaid);
         return {
           schemeName: s.schemeName,
           rate,
@@ -627,7 +634,12 @@ export const recordSchemePayment = async (req, res, next) => {
           subTotal,
           monthlyAmountPerPerson: rate,
           personCount: count,
-          totalMonthlyAmount: subTotal
+          totalMonthlyAmount: subTotal,
+          durationMonths: sDuration,
+          totalSchemeAmount: sGrand,
+          paidAmount: sPaid,
+          remainingAmount: sRemaining,
+          monthsPaid: s.monthsPaid || 0
         };
       }),
       totalPersons: (normalized.schemes || []).reduce((sum, s) => sum + (s.personCount || 1), 0),

@@ -783,6 +783,12 @@ const AdminChitScheme: React.FC = () => {
               <td style="padding: 3px 0; color: #64748b;">Mobile Number:</td>
               <td style="padding: 3px 0; font-weight: bold; color: #0f172a;">${sub.phone || sub.mobileNumber}</td>
             </tr>
+            ${sub.email ? `
+            <tr>
+              <td style="padding: 4px 0; color: #64748b; vertical-align: top;">Email:</td>
+              <td style="padding: 4px 0; font-weight: bold; color: #0f172a; word-break: break-all; line-height: 1.4; vertical-align: top;">${sub.email}</td>
+            </tr>
+            ` : ''}
             <tr>
               <td style="padding: 3px 0; color: #64748b;">Location:</td>
               <td style="padding: 3px 0; font-weight: bold; color: #0f172a;">${sub.location || 'N/A'}</td>
@@ -1268,24 +1274,31 @@ _Sai Yogi Crackers_`;
                           {/* Column 3: Selected Schemes & Formula Calculation */}
                           <td className="p-4">
                             {enrolledSchemes ? (
-                              <div className="space-y-1">
+                              <div className="space-y-1.5">
                                 <div className="flex items-center gap-1.5 flex-wrap">
                                   <span className="bg-amber-100 text-amber-900 font-black text-[10px] px-2 py-0.5 rounded inline-block">
                                     {schemeCount} Scheme{schemeCount > 1 ? 's' : ''}
                                   </span>
                                   <span className="bg-rose-50 text-[#7A1416] border border-rose-200 font-extrabold text-[10px] px-2 py-0.5 rounded inline-block">
-                                    {personsCount} Persons
+                                    {personsCount} Persons Total
                                   </span>
                                 </div>
-                                <div className="text-[11px] font-bold text-[#7A1416] font-mono">
-                                  {enrolledSchemes.map(s => {
+                                <div className="space-y-1">
+                                  {enrolledSchemes.map((s, sIdx) => {
                                     const rate = s.monthlyAmountPerPerson || s.monthlyAmount || s.price || 0;
                                     const count = s.personCount || 1;
-                                    return `${rate} × ${count} = ₹${(rate * count).toLocaleString()}`;
-                                  }).join(" + ")}
+                                    const subTot = s.totalMonthlyAmount || (rate * count);
+                                    return (
+                                      <div key={sIdx} className="text-[11px] font-mono font-bold text-[#7A1416] flex items-center justify-between gap-2 bg-amber-50/60 px-2 py-0.5 rounded border border-amber-200/60">
+                                        <span className="text-gray-800 font-sans truncate max-w-[100px]">{s.schemeName}</span>
+                                        <span>{rate} × {count} = ₹{subTot.toLocaleString()}</span>
+                                      </div>
+                                    );
+                                  })}
                                 </div>
-                                <div className="text-[10px] text-gray-500 font-medium truncate max-w-[220px]">
-                                  {enrolledSchemes.map(s => `${s.schemeName} (${s.personCount || 1}p)`).join(", ")}
+                                <div className="text-[10px] font-extrabold text-emerald-700 flex items-center justify-between pt-0.5 border-t border-gray-100">
+                                  <span>Combined:</span>
+                                  <span>₹{monthlyTotal.toLocaleString()} / mo</span>
                                 </div>
                               </div>
                             ) : (
@@ -1311,13 +1324,16 @@ _Sai Yogi Crackers_`;
                             <span className="text-[10px] text-gray-400 font-medium">per month</span>
                           </td>
 
-                          {/* Column 6: Grand Total & Paid */}
+                          {/* Column 6: Grand Total, Paid & Balance Due */}
                           <td className="p-4 text-right">
-                            <div className="font-extrabold text-[#2A1B54]">
+                            <div className="font-extrabold text-[#2A1B54] text-xs">
                               ₹{grandTotal.toLocaleString()}
                             </div>
                             <div className="text-[11px] text-emerald-600 font-bold">
                               ₹{paidAmount.toLocaleString()} Paid
+                            </div>
+                            <div className="text-[10px] text-rose-600 font-black">
+                              ₹{Math.max(0, grandTotal - paidAmount).toLocaleString()} Due
                             </div>
                           </td>
 
@@ -2382,6 +2398,7 @@ _Sai Yogi Crackers_`;
                             <th className="p-3 text-center">Duration</th>
                             <th className="p-3 text-right">Grand Total</th>
                             <th className="p-3 text-right">Paid Amount</th>
+                            <th className="p-3 text-right">Remaining Due</th>
                             <th className="p-3 text-center">Status</th>
                             <th className="p-3 text-right">Actions</th>
                           </tr>
@@ -2390,6 +2407,9 @@ _Sai Yogi Crackers_`;
                           {enrolledSchemes.map((schItem, sIdx) => {
                             const isCurrentSelected = String(schItem._id || schItem.schemeId) === String(activeScheme._id || activeScheme.schemeId);
                             const schApproved = schItem.approvalStatus === 'Approved' || sub.approvalStatus === 'Approved';
+                            const schRemaining = schItem.remainingAmount !== undefined 
+                              ? schItem.remainingAmount 
+                              : Math.max(0, (schItem.totalSchemeAmount || 0) - (schItem.paidAmount || 0));
 
                             return (
                               <tr
@@ -2429,6 +2449,12 @@ _Sai Yogi Crackers_`;
                                     {schItem.monthsPaid} / {schItem.durationMonths || 10} Paid
                                   </div>
                                 </td>
+                                <td className="p-3 text-right">
+                                  <strong className="text-rose-700 font-black">₹{schRemaining.toLocaleString()}</strong>
+                                  <div className="text-[10px] text-gray-400">
+                                    Due
+                                  </div>
+                                </td>
                                 <td className="p-3 text-center">
                                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                     schApproved ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
@@ -2466,6 +2492,33 @@ _Sai Yogi Crackers_`;
                             );
                           })}
                         </tbody>
+                        <tfoot>
+                          <tr className="bg-amber-100/80 font-black border-t-2 border-[#7A1416] text-xs text-gray-900">
+                            <td className="p-3 uppercase text-[#7A1416]">
+                              Overall Combined Total
+                            </td>
+                            <td className="p-3 text-right text-gray-400 font-bold">-</td>
+                            <td className="p-3 text-center text-[#7A1416] font-black">
+                              {totalPersons} Persons
+                            </td>
+                            <td className="p-3 text-right text-emerald-800 font-black">
+                              ₹{combinedMonthly.toLocaleString()} / mo
+                            </td>
+                            <td className="p-3 text-center text-gray-400 font-bold">-</td>
+                            <td className="p-3 text-right text-[#2A1B54] font-black">
+                              ₹{combinedGrand.toLocaleString()}
+                            </td>
+                            <td className="p-3 text-right text-emerald-700 font-black">
+                              ₹{totalPaid.toLocaleString()}
+                            </td>
+                            <td className="p-3 text-right text-rose-700 font-black">
+                              ₹{balanceRemaining.toLocaleString()}
+                            </td>
+                            <td colSpan={2} className="p-3 text-center text-[11px] text-gray-700 font-bold">
+                              {Math.round((totalPaid / (combinedGrand || 1)) * 100)}% Paid
+                            </td>
+                          </tr>
+                        </tfoot>
                       </table>
                     </div>
                   </div>
@@ -2603,15 +2656,22 @@ _Sai Yogi Crackers_`;
                                           paymentStatus: "PAID",
                                           installmentMonth: `Month ${mNum} / ${schemeDuration}`,
                                           monthNumber: mNum,
-                                          totalPaidTillDate: activeScheme.paidAmount,
-                                          remainingSchemeBalance: activeScheme.remainingAmount,
+                                          totalPaidTillDate: activeScheme.paidAmount || 0,
+                                          remainingSchemeBalance: activeScheme.remainingAmount !== undefined ? activeScheme.remainingAmount : Math.max(0, (schemeMonthlyTotal * schemeDuration) - (activeScheme.paidAmount || 0)),
                                           totalMonths: schemeDuration,
-                                          paidMonths: activeScheme.monthsPaid,
+                                          paidMonths: activeScheme.monthsPaid || 0,
                                           notes: existingLog?.notes,
+                                          combinedGrandTotal: combinedGrand,
+                                          overallTotalPaid: totalPaid,
+                                          overallRemainingDue: balanceRemaining,
                                           schemesBreakdown: enrolledSchemes.map(s => {
                                             const rate = s.monthlyAmountPerPerson || s.monthlyAmount || s.price || 0;
                                             const count = s.personCount || 1;
                                             const subTotal = s.totalMonthlyAmount || (rate * count);
+                                            const sDur = s.durationMonths || s.totalMonths || 10;
+                                            const sGrand = s.totalSchemeAmount || (subTotal * sDur);
+                                            const sPaid = s.paidAmount || 0;
+                                            const sRem = s.remainingAmount !== undefined ? s.remainingAmount : Math.max(0, sGrand - sPaid);
                                             return {
                                               schemeName: s.schemeName,
                                               rate,
@@ -2619,7 +2679,12 @@ _Sai Yogi Crackers_`;
                                               subTotal,
                                               monthlyAmountPerPerson: rate,
                                               personCount: count,
-                                              totalMonthlyAmount: subTotal
+                                              totalMonthlyAmount: subTotal,
+                                              durationMonths: sDur,
+                                              totalSchemeAmount: sGrand,
+                                              paidAmount: sPaid,
+                                              remainingAmount: sRem,
+                                              monthsPaid: s.monthsPaid || 0
                                             };
                                           }),
                                           totalPersons: totalPersons,
@@ -2647,6 +2712,24 @@ _Sai Yogi Crackers_`;
                             );
                           })}
                         </tbody>
+                        <tfoot>
+                          <tr className="bg-amber-50 font-black border-t-2 border-amber-300 text-xs text-gray-900">
+                            <td colSpan={3} className="p-3 text-[#7A1416] uppercase">
+                              {activeScheme.schemeName} — Summary
+                            </td>
+                            <td className="p-3 text-center">
+                              <span className="text-emerald-700 font-extrabold">{activeScheme.monthsPaid || 0} / {schemeDuration} Paid</span>
+                            </td>
+                            <td className="p-3 text-center text-gray-500">-</td>
+                            <td className="p-3 text-right text-gray-600 font-bold">Scheme Paid:</td>
+                            <td className="p-3 text-right text-emerald-700 font-black text-sm">
+                              ₹{(activeScheme.paidAmount || 0).toLocaleString()}
+                            </td>
+                            <td className="p-3 text-right">
+                              <span className="text-rose-700 font-black text-xs block">Due: ₹{(activeScheme.remainingAmount !== undefined ? activeScheme.remainingAmount : Math.max(0, (schemeMonthlyTotal * schemeDuration) - (activeScheme.paidAmount || 0))).toLocaleString()}</span>
+                            </td>
+                          </tr>
+                        </tfoot>
                       </table>
                     </div>
                   </div>
