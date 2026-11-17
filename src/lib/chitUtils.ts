@@ -302,7 +302,7 @@ export const downloadChitReceiptPDF = async (
           ${sub.email ? `
           <tr>
             <td style="padding: 4px 0; color: #64748b; width: 130px; vertical-align: top;">Email:</td>
-            <td style="padding: 4px 0; font-weight: bold; color: #0f172a; word-break: break-all; line-height: 1.4; vertical-align: top;">${sub.email}</td>
+            <td style="padding: 4px 0; font-weight: bold; color: #0f172a; word-break: break-word; overflow-wrap: break-word; line-height: 1.6; vertical-align: top; overflow: visible;">${sub.email}</td>
           </tr>
           ` : ''}
           <tr>
@@ -459,6 +459,10 @@ export const downloadChitReceiptPDF = async (
           clonedTarget.style.maxWidth = '700px';
           clonedTarget.style.boxSizing = 'border-box';
           clonedTarget.style.opacity = '1';
+          const imgs = clonedTarget.querySelectorAll("img");
+          imgs.forEach(i => { i.style.display = "inline-block"; });
+          const allSpans = clonedTarget.querySelectorAll("span, strong, p, td, th");
+          allSpans.forEach(el => { (el as HTMLElement).style.overflow = "visible"; });
         }
       }
     });

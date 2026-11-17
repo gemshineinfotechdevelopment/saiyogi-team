@@ -786,7 +786,7 @@ const AdminChitScheme: React.FC = () => {
             ${sub.email ? `
             <tr>
               <td style="padding: 4px 0; color: #64748b; vertical-align: top;">Email:</td>
-              <td style="padding: 4px 0; font-weight: bold; color: #0f172a; word-break: break-all; line-height: 1.4; vertical-align: top;">${sub.email}</td>
+              <td style="padding: 4px 0; font-weight: bold; color: #0f172a; word-break: break-word; overflow-wrap: break-word; line-height: 1.6; vertical-align: top; overflow: visible;">${sub.email}</td>
             </tr>
             ` : ''}
             <tr>
@@ -875,8 +875,16 @@ const AdminChitScheme: React.FC = () => {
       html2canvas.default(tempDiv, {
         scale: 2,
         backgroundColor: "#ffffff",
+        allowTaint: true,
+        useCORS: true,
         windowWidth: 1024,
-        windowHeight: 1440
+        windowHeight: 1440,
+        onclone: (clonedDoc) => {
+          const imgs = clonedDoc.querySelectorAll("img");
+          imgs.forEach(i => { i.style.display = "inline-block"; });
+          const allSpans = clonedDoc.querySelectorAll("span, strong, p, td, th");
+          allSpans.forEach(el => { (el as HTMLElement).style.overflow = "visible"; });
+        }
       }).then((canvas) => {
         import("jspdf").then((jsPDF) => {
           const pdf = new jsPDF.jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -1217,7 +1225,7 @@ _Sai Yogi Crackers_`;
               </div>
             ) : (
               <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse min-w-[850px]">
                   <thead>
                     <tr className="bg-gray-100/90 text-gray-700 text-xs uppercase font-extrabold tracking-wider border-b border-gray-200">
                       <th className="p-4">Customer &amp; App ID</th>
@@ -2145,7 +2153,7 @@ _Sai Yogi Crackers_`;
           setSelectedSubscription(null);
           setViewingSchemePassbook(null);
         }}>
-          <DialogContent className="max-w-5xl p-6 sm:p-8 bg-white rounded-3xl font-sans max-h-[92vh] overflow-y-auto space-y-6">
+          <DialogContent className="w-[96vw] max-w-5xl p-3.5 sm:p-7 bg-white rounded-2xl sm:rounded-3xl font-sans max-h-[92vh] overflow-y-auto space-y-4 sm:space-y-6">
             {(() => {
               const sub = selectedSubscription;
               const currentApproval = sub.approvalStatus || (sub.status === 'Paid' || sub.status === 'Approved' ? 'Approved' : (sub.status === 'Rejected' ? 'Rejected' : 'Pending'));
@@ -2225,10 +2233,10 @@ _Sai Yogi Crackers_`;
               return (
                 <>
                   {/* Modal Header */}
-                  <DialogHeader className="border-b border-gray-100 pb-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
+                  <DialogHeader className="border-b border-gray-100 pb-3 sm:pb-4 pr-10 sm:pr-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                           <span className="bg-purple-100 text-[#7A1416] font-extrabold text-[10px] px-2.5 py-0.5 rounded-full uppercase">
                             Application Details
                           </span>
@@ -2242,7 +2250,7 @@ _Sai Yogi Crackers_`;
                             {currentApproval}
                           </span>
                         </div>
-                        <DialogTitle className="text-2xl font-extrabold text-[#2A1B54] mt-1">
+                        <DialogTitle className="text-xl sm:text-2xl font-extrabold text-[#2A1B54] mt-1 break-words">
                           {sub.name || sub.customerName}
                         </DialogTitle>
                       </div>
@@ -2256,7 +2264,7 @@ _Sai Yogi Crackers_`;
                               className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
                             >
                               <Check className="w-4 h-4 stroke-[3]" />
-                              <span>Approve Application</span>
+                              <span>Approve</span>
                             </button>
                             <button
                               type="button"
@@ -2273,63 +2281,63 @@ _Sai Yogi Crackers_`;
                   </DialogHeader>
 
                   {/* Customer Information Grid */}
-                  <div className="bg-gray-50 border border-gray-200/90 rounded-2xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                  <div className="bg-gray-50 border border-gray-200/90 rounded-2xl p-3 sm:p-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-xs">
                     <div>
                       <span className="text-gray-500 block text-[11px]">Mobile Number:</span>
                       <strong className="text-gray-900 font-mono text-xs">{sub.phone || sub.mobileNumber}</strong>
                     </div>
                     <div>
                       <span className="text-gray-500 block text-[11px]">Email ID:</span>
-                      <strong className="text-gray-900 font-semibold">{sub.email || 'N/A'}</strong>
+                      <strong className="text-gray-900 font-semibold break-all text-xs">{sub.email || 'N/A'}</strong>
                     </div>
                     <div>
                       <span className="text-gray-500 block text-[11px]">Location:</span>
-                      <strong className="text-gray-900 font-semibold">{sub.location}</strong>
+                      <strong className="text-gray-900 font-semibold text-xs">{sub.location}</strong>
                     </div>
                     <div>
                       <span className="text-gray-500 block text-[11px]">Applied Date:</span>
-                      <strong className="text-gray-900 font-semibold">
+                      <strong className="text-gray-900 font-semibold text-xs">
                         {sub.createdAt ? new Date(sub.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recent'}
                       </strong>
                     </div>
                   </div>
 
                   {/* Aggregated Application Summary Banner */}
-                  <div className="bg-amber-50/70 border border-amber-200/90 rounded-2xl p-4 space-y-3">
-                    <div className="flex items-center justify-between">
+                  <div className="bg-amber-50/70 border border-amber-200/90 rounded-2xl p-3 sm:p-4 space-y-2.5 sm:space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-1.5">
                       <h3 className="text-xs font-black text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
                         <DollarSign className="w-4 h-4 text-[#7A1416]" />
                         <span>Combined Application Financial Summary</span>
                       </h3>
-                      <span className="bg-[#7A1416] text-white font-extrabold text-xs px-3 py-1 rounded-full">
+                      <span className="bg-[#7A1416] text-white font-extrabold text-xs px-2.5 py-0.5 rounded-full">
                         {totalPersons} Total Person(s) Enrolled
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-white p-3.5 rounded-xl border border-amber-200/60 shadow-2xs">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-xs bg-white p-3 sm:p-3.5 rounded-xl border border-amber-200/60 shadow-2xs">
                       <div>
                         <span className="text-gray-500 text-[11px] block">Combined Monthly</span>
-                        <strong className="text-emerald-700 text-sm font-black">₹{combinedMonthly.toLocaleString()} / mo</strong>
+                        <strong className="text-emerald-700 text-xs sm:text-sm font-black">₹{combinedMonthly.toLocaleString()} / mo</strong>
                       </div>
                       <div>
                         <span className="text-gray-500 text-[11px] block">Combined Grand Total</span>
-                        <strong className="text-[#2A1B54] text-sm font-black">₹{combinedGrand.toLocaleString()}</strong>
+                        <strong className="text-[#2A1B54] text-xs sm:text-sm font-black">₹{combinedGrand.toLocaleString()}</strong>
                       </div>
                       <div>
                         <span className="text-gray-500 text-[11px] block">Total Paid Till Date</span>
-                        <strong className="text-emerald-700 text-sm font-black">₹{totalPaid.toLocaleString()}</strong>
+                        <strong className="text-emerald-700 text-xs sm:text-sm font-black">₹{totalPaid.toLocaleString()}</strong>
                       </div>
                       <div>
                         <span className="text-gray-500 text-[11px] block">Remaining Due</span>
-                        <strong className="text-rose-700 text-sm font-black">₹{balanceRemaining.toLocaleString()}</strong>
+                        <strong className="text-rose-700 text-xs sm:text-sm font-black">₹{balanceRemaining.toLocaleString()}</strong>
                       </div>
                     </div>
                   </div>
 
                   {/* ITEM-WISE CALCULATION BREAKDOWN FORMULA BANNER (User Request: 300 x 5 = 1500, 500 x 3 = 1500, etc.) */}
-                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 rounded-2xl p-4 space-y-3 shadow-2xs">
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-2">
-                      <div className="flex items-center gap-2">
+                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 rounded-2xl p-3 sm:p-4 space-y-2.5 sm:space-y-3 shadow-2xs">
+                    <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-amber-200 pb-2">
+                      <div className="flex items-center gap-1.5">
                         <span className="bg-[#7A1416] text-white p-1 rounded-md">
                           <Receipt className="w-3.5 h-3.5" />
                         </span>
@@ -2342,7 +2350,7 @@ _Sai Yogi Crackers_`;
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                       {enrolledSchemes.map((schItem, idx) => {
                         const rate = schItem.monthlyAmountPerPerson || schItem.monthlyAmount || schItem.price || 0;
                         const count = schItem.personCount || 1;
@@ -2364,9 +2372,9 @@ _Sai Yogi Crackers_`;
                       })}
                     </div>
 
-                    <div className="bg-white/90 border border-amber-300 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
-                      <div className="font-mono font-bold text-gray-800 text-[11px]">
-                        <span className="text-gray-500 font-sans">Calculation Summary: </span>
+                    <div className="bg-white/90 border border-amber-300 rounded-xl p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                      <div className="font-mono font-bold text-gray-800 text-[11px] break-words">
+                        <span className="text-gray-500 font-sans">Formula Summary: </span>
                         <span className="text-[#7A1416] font-black">
                           {enrolledSchemes.map(s => {
                             const rate = s.monthlyAmountPerPerson || s.monthlyAmount || s.price || 0;
@@ -2375,12 +2383,12 @@ _Sai Yogi Crackers_`;
                           }).join(" + ")}
                         </span>
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-between sm:justify-end gap-3 pt-1 sm:pt-0 border-t sm:border-t-0 border-amber-100">
                         <div className="font-bold text-gray-700">
-                          Total Persons: <span className="font-black text-[#7A1416] text-sm">{totalPersons}</span>
+                          Persons: <span className="font-black text-[#7A1416]">{totalPersons}</span>
                         </div>
                         <div className="font-bold text-gray-700">
-                          Monthly Payable: <span className="font-black text-emerald-700 text-sm">₹{combinedMonthly.toLocaleString()}</span>
+                          Monthly: <span className="font-black text-emerald-700">₹{combinedMonthly.toLocaleString()} / mo</span>
                         </div>
                       </div>
                     </div>
@@ -2388,16 +2396,19 @@ _Sai Yogi Crackers_`;
 
                   {/* SCHEME-WISE BREAKDOWN TABLE (REQUIREMENT 4) */}
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-1">
                       <h4 className="font-extrabold text-[#2A1B54] text-xs uppercase tracking-wide flex items-center gap-1.5">
                         <Gift className="w-4 h-4 text-[#7A1416]" />
                         <span>Scheme-Wise Enrollment Breakdown ({enrolledSchemes.length} Scheme{enrolledSchemes.length > 1 ? 's' : ''})</span>
                       </h4>
-                      <span className="text-[11px] text-gray-500 font-medium">Click "View Schedule" to see month-wise passbook</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-gray-500 font-medium sm:hidden">👉 Swipe table to view all</span>
+                        <span className="hidden sm:inline text-[11px] text-gray-500 font-medium">Click "View Schedule" to see month-wise passbook</span>
+                      </div>
                     </div>
 
                     <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-2xs">
-                      <table className="w-full text-left border-collapse text-xs">
+                      <table className="w-full text-left border-collapse text-xs min-w-[760px]">
                         <thead>
                           <tr className="bg-gray-100 text-gray-700 uppercase font-extrabold tracking-wider border-b border-gray-200">
                             <th className="p-3">Scheme Name</th>
@@ -2582,7 +2593,7 @@ _Sai Yogi Crackers_`;
                     )}
 
                     <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
-                      <table className="w-full text-left border-collapse text-xs">
+                      <table className="w-full text-left border-collapse text-xs min-w-[650px]">
                         <thead>
                           <tr className="bg-gray-100 text-gray-700 uppercase font-extrabold tracking-wider border-b border-gray-200">
                             <th className="p-3.5 w-14 text-center">#</th>

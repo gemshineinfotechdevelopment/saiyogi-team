@@ -254,10 +254,6 @@ const ChitScheme: React.FC = () => {
         ];
       }
     });
-
-    if (formRef.current) {
-      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
   };
 
   const handleRemoveScheme = (index: number) => {

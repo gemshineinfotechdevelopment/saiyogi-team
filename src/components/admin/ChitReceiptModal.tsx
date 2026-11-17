@@ -166,6 +166,9 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
               color: #1e293b !important;
               font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
             }
+            img {
+              display: inline-block !important;
+            }
             .print-receipt-container {
               width: 720px !important;
               max-width: 720px !important;
@@ -293,6 +296,19 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
           clonedElement.style.margin = "0 auto";
           clonedElement.style.padding = "24px";
 
+          // Fix Tailwind img preflight reset (display: block) which shifts text baselines in html2canvas
+          const images = clonedElement.querySelectorAll("img");
+          images.forEach((img) => {
+            img.style.display = "inline-block";
+          });
+
+          // Ensure all text elements have overflow visible and clear line-height so character tops are never clipped
+          const allTextSpans = clonedElement.querySelectorAll("span, strong, p, td, th");
+          allTextSpans.forEach((el) => {
+            const hEl = el as HTMLElement;
+            hEl.style.overflow = "visible";
+          });
+
           // Force 2 columns on Subscriber & Scheme Enrollment grid
           const subGrid = clonedElement.querySelector(".subscriber-grid") as HTMLElement | null;
           if (subGrid) {
@@ -408,19 +424,19 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl w-[96vw] sm:w-full p-3 sm:p-7 bg-white rounded-3xl font-sans max-h-[95vh] overflow-y-auto space-y-4">
-        <DialogHeader className="border-b border-gray-100 pb-3 flex flex-row items-center justify-between">
-          <div>
-            <DialogTitle className="text-lg font-extrabold text-[#2A1B54] flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+      <DialogContent className="max-w-3xl w-[96vw] sm:w-full p-4 sm:p-7 bg-white rounded-3xl font-sans max-h-[95vh] overflow-y-auto space-y-4">
+        <DialogHeader className="border-b border-gray-100 pb-3 pr-10 sm:pr-12 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="pr-1">
+            <DialogTitle className="text-base sm:text-lg font-extrabold text-[#2A1B54] flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
               <span>Chit Scheme Official Payment Receipt</span>
             </DialogTitle>
-            <DialogDescription className="text-xs text-gray-500 font-medium">
+            <DialogDescription className="text-xs text-gray-500 font-medium mt-0.5">
               Receipt No: <span className="font-mono font-bold text-gray-800">{formattedReceiptNo}</span>
             </DialogDescription>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={handlePrint}
@@ -507,11 +523,22 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
                   <strong className="text-gray-900 font-mono font-bold text-right leading-normal">{receipt.phone}</strong>
                 </div>
                 {receipt.email && (
-                  <div className="flex justify-between items-start gap-2 py-0.5">
-                    <span className="text-gray-500 font-medium shrink-0">Email:</span>
-                    <span className="text-gray-800 font-semibold break-all text-right text-xs leading-normal select-all">
+                  <div className="flex justify-between items-start gap-2 py-1">
+                    <span className="text-gray-500 font-medium shrink-0 pt-0.5">Email:</span>
+                    <strong
+                      className="text-gray-900 font-semibold text-right text-xs break-words leading-relaxed"
+                      style={{
+                        wordBreak: "break-word",
+                        overflowWrap: "break-word",
+                        lineHeight: 1.6,
+                        display: "inline-block",
+                        paddingTop: "2px",
+                        paddingBottom: "1px",
+                        overflow: "visible"
+                      }}
+                    >
                       {receipt.email}
-                    </span>
+                    </strong>
                   </div>
                 )}
                 <div className="flex justify-between items-start gap-2">
