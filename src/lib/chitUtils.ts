@@ -429,7 +429,10 @@ export const downloadChitReceiptPDF = async (
   tempDiv.style.position = 'absolute';
   tempDiv.style.left = '-9999px';
   tempDiv.style.top = '0';
-  tempDiv.style.width = '680px';
+  tempDiv.style.width = '700px';
+  tempDiv.style.minWidth = '700px';
+  tempDiv.style.maxWidth = '700px';
+  tempDiv.style.boxSizing = 'border-box';
   tempDiv.style.backgroundColor = '#ffffff';
   document.body.appendChild(tempDiv);
 
@@ -443,12 +446,18 @@ export const downloadChitReceiptPDF = async (
       backgroundColor: "#ffffff",
       allowTaint: true,
       useCORS: true,
+      windowWidth: 1024,
+      windowHeight: 1440,
       onclone: (clonedDoc) => {
         const clonedTarget = clonedDoc.getElementById('chit-receipt-pdf-container');
         if (clonedTarget) {
           clonedTarget.style.position = 'static';
           clonedTarget.style.left = '0';
           clonedTarget.style.top = '0';
+          clonedTarget.style.width = '700px';
+          clonedTarget.style.minWidth = '700px';
+          clonedTarget.style.maxWidth = '700px';
+          clonedTarget.style.boxSizing = 'border-box';
           clonedTarget.style.opacity = '1';
         }
       }

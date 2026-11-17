@@ -862,13 +862,22 @@ const AdminChitScheme: React.FC = () => {
     tempDiv.innerHTML = html;
     tempDiv.style.position = 'absolute';
     tempDiv.style.left = '-9999px';
-    tempDiv.style.width = '680px';
+    tempDiv.style.top = '0';
+    tempDiv.style.width = '700px';
+    tempDiv.style.minWidth = '700px';
+    tempDiv.style.maxWidth = '700px';
+    tempDiv.style.boxSizing = 'border-box';
     document.body.appendChild(tempDiv);
 
     toast.loading("Generating & Downloading PDF Receipt...", { id: "pdf-toast" });
 
     import("html2canvas").then((html2canvas) => {
-      html2canvas.default(tempDiv, { scale: 2, backgroundColor: "#ffffff" }).then((canvas) => {
+      html2canvas.default(tempDiv, {
+        scale: 2,
+        backgroundColor: "#ffffff",
+        windowWidth: 1024,
+        windowHeight: 1440
+      }).then((canvas) => {
         import("jspdf").then((jsPDF) => {
           const pdf = new jsPDF.jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
           const imgData = canvas.toDataURL("image/jpeg", 0.95);

@@ -167,11 +167,34 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
               font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
             }
             .print-receipt-container {
-              width: 100% !important;
+              width: 720px !important;
               max-width: 720px !important;
+              min-width: 720px !important;
               margin: 0 auto !important;
               background: #ffffff !important;
               padding: 2px !important;
+            }
+            .subscriber-grid {
+              display: grid !important;
+              grid-template-columns: 1fr 1fr !important;
+              gap: 14px !important;
+            }
+            .payment-grid-4 {
+              display: grid !important;
+              grid-template-columns: repeat(4, 1fr) !important;
+              gap: 10px !important;
+            }
+            .receipt-top-bar {
+              display: flex !important;
+              justify-content: space-between !important;
+              align-items: center !important;
+              flex-wrap: nowrap !important;
+            }
+            .summary-card {
+              display: flex !important;
+              justify-content: space-between !important;
+              align-items: center !important;
+              flex-wrap: nowrap !important;
             }
             /* Clean Multi-Page Flow: Never cut cards or table rows in half */
             .print-avoid-break,
@@ -238,11 +261,80 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
       const jsPDFModule = await import("jspdf");
 
       const canvas = await html2canvasModule.default(receiptRef.current, {
-        scale: 2.5,
+        scale: 2,
         backgroundColor: "#ffffff",
         allowTaint: true,
         useCORS: true,
-        logging: false
+        logging: false,
+        windowWidth: 1024,
+        windowHeight: 1440,
+        onclone: (clonedDoc, clonedElement) => {
+          // Normalize parent chain in cloned document so mobile viewport doesn't constrain width or wrap columns
+          let parent = clonedElement.parentElement;
+          while (parent && parent !== clonedDoc.body) {
+            parent.style.width = "auto";
+            parent.style.maxWidth = "none";
+            parent.style.overflow = "visible";
+            parent.style.padding = "0";
+            parent.style.margin = "0";
+            parent = parent.parentElement;
+          }
+          if (clonedDoc.body) {
+            clonedDoc.body.style.width = "1024px";
+            clonedDoc.body.style.minWidth = "1024px";
+            clonedDoc.body.style.overflow = "visible";
+          }
+
+          // Force standard desktop A4 receipt dimensions (720px) on mobile and desktop
+          clonedElement.style.width = "720px";
+          clonedElement.style.minWidth = "720px";
+          clonedElement.style.maxWidth = "720px";
+          clonedElement.style.boxSizing = "border-box";
+          clonedElement.style.margin = "0 auto";
+          clonedElement.style.padding = "24px";
+
+          // Force 2 columns on Subscriber & Scheme Enrollment grid
+          const subGrid = clonedElement.querySelector(".subscriber-grid") as HTMLElement | null;
+          if (subGrid) {
+            subGrid.style.display = "grid";
+            subGrid.style.gridTemplateColumns = "1fr 1fr";
+            subGrid.style.gap = "14px";
+          }
+
+          // Force 1-row layout on Top Bar
+          const topBar = clonedElement.querySelector(".receipt-top-bar") as HTMLElement | null;
+          if (topBar) {
+            topBar.style.display = "flex";
+            topBar.style.flexDirection = "row";
+            topBar.style.justifyContent = "space-between";
+            topBar.style.alignItems = "center";
+            topBar.style.flexWrap = "nowrap";
+          }
+
+          // Force 4 columns on Payment Details grid
+          const payGrid = clonedElement.querySelector(".payment-grid-4") as HTMLElement | null;
+          if (payGrid) {
+            payGrid.style.display = "grid";
+            payGrid.style.gridTemplateColumns = "repeat(4, 1fr)";
+            payGrid.style.gap = "12px";
+          }
+
+          // Force 1-row layout on Summary Card
+          const sumCard = clonedElement.querySelector(".summary-card") as HTMLElement | null;
+          if (sumCard) {
+            sumCard.style.display = "flex";
+            sumCard.style.flexDirection = "row";
+            sumCard.style.justifyContent = "space-between";
+            sumCard.style.alignItems = "center";
+            sumCard.style.flexWrap = "nowrap";
+          }
+
+          // Ensure table has 100% width
+          const tables = clonedElement.querySelectorAll("table");
+          tables.forEach((tbl) => {
+            (tbl as HTMLElement).style.width = "100%";
+          });
+        }
       });
 
       const pdf = new jsPDFModule.jsPDF({
@@ -316,7 +408,7 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl p-6 sm:p-7 bg-white rounded-3xl font-sans max-h-[95vh] overflow-y-auto space-y-4">
+      <DialogContent className="max-w-3xl w-[96vw] sm:w-full p-3 sm:p-7 bg-white rounded-3xl font-sans max-h-[95vh] overflow-y-auto space-y-4">
         <DialogHeader className="border-b border-gray-100 pb-3 flex flex-row items-center justify-between">
           <div>
             <DialogTitle className="text-lg font-extrabold text-[#2A1B54] flex items-center gap-2">
@@ -351,54 +443,55 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
           </div>
         </DialogHeader>
 
-        {/* RECEIPT PAPER CONTAINER (Target for PDF & Print) */}
-        <div
-          ref={receiptRef}
-          className="bg-white border-2 border-[#7A1416] rounded-2xl p-6 text-gray-800 space-y-4 shadow-sm"
-        >
-          {/* Header with Logo & Shop Info */}
-          <div className="text-center border-b-2 border-[#7A1416] pb-3 space-y-1">
-            <div className="flex items-center justify-center gap-3">
-              <img
-                src={logoUrl}
-                alt="Logo"
-                className="h-10 w-auto object-contain"
-                onError={(e) => {
-                  (e.target as HTMLElement).style.display = "none";
-                }}
-              />
-              <h1 className="text-xl sm:text-2xl font-black text-[#7A1416] uppercase tracking-wide">
-                SAI YOGI CRACKERS
-              </h1>
-            </div>
-            <p className="text-xs font-bold text-gray-700 tracking-wider">
-              MONTHLY CHIT SCHEME PAYMENT RECEIPT
-            </p>
-            <p className="text-[11px] text-gray-500 font-medium">
-              {companyAddress} • Mobile: {companyPhone}
-            </p>
-          </div>
-
-          {/* Top Bar: Receipt Number & Date */}
-          <div className="flex flex-wrap items-center justify-between gap-2 bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs">
-            <div>
-              <span className="text-gray-500 block text-[11px]">Receipt Number:</span>
-              <strong className="text-[#7A1416] font-mono text-sm font-extrabold">{formattedReceiptNo}</strong>
-            </div>
-            {formattedAppNo && (
-              <div>
-                <span className="text-gray-500 block text-[11px]">Application No:</span>
-                <strong className="text-gray-800 font-mono font-bold">{formattedAppNo}</strong>
+        {/* RECEIPT PAPER CONTAINER WRAPPER (Allows clean horizontal scroll on small mobile screens while maintaining desktop dimensions) */}
+        <div className="overflow-x-auto w-full pb-2 -mx-1 sm:mx-0">
+          <div
+            ref={receiptRef}
+            className="w-full min-w-[580px] sm:min-w-0 max-w-[720px] mx-auto bg-white border-2 border-[#7A1416] rounded-2xl p-4 sm:p-6 text-gray-800 space-y-4 shadow-sm"
+          >
+            {/* Header with Logo & Shop Info */}
+            <div className="text-center border-b-2 border-[#7A1416] pb-3 space-y-1">
+              <div className="flex items-center justify-center gap-3">
+                <img
+                  src={logoUrl}
+                  alt="Logo"
+                  className="h-10 w-auto object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = "none";
+                  }}
+                />
+                <h1 className="text-xl sm:text-2xl font-black text-[#7A1416] uppercase tracking-wide">
+                  SAI YOGI CRACKERS
+                </h1>
               </div>
-            )}
-            <div className="text-right">
-              <span className="text-gray-500 block text-[11px]">Payment Date:</span>
-              <strong className="text-gray-800 font-bold">{formattedDate}</strong>
+              <p className="text-xs font-bold text-gray-700 tracking-wider">
+                MONTHLY CHIT SCHEME PAYMENT RECEIPT
+              </p>
+              <p className="text-[11px] text-gray-500 font-medium">
+                {companyAddress} • Mobile: {companyPhone}
+              </p>
             </div>
-          </div>
 
-          {/* Subscriber & Scheme Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs print-grid-2 print-avoid-break subscriber-grid">
+            {/* Top Bar: Receipt Number & Date */}
+            <div className="receipt-top-bar flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs">
+              <div>
+                <span className="text-gray-500 block text-[11px]">Receipt Number:</span>
+                <strong className="text-[#7A1416] font-mono text-sm font-extrabold">{formattedReceiptNo}</strong>
+              </div>
+              {formattedAppNo && (
+                <div>
+                  <span className="text-gray-500 block text-[11px]">Application No:</span>
+                  <strong className="text-gray-800 font-mono font-bold">{formattedAppNo}</strong>
+                </div>
+              )}
+              <div className="text-right">
+                <span className="text-gray-500 block text-[11px]">Payment Date:</span>
+                <strong className="text-gray-800 font-bold">{formattedDate}</strong>
+              </div>
+            </div>
+
+            {/* Subscriber & Scheme Grid */}
+            <div className="subscriber-grid grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs print-grid-2 print-avoid-break">
             {/* Subscriber Info */}
             <div className="bg-gray-50/80 border border-gray-200/80 rounded-xl p-3 space-y-1.5">
               <div className="font-extrabold text-[#7A1416] text-[11px] uppercase tracking-wider border-b border-gray-200 pb-1">
@@ -637,6 +730,7 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
             </div>
           </div>
         </div>
+      </div>
 
         {/* Modal Close Button */}
         <div className="flex justify-end pt-2">
