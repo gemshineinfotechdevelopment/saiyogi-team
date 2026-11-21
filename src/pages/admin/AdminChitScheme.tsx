@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminNavbar from "@/components/layout/AdminNavbar";
 import {
@@ -100,6 +101,62 @@ const AdminChitScheme: React.FC = () => {
   const [paymentFilter, setPaymentFilter] = useState<"all" | "Paid" | "Pending">("all");
   const [dateSortOrder, setDateSortOrder] = useState<'desc' | 'asc'>('desc');
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
+  // Pagination for Customer Applications List (25 per page, maintains current page on refresh)
+  const ITEMS_PER_PAGE = 25;
+  const CHIT_PAGE_STORAGE_KEY = "admin_chit_scheme_page";
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const getSavedPage = () => {
+    // 1. Check URL query parameter first (?page=X)
+    const urlPage = searchParams.get("page");
+    if (urlPage) {
+      const parsed = parseInt(urlPage, 10);
+      if (!isNaN(parsed) && parsed > 0) return parsed;
+    }
+    // 2. Check localStorage fallback
+    try {
+      const stored = localStorage.getItem(CHIT_PAGE_STORAGE_KEY);
+      if (stored) {
+        const parsed = parseInt(stored, 10);
+        if (!isNaN(parsed) && parsed > 0) return parsed;
+      }
+    } catch {
+      // ignore
+    }
+    return 1;
+  };
+
+  const [currentPage, setCurrentPage] = useState<number>(getSavedPage);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    try {
+      localStorage.setItem(CHIT_PAGE_STORAGE_KEY, String(newPage));
+    } catch {
+      // ignore
+    }
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (newPage === 1) {
+        next.delete("page");
+      } else {
+        next.set("page", String(newPage));
+      }
+      return next;
+    }, { replace: true });
+  };
+
+  // Sync state if URL changes externally (e.g. browser back/forward)
+  useEffect(() => {
+    const urlPage = searchParams.get("page");
+    if (urlPage) {
+      const parsed = parseInt(urlPage, 10);
+      if (!isNaN(parsed) && parsed > 0 && parsed !== currentPage) {
+        setCurrentPage(parsed);
+      }
+    }
+  }, [searchParams]);
 
   // Create Scheme Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -251,13 +308,6 @@ const AdminChitScheme: React.FC = () => {
   useEffect(() => {
     loadChitSchemes();
     loadSubscriptions();
-
-    const interval = setInterval(() => {
-      loadChitSchemes();
-      loadSubscriptions();
-    }, 15000);
-
-    return () => clearInterval(interval);
   }, []);
 
   // File Select for New Scheme
@@ -983,6 +1033,73 @@ _Sai Yogi Crackers_`;
     });
   }, [subscriptions, searchQuery, schemeFilter, approvalFilter, paymentFilter, dateSortOrder]);
 
+  // Pagination Calculations (25 customers per page)
+  const totalPages = Math.ceil(filteredSubscriptions.length / ITEMS_PER_PAGE) || 1;
+
+  // Clamp current page if filters reduce total pages below currentPage
+  useEffect(() => {
+    if (filteredSubscriptions.length > 0 && currentPage > totalPages) {
+      handlePageChange(totalPages);
+    }
+  }, [totalPages, filteredSubscriptions.length]);
+
+  const paginatedSubscriptions = React.useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredSubscriptions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredSubscriptions, currentPage]);
+
+  const renderPaginationItems = () => {
+    const pages: (number | string)[] = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible + 2) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      let start = Math.max(2, currentPage - 1);
+      let end = Math.min(totalPages - 1, currentPage + 1);
+
+      if (currentPage <= 3) {
+        start = 2;
+        end = 4;
+      } else if (currentPage >= totalPages - 2) {
+        start = totalPages - 3;
+        end = totalPages - 1;
+      }
+
+      pages.push(1);
+      if (start > 2) pages.push("...");
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (end < totalPages - 1) pages.push("...");
+      pages.push(totalPages);
+    }
+
+    return pages.map((p, idx) => {
+      if (p === "...") {
+        return (
+          <span key={`dots-${idx}`} className="px-2 py-1 text-xs text-gray-400 font-bold select-none">
+            ...
+          </span>
+        );
+      }
+      const pageNum = p as number;
+      const isActive = pageNum === currentPage;
+      return (
+        <button
+          key={pageNum}
+          type="button"
+          onClick={() => handlePageChange(pageNum)}
+          className={`min-w-[32px] h-8 px-2 text-xs font-extrabold rounded-xl transition-all cursor-pointer ${
+            isActive
+              ? "bg-[#7A1416] text-white shadow-xs"
+              : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+          }`}
+        >
+          {pageNum}
+        </button>
+      );
+    });
+  };
+
   // Export Chit Scheme Applications to Excel
   const handleExportChitScheme = (options: { dateSortOrder: 'desc' | 'asc'; startDate?: string; endDate?: string }) => {
     return exportChitSubscriptionsToExcel(filteredSubscriptions, schemes, {
@@ -1120,6 +1237,22 @@ _Sai Yogi Crackers_`;
               </div>
 
               <div className="flex flex-wrap items-center gap-2.5">
+                {/* Refresh Applications Button (Manual on-demand refresh since auto-refresh is removed) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    loadSubscriptions();
+                    loadChitSchemes();
+                    toast.success("Customer applications refreshed");
+                  }}
+                  disabled={loadingSubscriptions}
+                  className="bg-white hover:bg-gray-100 active:scale-[0.98] text-gray-700 font-extrabold text-xs px-3 py-2 rounded-xl border border-gray-300 transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  title="Refresh Customer Applications List"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loadingSubscriptions ? "animate-spin text-[#7A1416]" : ""}`} />
+                  <span>Refresh</span>
+                </button>
+
                 {/* Download Excel Button */}
                 <button
                   type="button"
@@ -1151,7 +1284,10 @@ _Sai Yogi Crackers_`;
                   type="text"
                   placeholder="Search name, mobile, scheme..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    handlePageChange(1);
+                  }}
                   className="w-full text-xs p-2.5 pl-9 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none font-medium"
                 />
               </div>
@@ -1160,7 +1296,10 @@ _Sai Yogi Crackers_`;
               <div>
                 <select
                   value={schemeFilter}
-                  onChange={(e) => setSchemeFilter(e.target.value)}
+                  onChange={(e) => {
+                    setSchemeFilter(e.target.value);
+                    handlePageChange(1);
+                  }}
                   className="w-full text-xs p-2.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none font-semibold text-gray-700"
                 >
                   <option value="all">All Schemes ▼</option>
@@ -1176,7 +1315,10 @@ _Sai Yogi Crackers_`;
               <div>
                 <select
                   value={approvalFilter}
-                  onChange={(e) => setApprovalFilter(e.target.value as any)}
+                  onChange={(e) => {
+                    setApprovalFilter(e.target.value as any);
+                    handlePageChange(1);
+                  }}
                   className="w-full text-xs p-2.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none font-semibold text-gray-700"
                 >
                   <option value="all">Approval: All ▼</option>
@@ -1190,7 +1332,10 @@ _Sai Yogi Crackers_`;
               <div>
                 <select
                   value={paymentFilter}
-                  onChange={(e) => setPaymentFilter(e.target.value as any)}
+                  onChange={(e) => {
+                    setPaymentFilter(e.target.value as any);
+                    handlePageChange(1);
+                  }}
                   className="w-full text-xs p-2.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none font-semibold text-gray-700"
                 >
                   <option value="all">Payment: All ▼</option>
@@ -1203,7 +1348,10 @@ _Sai Yogi Crackers_`;
               <div>
                 <select
                   value={dateSortOrder}
-                  onChange={(e) => setDateSortOrder(e.target.value as any)}
+                  onChange={(e) => {
+                    setDateSortOrder(e.target.value as any);
+                    handlePageChange(1);
+                  }}
                   className="w-full text-xs p-2.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7A1416]/20 focus:border-[#7A1416] outline-none font-semibold text-gray-700 cursor-pointer"
                   title="Date Sorting Option"
                 >
@@ -1224,23 +1372,24 @@ _Sai Yogi Crackers_`;
                 No customer chit applications found matching filters.
               </div>
             ) : (
-              <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
-                <table className="w-full text-left border-collapse min-w-[850px]">
-                  <thead>
-                    <tr className="bg-gray-100/90 text-gray-700 text-xs uppercase font-extrabold tracking-wider border-b border-gray-200">
-                      <th className="p-4">Customer &amp; App ID</th>
-                      <th className="p-4">Contact Info</th>
-                      <th className="p-4">Selected Schemes</th>
-                      <th className="p-4 text-center">Total Persons</th>
-                      <th className="p-4 text-right">Monthly Total</th>
-                      <th className="p-4 text-right">Grand Total</th>
-                      <th className="p-4 text-center">Status</th>
-                      <th className="p-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 text-xs">
-                    {filteredSubscriptions.map((sub, idx) => {
-                      const id = sub._id || sub.id || String(idx);
+              <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-2xs">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse min-w-[850px]">
+                    <thead>
+                      <tr className="bg-gray-100/90 text-gray-700 text-xs uppercase font-extrabold tracking-wider border-b border-gray-200">
+                        <th className="p-4">Customer &amp; App ID</th>
+                        <th className="p-4">Contact Info</th>
+                        <th className="p-4">Selected Schemes</th>
+                        <th className="p-4 text-center">Total Persons</th>
+                        <th className="p-4 text-right">Monthly Total</th>
+                        <th className="p-4 text-right">Grand Total</th>
+                        <th className="p-4 text-center">Status</th>
+                        <th className="p-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-xs">
+                      {paginatedSubscriptions.map((sub, idx) => {
+                        const id = sub._id || sub.id || String(idx);
                       const currentApproval = sub.approvalStatus || (sub.status === 'Paid' || sub.status === 'Approved' ? 'Approved' : (sub.status === 'Rejected' ? 'Rejected' : 'Pending'));
                       const enrolledSchemes = (sub.schemes && sub.schemes.length > 0) ? sub.schemes : null;
                       const schemeCount = enrolledSchemes ? enrolledSchemes.length : 1;
@@ -1404,8 +1553,47 @@ _Sai Yogi Crackers_`;
                   </tbody>
                 </table>
               </div>
-            )}
-          </div>
+
+              {/* Pagination Controls Bar */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-gray-200 bg-gray-50/80">
+                <div className="text-xs text-gray-600 font-medium">
+                  Showing <span className="font-bold text-gray-900">{Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, filteredSubscriptions.length)}</span> to{" "}
+                  <span className="font-bold text-gray-900">{Math.min(currentPage * ITEMS_PER_PAGE, filteredSubscriptions.length)}</span> of{" "}
+                  <span className="font-bold text-[#7A1416]">{filteredSubscriptions.length}</span> customer applications
+                  {totalPages > 1 && (
+                    <span className="ml-1.5 text-gray-500 font-semibold">(Page {currentPage} of {totalPages})</span>
+                  )}
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                    <button
+                      type="button"
+                      onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-2xs cursor-pointer flex items-center gap-1"
+                    >
+                      Previous
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                      {renderPaginationItems()}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages || totalPages === 0}
+                      className="px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-2xs cursor-pointer flex items-center gap-1"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
           {/* SECTION 2: SCHEMES MANAGEMENT TABLE / CARDS */}
           <div className="bg-white rounded-3xl border border-gray-200/90 shadow-2xs p-6 space-y-6">
