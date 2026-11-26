@@ -2797,6 +2797,7 @@ const AdminChitScheme: React.FC = () => {
                         <tbody className="divide-y divide-gray-100">
                           {schemeMonthList.map((mNum) => {
                             const existingLog = (activeScheme.monthlyPayments || []).find(p => p.monthNumber === mNum);
+                            const monthName = existingLog?.monthName || existingLog?.installmentMonth || `Month ${mNum}`;
                             const isPaid = existingLog && ['Paid', 'Late Pay', 'Advanced Payment', 'Advance Payment', 'On-time Payment', 'Delay Payment'].includes(existingLog.status || '');
                             const timingStatus = existingLog?.status || (isPaid ? 'Paid' : 'Pending');
                             const receiptNumber = existingLog?.receiptNumber ? existingLog.receiptNumber.replace(/^AB-CHIT-/i, "SY-CHIT-") : (isPaid ? `SY-CHIT-000${mNum}` : '-');
@@ -2913,7 +2914,7 @@ const AdminChitScheme: React.FC = () => {
                                           handleShareWhatsAppReceipt(
                                             sub,
                                             mNum,
-                                            mName,
+                                            monthName,
                                             existingLog?.amount || schemeMonthlyTotal,
                                             existingLog?.paidAt,
                                             existingLog?.paymentMethod,
