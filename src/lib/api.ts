@@ -698,6 +698,7 @@ export async function deleteChitScheme(id: string): Promise<{ message: string }>
 export interface MonthlyPaymentLog {
   monthNumber: number;
   monthName?: string;
+  installmentMonth?: string;
   dueDate?: string;
   expectedAmount?: number;
   amount?: number;
