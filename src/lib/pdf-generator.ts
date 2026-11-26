@@ -4,6 +4,8 @@
  */
 
 import saiyogiLogo from "@/assets/saiyogi-logo-1.png";
+import { toast } from "sonner";
+import { sharePdfToWhatsApp } from "@/lib/whatsapp-share";
 
 export interface OrderItem {
   productName: string;
@@ -150,6 +152,105 @@ export function promptAndPrintOrderReceipt(orderData: OrderData) {
 
 export function promptAndDownloadOrderReceiptPDF(orderData: OrderData) {
   downloadOrderReceiptPDF(orderData, 1);
+}
+
+/**
+ * Generate Order Receipt as in-memory PDF Blob without triggering a disk download
+ */
+export async function generateOrderReceiptPDFBlob(orderData: OrderData, copies: number = 1): Promise<Blob> {
+  const html = generateReceiptHTML(orderData, copies);
+
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = html;
+  tempDiv.style.position = "absolute";
+  tempDiv.style.left = "-9999px";
+  tempDiv.style.width = "210mm";
+  document.body.appendChild(tempDiv);
+
+  const cleanup = () => {
+    if (document.body.contains(tempDiv)) {
+      document.body.removeChild(tempDiv);
+    }
+  };
+
+  try {
+    const html2canvasModule = await import("html2canvas");
+    const canvas = await html2canvasModule.default(tempDiv, {
+      allowTaint: true,
+      useCORS: true,
+      scale: 1.5,
+      backgroundColor: "#ffffff",
+    });
+
+    const jsPDFModule = await import("jspdf");
+    const pdf = new jsPDFModule.jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+      compress: true,
+    });
+
+    const imgData = canvas.toDataURL("image/jpeg", 0.85);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pdfWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const pageHeight = pdfHeight;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "MEDIUM");
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0.5) {
+      position -= pageHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "MEDIUM");
+      heightLeft -= pageHeight;
+    }
+
+    cleanup();
+    const blob = pdf.output("blob");
+    return blob;
+  } catch (err) {
+    cleanup();
+    throw err;
+  }
+}
+
+/**
+ * Share Order Receipt / Bill to WhatsApp directly without downloading to local disk
+ */
+export async function shareOrderReceiptToWhatsApp(orderData: OrderData): Promise<void> {
+  toast.loading("Preparing PDF bill for WhatsApp...", { id: "wa-order-share" });
+  try {
+    const blob = await generateOrderReceiptPDFBlob(orderData);
+    const orderNo = orderData.orderNumber || new Date().getFullYear();
+    const fileName = `SaiYogi_Bill_${orderNo}.pdf`;
+    const cleanCustomerName = orderData.customerName || "Customer";
+    const totalBoxes = (orderData.items || []).reduce((sum, item) => sum + (item.quantity || 1), 0);
+    const grandTotal = Math.round(orderData.total || 0);
+
+    toast.dismiss("wa-order-share");
+
+    await sharePdfToWhatsApp({
+      pdfBlob: blob,
+      fileName,
+      customerPhone: orderData.customerPhone,
+      customerName: cleanCustomerName,
+      title: "Order Bill & Estimate",
+      summaryLines: [
+        `*Order No:* #${orderNo}`,
+        `*Date:* ${orderData.date || new Date().toLocaleDateString("en-IN")}`,
+        `*Total Items:* ${orderData.items?.length || 0} Products (${totalBoxes} Boxes)`,
+        `*Grand Total:* ₹${grandTotal.toLocaleString("en-IN")}`,
+      ],
+    });
+  } catch (err) {
+    console.error("Failed to share order PDF to WhatsApp:", err);
+    toast.error("Failed to prepare PDF for WhatsApp. Please try again.", { id: "wa-order-share" });
+  }
 }
 
 function numberToWords(n: number): string {

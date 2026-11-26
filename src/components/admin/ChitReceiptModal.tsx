@@ -1,8 +1,9 @@
 import React, { useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Download, Printer, CheckCircle2, ShieldCheck, X } from "lucide-react";
+import { Download, Printer, CheckCircle2, ShieldCheck, X, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
+import { sharePdfToWhatsApp } from "@/lib/whatsapp-share";
 
 export interface ChitReceiptSchemeItem {
   schemeName: string;
@@ -64,6 +65,7 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
   const { settings } = useSiteSettings();
   const receiptRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
   if (!receipt) return null;
 
@@ -254,164 +256,171 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
     printWindow.document.close();
   };
 
+  const generateReceiptPDFDoc = async () => {
+    if (!receiptRef.current) throw new Error("Receipt element not found");
+
+    const html2canvasModule = await import("html2canvas");
+    const jsPDFModule = await import("jspdf");
+
+    const canvas = await html2canvasModule.default(receiptRef.current, {
+      scale: 2,
+      backgroundColor: "#ffffff",
+      allowTaint: true,
+      useCORS: true,
+      logging: false,
+      windowWidth: 1024,
+      windowHeight: 1440,
+      onclone: (clonedDoc, clonedElement) => {
+        // Normalize parent chain in cloned document so mobile viewport doesn't constrain width or wrap columns
+        let parent = clonedElement.parentElement;
+        while (parent && parent !== clonedDoc.body) {
+          parent.style.width = "auto";
+          parent.style.maxWidth = "none";
+          parent.style.overflow = "visible";
+          parent.style.padding = "0";
+          parent.style.margin = "0";
+          parent = parent.parentElement;
+        }
+        if (clonedDoc.body) {
+          clonedDoc.body.style.width = "1024px";
+          clonedDoc.body.style.minWidth = "1024px";
+          clonedDoc.body.style.overflow = "visible";
+        }
+
+        // Force standard desktop A4 receipt dimensions (720px) on mobile and desktop
+        clonedElement.style.width = "720px";
+        clonedElement.style.minWidth = "720px";
+        clonedElement.style.maxWidth = "720px";
+        clonedElement.style.boxSizing = "border-box";
+        clonedElement.style.margin = "0 auto";
+        clonedElement.style.padding = "24px";
+
+        // Fix Tailwind img preflight reset (display: block) which shifts text baselines in html2canvas
+        const images = clonedElement.querySelectorAll("img");
+        images.forEach((img) => {
+          img.style.display = "inline-block";
+        });
+
+        // Ensure all text elements have overflow visible and clear line-height so character tops are never clipped
+        const allTextSpans = clonedElement.querySelectorAll("span, strong, p, td, th");
+        allTextSpans.forEach((el) => {
+          const hEl = el as HTMLElement;
+          hEl.style.overflow = "visible";
+        });
+
+        // Force 2 columns on Subscriber & Scheme Enrollment grid
+        const subGrid = clonedElement.querySelector(".subscriber-grid") as HTMLElement | null;
+        if (subGrid) {
+          subGrid.style.display = "grid";
+          subGrid.style.gridTemplateColumns = "1fr 1fr";
+          subGrid.style.gap = "14px";
+        }
+
+        // Force 1-row layout on Top Bar
+        const topBar = clonedElement.querySelector(".receipt-top-bar") as HTMLElement | null;
+        if (topBar) {
+          topBar.style.display = "flex";
+          topBar.style.flexDirection = "row";
+          topBar.style.justifyContent = "space-between";
+          topBar.style.alignItems = "center";
+          topBar.style.flexWrap = "nowrap";
+        }
+
+        // Force 4 columns on Payment Details grid
+        const payGrid = clonedElement.querySelector(".payment-grid-4") as HTMLElement | null;
+        if (payGrid) {
+          payGrid.style.display = "grid";
+          payGrid.style.gridTemplateColumns = "repeat(4, 1fr)";
+          payGrid.style.gap = "12px";
+        }
+
+        // Force 1-row layout on Summary Card
+        const sumCard = clonedElement.querySelector(".summary-card") as HTMLElement | null;
+        if (sumCard) {
+          sumCard.style.display = "flex";
+          sumCard.style.flexDirection = "row";
+          sumCard.style.justifyContent = "space-between";
+          sumCard.style.alignItems = "center";
+          sumCard.style.flexWrap = "nowrap";
+        }
+
+        // Ensure table has 100% width
+        const tables = clonedElement.querySelectorAll("table");
+        tables.forEach((tbl) => {
+          (tbl as HTMLElement).style.width = "100%";
+        });
+      }
+    });
+
+    const pdf = new jsPDFModule.jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4"
+    });
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const imgWidth = pageWidth - margin * 2;
+    const maxPageContentHeight = pageHeight - margin * 2;
+    const totalImgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    if (totalImgHeight <= maxPageContentHeight) {
+      // Fits comfortably on 1 page
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, totalImgHeight);
+    } else {
+      // Multi-page slicing: Slice canvas cleanly by page height so no content is cut off
+      const pageCanvasHeight = (canvas.width * maxPageContentHeight) / imgWidth;
+      let renderedHeight = 0;
+      let pageIndex = 0;
+
+      while (renderedHeight < canvas.height) {
+        if (pageIndex > 0) {
+          pdf.addPage();
+        }
+
+        const sliceHeight = Math.min(pageCanvasHeight, canvas.height - renderedHeight);
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeight;
+
+        const pageCtx = pageCanvas.getContext("2d");
+        if (pageCtx) {
+          pageCtx.fillStyle = "#ffffff";
+          pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+          pageCtx.drawImage(
+            canvas,
+            0,
+            renderedHeight,
+            canvas.width,
+            sliceHeight,
+            0,
+            0,
+            pageCanvas.width,
+            sliceHeight
+          );
+
+          const sliceImgData = pageCanvas.toDataURL("image/jpeg", 0.95);
+          const sliceImgHeight = (sliceHeight * imgWidth) / canvas.width;
+          pdf.addImage(sliceImgData, "JPEG", margin, margin, imgWidth, sliceImgHeight);
+        }
+
+        renderedHeight += sliceHeight;
+        pageIndex++;
+      }
+    }
+
+    return pdf;
+  };
+
   const handleDownloadPDF = async () => {
     if (!receiptRef.current) return;
     setIsDownloading(true);
     toast.loading("Generating PDF Receipt...", { id: "pdf-chit-receipt" });
 
     try {
-      const html2canvasModule = await import("html2canvas");
-      const jsPDFModule = await import("jspdf");
-
-      const canvas = await html2canvasModule.default(receiptRef.current, {
-        scale: 2,
-        backgroundColor: "#ffffff",
-        allowTaint: true,
-        useCORS: true,
-        logging: false,
-        windowWidth: 1024,
-        windowHeight: 1440,
-        onclone: (clonedDoc, clonedElement) => {
-          // Normalize parent chain in cloned document so mobile viewport doesn't constrain width or wrap columns
-          let parent = clonedElement.parentElement;
-          while (parent && parent !== clonedDoc.body) {
-            parent.style.width = "auto";
-            parent.style.maxWidth = "none";
-            parent.style.overflow = "visible";
-            parent.style.padding = "0";
-            parent.style.margin = "0";
-            parent = parent.parentElement;
-          }
-          if (clonedDoc.body) {
-            clonedDoc.body.style.width = "1024px";
-            clonedDoc.body.style.minWidth = "1024px";
-            clonedDoc.body.style.overflow = "visible";
-          }
-
-          // Force standard desktop A4 receipt dimensions (720px) on mobile and desktop
-          clonedElement.style.width = "720px";
-          clonedElement.style.minWidth = "720px";
-          clonedElement.style.maxWidth = "720px";
-          clonedElement.style.boxSizing = "border-box";
-          clonedElement.style.margin = "0 auto";
-          clonedElement.style.padding = "24px";
-
-          // Fix Tailwind img preflight reset (display: block) which shifts text baselines in html2canvas
-          const images = clonedElement.querySelectorAll("img");
-          images.forEach((img) => {
-            img.style.display = "inline-block";
-          });
-
-          // Ensure all text elements have overflow visible and clear line-height so character tops are never clipped
-          const allTextSpans = clonedElement.querySelectorAll("span, strong, p, td, th");
-          allTextSpans.forEach((el) => {
-            const hEl = el as HTMLElement;
-            hEl.style.overflow = "visible";
-          });
-
-          // Force 2 columns on Subscriber & Scheme Enrollment grid
-          const subGrid = clonedElement.querySelector(".subscriber-grid") as HTMLElement | null;
-          if (subGrid) {
-            subGrid.style.display = "grid";
-            subGrid.style.gridTemplateColumns = "1fr 1fr";
-            subGrid.style.gap = "14px";
-          }
-
-          // Force 1-row layout on Top Bar
-          const topBar = clonedElement.querySelector(".receipt-top-bar") as HTMLElement | null;
-          if (topBar) {
-            topBar.style.display = "flex";
-            topBar.style.flexDirection = "row";
-            topBar.style.justifyContent = "space-between";
-            topBar.style.alignItems = "center";
-            topBar.style.flexWrap = "nowrap";
-          }
-
-          // Force 4 columns on Payment Details grid
-          const payGrid = clonedElement.querySelector(".payment-grid-4") as HTMLElement | null;
-          if (payGrid) {
-            payGrid.style.display = "grid";
-            payGrid.style.gridTemplateColumns = "repeat(4, 1fr)";
-            payGrid.style.gap = "12px";
-          }
-
-          // Force 1-row layout on Summary Card
-          const sumCard = clonedElement.querySelector(".summary-card") as HTMLElement | null;
-          if (sumCard) {
-            sumCard.style.display = "flex";
-            sumCard.style.flexDirection = "row";
-            sumCard.style.justifyContent = "space-between";
-            sumCard.style.alignItems = "center";
-            sumCard.style.flexWrap = "nowrap";
-          }
-
-          // Ensure table has 100% width
-          const tables = clonedElement.querySelectorAll("table");
-          tables.forEach((tbl) => {
-            (tbl as HTMLElement).style.width = "100%";
-          });
-        }
-      });
-
-      const pdf = new jsPDFModule.jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4"
-      });
-
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 10;
-      const imgWidth = pageWidth - margin * 2;
-      const maxPageContentHeight = pageHeight - margin * 2;
-      const totalImgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      if (totalImgHeight <= maxPageContentHeight) {
-        // Fits comfortably on 1 page
-        const imgData = canvas.toDataURL("image/jpeg", 0.95);
-        pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, totalImgHeight);
-      } else {
-        // Multi-page slicing: Slice canvas cleanly by page height so no content is cut off
-        const pageCanvasHeight = (canvas.width * maxPageContentHeight) / imgWidth;
-        let renderedHeight = 0;
-        let pageIndex = 0;
-
-        while (renderedHeight < canvas.height) {
-          if (pageIndex > 0) {
-            pdf.addPage();
-          }
-
-          const sliceHeight = Math.min(pageCanvasHeight, canvas.height - renderedHeight);
-          const pageCanvas = document.createElement("canvas");
-          pageCanvas.width = canvas.width;
-          pageCanvas.height = sliceHeight;
-
-          const pageCtx = pageCanvas.getContext("2d");
-          if (pageCtx) {
-            pageCtx.fillStyle = "#ffffff";
-            pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-            pageCtx.drawImage(
-              canvas,
-              0,
-              renderedHeight,
-              canvas.width,
-              sliceHeight,
-              0,
-              0,
-              pageCanvas.width,
-              sliceHeight
-            );
-
-            const sliceImgData = pageCanvas.toDataURL("image/jpeg", 0.95);
-            const sliceImgHeight = (sliceHeight * imgWidth) / canvas.width;
-            pdf.addImage(sliceImgData, "JPEG", margin, margin, imgWidth, sliceImgHeight);
-          }
-
-          renderedHeight += sliceHeight;
-          pageIndex++;
-        }
-      }
-
+      const pdf = await generateReceiptPDFDoc();
       pdf.save(`Receipt_${formattedReceiptNo}_${(receipt.customerName || "Customer").replace(/\s+/g, "_")}.pdf`);
       toast.success("Receipt PDF Downloaded!", { id: "pdf-chit-receipt" });
     } catch (err) {
@@ -419,6 +428,51 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
       toast.error("Failed to generate PDF. You can use the Print option.", { id: "pdf-chit-receipt" });
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleShareWhatsApp = async () => {
+    if (!receiptRef.current) return;
+    setIsSharing(true);
+    toast.loading("Preparing PDF Receipt for WhatsApp...", { id: "wa-chit-share" });
+
+    try {
+      const pdf = await generateReceiptPDFDoc();
+      const pdfBlob = pdf.output("blob");
+      const fileName = `Receipt_${formattedReceiptNo}_${(receipt.customerName || "Customer").replace(/\s+/g, "_")}.pdf`;
+
+      toast.dismiss("wa-chit-share");
+
+      const summaryLines: string[] = [
+        `*Receipt No:* ${formattedReceiptNo}`,
+        `*Subscriber:* ${receipt.customerName || "Customer"}`,
+        `*Scheme:* ${receipt.schemeName || "Chit Scheme"}${receipt.personCount > 1 ? ` (${receipt.personCount} Persons)` : ""}`,
+        `*Installment:* ${receipt.installmentMonth || `Month ${receipt.monthNumber || 1}`}`,
+        `*Amount Paid:* ₹${(receipt.amountReceived || 0).toLocaleString("en-IN")}`,
+        `*Payment Method:* ${receipt.paymentMethod || "Cash"}`,
+        `*Date:* ${formattedDate}`,
+      ];
+
+      if (receipt.totalPaidTillDate !== undefined) {
+        summaryLines.push(`*Total Paid Till Date:* ₹${(receipt.totalPaidTillDate || 0).toLocaleString("en-IN")}`);
+      }
+      if (receipt.remainingSchemeBalance !== undefined) {
+        summaryLines.push(`*Balance Remaining:* ₹${(receipt.remainingSchemeBalance || 0).toLocaleString("en-IN")}`);
+      }
+
+      await sharePdfToWhatsApp({
+        pdfBlob,
+        fileName,
+        customerPhone: receipt.phone,
+        customerName: receipt.customerName || "Customer",
+        title: "Chit Scheme Payment Receipt",
+        summaryLines,
+      });
+    } catch (err) {
+      console.error("Failed to share chit receipt on WhatsApp:", err);
+      toast.error("Failed to prepare PDF for WhatsApp. Please try again.", { id: "wa-chit-share" });
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -436,7 +490,7 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
             </DialogDescription>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={handlePrint}
@@ -449,12 +503,22 @@ export const ChitReceiptModal: React.FC<ChitReceiptModalProps> = ({
             <button
               type="button"
               onClick={handleDownloadPDF}
-              disabled={isDownloading}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50"
+              disabled={isDownloading || isSharing}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold px-3 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50"
               title="Download PDF"
             >
               <Download className="w-3.5 h-3.5" />
               <span>{isDownloading ? "Generating..." : "Download PDF"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleShareWhatsApp}
+              disabled={isSharing || isDownloading}
+              className="bg-[#25D366] hover:bg-[#1EBE5D] text-white text-xs font-black px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50 active:scale-95"
+              title="Share PDF Receipt directly on WhatsApp without downloading"
+            >
+              <MessageCircle className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>{isSharing ? "Preparing..." : "Share on WhatsApp"}</span>
             </button>
           </div>
         </DialogHeader>

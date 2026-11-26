@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getOrders, approveOrder, updatePackingStatus, deleteOrder } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Trash2, FileSpreadsheet, Download, ArrowDownUp } from "lucide-react";
+import { Trash2, FileSpreadsheet, Download, ArrowDownUp, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Dialog,
@@ -14,7 +14,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { promptAndDownloadOrderReceiptPDF, promptAndPrintOrderReceipt } from "@/lib/pdf-generator";
+import { promptAndDownloadOrderReceiptPDF, promptAndPrintOrderReceipt, shareOrderReceiptToWhatsApp } from "@/lib/pdf-generator";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { exportOrdersToExcel } from "@/lib/excelExport";
 import { ExcelExportModal } from "@/components/admin/ExcelExportModal";
@@ -64,6 +64,19 @@ const AdminOrders = () => {
   const handlePrintPDF = (order: any) => {
     promptAndPrintOrderReceipt(getOrderData(order));
     toast.success("Preparing Print...");
+  };
+
+  const [sharingOrderId, setSharingOrderId] = useState<string | null>(null);
+
+  const handleShareWhatsAppOrder = async (order: any) => {
+    setSharingOrderId(order._id);
+    try {
+      await shareOrderReceiptToWhatsApp(getOrderData(order));
+    } catch (err) {
+      console.error("WhatsApp share failed:", err);
+    } finally {
+      setSharingOrderId(null);
+    }
   };
   const [phoneFilter, setPhoneFilter] = useState("");
   type StatusFilter = 'all' | 'approved' | 'packing';
@@ -354,6 +367,16 @@ const AdminOrders = () => {
                           </Button>
                           <Button
                             size="sm"
+                            onClick={() => handleShareWhatsAppOrder(o)}
+                            disabled={sharingOrderId === o._id}
+                            className="text-xs px-2.5 h-8 bg-[#25D366] hover:bg-[#1EBE5D] text-white flex items-center gap-1 font-bold shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50"
+                            title="Share PDF Bill directly on WhatsApp without downloading"
+                          >
+                            <MessageCircle className="h-3.5 w-3.5 stroke-[2.5]" />
+                            <span className="hidden md:inline">{sharingOrderId === o._id ? "Sharing..." : "Share"}</span>
+                          </Button>
+                          <Button
+                            size="sm"
                             variant="destructive"
                             onClick={() => handleDeleteOrder(o._id)}
                             className="text-xs px-2.5 h-8 bg-red-600 hover:bg-red-700 text-white flex items-center gap-1"
@@ -453,6 +476,15 @@ const AdminOrders = () => {
                       className="flex-1"
                     >
                       Download PDF
+                    </Button>
+                    <Button
+                      onClick={() => handleShareWhatsAppOrder(selectedOrder)}
+                      disabled={sharingOrderId === selectedOrder._id}
+                      className="flex-1 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
+                      title="Share PDF Bill directly on WhatsApp without downloading"
+                    >
+                      <MessageCircle className="h-4 w-4 stroke-[2.5]" />
+                      <span>{sharingOrderId === selectedOrder._id ? "Preparing..." : "Share on WhatsApp"}</span>
                     </Button>
                     {!selectedOrder.approved && (
                       <Button

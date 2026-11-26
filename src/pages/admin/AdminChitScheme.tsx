@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { exportChitSubscriptionsToExcel } from "@/lib/excelExport";
 import { ExcelExportModal } from "@/components/admin/ExcelExportModal";
 import { ChitReceiptModal, ChitReceiptData } from "@/components/admin/ChitReceiptModal";
+import { sharePdfToWhatsApp } from "@/lib/whatsapp-share";
 import {
   uploadImageToCloudinary,
   getChitSchemes,
@@ -919,7 +920,7 @@ const AdminChitScheme: React.FC = () => {
     tempDiv.style.boxSizing = 'border-box';
     document.body.appendChild(tempDiv);
 
-    toast.loading("Generating & Downloading PDF Receipt...", { id: "pdf-toast" });
+    toast.loading("Preparing PDF Receipt for WhatsApp...", { id: "pdf-toast" });
 
     import("html2canvas").then((html2canvas) => {
       html2canvas.default(tempDiv, {
@@ -936,7 +937,7 @@ const AdminChitScheme: React.FC = () => {
           allSpans.forEach(el => { (el as HTMLElement).style.overflow = "visible"; });
         }
       }).then((canvas) => {
-        import("jspdf").then((jsPDF) => {
+        import("jspdf").then(async (jsPDF) => {
           const pdf = new jsPDF.jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
           const imgData = canvas.toDataURL("image/jpeg", 0.95);
           const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -945,10 +946,12 @@ const AdminChitScheme: React.FC = () => {
           const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
           pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, imgHeight);
-          pdf.save(`Receipt_Month${monthNumber}_${customerName.replace(/\s+/g, '_')}.pdf`);
-          toast.success("PDF Receipt Downloaded!", { id: "pdf-toast" });
 
           if (document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
+          toast.dismiss("pdf-toast");
+
+          const pdfBlob = pdf.output("blob");
+          const fileName = `Receipt_Month${monthNumber}_${customerName.replace(/\s+/g, '_')}.pdf`;
 
           // Build WhatsApp history text lines
           const waHistoryText = historyList.map(item => {
@@ -960,30 +963,28 @@ const AdminChitScheme: React.FC = () => {
             }
           }).join('\n');
 
-          // Open WhatsApp with pre-formatted summary text & PDF note
-          const text = 
-`*SAI YOGI CRACKERS - CHIT SCHEME RECEIPT & PASSBOOK* 🧾
---------------------------------------------
-*Subscriber:* ${customerName}
-*Scheme:* ${schemeName}
-*Current Payment:* Month ${monthNumber} (${monthName})
-*Amount Paid:* ₹${amount.toLocaleString()}
-*Status:* ${timingStatus}
-*Payment Date:* ${formattedDate}
---------------------------------------------
-*PREVIOUS PAID HISTORY (Months 1 to ${monthNumber}):*
-${waHistoryText}
+          const summaryLines = [
+            `*Receipt No:* ${receiptNo}`,
+            `*Subscriber:* ${customerName}`,
+            `*Scheme:* ${schemeName}`,
+            `*Current Payment:* Month ${monthNumber} (${monthName})`,
+            `*Amount Paid:* ₹${amount.toLocaleString()}`,
+            `*Status:* ${timingStatus}`,
+            `*Payment Date:* ${formattedDate}`,
+            `*Paid History:*`,
+            waHistoryText,
+            `*Total Paid Till Date:* ₹${totalPaidTillNow.toLocaleString()} (${historyList.length}/${totalMonths} Months)`,
+            `*Remaining Balance:* ₹${remainingBalance.toLocaleString()}`,
+          ];
 
-*Total Paid Till Date:* ₹${totalPaidTillNow.toLocaleString()} (${historyList.length}/${totalMonths} Months)
-*Remaining Balance:* ₹${remainingBalance.toLocaleString()}
---------------------------------------------
-📄 PDF Receipt & Passbook Statement downloaded to your device. Please attach the PDF receipt to this chat.
-Thank you for your payment! 🙏
-_Sai Yogi Crackers_`;
-
-          const encodedText = encodeURIComponent(text);
-          const waUrl = rawPhone ? `https://api.whatsapp.com/send?phone=91${rawPhone}&text=${encodedText}` : `https://api.whatsapp.com/send?text=${encodedText}`;
-          window.open(waUrl, '_blank');
+          await sharePdfToWhatsApp({
+            pdfBlob,
+            fileName,
+            customerPhone: rawPhone,
+            customerName,
+            title: "Chit Scheme Payment Receipt & Passbook",
+            summaryLines,
+          });
         }).catch((err) => {
           console.error(err);
           toast.error("Failed to generate PDF", { id: "pdf-toast" });
@@ -2843,68 +2844,90 @@ _Sai Yogi Crackers_`;
                                 </td>
                                 <td className="p-3.5 text-right">
                                   {isPaid ? (
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setActiveReceipt({
-                                          receiptNumber: (existingLog?.receiptNumber ? existingLog.receiptNumber.replace(/^AB-CHIT-/i, "SY-CHIT-") : `SY-CHIT-000${mNum}`),
-                                          applicationNumber: (sub.applicationNumber ? sub.applicationNumber.replace(/^AB-APP-/i, "SY-APP-") : `SY-APP-${String(sub._id || sub.id).slice(-5)}`),
-                                          customerName: sub.name || "Customer",
-                                          phone: sub.phone || "",
-                                          email: sub.email,
-                                          location: sub.location,
-                                          schemeName: activeScheme.schemeName,
-                                          personCount: activeScheme.personCount,
-                                          monthlyAmountPerPerson: activeScheme.monthlyAmountPerPerson,
-                                          expectedMonthlyAmount: schemeMonthlyTotal,
-                                          amountReceived: existingLog?.amount || schemeMonthlyTotal,
-                                          paymentMethod: existingLog?.paymentMethod || "Cash",
-                                          transactionId: existingLog?.transactionNumber || existingLog?.transactionId || "",
-                                          paymentDate: existingLog?.paidAt || new Date(),
-                                          paymentStatus: "PAID",
-                                          installmentMonth: `Month ${mNum} / ${schemeDuration}`,
-                                          monthNumber: mNum,
-                                          totalPaidTillDate: activeScheme.paidAmount || 0,
-                                          remainingSchemeBalance: activeScheme.remainingAmount !== undefined ? activeScheme.remainingAmount : Math.max(0, (schemeMonthlyTotal * schemeDuration) - (activeScheme.paidAmount || 0)),
-                                          totalMonths: schemeDuration,
-                                          paidMonths: activeScheme.monthsPaid || 0,
-                                          notes: existingLog?.notes,
-                                          combinedGrandTotal: combinedGrand,
-                                          overallTotalPaid: totalPaid,
-                                          overallRemainingDue: balanceRemaining,
-                                          schemesBreakdown: enrolledSchemes.map(s => {
-                                            const rate = s.monthlyAmountPerPerson || s.monthlyAmount || s.price || 0;
-                                            const count = s.personCount || 1;
-                                            const subTotal = s.totalMonthlyAmount || (rate * count);
-                                            const sDur = s.durationMonths || s.totalMonths || 10;
-                                            const sGrand = s.totalSchemeAmount || (subTotal * sDur);
-                                            const sPaid = s.paidAmount || 0;
-                                            const sRem = s.remainingAmount !== undefined ? s.remainingAmount : Math.max(0, sGrand - sPaid);
-                                            return {
-                                              schemeName: s.schemeName,
-                                              rate,
-                                              count,
-                                              subTotal,
-                                              monthlyAmountPerPerson: rate,
-                                              personCount: count,
-                                              totalMonthlyAmount: subTotal,
-                                              durationMonths: sDur,
-                                              totalSchemeAmount: sGrand,
-                                              paidAmount: sPaid,
-                                              remainingAmount: sRem,
-                                              monthsPaid: s.monthsPaid || 0
-                                            };
-                                          }),
-                                          totalPersons: totalPersons,
-                                          combinedMonthlyPayable: combinedMonthly
-                                        });
-                                      }}
-                                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition-all shadow-2xs inline-flex items-center gap-1 cursor-pointer"
-                                      title="View / Download / Print Receipt"
-                                    >
-                                      <FileText className="w-3 h-3" />
-                                      <span>Receipt</span>
-                                    </button>
+                                    <div className="flex items-center justify-end gap-1.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setActiveReceipt({
+                                            receiptNumber: (existingLog?.receiptNumber ? existingLog.receiptNumber.replace(/^AB-CHIT-/i, "SY-CHIT-") : `SY-CHIT-000${mNum}`),
+                                            applicationNumber: (sub.applicationNumber ? sub.applicationNumber.replace(/^AB-APP-/i, "SY-APP-") : `SY-APP-${String(sub._id || sub.id).slice(-5)}`),
+                                            customerName: sub.name || "Customer",
+                                            phone: sub.phone || "",
+                                            email: sub.email,
+                                            location: sub.location,
+                                            schemeName: activeScheme.schemeName,
+                                            personCount: activeScheme.personCount,
+                                            monthlyAmountPerPerson: activeScheme.monthlyAmountPerPerson,
+                                            expectedMonthlyAmount: schemeMonthlyTotal,
+                                            amountReceived: existingLog?.amount || schemeMonthlyTotal,
+                                            paymentMethod: existingLog?.paymentMethod || "Cash",
+                                            transactionId: existingLog?.transactionNumber || existingLog?.transactionId || "",
+                                            paymentDate: existingLog?.paidAt || new Date(),
+                                            paymentStatus: "PAID",
+                                            installmentMonth: `Month ${mNum} / ${schemeDuration}`,
+                                            monthNumber: mNum,
+                                            totalPaidTillDate: activeScheme.paidAmount || 0,
+                                            remainingSchemeBalance: activeScheme.remainingAmount !== undefined ? activeScheme.remainingAmount : Math.max(0, (schemeMonthlyTotal * schemeDuration) - (activeScheme.paidAmount || 0)),
+                                            totalMonths: schemeDuration,
+                                            paidMonths: activeScheme.monthsPaid || 0,
+                                            notes: existingLog?.notes,
+                                            combinedGrandTotal: combinedGrand,
+                                            overallTotalPaid: totalPaid,
+                                            overallRemainingDue: balanceRemaining,
+                                            schemesBreakdown: enrolledSchemes.map(s => {
+                                              const rate = s.monthlyAmountPerPerson || s.monthlyAmount || s.price || 0;
+                                              const count = s.personCount || 1;
+                                              const subTotal = s.totalMonthlyAmount || (rate * count);
+                                              const sDur = s.durationMonths || s.totalMonths || 10;
+                                              const sGrand = s.totalSchemeAmount || (subTotal * sDur);
+                                              const sPaid = s.paidAmount || 0;
+                                              const sRem = s.remainingAmount !== undefined ? s.remainingAmount : Math.max(0, sGrand - sPaid);
+                                              return {
+                                                schemeName: s.schemeName,
+                                                rate,
+                                                count,
+                                                subTotal,
+                                                monthlyAmountPerPerson: rate,
+                                                personCount: count,
+                                                totalMonthlyAmount: subTotal,
+                                                durationMonths: sDur,
+                                                totalSchemeAmount: sGrand,
+                                                paidAmount: sPaid,
+                                                remainingAmount: sRem,
+                                                monthsPaid: s.monthsPaid || 0
+                                              };
+                                            }),
+                                            totalPersons: totalPersons,
+                                            combinedMonthlyPayable: combinedMonthly
+                                          });
+                                        }}
+                                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition-all shadow-2xs inline-flex items-center gap-1 cursor-pointer"
+                                        title="View / Download / Print Receipt"
+                                      >
+                                        <FileText className="w-3 h-3" />
+                                        <span>Receipt</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          handleShareWhatsAppReceipt(
+                                            sub,
+                                            mNum,
+                                            mName,
+                                            existingLog?.amount || schemeMonthlyTotal,
+                                            existingLog?.paidAt,
+                                            existingLog?.paymentMethod,
+                                            existingLog?.transactionNumber || existingLog?.transactionId,
+                                            10
+                                          );
+                                        }}
+                                        className="px-2.5 py-1 bg-[#25D366] hover:bg-[#1EBE5D] text-white rounded-lg text-[11px] font-bold transition-all shadow-2xs inline-flex items-center gap-1 cursor-pointer active:scale-95"
+                                        title="Share PDF Receipt directly on WhatsApp without downloading"
+                                      >
+                                        <MessageCircle className="w-3 h-3 stroke-[2.5]" />
+                                        <span>Share</span>
+                                      </button>
+                                    </div>
                                   ) : (
                                     <button
                                       type="button"
